@@ -201,9 +201,9 @@ void main() {
     test('audioEffects.custom round-trip — raw lavfi entries preserved',
         () async {
       await player.updateAudioEffects(
-        (e) => e.copyWith(custom: const ['lavfi-volume=2.0']),
+        (e) => e.copyWith(custom: const ['lavfi-aresample=44100']),
       );
-      expect(player.state.audioEffects.custom, ['lavfi-volume=2.0']);
+      expect(player.state.audioEffects.custom, ['lavfi-aresample=44100']);
 
       // Combined: custom + typed effect coexist.
       await player.updateAudioEffects(

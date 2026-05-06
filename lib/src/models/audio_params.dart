@@ -13,7 +13,7 @@ final class AudioParams {
   /// Sample format reported by mpv. `null` when no audio is currently
   /// being decoded. mpv occasionally emits a format string the wrapper
   /// doesn't recognise (e.g. a future-version sample type) — those fall
-  /// back to [Format.s16] via [Format.fromMpv].
+  /// back to [Format.auto] via [Format.fromMpv].
   final Format? format;
 
   /// Sample rate in Hz.

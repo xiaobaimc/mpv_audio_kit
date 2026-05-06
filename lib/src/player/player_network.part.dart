@@ -14,12 +14,44 @@ mixin _NetworkModule on _PlayerBase {
   /// `await player.setCache(state.cache.copyWith(secs: const Duration(seconds: 30)))`.
   Future<void> setCache(CacheSettings settings) async {
     _checkNotDisposed();
-    _prop('cache', settings.mode.mpvValue);
-    _prop('cache-secs', durationToSeconds(settings.secs).toStringAsFixed(3));
-    _prop('cache-on-disk', settings.onDisk ? 'yes' : 'no');
-    _prop('cache-pause', settings.pause ? 'yes' : 'no');
-    _prop('cache-pause-wait',
-        durationToSeconds(settings.pauseWait).toStringAsFixed(3));
+    final previous = state.cache;
+    final writes = <(String, String, String)>[
+      ('cache', settings.mode.mpvValue, previous.mode.mpvValue),
+      (
+        'cache-secs',
+        durationToSeconds(settings.secs).toStringAsFixed(3),
+        durationToSeconds(previous.secs).toStringAsFixed(3)
+      ),
+      (
+        'cache-on-disk',
+        settings.onDisk ? 'yes' : 'no',
+        previous.onDisk ? 'yes' : 'no'
+      ),
+      (
+        'cache-pause',
+        settings.pause ? 'yes' : 'no',
+        previous.pause ? 'yes' : 'no'
+      ),
+      (
+        'cache-pause-wait',
+        durationToSeconds(settings.pauseWait).toStringAsFixed(3),
+        durationToSeconds(previous.pauseWait).toStringAsFixed(3)
+      ),
+    ];
+    final committed = <(String, String)>[];
+    try {
+      for (final (name, value, prior) in writes) {
+        _prop(name, value);
+        committed.add((name, prior));
+      }
+    } catch (_) {
+      for (final (name, prior) in committed.reversed) {
+        try {
+          _propRc(name, prior);
+        } catch (_) {}
+      }
+      rethrow;
+    }
     _updateField(
         (s) => s.copyWith(cache: settings), _reactives.cache, settings);
   }
@@ -49,12 +81,15 @@ mixin _NetworkModule on _PlayerBase {
   ///
   /// Default 60 seconds. Pass [Duration.zero] to fall back to FFmpeg's
   /// own protocol-specific defaults. Applied to every connection attempt
-  /// mpv makes (HTTP, HTTPS, RTMP, …); mpv accepts integer seconds only,
-  /// so the value is rounded down before being sent.
+  /// mpv makes (HTTP, HTTPS, …). Sub-second precision is honoured
+  /// down to the microsecond.
   Future<void> setNetworkTimeout(Duration timeout) async {
     _checkNotDisposed();
-    final seconds = timeout.inSeconds;
-    _prop('network-timeout', seconds.toString());
+    // mpv's `network-timeout` accepts a fractional second value (e.g.
+    // "0.5"). Truncating with `inSeconds` would collapse any sub-second
+    // duration to 0, which mpv interprets as "no timeout".
+    final seconds = timeout.inMicroseconds / 1000000;
+    _prop('network-timeout', seconds.toStringAsFixed(6));
     _updateField((s) => s.copyWith(networkTimeout: timeout),
         _reactives.networkTimeout, timeout);
   }
@@ -73,14 +108,15 @@ mixin _NetworkModule on _PlayerBase {
   /// A sensible default bundle is configured automatically at player
   /// construction, so [setTlsVerify] works out of the box on every
   /// platform. Call this only to override the default — for example to
-  /// pin against a corporate root CA. Passing an empty string clears the
-  /// override; the auto-configured default is reapplied at the next
-  /// player construction.
+  /// pin against a corporate root CA. Passing an empty string restores
+  /// the auto-configured default; passing it through to mpv as a
+  /// literal `tls-ca-file=""` would silently disable peer verification.
   Future<void> setTlsCaFile(String path) async {
     _checkNotDisposed();
-    _prop('tls-ca-file', path);
-    _updateField(
-        (s) => s.copyWith(tlsCaFile: path), _reactives.tlsCaFile, path);
+    final effective = path.isEmpty ? (_autoTlsCaBundlePath ?? '') : path;
+    _prop('tls-ca-file', effective);
+    _updateField((s) => s.copyWith(tlsCaFile: effective),
+        _reactives.tlsCaFile, effective);
   }
 
   /// Sets the maximum bytes the demuxer is allowed to cache.

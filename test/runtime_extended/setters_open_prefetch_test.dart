@@ -62,15 +62,15 @@ void main() {
 
     test('prefetchState stream emits non-idle when prefetch is active',
         () async {
-      // The `prefetch-state` mpv property is part of the patched build:
-      // it reports loading / ready / used / failed during background
-      // prefetch of the next playlist item. With prefetch enabled and a
-      // 2-item playlist playing through, at least one non-idle emission
-      // must reach the typed stream — otherwise the FFI bridge for
+      // The `prefetch-state` mpv property reports
+      // loading / ready / used / failed during background prefetch of
+      // the next playlist item. With prefetch enabled and a 2-item
+      // playlist playing through, at least one non-idle emission must
+      // reach the typed stream — otherwise the FFI bridge for
       // MpvPrefetchState is broken end-to-end.
       //
-      // Skip if the loaded libmpv lacks the patched property — same
-      // pattern as the cover-art-mime smoke on iOS/Android.
+      // Skip if the loaded libmpv doesn't expose `prefetch-state` —
+      // same pattern as the cover-art-mime smoke on iOS/Android.
       // Pre-subscribe so a fast prefetch.loading emit isn't missed.
       final emitted = player.stream.prefetchState
           .firstWhere((s) => s != MpvPrefetchState.idle)

@@ -91,16 +91,9 @@ abstract final class MpvAudioKit {
     _initialized = true;
   }
 
-  /// Applies platform-specific native quirks.
-  ///
   /// Sets `LC_NUMERIC=C` on Linux and macOS so libmpv parses floats with
-  /// a dot regardless of the user's locale.
-  ///
-  /// **Process-wide side effect.** `setlocale` affects every C library
-  /// in this process — `printf("%f", ...)`, `strtod`, and any locale-
-  /// aware numeric formatter will switch to the C locale. Use the
-  /// `intl` package (or explicit `NumberFormat`) for user-facing
-  /// numeric formatting in apps that integrate this library.
+  /// a dot regardless of the user's locale. Process-wide: every C
+  /// library in the process inherits the C locale.
   static void _applyPlatformQuirks() {
     if (Platform.isWindows || Platform.isAndroid) {
       return;

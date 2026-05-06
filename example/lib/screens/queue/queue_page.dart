@@ -8,14 +8,14 @@ import 'widgets/empty_queue_placeholder.dart';
 import 'widgets/queue_action_button.dart';
 import 'widgets/queue_item_card.dart';
 
-/// Audio file extensions accepted from drag-and-drop. Derived from
-/// `AUDIO_DECODERS` in `scripts/_audio_only.sh` — every extension here
-/// maps to at least one decoder ffmpeg ships in our bundled build.
-/// Tracker formats (mod/xm/s3m/it) and MIDI (mid/kar) need libopenmpt
-/// and libfluidsynth respectively, neither of which is linked, so
-/// they're out. The whitelist is intentional: a blocklist lets video
-/// containers and unknown binaries through, and mpv then logs
-/// `[cplayer] fatal: No video or audio streams selected.` for each.
+/// Audio file extensions accepted from drag-and-drop. Each extension
+/// maps to at least one decoder shipped with the package's bundled
+/// libmpv. Tracker formats (mod/xm/s3m/it) and MIDI (mid/kar) require
+/// libopenmpt and libfluidsynth respectively, neither of which is
+/// linked, so they're out. The whitelist is intentional: a blocklist
+/// lets video containers and unknown binaries through, and mpv then
+/// logs `[cplayer] fatal: No video or audio streams selected.` for
+/// each.
 const _audioExtensions = <String>{
   // MPEG / AAC family
   'mp1', 'mp2', 'mp3', 'aac', 'adts',

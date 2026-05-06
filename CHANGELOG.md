@@ -1,3 +1,25 @@
+## [0.1.1] - 6-05-2026
+
+### Changed
+- Numeric setters now validate at the wrapper boundary and throw `ArgumentError` with a precise stack trace instead of waiting for a round-trip `MpvException`. Affects `setVolume`, `setRate`, `setPitch`, `setVolumeMax`.
+- `SpectrumSettings` rejects out-of-range values at construction (FFT size must be a power of two in `[256, 4096]`, smoothing in `[0, 1]`, `bandHighHz > bandLowHz`, etc.) instead of letting them surface as visually-broken output downstream.
+
+### Fixed
+- `Media.httpHeaders` now reach mpv on every track, including the first one. Previously they were silently dropped on the first `open()` and applied to the wrong file on subsequent calls.
+- `replace()` on the currently-playing entry is now seamless instead of briefly stopping playback before resuming on the new track.
+- `setNetworkTimeout` honours sub-second precision; durations below 1s no longer collapse to "no timeout".
+- `setTlsCaFile('')` restores the bundled CA default instead of silently disabling peer verification.
+- `setTlsCaFile` is now declared on the public `PlayerApi` interface.
+- `setReplayGain`, `setCache`, and `setLoop` are now atomic: if any partial write fails, the previous values are restored before the error is rethrown.
+- `dispose()` no longer falls through its safety timeout when racing an in-flight `open()`.
+- `state.position` is cleared synchronously on `open()` so a UI reading the playhead on track-change no longer briefly shows the previous track's value.
+- `state.chapters` and `state.currentChapter` are now refreshed after every load. Two consecutive files with structurally-identical chapter lists previously left both fields stranded at the prior track's value.
+
+### Build
+- Added AudioToolbox decoders for macOS and iOS.
+- Fixed TLS on macOS and iOS (now aligned with the others).
+- Updated libmpv to `libmpv-r6` across all platforms.
+
 ## [0.1.0] - 5-05-2026
 
 Major release. The Dart API has been redesigned for type safety, ergonomics, and atomic state mutations.

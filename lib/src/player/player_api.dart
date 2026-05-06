@@ -125,6 +125,7 @@ abstract interface class PlayerApi {
   Future<void> setAudioStreamSilence(bool enable);
   Future<void> setNetworkTimeout(Duration timeout);
   Future<void> setTlsVerify(bool enable);
+  Future<void> setTlsCaFile(String path);
   Future<void> setDemuxerMaxBytes(int bytes);
   Future<void> setDemuxerMaxBackBytes(int bytes);
   Future<void> setDemuxerReadaheadSecs(int seconds);

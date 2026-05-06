@@ -11,16 +11,16 @@ import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 import '../_helpers/setter_test_helpers.dart';
 
-/// End-to-end assertions that need a libmpv binary built with
-/// `patch_pcm_tap.py`. Plays a fixture through the null AO, subscribes
-/// to the spectrum / PCM streams, and verifies real frames arrive.
+/// End-to-end assertions for the spectrum / PCM streams. Plays a
+/// fixture through the null AO, subscribes to the streams, and verifies
+/// real frames arrive.
 ///
 /// The null AO is a push driver — `ao_post_process_data` runs on every
-/// chunk it consumes, so the patched tap fires regardless of whether
-/// the host has speakers. If the binary is unpatched the
-/// `pcm-tap-frame` property returns `M_PROPERTY_UNAVAILABLE`, no frames
-/// flow, and these tests fail with a timeout — which is the expected
-/// hard signal that a fresh binary build is needed.
+/// chunk it consumes, so the `pcm-tap-frame` mpv property fires
+/// regardless of whether the host has speakers. If the loaded libmpv
+/// doesn't expose that property the streams stay silent and these
+/// tests fail with a timeout — the expected hard signal that the
+/// bundled binary is incomplete.
 void main() {
   final fixturePath = defaultFixturePath();
 

@@ -3,6 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
@@ -29,6 +30,7 @@ import '../internals/uri_resolver.dart';
 
 import '../types/sealed/track.dart';
 import '../types/enums/loop.dart';
+import '../models/chapter.dart';
 import '../models/media.dart';
 import '../models/playlist.dart';
 import '../types/sealed/channels.dart';
@@ -117,9 +119,22 @@ class Player extends _PlayerBase
     }
     _mediaCache[resolved.uri] = media;
     final shouldPlay = play ?? configuration.autoPlay;
-    _applyFileLocalHeaders(media.httpHeaders);
+    // Drop visible per-track state synchronously — cover art, chapter
+    // list and current chapter index — so a UI that reads the state
+    // immediately after `open()` returns doesn't briefly render the
+    // previous track's data.
+    _clearPerFileState();
     _prop('pause', shouldPlay ? 'no' : 'yes');
-    _command(['loadfile', resolved.uri, 'replace']);
+    final opts = _buildLoadfileOptions(media.httpHeaders);
+    if (opts.isEmpty) {
+      _command(['loadfile', resolved.uri, 'replace']);
+    } else {
+      // Per-Media `httpHeaders` ride along as the 4th `loadfile` arg
+      // (mpv 0.38+: index must be `-1` when options are present), so
+      // mpv scopes them as file-local for this exact playlist entry —
+      // never writing to the global `http-header-fields` option.
+      _command(['loadfile', resolved.uri, 'replace', '-1', opts]);
+    }
   }
 
   /// Opens a list of [Media] items as the new playlist, optionally starting at [index].
@@ -164,17 +179,25 @@ class Player extends _PlayerBase
       }
       rethrow;
     }
-    // Apply per-file headers only for the first item — it's the one
-    // mpv loads synchronously on `loadfile replace`. Headers for
-    // queued items (append) cannot be applied here without racing
-    // mpv's playlist advance; per-track headers on a playlist need an
-    // `on_load` hook (see [_HooksModule.registerHook]) that sets the
-    // per-file option from the handler.
-    _applyFileLocalHeaders(medias.first.httpHeaders);
+    // Per-Media `httpHeaders` ride along as the 4th `loadfile` arg
+    // for every entry (initial replace + every append), so mpv scopes
+    // them as file-local without ever writing the global
+    // `http-header-fields` option.
+    _clearPerFileState();
     _prop('pause', shouldPlay ? 'no' : 'yes');
-    _command(['loadfile', resolved.first.uri, 'replace']);
+    final firstOpts = _buildLoadfileOptions(medias.first.httpHeaders);
+    if (firstOpts.isEmpty) {
+      _command(['loadfile', resolved.first.uri, 'replace']);
+    } else {
+      _command(['loadfile', resolved.first.uri, 'replace', '-1', firstOpts]);
+    }
     for (var i = 1; i < medias.length; i++) {
-      _command(['loadfile', resolved[i].uri, 'append']);
+      final opts = _buildLoadfileOptions(medias[i].httpHeaders);
+      if (opts.isEmpty) {
+        _command(['loadfile', resolved[i].uri, 'append']);
+      } else {
+        _command(['loadfile', resolved[i].uri, 'append', '-1', opts]);
+      }
     }
     if (clampedIndex > 0) {
       _command(['playlist-play-index', clampedIndex.toString()]);
@@ -466,9 +489,15 @@ abstract class _PlayerBase {
 
   late final Future<void> _tlsBundleReady;
 
+  /// Path of the bundled CA pem extracted to a real filesystem location
+  /// by [_autoConfigureTlsCaBundle]. Captured here so [setTlsCaFile]
+  /// can restore the default with an empty argument.
+  String? _autoTlsCaBundlePath;
+
   Future<void> _autoConfigureTlsCaBundle() async {
     try {
       final path = await TlsCaBundle.extract();
+      _autoTlsCaBundlePath = path;
       if (_disposed) return;
       // Mirrors what [setTlsCaFile] does in the network mixin; that
       // method is not visible from this class so we duplicate the two
@@ -554,6 +583,7 @@ abstract class _PlayerBase {
         // only clear buffering/completed and trigger cover-art capture.
         _updateLifecycle(buffering: false, completed: false);
         _pollPosition();
+        _pollChapterState();
         _extractEmbeddedCover();
       case MpvEventPlaybackSeek():
         // No-op: mutating position here would flash 0 before the
@@ -757,20 +787,25 @@ abstract class _PlayerBase {
   }
 
   /// Sets `file-local-options/http-header-fields` for the next
-  /// `loadfile`. mpv resets the option once the loaded file stops
-  /// playing, so the headers do NOT leak to subsequent loads.
-  /// No-op when [headers] is null or empty.
+  /// Builds the `<options>` argument string for mpv's `loadfile`
+  /// command from a [Media]'s `httpHeaders`. Returns an empty string
+  /// when [headers] is null or empty.
   ///
-  /// mpv may return PROPERTY_UNAVAILABLE if no file is currently
-  /// loading; in that case the per-file scope is unavailable and the
-  /// headers are silently dropped (the consumer would have to register
-  /// an `on_load` hook to attach them at the right point in the
-  /// load lifecycle). Use [_propRc] here so the typed open() flow
-  /// doesn't throw on the unavailable-property path.
-  void _applyFileLocalHeaders(Map<String, String>? headers) {
-    if (headers == null || headers.isEmpty) return;
-    final joined = headers.entries.map((e) => '${e.key}: ${e.value}').join(',');
-    _propRc('file-local-options/http-header-fields', joined);
+  /// mpv applies the resulting options as file-local for the duration
+  /// of that one playlist entry — including queued and prefetched
+  /// entries — so per-track headers reach mpv without ever writing to
+  /// the global `http-header-fields` option.
+  ///
+  /// Header values that contain a comma, percent, equal sign, or
+  /// whitespace are wrapped in mpv's `%N%` length-prefix escape so the
+  /// option-list parser sees them verbatim. The byte length is computed
+  /// in UTF-8 (mpv parses by byte count, not Dart code units).
+  String _buildLoadfileOptions(Map<String, String>? headers) {
+    if (headers == null || headers.isEmpty) return '';
+    final joined =
+        headers.entries.map((e) => '${e.key}: ${e.value}').join(',');
+    final bytes = utf8.encode(joined).length;
+    return 'http-header-fields=%$bytes%$joined';
   }
 
   void _checkNotDisposed() {
@@ -805,6 +840,37 @@ abstract class _PlayerBase {
   ) {
     if (!reactive.update(value)) return;
     _state = updater(_state);
+  }
+
+  /// Clears the per-track fields a consumer is likely to read
+  /// synchronously on a track-change boundary (the public open()
+  /// path returns before the new file's MPV_EVENT_FILE_LOADED
+  /// fires).
+  ///
+  /// Restricted to fields where mpv re-emits the new value reliably
+  /// after the load. mpv's own observer (see
+  /// `player/client.c::send_client_property_changes`) dedupes on
+  /// `equal_mpv_value(prop->value, val)`, so any property whose new
+  /// value happens to match the previously-observed value (same
+  /// `duration` across two tracks; same `embedded-cover-art-data`
+  /// for same-album files; same `chapter-list`) would NOT fire
+  /// PROPERTY_CHANGE. Wrapper-side reset to defaults on those would
+  /// strand the cell at the default until the next genuinely-new
+  /// value arrives. `position` is safe because `time-pos` re-emits
+  /// at ~30Hz during playback. The remaining fields are handled by
+  /// custom paths that do not depend on mpv's observer dedup.
+  void _clearPerFileState() {
+    final r = _reactives;
+    r.position.update(Duration.zero);
+    r.currentChapter.update(null);
+    r.chapters.update(const <Chapter>[]);
+    _state = _state.copyWith(
+      position: Duration.zero,
+      coverArt: null,
+      currentChapter: null,
+      chapters: const <Chapter>[],
+    );
+    _coverArtCtrl.add(null);
   }
 
   /// Updates the lifecycle triple (playing/buffering/completed) and
@@ -913,6 +979,49 @@ abstract class _PlayerBase {
         final pos = Duration(microseconds: (buf.value * 1e6).round());
         _updateField(
             (s) => s.copyWith(position: pos), _reactives.position, pos);
+      }
+    });
+  }
+
+  /// Force-refreshes [PlayerState.chapters] and
+  /// [PlayerState.currentChapter] by reading the underlying mpv
+  /// properties directly. mpv's observer queue dedupes on
+  /// `equal_mpv_value` (see `player/client.c::send_client_property_changes`),
+  /// so two consecutive tracks with structurally-equal `chapter-list`
+  /// (e.g. an audiobook where consecutive parts share the same chapter
+  /// pattern) would skip the PROPERTY_CHANGE event and strand the
+  /// wrapper at whatever the previous file left behind. Polling on
+  /// FILE_LOADED bypasses the dedup so the wrapper always carries the
+  /// truth for the current file.
+  void _pollChapterState() {
+    if (_disposed) return;
+    // chapter index — INT64 scalar.
+    using((arena) {
+      final n = 'chapter'.toNativeUtf8(allocator: arena);
+      final buf = arena<Int64>();
+      final rc = _lib.mpvGetProperty(
+          _handle, n, MpvFormat.mpvFormatInt64, buf.cast());
+      if (rc == MpvError.mpvErrorSuccess) {
+        // mpv exposes -1 / -2 etc. as "no chapter active"; surface as null.
+        final idx = buf.value < 0 ? null : buf.value.toInt();
+        _updateField((s) => s.copyWith(currentChapter: idx),
+            _reactives.currentChapter, idx);
+      }
+    });
+    // chapter-list — NODE_ARRAY. Allocate, read, decode, dispatch
+    // through the registry (re-using the parser), free the node tree.
+    using((arena) {
+      final n = 'chapter-list'.toNativeUtf8(allocator: arena);
+      final nodePtr = arena<MpvNode>();
+      final rc = _lib.mpvGetProperty(
+          _handle, n, MpvFormat.mpvFormatNode, nodePtr.cast());
+      if (rc == MpvError.mpvErrorSuccess) {
+        final decoded = decodeMpvNode(nodePtr.ref);
+        try {
+          _dispatchProperty('chapter-list', decoded);
+        } finally {
+          _lib.mpvFreeNodeContents(nodePtr);
+        }
       }
     });
   }

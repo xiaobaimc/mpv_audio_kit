@@ -67,14 +67,17 @@ final class Media {
 
   /// Optional HTTP headers for network streams.
   ///
-  /// Applied automatically by [Player.open] (the single-file replace
-  /// path is the only one that can synchronously attach the headers
-  /// to the next mpv load). For [Player.add], [Player.replace], and
-  /// [Player.openAll] entries beyond the first, register an
-  /// `on_load` hook and set
-  /// `file-local-options/http-header-fields` from the handler —
-  /// headers are not auto-applied there to avoid races with mpv's
-  /// playlist advance.
+  /// Applied automatically on every load path — [Player.open],
+  /// [Player.openAll], [Player.add] and [Player.replace] all attach
+  /// these headers to the matching mpv `loadfile` as file-local
+  /// options (`http-header-fields=...`), so the headers ride along
+  /// with that exact playlist entry without leaking onto other
+  /// entries or the global `http-header-fields` option.
+  ///
+  /// If you need headers that depend on runtime state computed at
+  /// load time (e.g. a token refreshed asynchronously), register an
+  /// `on_load` hook (see `Player.registerHook`) and set
+  /// `file-local-options/http-header-fields` from the handler.
   final Map<String, String>? httpHeaders;
 
   const Media(this.uri, {this.extras, this.httpHeaders});

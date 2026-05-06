@@ -37,13 +37,8 @@ void main() {
     });
 
     test(
-        'open(media with headers) does NOT leak headers to the global '
-        'http-header-fields option', () async {
-      // Sanity: global http-header-fields starts empty.
-      final before = await player.getRawProperty('http-header-fields');
-      expect(before == null || before.isEmpty, isTrue,
-          reason: 'global http-header-fields must start empty');
-
+        'open(media with headers) reaches mpv as file-local options for '
+        'the active entry', () async {
       await player.open(
         Media(
           fixturePath,
@@ -55,19 +50,19 @@ void main() {
         play: false,
       );
 
-      // Wait for the file to settle so any header application has
-      // landed in mpv's state.
+      // Wait for the file to settle so the loadfile-time options are
+      // applied to the active entry.
       await player.stream.seekCompleted.first
           .timeout(const Duration(seconds: 5));
 
-      // The fix uses `file-local-options/http-header-fields` which
-      // mpv applies for the active file only and never writes to the
-      // global option. Confirm the global stays empty — the leak the
-      // regression test guards against.
-      final globalAfter = await player.getRawProperty('http-header-fields');
-      expect(globalAfter == null || globalAfter.isEmpty, isTrue,
-          reason: 'global http-header-fields must NOT carry per-file '
-              'headers — those belong to file-local-options/...');
+      // Headers must have reached mpv. The bare property name is
+      // resolved against mpv's file-local override during playback,
+      // so the merged value should contain both headers verbatim.
+      final effective = await player.getRawProperty('http-header-fields') ?? '';
+      expect(effective, contains('X-Test-Token: leak-canary-12345'),
+          reason: 'first header must be applied for the active entry');
+      expect(effective, contains('X-Other: nope'),
+          reason: 'second header must be applied for the active entry');
     }, timeout: const Timeout(Duration(seconds: 30)));
 
     test(

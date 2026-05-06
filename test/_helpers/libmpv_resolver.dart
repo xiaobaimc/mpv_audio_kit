@@ -8,9 +8,8 @@ import 'dart:io';
 /// Resolves the bundled libmpv path for the current host so the runtime
 /// test files don't need to repeat the platform branching.
 ///
-/// The build scripts in `scripts/build_libmpv_*.sh` write each platform's
-/// binary to a per-arch subfolder at the repo root:
-///   - macOS  → `macos/libs/libmpv.dylib`            (universal binary)
+/// The bundled binary lives under the repo root at:
+///   - macOS  → `macos/libs/libmpv.dylib`
 ///   - Linux  → `linux/libs/<arch>/libmpv.so`        (`<arch>`: `x86_64` | `aarch64`)
 ///   - Windows → `windows/libs/<arch>/libmpv.dll`    (`<arch>`: `x86_64` | `arm64`)
 ///

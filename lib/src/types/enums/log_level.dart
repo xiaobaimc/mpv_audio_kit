@@ -15,7 +15,7 @@
 /// [debug] < [trace]. A consumer asking for [warn] sees `warn`,
 /// `error`, and `fatal`; asking for [info] adds `info` on top, etc.
 enum LogLevel {
-  /// No log entries emitted. Default for [PlayerConfiguration.logLevel].
+  /// No log entries emitted. Use this to silence the engine log entirely.
   off('no'),
 
   /// Unrecoverable failures (mpv aborting, libmpv shutdown).

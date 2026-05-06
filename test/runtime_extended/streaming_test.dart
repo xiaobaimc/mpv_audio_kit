@@ -8,7 +8,7 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 import '../_helpers/libmpv_resolver.dart';
 import '../_helpers/setter_test_helpers.dart';
@@ -31,6 +31,12 @@ void main() {
   bool networkAvailable = false;
 
   setUpAll(() async {
+    // Boot the Flutter test binding before anything that may touch
+    // `rootBundle` (the TLS CA bundle is auto-extracted from the
+    // package's bundled asset on every Player construction). Without
+    // this, `tls-ca-file` would silently fail to populate and every
+    // HTTPS open() under mpv would time out.
+    TestWidgetsFlutterBinding.ensureInitialized();
     final lib = resolveLibmpv();
     if (lib == null) {
       markTestSkipped('libmpv not found');

@@ -11,7 +11,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 
 import 'libmpv_resolver.dart';
@@ -31,6 +31,12 @@ String defaultFixturePath() =>
 /// skipped (callers usually ignore the return value because
 /// `markTestSkipped` short-circuits subsequent tests on its own).
 bool initLibmpvOrSkip({String? fixturePath}) {
+  // Brings up the Flutter test binding so `rootBundle.load` works.
+  // The TLS CA bundle and any Flutter asset (`asset://` URI) flow
+  // through `rootBundle`; without this, `TlsCaBundle.extract()` swallows
+  // a missing-binding exception and `tls-ca-file` stays empty, which
+  // makes every `https://` open() fail under mpv.
+  TestWidgetsFlutterBinding.ensureInitialized();
   final lib = resolveLibmpv();
   if (lib == null) {
     markTestSkipped('libmpv not found');

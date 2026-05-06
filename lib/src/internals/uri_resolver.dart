@@ -11,7 +11,7 @@
 //   asset://path/inside/bundle  → /tmp/mpv_asset_<safe_name>   (every platform)
 //   content://...               → fd://<n>                     (Android only)
 //
-// All other URIs (`file://`, `http(s)://`, `rtsp://`, `smb2://`, plain
+// All other URIs (`file://`, `http(s)://`, `smb2://`, plain
 // filesystem paths, …) pass through unchanged.
 
 import 'dart:io';
@@ -133,7 +133,14 @@ Future<String> _doCopyAsset(String uri) async {
     final file = File(
         '${Directory.systemTemp.path}${Platform.pathSeparator}mpv_asset_$safeName');
 
-    await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
+    // Slice the asset's view explicitly: rootBundle bundles can pack
+    // multiple assets into one backing buffer, and the no-arg
+    // asUint8List would span the full backing buffer rather than just
+    // this asset's range.
+    await file.writeAsBytes(
+      data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+      flush: true,
+    );
 
     _assetCache[uri] = file.path;
     return file.path;

@@ -10,10 +10,10 @@ import 'dart:typed_data';
 /// Emitted on [PlayerStream.spectrum] at the rate configured in
 /// [SpectrumSettings.emitInterval] (default ~30 Hz). Each frame carries
 /// both the **raw FFT bins** (linear frequency axis, post-window
-/// magnitude, post-EMA smoothing, normalised to `[0, 1]`) and the
-/// **perceptual bands** (log-spaced bucketing of the bins, the visualizer
-/// staple). Most callers only need [bands]; [bins] is exposed for
-/// custom remappings (mel, Bark, constant-Q).
+/// magnitude, normalised to `[0, 1]`) and the **perceptual bands**
+/// (log-spaced bucketing of the bins with asymmetric EMA smoothing —
+/// the visualizer staple). Most callers only need [bands]; [bins] is
+/// exposed for custom remappings (mel, Bark, constant-Q).
 ///
 /// The frame is immutable and thread-safe to pass between isolates —
 /// the underlying [Float32List]s are not aliased into the audio thread's
@@ -41,10 +41,10 @@ class FftFrame {
   });
 
   /// Magnitude per FFT bin, normalised to `[0, 1]` after the
-  /// power → log → clip → normalize → EMA pipeline. Length is half
-  /// of [SpectrumSettings.fftSize] (the real FFT only returns the
+  /// power → log → clip → normalise pipeline. Length is half of
+  /// [SpectrumSettings.fftSize] (the real FFT only returns the
   /// positive-frequency half). Bin `i` covers `i * sampleRate / fftSize`
-  /// Hz.
+  /// Hz. No smoothing is applied here — it runs on [bands] only.
   ///
   /// Use [bands] for the typical visualizer; [bins] is for custom
   /// frequency-axis remappings (mel, Bark, constant-Q, peak detection).

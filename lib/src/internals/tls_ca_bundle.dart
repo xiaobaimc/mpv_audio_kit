@@ -43,7 +43,13 @@ class TlsCaBundle {
       '${Directory.systemTemp.path}${Platform.pathSeparator}'
       'mpv_audio_kit_cacert.pem',
     );
-    await file.writeAsBytes(bytes.buffer.asUint8List(), flush: true);
+    // Slice explicitly — rootBundle bundles share a backing buffer
+    // across assets and the no-arg asUint8List would over-read into
+    // sibling bytes.
+    await file.writeAsBytes(
+      bytes.buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes),
+      flush: true,
+    );
     _cachedPath = file.path;
     return file.path;
   }

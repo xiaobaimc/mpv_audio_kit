@@ -3,9 +3,10 @@
 // Use of this source code is governed by BSD 3-Clause license that can be
 // found in the LICENSE file.
 //
-// Per-filter runtime gate. Reads the libavfilter audio-filter list from
-// `scripts/lavfi_codegen/schema.json`, applies each one in isolation as
-// a raw `lavfi-<name>` chain via `AudioEffects.custom`, and collects
+// Per-filter runtime gate. Iterates the auto-generated
+// `kAudioFilterNames` manifest (mirror of every typed filter on the
+// public `AudioEffects` bundle), applies each one in isolation as a
+// raw `lavfi-<name>` chain via `AudioEffects.custom`, and collects
 // every mpv `error`/`fatal` log entry. The test fails with the full
 // per-filter report so a single run surfaces ALL unusable filters
 // (whether for missing ffmpeg deps or 1-in/1-out gating in mpv's
@@ -14,20 +15,18 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 
+import '../_helpers/audio_filter_names.dart';
 import '../_helpers/libmpv_resolver.dart';
 import '../_helpers/mpv_error_capture.dart';
 
 void main() {
   final fixturePath =
       '${Directory.current.path}/test/fixtures/sine_440hz_1s.wav';
-  final schemaPath =
-      '${Directory.current.path}/scripts/lavfi_codegen/schema.json';
 
   // Filters that compile + register correctly in libavfilter and pass
   // mpv's 1-in/1-out gate, but require at least one option to be set
@@ -51,7 +50,9 @@ void main() {
     'pan',           // channel layout + definitions
   };
 
-  late List<String> filterNames;
+  // Filter names come from the auto-generated test manifest; sorting
+  // keeps the failure report deterministic across runs.
+  final filterNames = [...kAudioFilterNames]..sort();
   late Player player;
 
   setUpAll(() async {
@@ -64,16 +65,6 @@ void main() {
       markTestSkipped('Fixture missing: $fixturePath');
       return;
     }
-    if (!File(schemaPath).existsSync()) {
-      markTestSkipped('schema.json missing: $schemaPath');
-      return;
-    }
-
-    final schema =
-        jsonDecode(File(schemaPath).readAsStringSync()) as Map<String, dynamic>;
-    final filters = (schema['filters'] as Map<String, dynamic>).keys.toList()
-      ..sort();
-    filterNames = filters;
 
     MpvAudioKit.ensureInitialized(libmpv: lib, hotRestartCleanup: false);
 
@@ -98,7 +89,7 @@ void main() {
   });
 
   test(
-    'every libavfilter audio filter in schema.json loads in mpv\'s `af` chain',
+    'every typed audio filter loads in mpv\'s `af` chain',
     () async {
       final failures = <String, List<String>>{};
 

@@ -12,11 +12,10 @@ import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 import '../_helpers/setter_test_helpers.dart';
 
 /// API-surface tests for the spectrum / PCM streams. End-to-end FFT
-/// data assertions live in the integration suite — those require a
-/// libmpv binary built with `patch_pcm_tap.py`. Until the binaries
-/// are rebuilt, the `pcm-tap-frame` property returns
-/// `M_PROPERTY_UNAVAILABLE` and the streams are silent on the host
-/// suite. This file therefore covers:
+/// data assertions live in the integration suite, which exercises the
+/// `pcm-tap-frame` mpv property; on a libmpv build without that
+/// property the streams are silent and the host suite skips those
+/// assertions. This file therefore covers:
 ///
 ///   1. SpectrumSettings round-trip via setSpectrum / updateSpectrum.
 ///   2. spectrumSettings getter reflects the latest call.

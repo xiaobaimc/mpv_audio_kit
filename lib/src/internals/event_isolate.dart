@@ -453,10 +453,13 @@ class MpvEventIsolate {
   /// Signals the isolate to exit and **awaits its actual termination**
   /// before returning.
   ///
-  /// `mpv_terminate_destroy` is called by the player just before this in
-  /// dispose(); it causes the isolate's blocking [mpv_wait_event] to
-  /// return with MPV_EVENT_SHUTDOWN and the loop exits naturally on its
-  /// next iteration.
+  /// The player issues `mpv_command(['quit'])` immediately before
+  /// calling [stop]; mpv processes that asynchronously and fires
+  /// MPV_EVENT_SHUTDOWN, which lets the blocking [mpv_wait_event] in
+  /// the isolate return so the loop unwinds naturally. The matching
+  /// `mpv_terminate_destroy` runs only AFTER [stop] returns — calling
+  /// it earlier would free the handle while the isolate is still
+  /// inside `mpv_wait_event`.
   ///
   /// **Awaiting the isolate exit is load-bearing.** [Isolate.kill] is a
   /// cooperative request that returns before the isolate has actually

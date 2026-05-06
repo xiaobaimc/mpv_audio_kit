@@ -89,14 +89,45 @@ mixin _AudioModule on _PlayerBase {
   ///
   /// Writes the four backing mpv properties (`replaygain`,
   /// `replaygain-preamp`, `replaygain-clip`, `replaygain-fallback`) in
-  /// one shot. Modify a single field via
-  /// `await player.setReplayGain(state.replayGain.copyWith(preamp: -3))`.
+  /// one shot. If any of the writes fails, the previously-committed
+  /// fields are rolled back to the prior [ReplayGainSettings] before
+  /// the error is rethrown — the consumer never observes a half-applied
+  /// state.
   Future<void> setReplayGain(ReplayGainSettings settings) async {
     _checkNotDisposed();
-    _prop('replaygain', settings.mode.mpvValue);
-    _prop('replaygain-preamp', settings.preamp.toStringAsFixed(2));
-    _prop('replaygain-clip', settings.clip ? 'yes' : 'no');
-    _prop('replaygain-fallback', settings.fallback.toStringAsFixed(2));
+    final previous = state.replayGain;
+    final writes = <(String, String, String)>[
+      ('replaygain', settings.mode.mpvValue, previous.mode.mpvValue),
+      (
+        'replaygain-preamp',
+        settings.preamp.toStringAsFixed(2),
+        previous.preamp.toStringAsFixed(2)
+      ),
+      (
+        'replaygain-clip',
+        settings.clip ? 'yes' : 'no',
+        previous.clip ? 'yes' : 'no'
+      ),
+      (
+        'replaygain-fallback',
+        settings.fallback.toStringAsFixed(2),
+        previous.fallback.toStringAsFixed(2)
+      ),
+    ];
+    final committed = <(String, String)>[];
+    try {
+      for (final (name, value, prior) in writes) {
+        _prop(name, value);
+        committed.add((name, prior));
+      }
+    } catch (_) {
+      for (final (name, prior) in committed.reversed) {
+        try {
+          _propRc(name, prior);
+        } catch (_) {}
+      }
+      rethrow;
+    }
     _updateField((s) => s.copyWith(replayGain: settings),
         _reactives.replayGain, settings);
   }

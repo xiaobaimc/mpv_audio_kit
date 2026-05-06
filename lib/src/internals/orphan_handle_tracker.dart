@@ -64,6 +64,21 @@ class OrphanHandleTracker {
     if (_initialized) {
       return;
     }
+    // The cookie is 64-bit; on a 32-bit IntPtr host the high half would
+    // silently truncate and any non-zero residual could pose as a valid
+    // pointer in the leak buffer. Skip the tracker entirely on 32-bit
+    // platforms — the targeted desktop / mobile builds are all 64-bit
+    // today.
+    if (sizeOf<IntPtr>() != 8) {
+      debugLog(
+        'mpv_audio_kit: OrphanHandleTracker requires a 64-bit IntPtr '
+        '(got ${sizeOf<IntPtr>() * 8}-bit). Hot-restart cleanup disabled.',
+      );
+      if (!_completer.isCompleted) {
+        _completer.complete();
+      }
+      return;
+    }
     _initialized = true;
 
     _sweepStaleSentinelFiles();

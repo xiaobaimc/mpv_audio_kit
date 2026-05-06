@@ -42,8 +42,8 @@ void main() {
               e is MpvLogError && e.text.toLowerCase().contains('audio output'))
           .timeout(const Duration(seconds: 5));
 
-      // Simulate the patched libmpv emit: audio-output-state goes
-      // through closed → initializing → failed.
+      // Simulate the `audio-output-state` mpv property transitioning
+      // closed → initializing → failed.
       player.debugDispatchProperty('audio-output-state', 'initializing');
       player.debugDispatchProperty('audio-output-state', 'failed');
 

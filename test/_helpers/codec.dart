@@ -115,24 +115,30 @@ Future<CodecResult> verifyCodec(
   String path,
   CodecExpectation expected,
 ) async {
-  // Short-circuit on already-settled params (consecutive fixtures with
-  // identical triple — e.g. aac_lc → aac_adts, ac3 → eac3): dedup means
-  // no new emit will fire, so the stream wait would hang.
-  final alreadySettled = _matches(p.state.audioParams, expected);
-
-  Future<AudioParams>? paramsFuture;
-  if (!alreadySettled) {
-    paramsFuture = p.stream.audioParams
-        .firstWhere((x) => _matches(x, expected))
-        .timeout(const Duration(seconds: 10));
-  }
+  // Pre-subscribe BEFORE issuing the load: `Player.open()` clears
+  // duration / audioParams synchronously so the new file's emit is
+  // never suppressed by the dedup, but we still need the listener
+  // attached before the loadfile to avoid missing the broadcast emit.
+  final paramsFuture = p.stream.audioParams
+      .firstWhere((x) => _matches(x, expected))
+      .timeout(const Duration(seconds: 10));
+  final durationFuture = p.stream.duration
+      .firstWhere((d) => d.inMicroseconds > 0)
+      .timeout(const Duration(seconds: 10));
 
   await p.open(Media(path), play: false);
   await waitForFileLoaded(p);
 
-  final params =
-      paramsFuture != null ? await paramsFuture : p.state.audioParams;
-  return CodecResult(params: params, duration: p.state.duration);
+  // Read whichever resolved first; if state already reflects the
+  // expected values (the property emit landed before our `await`
+  // resumed) skip the future to avoid a needless tick.
+  final params = _matches(p.state.audioParams, expected)
+      ? p.state.audioParams
+      : await paramsFuture;
+  final duration = p.state.duration.inMicroseconds > 0
+      ? p.state.duration
+      : await durationFuture;
+  return CodecResult(params: params, duration: duration);
 }
 
 /// (filename, expectation) pairs — sorted by family for readability.

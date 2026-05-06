@@ -217,6 +217,9 @@ String? _stringOrNull(dynamic v) {
   return v;
 }
 
+// Treats `0` as missing — for the audio-track node fields where the
+// caller cannot distinguish "explicit zero" from "absent", and zero
+// would not be a meaningful sample rate / channel count anyway.
 int? _intOrNull(dynamic v) {
   if (v is int) return v == 0 ? null : v;
   if (v is num) return v == 0 ? null : v.toInt();

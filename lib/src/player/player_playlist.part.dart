@@ -9,12 +9,10 @@ part of 'player.dart';
 mixin _PlaylistModule on _PlayerBase {
   /// Appends [media] to the end of the current playlist.
   ///
-  /// `media.httpHeaders` is NOT applied automatically — the appended
-  /// entry may be loaded much later by mpv (after the current track
-  /// ends), with no synchronous moment available to attach per-file
-  /// options. If you need per-track HTTP headers on a playlist,
-  /// register an `on_load` hook (see [_HooksModule.registerHook]) and
-  /// set `file-local-options/http-header-fields` from the handler.
+  /// `media.httpHeaders` ride along as the 4th `loadfile` argument
+  /// (mpv 0.38+: `loadfile <url> append -1 <opts>`), so mpv scopes
+  /// them as file-local for this exact entry — even if the entry
+  /// only loads minutes later when playback advances.
   Future<void> add(Media media) async {
     _checkNotDisposed();
     _mediaCache[media.uri] = media;
@@ -24,7 +22,12 @@ mixin _PlaylistModule on _PlayerBase {
       return;
     }
     _mediaCache[resolved.uri] = media;
-    _command(['loadfile', resolved.uri, 'append']);
+    final opts = _buildLoadfileOptions(media.httpHeaders);
+    if (opts.isEmpty) {
+      _command(['loadfile', resolved.uri, 'append']);
+    } else {
+      _command(['loadfile', resolved.uri, 'append', '-1', opts]);
+    }
   }
 
   /// Removes the track at [index] from the playlist.
@@ -64,8 +67,14 @@ mixin _PlaylistModule on _PlayerBase {
 
   /// Replaces the track at [index] with a new [media] item.
   ///
-  /// `media.httpHeaders` is NOT applied automatically — see [add] for
-  /// the rationale and the recommended `on_load` hook pattern.
+  /// `media.httpHeaders` ride along as file-local options on the
+  /// inserted entry, same as [add] / [Player.open].
+  ///
+  /// When [index] is the currently-playing entry, the swap is routed
+  /// through `playlist-next` so it inherits mpv's prefetch-driven
+  /// transition path instead of stopping and restarting playback.
+  /// (Audible only with `--prefetch-playlist=yes`, the default for
+  /// this build.)
   Future<void> replace(int index, Media media) async {
     _checkNotDisposed();
     _mediaCache[media.uri] = media;
@@ -75,8 +84,39 @@ mixin _PlaylistModule on _PlayerBase {
       return;
     }
     _mediaCache[resolved.uri] = media;
-    _command(['playlist-remove', index.toString()]);
-    _command(['loadfile', resolved.uri, 'insert-at', index.toString()]);
+    final currentPos = using((arena) {
+      final ptr = _lib.mpvGetPropertyString(
+        _handle,
+        'playlist-pos'.toNativeUtf8(allocator: arena),
+      );
+      if (ptr == nullptr) return -1;
+      final s = ptr.cast<Utf8>().toDartString();
+      _lib.mpvFree(ptr.cast());
+      return int.tryParse(s) ?? -1;
+    });
+    final opts = _buildLoadfileOptions(media.httpHeaders);
+    void insertAt(int at) {
+      if (opts.isEmpty) {
+        _command(['loadfile', resolved.uri, 'insert-at', at.toString()]);
+      } else {
+        // 4th-arg options require an explicit index argument (mpv 0.38+).
+        _command(
+            ['loadfile', resolved.uri, 'insert-at', at.toString(), opts]);
+      }
+    }
+
+    if (currentPos == index) {
+      // Currently-playing entry: insert the replacement right after
+      // the active position, then advance — mpv's playlist-prefetch
+      // (already triggered by the insert) makes the cross-fade
+      // gapless for typical music files. Finally drop the original.
+      insertAt(index + 1);
+      _command(['playlist-next', 'force']);
+      _command(['playlist-remove', index.toString()]);
+    } else {
+      _command(['playlist-remove', index.toString()]);
+      insertAt(index);
+    }
   }
 
   /// Clears all tracks from the playlist.
@@ -88,26 +128,29 @@ mixin _PlaylistModule on _PlayerBase {
   }
 
   /// Sets the playlist repeat mode.
+  ///
+  /// Backed by two mpv properties (`loop-file` + `loop-playlist`); if
+  /// the second write fails the first is rolled back so the consumer
+  /// never observes a half-applied loop mode.
   Future<void> setLoop(Loop loop) async {
     _checkNotDisposed();
-    switch (loop) {
-      case Loop.off:
-        _prop('loop-file', 'no');
-        _prop('loop-playlist', 'no');
-      case Loop.file:
-        _prop('loop-file', 'inf');
-        _prop('loop-playlist', 'no');
-      case Loop.playlist:
-        _prop('loop-file', 'no');
-        _prop('loop-playlist', 'inf');
+    String loopFile(Loop l) => l == Loop.file ? 'inf' : 'no';
+    String loopPlaylist(Loop l) => l == Loop.playlist ? 'inf' : 'no';
+    final previous = state.loop;
+    try {
+      _prop('loop-file', loopFile(loop));
+      try {
+        _prop('loop-playlist', loopPlaylist(loop));
+      } catch (_) {
+        _propRc('loop-file', loopFile(previous));
+        rethrow;
+      }
+    } catch (_) {
+      rethrow;
     }
     // Optimistic update — `state.loop` reflects the requested mode
     // without waiting for the two underlying observers to round-trip.
-    _updateField(
-      (s) => s.copyWith(loop: loop),
-      _loop,
-      loop,
-    );
+    _updateField((s) => s.copyWith(loop: loop), _loop, loop);
   }
 
   /// Enables or disables shuffle mode.

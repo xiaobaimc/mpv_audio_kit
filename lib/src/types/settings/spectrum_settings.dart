@@ -91,7 +91,19 @@ final class SpectrumSettings {
     this.releaseSmoothing = 0.1,
     this.minDb = -70.0,
     this.maxDb = -10.0,
-  });
+  })  : assert(fftSize >= 256 && fftSize <= 4096,
+            'fftSize must be in [256, 4096]'),
+        assert((fftSize & (fftSize - 1)) == 0,
+            'fftSize must be a power of two'),
+        assert(bandCount > 0, 'bandCount must be positive'),
+        assert(bandLowHz > 0, 'bandLowHz must be positive'),
+        assert(bandHighHz > bandLowHz,
+            'bandHighHz must be strictly greater than bandLowHz'),
+        assert(attackSmoothing >= 0 && attackSmoothing <= 1,
+            'attackSmoothing must be in [0, 1]'),
+        assert(releaseSmoothing >= 0 && releaseSmoothing <= 1,
+            'releaseSmoothing must be in [0, 1]'),
+        assert(maxDb > minDb, 'maxDb must be strictly greater than minDb');
 
   /// Default visualizer preset — 2048 Hann FFT at 30 fps with 64
   /// log-spaced bands. Convenience `setSpectrum(SpectrumSettings.defaults)`

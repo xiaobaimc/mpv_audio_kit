@@ -53,4 +53,12 @@ void main() {
     // only that the callback shape works and the second call is suppressed.
     expect(orphansSeenCalls, lessThanOrEqualTo(1));
   });
+
+  // The tracker stores its 64-bit cookie inline in an `IntPtr` — on a
+  // 32-bit IntPtr host the high half would silently truncate, so the
+  // tracker degrades to a no-op. This pins the assumption that today's
+  // targeted desktop / mobile builds are all 64-bit.
+  test('host has a 64-bit IntPtr — required by OrphanHandleTracker', () {
+    expect(sizeOf<IntPtr>(), 8);
+  });
 }
