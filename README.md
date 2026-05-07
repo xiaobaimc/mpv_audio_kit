@@ -10,8 +10,12 @@
 [![](https://img.shields.io/badge/Patreon-F96854?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/cw/ales_drnz)
 [![](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/ales.drnz)
 
-<img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/mpv_audio_kit.png" width="70" align="left" style="margin-right: 15px;" alt="logo" />`mpv_audio_kit` is an audio library built on `libmpv` v0.41.0, the engine behind the mpv media player. It provides a dedicated background event loop, a complete DSP pipeline, and direct access to every property, making it the most capable audio library available for Flutter.
-<br clear="left"/>
+<table>
+<tr>
+<td valign="middle" width="90"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/mpv_audio_kit.png" width="70" alt="logo"></td>
+<td valign="middle"><code>mpv_audio_kit</code> is an audio library built on <code>libmpv</code> v0.41.0, the engine behind the mpv media player. It provides a dedicated background event loop, a complete DSP pipeline, and direct access to every property, making it the most capable audio library available for Flutter.</td>
+</tr>
+</table>
 
 ---
 
@@ -19,9 +23,20 @@
 
 Many existing Flutter audio libraries are either built on an old version of mpv or they are simply too restrictive, hiding some cool features relative to audio processing. So I made this project to provide the most powerful and flexible audio library for Flutter and solve 3 main needs:
 
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/protocols/jellyfin.png" width="20" alt="Jellyfin"> **Jellyfin**: for song streaming, supporting `.m3u8` (HLS) is essential when using transcoding. This is particulary handy because it enables seeking on the mpv player instead of blocking it when using `.stream`.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/protocols/plex.png" width="20" alt="Plex"> **Plex**: transcoding in this case requires a `/decision` call before each stream. Plex rejects multiple parallel requests when creating playlists, so instead of relying to a local proxy server, the `on_load` hook method resolves `.m3u8` or `.mpd` URLs lazily.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/settings-2.png" width="20" style="vertical-align: middle" alt=""> **Total control:** this library doesn't limit features; it exposes the native engine so you can tune buffers, network timeouts, DSP filters and play with ffmpeg exactly how you want.
+<table>
+<tr>
+<td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/protocols/jellyfin.png" width="32" alt="Jellyfin"></td>
+<td valign="middle"><b>Jellyfin</b><br>for song streaming, supporting <code>.m3u8</code> (HLS) is essential when using transcoding. This is particulary handy because it enables seeking on the mpv player instead of blocking it when using <code>.stream</code>.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/protocols/plex.png" width="32" alt="Plex"></td>
+<td valign="middle"><b>Plex</b><br>transcoding in this case requires a <code>/decision</code> call before each stream. Plex rejects multiple parallel requests when creating playlists, so instead of relying to a local proxy server, the <code>on_load</code> hook method resolves <code>.m3u8</code> or <code>.mpd</code> (DASH) URLs lazily.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/wrench.png" width="32" alt=""></td>
+<td valign="middle"><b>Total control</b><br>this library doesn't limit features; it exposes the native engine so you can tune buffers, network timeouts, DSP filters and play with ffmpeg exactly how you want.</td>
+</tr>
+</table>
 
 ---
 
@@ -60,89 +75,153 @@ bundle, and the escape hatches are now async. See the
 *   [Features](#features)
 *   [Quick start](#quick-start)
 *   [Guide](#guide)
-    *   [1. Initialization and lifecycle](#1-initialization-and-lifecycle)
-        *   [1.1 Global initialization](#11-global-initialization)
-        *   [1.2 Creating a player](#12-creating-a-player)
-        *   [1.3 Disposing a player](#13-disposing-a-player)
-    *   [2. Media sources](#2-media-sources)
-        *   [2.1 Supported URI schemes](#21-supported-uri-schemes)
-        *   [2.2 HTTP headers](#22-http-headers)
-        *   [2.3 Extras](#23-extras)
-    *   [3. Playlist management](#3-playlist-management)
-        *   [3.1 Opening a single track](#31-opening-a-single-track)
-        *   [3.2 Opening multiple tracks](#32-opening-multiple-tracks)
-        *   [3.3 Modifying the queue at runtime](#33-modifying-the-queue-at-runtime)
-        *   [3.4 Navigation](#34-navigation)
-        *   [3.5 Repeat and shuffle](#35-repeat-and-shuffle)
-        *   [3.6 Chapter navigation](#36-chapter-navigation)
-    *   [4. Playback control](#4-playback-control)
-        *   [4.1 Basic controls](#41-basic-controls)
-        *   [4.2 Seeking](#42-seeking)
-        *   [4.3 A-B loop](#43-a-b-loop)
-        *   [4.4 Speed and pitch](#44-speed-and-pitch)
-        *   [4.5 Volume and mute](#45-volume-and-mute)
-        *   [4.6 Audio delay](#46-audio-delay)
-    *   [5. Audio quality and DSP](#5-audio-quality-and-dsp)
-        *   [5.1 The AudioEffects bundle](#51-the-audioeffects-bundle)
-        *   [5.2 Common effects: quick examples](#52-common-effects-quick-examples)
-        *   [5.3 Available effects](#53-available-effects)
-        *   [5.4 ReplayGain](#54-replaygain)
-        *   [5.5 Gapless playback](#55-gapless-playback)
-    *   [6. Hardware and routing](#6-hardware-and-routing)
-        *   [6.1 Audio output driver](#61-audio-output-driver)
-        *   [6.2 Exclusive mode](#62-exclusive-mode)
-        *   [6.3 Device selection](#63-device-selection)
-        *   [6.4 Output format](#64-output-format)
-        *   [6.5 S/PDIF passthrough](#65-spdif-passthrough)
-        *   [6.6 Audio client name](#66-audio-client-name)
-        *   [6.7 Audio track selection](#67-audio-track-selection)
-        *   [6.8 Reload audio](#68-reload-audio)
-    *   [7. Network and caching](#7-network-and-caching)
-        *   [7.1 Cache configuration](#71-cache-configuration)
-        *   [7.2 Demuxer memory pool](#72-demuxer-memory-pool)
-        *   [7.3 Network timeout](#73-network-timeout)
-        *   [7.4 TLS/SSL verification](#74-tlsssl-verification)
-        *   [7.5 Audio buffer](#75-audio-buffer)
-        *   [7.6 Audio stream silence](#76-audio-stream-silence)
-        *   [7.7 Untimed null output](#77-untimed-null-output)
-        *   [7.8 Radio and live streams](#78-radio-and-live-streams)
-    *   [8. Metadata and cover art](#8-metadata-and-cover-art)
-        *   [8.1 Metadata tags](#81-metadata-tags)
-        *   [8.2 Cover art](#82-cover-art)
-    *   [9. State and streams](#9-state-and-streams)
-        *   [9.1 Core streams](#91-core-streams)
-        *   [9.2 Playlist and track streams](#92-playlist-and-track-streams)
-        *   [9.3 Audio hardware streams](#93-audio-hardware-streams)
-        *   [9.4 DSP and filter streams](#94-dsp-and-filter-streams)
-        *   [9.5 Network and cache streams](#95-network-and-cache-streams)
-        *   [9.6 File metadata and path streams](#96-file-metadata-and-path-streams)
-        *   [9.7 Playback timing streams](#97-playback-timing-streams)
-        *   [9.8 A-B loop streams](#98-a-b-loop-streams)
-        *   [9.9 Cover art streams](#99-cover-art-streams)
-        *   [9.10 Runtime diagnostics](#910-runtime-diagnostics)
-        *   [9.11 Prefetch lifecycle stream](#911-prefetch-lifecycle-stream)
-        *   [9.12 Aggregate lifecycle](#912-aggregate-lifecycle)
-        *   [9.13 Complete state snapshot](#913-complete-state-snapshot)
-        *   [9.14 Spectrum and PCM streams](#914-spectrum-and-pcm-streams)
-    *   [10. Raw API](#10-raw-api)
-        *   [10.1 Read a property](#101-read-a-property)
-        *   [10.2 Write a property](#102-write-a-property)
-        *   [10.3 Send a command](#103-send-a-command)
-    *   [11. Error handling and logging](#11-error-handling-and-logging)
-        *   [11.1 Typed error stream](#111-typed-error-stream)
-        *   [11.2 End file stream](#112-end-file-stream)
-        *   [11.3 Network state](#113-network-state)
-        *   [11.4 Audio output lifecycle](#114-audio-output-lifecycle)
-        *   [11.5 Log streams](#115-log-streams)
-    *   [12. Hooks](#12-hooks)
-        *   [12.1 Registering a hook](#121-registering-a-hook)
-        *   [12.2 Listening and continuing](#122-listening-and-continuing)
-        *   [12.3 HTTP headers via hook](#123-http-headers-via-hook)
-        *   [12.4 Lazy URL resolution](#124-lazy-url-resolution)
-    *   [13. Visualizer and spectrum analyzer](#13-visualizer-and-spectrum-analyzer)
-        *   [13.1 Subscribing to the spectrum stream](#131-subscribing-to-the-spectrum-stream)
-        *   [13.2 Configuring the pipeline](#132-configuring-the-pipeline)
-        *   [13.3 Raw PCM stream](#133-raw-pcm-stream)
+    <details>
+    <summary><a href="#1-initialization-and-lifecycle"><b>1. Initialization and lifecycle</b></a></summary>
+
+    * [1.1 Global initialization](#11-global-initialization)
+    * [1.2 Creating a player](#12-creating-a-player)
+    * [1.3 Disposing a player](#13-disposing-a-player)
+
+    </details>
+
+    <details>
+    <summary><a href="#2-media-sources"><b>2. Media sources</b></a></summary>
+
+    * [2.1 Supported URI schemes](#21-supported-uri-schemes)
+    * [2.2 HTTP headers](#22-http-headers)
+    * [2.3 Extras](#23-extras)
+
+    </details>
+
+    <details>
+    <summary><a href="#3-playlist-management"><b>3. Playlist management</b></a></summary>
+
+    * [3.1 Opening a single track](#31-opening-a-single-track)
+    * [3.2 Opening multiple tracks](#32-opening-multiple-tracks)
+    * [3.3 Modifying the queue at runtime](#33-modifying-the-queue-at-runtime)
+    * [3.4 Navigation](#34-navigation)
+    * [3.5 Repeat and shuffle](#35-repeat-and-shuffle)
+    * [3.6 Chapter navigation](#36-chapter-navigation)
+
+    </details>
+
+    <details>
+    <summary><a href="#4-playback-control"><b>4. Playback control</b></a></summary>
+
+    * [4.1 Basic controls](#41-basic-controls)
+    * [4.2 Seeking](#42-seeking)
+    * [4.3 A-B loop](#43-a-b-loop)
+    * [4.4 Speed and pitch](#44-speed-and-pitch)
+    * [4.5 Volume and mute](#45-volume-and-mute)
+    * [4.6 Audio delay](#46-audio-delay)
+
+    </details>
+
+    <details>
+    <summary><a href="#5-audio-quality-and-dsp"><b>5. Audio quality and DSP</b></a></summary>
+
+    * [5.1 The AudioEffects bundle](#51-the-audioeffects-bundle)
+    * [5.2 Common effects: quick examples](#52-common-effects-quick-examples)
+    * [5.3 Available effects](#53-available-effects)
+    * [5.4 ReplayGain](#54-replaygain)
+    * [5.5 Gapless playback](#55-gapless-playback)
+
+    </details>
+
+    <details>
+    <summary><a href="#6-hardware-and-routing"><b>6. Hardware and routing</b></a></summary>
+
+    * [6.1 Audio output driver](#61-audio-output-driver)
+    * [6.2 Exclusive mode](#62-exclusive-mode)
+    * [6.3 Device selection](#63-device-selection)
+    * [6.4 Output format](#64-output-format)
+    * [6.5 S/PDIF passthrough](#65-spdif-passthrough)
+    * [6.6 Audio client name](#66-audio-client-name)
+    * [6.7 Audio track selection](#67-audio-track-selection)
+    * [6.8 Reload audio](#68-reload-audio)
+
+    </details>
+
+    <details>
+    <summary><a href="#7-network-and-caching"><b>7. Network and caching</b></a></summary>
+
+    * [7.1 Cache configuration](#71-cache-configuration)
+    * [7.2 Demuxer memory pool](#72-demuxer-memory-pool)
+    * [7.3 Network timeout](#73-network-timeout)
+    * [7.4 TLS/SSL verification](#74-tlsssl-verification)
+    * [7.5 Audio buffer](#75-audio-buffer)
+    * [7.6 Audio stream silence](#76-audio-stream-silence)
+    * [7.7 Untimed null output](#77-untimed-null-output)
+    * [7.8 Radio and live streams](#78-radio-and-live-streams)
+
+    </details>
+
+    <details>
+    <summary><a href="#8-metadata-and-cover-art"><b>8. Metadata and cover art</b></a></summary>
+
+    * [8.1 Metadata tags](#81-metadata-tags)
+    * [8.2 Cover art](#82-cover-art)
+
+    </details>
+
+    <details>
+    <summary><a href="#9-state-and-streams"><b>9. State and streams</b></a></summary>
+
+    * [9.1 Core streams](#91-core-streams)
+    * [9.2 Playlist and track streams](#92-playlist-and-track-streams)
+    * [9.3 Audio hardware streams](#93-audio-hardware-streams)
+    * [9.4 DSP and filter streams](#94-dsp-and-filter-streams)
+    * [9.5 Network and cache streams](#95-network-and-cache-streams)
+    * [9.6 File metadata and path streams](#96-file-metadata-and-path-streams)
+    * [9.7 Playback timing streams](#97-playback-timing-streams)
+    * [9.8 A-B loop streams](#98-a-b-loop-streams)
+    * [9.9 Cover art streams](#99-cover-art-streams)
+    * [9.10 Runtime diagnostics](#910-runtime-diagnostics)
+    * [9.11 Prefetch lifecycle stream](#911-prefetch-lifecycle-stream)
+    * [9.12 Aggregate lifecycle](#912-aggregate-lifecycle)
+    * [9.13 Complete state snapshot](#913-complete-state-snapshot)
+    * [9.14 Spectrum and PCM streams](#914-spectrum-and-pcm-streams)
+
+    </details>
+
+    <details>
+    <summary><a href="#10-raw-api"><b>10. Raw API</b></a></summary>
+
+    * [10.1 Read a property](#101-read-a-property)
+    * [10.2 Write a property](#102-write-a-property)
+    * [10.3 Send a command](#103-send-a-command)
+
+    </details>
+
+    <details>
+    <summary><a href="#11-error-handling-and-logging"><b>11. Error handling and logging</b></a></summary>
+
+    * [11.1 Typed error stream](#111-typed-error-stream)
+    * [11.2 End file stream](#112-end-file-stream)
+    * [11.3 Network state](#113-network-state)
+    * [11.4 Audio output lifecycle](#114-audio-output-lifecycle)
+    * [11.5 Log streams](#115-log-streams)
+
+    </details>
+
+    <details>
+    <summary><a href="#12-hooks"><b>12. Hooks</b></a></summary>
+
+    * [12.1 Registering a hook](#121-registering-a-hook)
+    * [12.2 Listening and continuing](#122-listening-and-continuing)
+    * [12.3 HTTP headers via hook](#123-http-headers-via-hook)
+    * [12.4 Lazy URL resolution](#124-lazy-url-resolution)
+
+    </details>
+
+    <details>
+    <summary><a href="#13-visualizer-and-spectrum-analyzer"><b>13. Visualizer and spectrum analyzer</b></a></summary>
+
+    * [13.1 Subscribing to the spectrum stream](#131-subscribing-to-the-spectrum-stream)
+    * [13.2 Configuring the pipeline](#132-configuring-the-pipeline)
+    * [13.3 Raw PCM stream](#133-raw-pcm-stream)
+
+    </details>
 *   [Migration](#migration)
 *   [Permissions](#permissions)
 *   [Troubleshooting](#troubleshooting)
@@ -177,22 +256,56 @@ The following images demonstrate the example app included in the `example/` dire
 
 ## Features
 
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/zap.png" width="20" style="vertical-align: middle" alt=""> **Non-blocking**: mpv events run in a background isolate; the UI thread stays free.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/shield-check.png" width="20" style="vertical-align: middle" alt=""> **Type-safe API**: typed enums, sealed selectors, `*Settings` bundles. No stringly-typed setters.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/activity.png" width="20" style="vertical-align: middle" alt=""> **Reactive state**: synchronous [`state`](#913-complete-state-snapshot) snapshot, [90+ observable streams](#9-state-and-streams) covering every mpv property.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/music.png" width="20" style="vertical-align: middle" alt=""> **Gapless playback**: seamless track transitions with an observable [prefetch lifecycle](#911-prefetch-lifecycle-stream).
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/sliders-horizontal.png" width="20" style="vertical-align: middle" alt=""> **DSP pipeline**: one [`AudioEffects`](#5-audio-quality-and-dsp) bundle covering 18-band graphic EQ, compressor, loudness, pitch and tempo, bass and treble, stereo width, headphone crossfeed, silence trim, plus any custom `--af` filter.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/audio-lines.png" width="20" style="vertical-align: middle" alt=""> **Visualizer**: real-time [FFT spectrum + raw PCM streams](#13-visualizer-and-spectrum-analyzer) with log-spaced bands and asymmetric smoothing.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/scale.png" width="20" style="vertical-align: middle" alt=""> **ReplayGain**: track and album normalization, preamp, fallback gain.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/list-plus.png" width="20" style="vertical-align: middle" alt=""> **Dynamic playlist**: add, remove, move, replace mid-playback; [chapters](#36-chapter-navigation) and [A-B loop](#43-a-b-loop).
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/layers.png" width="20" style="vertical-align: middle" alt=""> **Multi-track audio**: typed [track selection](#67-audio-track-selection) for multilingual containers (MKV, MP4) with codec, language, and gain metadata per track.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/cpu.png" width="20" style="vertical-align: middle" alt=""> **Hardware control**: [exclusive mode](#62-exclusive-mode), [device selection](#63-device-selection), [bit-perfect sample-rate and format](#64-output-format), [S/PDIF passthrough](#65-spdif-passthrough).
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/tag.png" width="20" style="vertical-align: middle" alt=""> **Metadata and cover art**: [embedded artwork](#82-cover-art) as raw bytes plus a Flutter [`ImageProvider`](#82-cover-art) helper, and [tags](#81-metadata-tags).
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/globe.png" width="20" style="vertical-align: middle" alt=""> **Network streams**: HLS, DASH, SMB and HTTP/HTTPS.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/package.png" width="20" style="vertical-align: middle" alt=""> **Cache control**: [`CacheSettings`](#71-cache-configuration) bundle for memory cache, disk overflow, pause-on-empty.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/webhook.png" width="20" style="vertical-align: middle" alt=""> **Hooks**: intercept the file-loading pipeline (also during [prefetch](#12-hooks)) to resolve URLs, redirect, or inject headers.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/triangle-alert.png" width="20" style="vertical-align: middle" alt=""> **Typed errors**: sealed [`MpvPlayerError`](#111-typed-error-stream) hierarchy plus dedicated sinks for engine errors, end-file events, AO failures, and logs.
-- <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/terminal.png" width="20" style="vertical-align: middle" alt=""> **Raw access**: read or write any mpv property or command; failures surface as typed [`MpvException`](#10-raw-api).
+<table>
+<tr>
+<td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/zap.png" width="32"></td>
+<td valign="middle" width="45%"><b>Non-blocking</b><br>mpv events run in a background isolate; the UI thread stays free.</td>
+<td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/shield-check.png" width="32"></td>
+<td valign="middle" width="45%"><b>Type-safe API</b><br>typed enums, sealed selectors, <code>*Settings</code> bundles. No stringly-typed setters.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/activity.png" width="32"></td>
+<td valign="middle"><b>Reactive state</b><br>synchronous <a href="#913-complete-state-snapshot"><code>state</code></a> snapshot, <a href="#9-state-and-streams">90+ observable streams</a> covering every mpv property.</td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/music.png" width="32"></td>
+<td valign="middle"><b>Gapless playback</b><br>seamless track transitions with an observable <a href="#911-prefetch-lifecycle-stream">prefetch lifecycle</a>.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/sliders-horizontal.png" width="32"></td>
+<td valign="middle"><b>DSP pipeline</b><br>one <a href="#5-audio-quality-and-dsp"><code>AudioEffects</code></a> bundle covering 18-band graphic EQ, compressor, loudness, pitch and tempo, bass and treble, stereo width, headphone crossfeed, silence trim, plus any custom <code>--af</code> filter.</td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/audio-lines.png" width="32"></td>
+<td valign="middle"><b>Visualizer</b><br>real-time <a href="#13-visualizer-and-spectrum-analyzer">FFT spectrum + raw PCM streams</a> with log-spaced bands and asymmetric smoothing.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/scale.png" width="32"></td>
+<td valign="middle"><b>ReplayGain</b><br>track and album normalization, preamp, fallback gain.</td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/list-plus.png" width="32"></td>
+<td valign="middle"><b>Dynamic playlist</b><br>add, remove, move, replace mid-playback; <a href="#36-chapter-navigation">chapters</a> and <a href="#43-a-b-loop">A-B loop</a>.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/layers.png" width="32"></td>
+<td valign="middle"><b>Multi-track audio</b><br>typed <a href="#67-audio-track-selection">track selection</a> for multilingual containers (MKV, MP4) with codec, language, and gain metadata per track.</td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/cpu.png" width="32"></td>
+<td valign="middle"><b>Hardware control</b><br><a href="#62-exclusive-mode">exclusive mode</a>, <a href="#63-device-selection">device selection</a>, <a href="#64-output-format">bit-perfect sample-rate and format</a>, <a href="#65-spdif-passthrough">S/PDIF passthrough</a>.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/tag.png" width="32"></td>
+<td valign="middle"><b>Metadata and cover art</b><br><a href="#82-cover-art">embedded artwork</a> as raw bytes plus a Flutter <a href="#82-cover-art"><code>ImageProvider</code></a> helper, and <a href="#81-metadata-tags">tags</a>.</td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/globe.png" width="32"></td>
+<td valign="middle"><b>Network streams</b><br>HLS, DASH, SMB and HTTP/HTTPS.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/package.png" width="32"></td>
+<td valign="middle"><b>Cache control</b><br><a href="#71-cache-configuration"><code>CacheSettings</code></a> bundle for memory cache, disk overflow, pause-on-empty.</td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/webhook.png" width="32"></td>
+<td valign="middle"><b>Hooks</b><br>intercept the file-loading pipeline (also during <a href="#12-hooks">prefetch</a>) to resolve URLs, redirect, or inject headers.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/triangle-alert.png" width="32"></td>
+<td valign="middle"><b>Typed errors</b><br>sealed <a href="#111-typed-error-stream"><code>MpvPlayerError</code></a> hierarchy plus dedicated sinks for engine errors, end-file events, AO failures, and logs.</td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/terminal.png" width="32"></td>
+<td valign="middle"><b>Raw access</b><br>read or write any mpv property or command; failures surface as typed <a href="#10-raw-api"><code>MpvException</code></a>.</td>
+</tr>
+</table>
 
 ---
 
