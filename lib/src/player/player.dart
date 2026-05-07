@@ -12,6 +12,8 @@ import 'package:meta/meta.dart';
 import '../internals/cover_art_extractor.dart';
 import '../internals/player_finalizer.dart';
 import '../internals/spectrum_pipeline.dart';
+import '../models/fft_frame.dart';
+import '../models/pcm_frame.dart';
 import '../models/cover_art.dart';
 import '../internals/event_isolate.dart';
 import '../events/mpv_exception.dart';
@@ -93,6 +95,17 @@ class Player extends _PlayerBase
   /// Creates a [Player] instance with optional [configuration].
   Player({super.configuration});
 
+  /// Test-only. The event isolate writes to [wakeupCounterAddress] on
+  /// every wakeup — a bogus value corrupts process memory.
+  @visibleForTesting
+  Player.testInstrumented({
+    PlayerConfiguration configuration = const PlayerConfiguration(),
+    required int wakeupCounterAddress,
+  }) : super(
+          configuration: configuration,
+          wakeupCounterAddress: wakeupCounterAddress,
+        );
+
   // --- Public Specialized API ---
 
   /// Opens a [Media] and optionally starts playback immediately.
@@ -104,6 +117,8 @@ class Player extends _PlayerBase
   /// aborts the previous load, so the last `(pause, loadfile)` pair wins.
   Future<void> open(Media media, {bool? play}) async {
     _checkNotDisposed();
+    await _ready;
+    _validateHttpHeaders(media.httpHeaders);
     _mediaCache.clear();
     _mediaCache[media.uri] = media;
     // Gate on the trust-bundle Future so the first HTTPS load always
@@ -144,8 +159,14 @@ class Player extends _PlayerBase
   /// briefly, then mpv jumps to the requested position.
   Future<void> openAll(List<Media> medias, {bool? play, int index = 0}) async {
     _checkNotDisposed();
+    await _ready;
     if (medias.isEmpty) {
       return;
+    }
+    // Validate the full batch before any side-effect, so a bad header
+    // on entry N can't leave entries 0..N-1 half-loaded.
+    for (final m in medias) {
+      _validateHttpHeaders(m.httpHeaders);
     }
     final clampedIndex = index.clamp(0, medias.length - 1);
     final shouldPlay = play ?? configuration.autoPlay;
@@ -215,6 +236,7 @@ class Player extends _PlayerBase
   /// fails. Throws [StateError] if the player has been disposed.
   Future<String?> getRawProperty(String name) async {
     _checkNotDisposed();
+    await _ready;
     return using((arena) {
       final n = name.toNativeUtf8(allocator: arena);
       final ptr = _lib.mpvGetPropertyString(_handle, n);
@@ -249,6 +271,7 @@ class Player extends _PlayerBase
   /// rejects the property write (unknown name, out-of-range value, etc.).
   Future<void> setRawProperty(String name, String value) async {
     _checkNotDisposed();
+    await _ready;
     if (name == 'af') {
       throw ArgumentError.value(
         name,
@@ -275,6 +298,7 @@ class Player extends _PlayerBase
   /// is observed asynchronously via [Player.stream].
   Future<void> sendRawCommand(List<String> args) async {
     _checkNotDisposed();
+    await _ready;
     // Symmetric guard with `setRawProperty('af', ...)`: mpv exposes
     // `af` and `af-command` as commands that mutate the audio chain
     // incrementally — bypassing the typed `AudioEffects` bundle and
@@ -328,11 +352,9 @@ abstract class _PlayerBase {
   // player itself is GC'd.
   late final PlayerNativeResources _nativeResources;
   // Eagerly instantiated so `dispose()` is safe even when invoked
-  // synchronously after construction — before `_eventIsolateReady`
-  // resolves. The actual isolate spawn happens via `start()` driven
-  // by `_eventIsolateReady` below.
+  // synchronously after construction. The actual mpv init runs
+  // inside the isolate, driven by `_ready`.
   final MpvEventIsolate _eventIsolate = MpvEventIsolate();
-  late final Future<void> _eventIsolateReady;
   bool _disposed = false;
 
   // `_activeHookIds` is authoritative for [Player.continueHook]: mpv's
@@ -362,7 +384,8 @@ abstract class _PlayerBase {
       ReactiveProperty<Playlist>(Playlist.empty);
   final ReactiveProperty<Loop> _loop = ReactiveProperty<Loop>(Loop.off);
   final ReactiveProperty<List<Device>> _audioDevices =
-      ReactiveProperty<List<Device>>(const [Device(name: 'auto', description: 'Auto')]);
+      ReactiveProperty<List<Device>>(
+          const [Device(name: 'auto', description: 'Auto')]);
   final ReactiveProperty<Map<String, String>> _metadata =
       ReactiveProperty<Map<String, String>>(const <String, String>{});
   final ReactiveProperty<double> _bufferingPercentage =
@@ -400,21 +423,14 @@ abstract class _PlayerBase {
   PlayerState get state => _state;
   late final PlayerStream stream;
 
-  _PlayerBase({this.configuration = const PlayerConfiguration()}) {
-    _lib = MpvLibrary.open(MpvAudioKit.libraryPath);
-    _handle = _lib.mpvCreate();
-    if (_handle == nullptr) {
-      throw StateError('mpv_create() returned NULL');
-    }
+  /// Test-only; `null` outside [Player.testInstrumented].
+  final int? _wakeupCounterAddress;
 
-    _applyPreInitOptions();
-    final rc = _lib.mpvInitialize(_handle);
-    if (rc < 0) {
-      _lib.mpvTerminateDestroy(_handle);
-      throw StateError('mpv_initialize() failed: ${_errorString(rc)}');
-    }
-    _applyPostInitOptions();
-
+  _PlayerBase({
+    this.configuration = const PlayerConfiguration(),
+    int? wakeupCounterAddress,
+  }) : _wakeupCounterAddress = wakeupCounterAddress {
+    // Pure-Dart setup runs on the main isolate (microseconds).
     _reactives = DefaultPropertyReactives();
     _registry = PropertyRegistry()
       ..registerAll(buildDefaultSpecs(
@@ -427,22 +443,12 @@ abstract class _PlayerBase {
           if (err != null) _errorCtrl.add(err);
         },
       ));
-    _registry.observeAll(_lib, _handle);
 
-    // Out-of-registry observers. NODE for structured data (avoids a
-    // string-encode/JSON-parse round trip); STRING for `loop-*` (flag-
-    // like values: `no` / `inf` / a number) and `audio-device` (whose
-    // description is cross-referenced from `audio-device-list`).
-    _observe('playlist', MpvFormat.mpvFormatNode);
-    _observe('audio-device-list', MpvFormat.mpvFormatNode);
-    _observe('audio-device', MpvFormat.mpvFormatString);
-    _observe('metadata', MpvFormat.mpvFormatNode);
-    _observe('demuxer-cache-state', MpvFormat.mpvFormatNode);
-    _observe('loop-file', MpvFormat.mpvFormatString);
-    _observe('loop-playlist', MpvFormat.mpvFormatString);
-
-    _spectrumPipeline = SpectrumPipeline(lib: _lib, handle: _handle);
-
+    // Streams that don't need _lib/_handle can be wired immediately —
+    // a consumer subscribing right after `Player()` sees no events
+    // until init completes, which is the correct semantics.
+    _spectrumStreamCtrl = StreamController<FftFrame>.broadcast();
+    _pcmStreamCtrl = StreamController<PcmFrame>.broadcast();
     stream = PlayerStream.fromInternals(
       reactives: _reactives,
       buffering: _buffering,
@@ -460,31 +466,64 @@ abstract class _PlayerBase {
       hook: _hookCtrl.stream,
       seekCompleted: _seekCompletedCtrl.stream,
       coverArt: _coverArtCtrl.stream,
-      spectrum: _spectrumPipeline.spectrumStream,
-      pcm: _spectrumPipeline.pcmStream,
+      spectrum: _spectrumStreamCtrl.stream,
+      pcm: _pcmStreamCtrl.stream,
     );
 
-    _eventIsolateReady = _eventIsolate.start(
-      _handle,
+    // Build the recipe and hand it to the event isolate. All heavy
+    // FFI runs there; the main isolate stays free.
+    _ready = _bringUpInIsolate();
+  }
+
+  /// Test-only — allows tests to await the post-`Player()` init that
+  /// now runs in the background isolate. Public methods already
+  /// `await _ready` internally so consumers don't normally need this.
+  @visibleForTesting
+  Future<void> get ready => _ready;
+
+  late final Future<void> _ready;
+  bool _bringUpCompleted = false;
+  late final StreamController<FftFrame> _spectrumStreamCtrl;
+  late final StreamController<PcmFrame> _pcmStreamCtrl;
+
+  Future<void> _bringUpInIsolate() async {
+    final preOpts = _buildPreInitOptions();
+    final postOpts = _buildPostInitOptions();
+    final observes = _buildObserveSpecs();
+    final logLevel = configuration.logLevel == LogLevel.off
+        ? null
+        : configuration.logLevel.mpvValue;
+
+    final handleAddress = await _eventIsolate.start(
       libraryPath: MpvAudioKit.libraryPath,
       onEvent: _handleEvent,
+      preInitOptions: preOpts,
+      postInitOptions: postOpts,
+      observes: observes,
+      logLevel: logLevel,
+      wakeupCounterAddress: _wakeupCounterAddress,
     );
-    OrphanHandleTracker.instance.add(_handle);
 
-    // Safety net for consumers that drop a Player without disposing.
-    // The finalizer runs on GC of `this`; if dispose() ran first the
-    // resources are flagged and the finalizer is a no-op.
+    if (_disposed) return;
+
+    // Re-open the library on the main isolate. The OS keeps libmpv
+    // mapped after the event isolate's first dlopen, so this resolves
+    // in microseconds — no second cold-load cost.
+    _lib = MpvLibrary.open(MpvAudioKit.libraryPath);
+    _handle = Pointer<MpvHandle>.fromAddress(handleAddress);
+    _spectrumPipeline = SpectrumPipeline(lib: _lib, handle: _handle);
+    _spectrumPipeline.spectrumStream.listen(_spectrumStreamCtrl.add);
+    _spectrumPipeline.pcmStream.listen(_pcmStreamCtrl.add);
+
+    OrphanHandleTracker.instance.add(_handle);
     _nativeResources = PlayerNativeResources(_lib, _handle);
     playerFinalizer.attach(this, _nativeResources, detach: this);
 
     // Wire `tls-ca-file` to the bundled CA pem so HTTPS verification
     // works on platforms whose OS trust store the underlying TLS backend
-    // cannot read. Extraction is asynchronous; the resulting Future is
-    // awaited inside every URL-load entry point so the first
-    // `loadfile` always sees a populated trust path. Failures are
-    // non-fatal — surfaced on the internal log stream and recoverable
-    // via [setTlsCaFile].
+    // cannot read.
     _tlsBundleReady = _autoConfigureTlsCaBundle();
+    _bringUpCompleted = true;
   }
 
   late final Future<void> _tlsBundleReady;
@@ -519,54 +558,60 @@ abstract class _PlayerBase {
 
   // --- Core Lifecycle ---
 
-  void _applyPreInitOptions() {
-    // Audio-only build: no video / subtitle track selection. Suppresses
-    // mpv warnings about missing MJPEG / libass decoders that would
-    // otherwise fire on every file with embedded cover art or text
-    // metadata streams. Cover-art bytes still flow through the
-    // `embedded-cover-art-data` property, which reads at the demuxer
-    // level before any decoder runs.
-    _opt('vid', 'no');
-    _opt('sid', 'no');
-    _opt('vo', 'null');
-    _opt('audio-display', 'embedded-first');
-    _opt('cover-art-auto', 'no');
-    _opt('image-display-duration', 'inf');
+  /// Recipe of pre-init `mpv_set_option_string` calls executed by the
+  /// event isolate before `mpv_initialize`.
+  Map<String, String> _buildPreInitOptions() => const {
+        'vid': 'no',
+        'sid': 'no',
+        'vo': 'null',
+        'audio-display': 'embedded-first',
+        'cover-art-auto': 'no',
+        'image-display-duration': 'inf',
+        'keep-open': 'yes',
+        'idle': 'yes',
+        'osc': 'no',
+        'ytdl': 'no',
+        'load-stats-overlay': 'no',
+        'load-console': 'no',
+        'load-commands': 'no',
+        'load-auto-profiles': 'no',
+        'load-select': 'no',
+        'load-context-menu': 'no',
+        'load-positioning': 'no',
+        'load-scripts': 'no',
+        'input-builtin-bindings': 'no',
+        'audio-client-name': 'mpv_audio_kit',
+      };
 
-    _opt('keep-open', 'yes');
-    _opt('idle', 'yes');
+  Map<String, String> _buildPostInitOptions() => {
+        'volume': configuration.initialVolume.toStringAsFixed(1),
+      };
 
-    // Disable mpv's built-in scripts and key bindings — irrelevant for a
-    // library embedded in a host app.
-    _opt('osc', 'no');
-    _opt('ytdl', 'no');
-    _opt('load-stats-overlay', 'no');
-    _opt('load-console', 'no');
-    _opt('load-commands', 'no');
-    _opt('load-auto-profiles', 'no');
-    _opt('load-select', 'no');
-    _opt('load-context-menu', 'no');
-    _opt('load-positioning', 'no');
-    _opt('load-scripts', 'no');
-    _opt('input-builtin-bindings', 'no');
-    _opt('audio-client-name', 'mpv_audio_kit');
-
-    // Wrapper diverges from mpv's permissive `tls-verify=no` default for
-    // security. Consumers that need self-signed cert support can opt out
-    // via `setTlsVerify(false)` post-construction.
-    _opt('tls-verify', 'yes');
-
-    if (configuration.logLevel != LogLevel.off) {
-      using((arena) {
-        _lib.mpvRequestLogMessages(
-            _handle,
-            configuration.logLevel.mpvValue.toNativeUtf8(allocator: arena));
-      });
+  /// Specs for `mpv_observe_property` — registry props plus the small
+  /// out-of-registry set kept here for cross-reference clarity.
+  List<MpvObserveSpec> _buildObserveSpecs() {
+    final specs = <MpvObserveSpec>[];
+    var replyId = 1;
+    for (final spec in _registry.specs) {
+      specs.add(MpvObserveSpec(spec.name, spec.format, replyId++));
     }
-  }
-
-  void _applyPostInitOptions() {
-    _prop('volume', configuration.initialVolume.toStringAsFixed(1));
+    // Out-of-registry observers. NODE for structured data; STRING for
+    // `loop-*` and `audio-device` (cross-referenced from
+    // `audio-device-list`).
+    final extras = <(String, int)>[
+      ('playlist', MpvFormat.mpvFormatNode),
+      ('audio-device-list', MpvFormat.mpvFormatNode),
+      ('audio-device', MpvFormat.mpvFormatString),
+      ('metadata', MpvFormat.mpvFormatNode),
+      ('demuxer-cache-state', MpvFormat.mpvFormatNode),
+      ('loop-file', MpvFormat.mpvFormatString),
+      ('loop-playlist', MpvFormat.mpvFormatString),
+    ];
+    var extraReplyId = PropertyRegistry.registryReplyIdMax + 1;
+    for (final (name, format) in extras) {
+      specs.add(MpvObserveSpec(name, format, extraReplyId++));
+    }
+    return specs;
   }
 
   void _handleEvent(MpvIsolateEvent event) {
@@ -695,16 +740,6 @@ abstract class _PlayerBase {
 
   // --- Low Level Native Bridge ---
 
-  /// Returns the mpv error code (negative on failure, 0 on success).
-  /// Internal setters discard it; the public escape hatches surface it
-  /// via [MpvException].
-  int _opt(String name, String value) {
-    return using((arena) => _lib.mpvSetOptionString(
-        _handle,
-        name.toNativeUtf8(allocator: arena),
-        value.toNativeUtf8(allocator: arena)));
-  }
-
   /// Writes a property and throws [MpvException] on rejection.
   ///
   /// All typed setters (setVolume, setRate, setAudioEffects, …) flow
@@ -736,15 +771,6 @@ abstract class _PlayerBase {
       arr[args.length] = nullptr;
       return _lib.mpvCommand(_handle, arr);
     });
-  }
-
-  // Reply IDs for hand-rolled observers, starting past the registry's
-  // reserved range so the two dispatch paths are distinguishable in
-  // `mpv -v` logs. Diagnostic-only — mpv dispatches by name on receive.
-  int _customReplyId = PropertyRegistry.registryReplyIdMax + 1;
-  void _observe(String name, int format) {
-    using((arena) => _lib.mpvObserveProperty(_handle, _customReplyId++,
-        name.toNativeUtf8(allocator: arena), format));
   }
 
   String _errorString(int code) {
@@ -786,26 +812,50 @@ abstract class _PlayerBase {
     _activeHookIds.clear();
   }
 
-  /// Sets `file-local-options/http-header-fields` for the next
-  /// Builds the `<options>` argument string for mpv's `loadfile`
-  /// command from a [Media]'s `httpHeaders`. Returns an empty string
-  /// when [headers] is null or empty.
-  ///
-  /// mpv applies the resulting options as file-local for the duration
-  /// of that one playlist entry — including queued and prefetched
-  /// entries — so per-track headers reach mpv without ever writing to
-  /// the global `http-header-fields` option.
-  ///
-  /// Header values that contain a comma, percent, equal sign, or
-  /// whitespace are wrapped in mpv's `%N%` length-prefix escape so the
-  /// option-list parser sees them verbatim. The byte length is computed
-  /// in UTF-8 (mpv parses by byte count, not Dart code units).
+  /// Builds the `loadfile` `<options>` argument from a [Media]'s
+  /// `httpHeaders`. The `%N%` length prefix only escapes the outer
+  /// option-list parser, not mpv's inner stringlist split — hence
+  /// the per-key/value rejection of CR, LF, `,`, NUL (and `:` in
+  /// keys) by [_validateHeaderKey] / [_validateHeaderValue].
   String _buildLoadfileOptions(Map<String, String>? headers) {
     if (headers == null || headers.isEmpty) return '';
-    final joined =
-        headers.entries.map((e) => '${e.key}: ${e.value}').join(',');
+    for (final e in headers.entries) {
+      _validateHeaderKey(e.key);
+      _validateHeaderValue(e.value);
+    }
+    final joined = headers.entries.map((e) => '${e.key}: ${e.value}').join(',');
     final bytes = utf8.encode(joined).length;
     return 'http-header-fields=%$bytes%$joined';
+  }
+
+  static final RegExp _kForbiddenInHeaderKey = RegExp(r'[\r\n,:\x00]');
+  static final RegExp _kForbiddenInHeaderValue = RegExp(r'[\r\n,\x00]');
+
+  /// Up-front validator called by every load entry point before
+  /// `resolveUri` runs.
+  void _validateHttpHeaders(Map<String, String>? headers) {
+    if (headers == null || headers.isEmpty) return;
+    for (final e in headers.entries) {
+      _validateHeaderKey(e.key);
+      _validateHeaderValue(e.value);
+    }
+  }
+
+  void _validateHeaderKey(String key) {
+    if (key.isEmpty) {
+      throw ArgumentError.value(key, 'header name', 'must not be empty');
+    }
+    if (_kForbiddenInHeaderKey.hasMatch(key)) {
+      throw ArgumentError.value(
+          key, 'header name', 'must not contain CR, LF, NUL, comma, or colon');
+    }
+  }
+
+  void _validateHeaderValue(String value) {
+    if (_kForbiddenInHeaderValue.hasMatch(value)) {
+      throw ArgumentError.value(value, 'header value',
+          'must not contain CR, LF, NUL, or comma (would split or inject the HTTP request)');
+    }
   }
 
   void _checkNotDisposed() {
@@ -999,8 +1049,8 @@ abstract class _PlayerBase {
     using((arena) {
       final n = 'chapter'.toNativeUtf8(allocator: arena);
       final buf = arena<Int64>();
-      final rc = _lib.mpvGetProperty(
-          _handle, n, MpvFormat.mpvFormatInt64, buf.cast());
+      final rc =
+          _lib.mpvGetProperty(_handle, n, MpvFormat.mpvFormatInt64, buf.cast());
       if (rc == MpvError.mpvErrorSuccess) {
         // mpv exposes -1 / -2 etc. as "no chapter active"; surface as null.
         final idx = buf.value < 0 ? null : buf.value.toInt();
@@ -1073,31 +1123,34 @@ abstract class _PlayerBase {
       return;
     }
     _disposed = true;
-    // Flag the resources so the finalizer (if it ever fires after a
-    // late GC) skips the duplicate teardown, and detach the finalizer
-    // so this `Player` instance no longer pins a strong reference from
-    // the finalization queue.
-    _nativeResources.disposed = true;
-    playerFinalizer.detach(this);
 
-    OrphanHandleTracker.instance.remove(_handle);
-    await _spectrumPipeline.dispose();
-    // Wait for isolate startup to complete before stopping it. Without
-    // this await, calling `dispose()` synchronously after construction
-    // (or before the start microtask drains) raced the spawn and could
-    // call `stop()` on a half-initialized isolate.
+    // Wait for init to settle. The handle / lib / native-resources
+    // fields are only assigned when bring-up reaches the very end of
+    // its body, so `_bringUpCompleted` is the authoritative gate for
+    // touching them — even if `_ready` resolved without throwing it
+    // may have early-returned because dispose flipped during init.
     try {
-      await _eventIsolateReady;
-    } catch (_) {
-      // If start() failed we still proceed with the rest of teardown.
+      await _ready;
+    } catch (_) {}
+
+    if (_bringUpCompleted) {
+      _nativeResources.disposed = true;
+      playerFinalizer.detach(this);
+      OrphanHandleTracker.instance.remove(_handle);
+      await _spectrumPipeline.dispose();
+      // Cooperative quit: mpv fires MPV_EVENT_SHUTDOWN, the isolate's
+      // mpv_wait_event returns, and the loop unwinds naturally. Calling
+      // mpv_terminate_destroy here would race the isolate and crash
+      // libmpv when the handle is freed mid-syscall.
+      _command(['quit']);
+      await _eventIsolate.stop();
+      _lib.mpvTerminateDestroy(_handle);
+    } else {
+      // Init failed; the isolate may or may not be alive. Best effort.
+      try {
+        await _eventIsolate.stop();
+      } catch (_) {}
     }
-    // Cooperative quit: mpv fires MPV_EVENT_SHUTDOWN, the isolate's
-    // mpv_wait_event returns, and the loop unwinds naturally. Calling
-    // mpv_terminate_destroy here would race the isolate and crash
-    // libmpv when the handle is freed mid-syscall.
-    _command(['quit']);
-    await _eventIsolate.stop();
-    _lib.mpvTerminateDestroy(_handle);
 
     // Close registry-backed reactives, then standalone ones, then
     // pure-event controllers. Order is for auditability — close() is

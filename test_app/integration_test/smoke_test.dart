@@ -154,7 +154,8 @@ void main() {
               'platform');
     });
 
-    testWidgets('typed setter (setVolume) round-trips through the platform '
+    testWidgets(
+        'typed setter (setVolume) round-trips through the platform '
         'binary', (_) async {
       // The host suite already covers setVolume exhaustively against the
       // patched desktop build. On iOS / Android the libmpv binary is
@@ -164,15 +165,17 @@ void main() {
       // is a good probe because it has an optimistic state update + a
       // property observer round-trip — exercising both directions of the
       // bridge at once.
+      // Pre-subscribe so the optimistic emit isn't lost on a broadcast
+      // stream with no listener. (See CLAUDE.md "Setter tests must
+      // pre-subscribe BEFORE calling the setter".)
+      final waitFor = player.stream.volume
+          .firstWhere((v) => v == 73.0)
+          .timeout(const Duration(seconds: 5));
       await player.setVolume(73.0);
       expect(player.state.volume, 73.0,
           reason: 'optimistic state update should reflect the requested '
               'value synchronously, regardless of platform binary');
-      // Wait for the property observer to confirm the value via the
-      // stream — proves the bridge round-trips end-to-end.
-      await player.stream.volume
-          .firstWhere((v) => v == 73.0)
-          .timeout(const Duration(seconds: 5));
+      await waitFor;
       expect(player.state.volume, 73.0);
     });
   });

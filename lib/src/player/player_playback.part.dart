@@ -11,6 +11,7 @@ mixin _PlaybackModule on _PlayerBase {
   /// to mpv settles asynchronously, observable via [PlayerStream.playing].
   Future<void> play() async {
     _checkNotDisposed();
+    await _ready;
     _prop('pause', 'no');
   }
 
@@ -18,6 +19,7 @@ mixin _PlaybackModule on _PlayerBase {
   /// is preserved — call [play] to resume from the same offset.
   Future<void> pause() async {
     _checkNotDisposed();
+    await _ready;
     _prop('pause', 'yes');
   }
 
@@ -26,6 +28,7 @@ mixin _PlaybackModule on _PlayerBase {
   /// must be [open] (not [play]) to start a new track.
   Future<void> stop() async {
     _checkNotDisposed();
+    await _ready;
     _command(['stop']);
   }
 
@@ -44,6 +47,7 @@ mixin _PlaybackModule on _PlayerBase {
   /// ```
   Future<void> seek(Duration position, {bool relative = false}) async {
     _checkNotDisposed();
+    await _ready;
     final secs = position.inMicroseconds / 1e6;
     _command(
         ['seek', secs.toStringAsFixed(6), relative ? 'relative' : 'absolute']);
@@ -57,6 +61,7 @@ mixin _PlaybackModule on _PlayerBase {
   /// the requested value and is corrected by the next observer event.
   Future<void> setChapter(int index) async {
     _checkNotDisposed();
+    await _ready;
     _prop('chapter', index.toString());
     _updateField((s) => s.copyWith(currentChapter: index),
         _reactives.currentChapter, index);
@@ -71,6 +76,7 @@ mixin _PlaybackModule on _PlayerBase {
   /// or audiobook apps for repeated practice of a passage.
   Future<void> setAbLoopA(Duration? position) async {
     _checkNotDisposed();
+    await _ready;
     _prop(
         'ab-loop-a',
         position == null
@@ -83,6 +89,7 @@ mixin _PlaybackModule on _PlayerBase {
   /// Sets the A-B loop end point. Pass `null` to disable. See [setAbLoopA].
   Future<void> setAbLoopB(Duration? position) async {
     _checkNotDisposed();
+    await _ready;
     _prop(
         'ab-loop-b',
         position == null
@@ -97,6 +104,7 @@ mixin _PlaybackModule on _PlayerBase {
   /// `--ab-loop-count` option.
   Future<void> setAbLoopCount(int? count) async {
     _checkNotDisposed();
+    await _ready;
     if (count != null && count < 0) {
       throw ArgumentError.value(count, 'count', 'must be null (= inf) or >= 0');
     }

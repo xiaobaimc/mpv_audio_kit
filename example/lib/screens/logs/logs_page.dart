@@ -99,7 +99,9 @@ class _LogsPageState extends State<LogsPage> {
         // swallow the expected MpvException.
         try {
           await widget.player.setRawProperty('af', 'help');
-        } on MpvException {/* expected */}
+        } on MpvException {
+          /* expected */
+        }
         break;
       case 'drivers':
         widget.onAppendLog(
@@ -109,7 +111,9 @@ class _LogsPageState extends State<LogsPage> {
         // refuses to set ao to "help".
         try {
           await widget.player.setRawProperty('ao', 'help');
-        } on MpvException {/* expected */}
+        } on MpvException {
+          /* expected */
+        }
         break;
       case 'devices':
         final devices = widget.player.state.audioDevices;

@@ -143,14 +143,13 @@ class _HomePageState extends State<HomePage> {
     Duration duration, {
     Color? background,
     Color? foreground,
-  }) =>
-      showFloatingSnack(
-        context,
-        content: content,
-        duration: duration,
-        background: background,
-        foreground: foreground,
-      );
+  }) => showFloatingSnack(
+    context,
+    content: content,
+    duration: duration,
+    background: background,
+    foreground: foreground,
+  );
 
   @override
   void dispose() {

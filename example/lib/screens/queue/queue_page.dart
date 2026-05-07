@@ -56,7 +56,7 @@ Future<List<String>> _collectAudioPaths(List<DropItem> drops) async {
   bool isAudio(String path) {
     final name = path.split(Platform.pathSeparator).last;
     if (name.startsWith('._')) return false; // Apple metadata sidecar
-    if (name.startsWith('.')) return false;  // dotfiles (Thumbs.db, .DS_Store)
+    if (name.startsWith('.')) return false; // dotfiles (Thumbs.db, .DS_Store)
     final dot = name.lastIndexOf('.');
     if (dot < 0) return false;
     return _audioExtensions.contains(name.substring(dot + 1).toLowerCase());

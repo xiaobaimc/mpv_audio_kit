@@ -12,8 +12,8 @@ void main() {
     });
 
     test('fftSize must be a power of two', () {
-      expect(
-          () => SpectrumSettings(fftSize: 1000), throwsA(isA<AssertionError>()));
+      expect(() => SpectrumSettings(fftSize: 1000),
+          throwsA(isA<AssertionError>()));
       expect(
           () => SpectrumSettings(fftSize: 1024), returnsNormally); // power of 2
     });
@@ -21,8 +21,7 @@ void main() {
     test('fftSize is rejected below 256', () {
       expect(
           () => SpectrumSettings(fftSize: 128), throwsA(isA<AssertionError>()));
-      expect(
-          () => SpectrumSettings(fftSize: 256), returnsNormally);
+      expect(() => SpectrumSettings(fftSize: 256), returnsNormally);
     });
 
     test('fftSize is rejected above 4096', () {
@@ -32,16 +31,16 @@ void main() {
     });
 
     test('bandCount must be positive', () {
-      expect(() => SpectrumSettings(bandCount: 0),
-          throwsA(isA<AssertionError>()));
+      expect(
+          () => SpectrumSettings(bandCount: 0), throwsA(isA<AssertionError>()));
       expect(() => SpectrumSettings(bandCount: -1),
           throwsA(isA<AssertionError>()));
       expect(() => SpectrumSettings(bandCount: 1), returnsNormally);
     });
 
     test('bandLowHz must be positive', () {
-      expect(() => SpectrumSettings(bandLowHz: 0),
-          throwsA(isA<AssertionError>()));
+      expect(
+          () => SpectrumSettings(bandLowHz: 0), throwsA(isA<AssertionError>()));
       expect(() => SpectrumSettings(bandLowHz: -10),
           throwsA(isA<AssertionError>()));
     });
@@ -80,8 +79,8 @@ void main() {
 
     test('copyWith result is itself validated', () {
       const seed = SpectrumSettings();
-      expect(() => seed.copyWith(fftSize: 1000),
-          throwsA(isA<AssertionError>()));
+      expect(
+          () => seed.copyWith(fftSize: 1000), throwsA(isA<AssertionError>()));
       expect(() => seed.copyWith(attackSmoothing: 2),
           throwsA(isA<AssertionError>()));
       expect(() => seed.copyWith(fftSize: 4096), returnsNormally);

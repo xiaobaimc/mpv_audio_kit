@@ -99,7 +99,8 @@ void main() {
       final sub = player.stream.spectrum.listen((_) {});
       try {
         await player.updateSpectrum(
-          (c) => c.copyWith(fftSize: 4096, emitInterval: const Duration(milliseconds: 20)),
+          (c) => c.copyWith(
+              fftSize: 4096, emitInterval: const Duration(milliseconds: 20)),
         );
         await Future<void>.delayed(const Duration(milliseconds: 80));
         await player.updateSpectrum(

@@ -364,12 +364,14 @@ class SettingsService {
     final raw = _prefs.get(fk);
     if (raw is String) {
       try {
-        final decoded = (jsonDecode(raw) as Map<String, dynamic>)
-            .map((k, v) => MapEntry(k, (v as num).toDouble()));
+        final decoded = (jsonDecode(raw) as Map<String, dynamic>).map(
+          (k, v) => MapEntry(k, (v as num).toDouble()),
+        );
         await player.updateAudioEffects(
           (e) => e.copyWith(
-            superequalizer: player.state.audioEffects.superequalizer
-                .copyWith(params: decoded),
+            superequalizer: player.state.audioEffects.superequalizer.copyWith(
+              params: decoded,
+            ),
           ),
         );
       } catch (_) {
@@ -382,9 +384,7 @@ class SettingsService {
       player.stream.audioEffects
           .map((e) => e.superequalizer)
           .distinct()
-          .listen(
-            (cfg) => _prefs.setString(fk, jsonEncode(cfg.params)),
-          ),
+          .listen((cfg) => _prefs.setString(fk, jsonEncode(cfg.params))),
     );
   }
 

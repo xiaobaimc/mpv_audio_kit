@@ -94,7 +94,8 @@ void main() {
       // mpv always exposes a built-in 'auto' device with description
       // 'Autoselect device' across every backend on every platform —
       // it's the most stable assertion target.
-      await player.setAudioDevice(const Device(name: 'auto', description: 'whatever'));
+      await player
+          .setAudioDevice(const Device(name: 'auto', description: 'whatever'));
       // Allow the property observer round-trip to land.
       await Future.delayed(const Duration(milliseconds: 200));
 

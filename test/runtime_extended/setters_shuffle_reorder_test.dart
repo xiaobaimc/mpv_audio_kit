@@ -49,9 +49,8 @@ void main() {
 
       await player.openAll([for (final f in fixtures) Media(f)]);
       await reorderedFuture;
-      final originalOrder = player.state.playlist.items
-          .map((m) => m.uri)
-          .toList(growable: false);
+      final originalOrder =
+          player.state.playlist.items.map((m) => m.uri).toList(growable: false);
 
       // Now shuffle and capture the new order.
       final newPlaylistFuture = player.stream.playlist
@@ -72,9 +71,8 @@ void main() {
       // unlikely. If this ever flakes consistently, the wrapper isn't
       // calling playlist-shuffle.
       final reordered = await newPlaylistFuture;
-      final shuffledOrder = reordered.items
-          .map((m) => m.uri)
-          .toList(growable: false);
+      final shuffledOrder =
+          reordered.items.map((m) => m.uri).toList(growable: false);
       expect(shuffledOrder.length, originalOrder.length);
       expect(shuffledOrder.toSet(), originalOrder.toSet(),
           reason: 'shuffle must preserve the set of tracks, only the order '

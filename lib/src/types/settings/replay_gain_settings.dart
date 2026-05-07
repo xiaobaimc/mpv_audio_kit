@@ -57,7 +57,6 @@ final class ReplayGainSettings {
   int get hashCode => Object.hash(mode, preamp, clip, fallback);
 
   @override
-  String toString() =>
-      'ReplayGainSettings(mode: $mode, preamp: $preamp, '
+  String toString() => 'ReplayGainSettings(mode: $mode, preamp: $preamp, '
       'clip: $clip, fallback: $fallback)';
 }

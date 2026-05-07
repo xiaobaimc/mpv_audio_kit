@@ -363,7 +363,6 @@ void main() {
       expect(state.chapters[0].title, 'A');
       expect(state.chapters[1].time, const Duration(seconds: 60));
     });
-
   });
 
   group('Default registry — config aggregate copyWith preserves siblings', () {

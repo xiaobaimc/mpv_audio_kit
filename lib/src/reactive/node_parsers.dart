@@ -77,7 +77,10 @@ List<Device> parseDeviceListNode(dynamic raw) {
   if (raw is! List) return const [];
   return raw.map((entry) {
     final m = entry is Map ? entry : const <String, dynamic>{};
-    return Device(name: m['name'] as String? ?? 'unknown', description: m['description'] as String? ?? '',);
+    return Device(
+      name: m['name'] as String? ?? 'unknown',
+      description: m['description'] as String? ?? '',
+    );
   }).toList(growable: false);
 }
 

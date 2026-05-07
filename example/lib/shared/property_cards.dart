@@ -372,15 +372,17 @@ class DropdownPropertyCard<T> extends StatelessWidget {
                 // original `child` (free-form, can be multi-line if the
                 // caller wants).
                 selectedItemBuilder: (context) => items
-                    .map((item) => Align(
-                          alignment: Alignment.centerLeft,
-                          child: DefaultTextStyle.merge(
-                            softWrap: false,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                            child: item.child,
-                          ),
-                        ))
+                    .map(
+                      (item) => Align(
+                        alignment: Alignment.centerLeft,
+                        child: DefaultTextStyle.merge(
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          child: item.child,
+                        ),
+                      ),
+                    )
                     .toList(),
                 onChanged: onChanged,
                 padding: const EdgeInsets.symmetric(
@@ -465,9 +467,7 @@ class CheckPillsPropertyCard<T> extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      selected
-                          ? Icons.check_rounded
-                          : Icons.add_rounded,
+                      selected ? Icons.check_rounded : Icons.add_rounded,
                       size: 14,
                       color: selected ? cs.primary : cs.onSurfaceVariant,
                     ),
@@ -774,8 +774,7 @@ class _ExpandableFilterCardState extends State<ExpandableFilterCard> {
                     children: [
                       const Divider(height: 20, thickness: 0.5),
                       for (var i = 0; i < widget.params.length; i++) ...[
-                        if (i > 0)
-                          const Divider(height: 12, thickness: 0.5),
+                        if (i > 0) const Divider(height: 12, thickness: 0.5),
                         widget.params[i],
                       ],
                     ],
@@ -871,13 +870,13 @@ Widget _filterParamResetPill({
 }
 
 Widget _filterParamLabel(String label, ColorScheme cs) => Text(
-      label,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.bold,
-        color: cs.onSurface,
-      ),
-    );
+  label,
+  style: TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.bold,
+    color: cs.onSurface,
+  ),
+);
 
 class _FilterParamSliderState extends State<FilterParamSlider> {
   double? _dragValue;
@@ -993,10 +992,12 @@ class FilterParamDropdown<T> extends StatelessWidget {
                   color: cs.onSurface,
                 ),
                 items: options
-                    .map((o) => DropdownMenuItem<T>(
-                          value: o,
-                          child: Text(optionLabel(o)),
-                        ))
+                    .map(
+                      (o) => DropdownMenuItem<T>(
+                        value: o,
+                        child: Text(optionLabel(o)),
+                      ),
+                    )
                     .toList(),
                 onChanged: (v) {
                   if (v != null) onChanged(v);

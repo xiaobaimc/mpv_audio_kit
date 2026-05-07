@@ -8,6 +8,7 @@ import 'dart:ffi';
 import 'dart:io';
 
 import 'package:ffi/ffi.dart';
+import 'package:meta/meta.dart';
 
 // ---------------------------------------------------------------------------
 // mpv_error  (subset — limited to required error codes)
@@ -353,6 +354,14 @@ class MpvLibrary {
 
   /// Creates a wrapper from an already opened library (same process).
   factory MpvLibrary.fromExisting(DynamicLibrary lib) => MpvLibrary._(lib);
+
+  /// Test-only: builds an [MpvLibrary] with every `mpv*` field left
+  /// as an unassigned `late final`. The caller must set the entries
+  /// it exercises; touching an unset one throws
+  /// [LateInitializationError], so misuse surfaces as a test failure
+  /// instead of a silent FFI crash.
+  @visibleForTesting
+  MpvLibrary.uninitializedForTest() : _lib = DynamicLibrary.process();
 
   MpvLibrary._(this._lib) {
     mpvCreate = _lib.lookupFunction<_MpvCreateNative, MpvCreate>('mpv_create');

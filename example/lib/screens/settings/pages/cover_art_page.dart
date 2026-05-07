@@ -23,10 +23,7 @@ class CoverArtPage extends StatelessWidget {
               icon: Icons.upload_rounded,
               value: val,
               items: const [
-                DropdownMenuItem(
-                  value: Cover.no,
-                  child: Text('Disabled'),
-                ),
+                DropdownMenuItem(value: Cover.no, child: Text('Disabled')),
                 DropdownMenuItem(
                   value: Cover.exact,
                   child: Text('Exact match'),
@@ -35,10 +32,7 @@ class CoverArtPage extends StatelessWidget {
                   value: Cover.fuzzy,
                   child: Text('Fuzzy match'),
                 ),
-                DropdownMenuItem(
-                  value: Cover.all,
-                  child: Text('All images'),
-                ),
+                DropdownMenuItem(value: Cover.all, child: Text('All images')),
               ],
               onChanged: (v) => v != null ? player.setCoverArtAuto(v) : null,
             );

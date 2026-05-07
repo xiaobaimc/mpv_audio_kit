@@ -9,6 +9,7 @@ mixin _AudioModule on _PlayerBase {
   /// Sets volume (0–100; values above 100 amplify the signal).
   Future<void> setVolume(double volume) async {
     _checkNotDisposed();
+    await _ready;
     _checkFinite(volume, 'volume');
     _prop('volume', volume.toStringAsFixed(1));
     _updateField((s) => s.copyWith(volume: volume), _reactives.volume, volume);
@@ -17,6 +18,7 @@ mixin _AudioModule on _PlayerBase {
   /// Sets playback rate (1.0 = normal speed).
   Future<void> setRate(double rate) async {
     _checkNotDisposed();
+    await _ready;
     _checkFinite(rate, 'rate');
     _prop('speed', rate.toStringAsFixed(4));
     _updateField((s) => s.copyWith(rate: rate), _reactives.rate, rate);
@@ -25,6 +27,7 @@ mixin _AudioModule on _PlayerBase {
   /// Sets pitch (1.0 = original pitch).
   Future<void> setPitch(double pitch) async {
     _checkNotDisposed();
+    await _ready;
     _checkFinite(pitch, 'pitch');
     _prop('pitch', pitch.toStringAsFixed(4));
     _updateField((s) => s.copyWith(pitch: pitch), _reactives.pitch, pitch);
@@ -33,6 +36,7 @@ mixin _AudioModule on _PlayerBase {
   /// Mutes or unmutes audio output.
   Future<void> setMute(bool mute) async {
     _checkNotDisposed();
+    await _ready;
     _prop('mute', mute ? 'yes' : 'no');
     _updateField((s) => s.copyWith(mute: mute), _reactives.mute, mute);
   }
@@ -45,6 +49,7 @@ mixin _AudioModule on _PlayerBase {
   /// the `name` only.
   Future<void> setAudioDevice(Device device) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-device', device.name);
     _updateActiveAudioDevice(device.name);
   }
@@ -54,6 +59,7 @@ mixin _AudioModule on _PlayerBase {
   /// raises pitch (chipmunk effect); enabled keeps pitch constant.
   Future<void> setPitchCorrection(bool enable) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-pitch-correction', enable ? 'yes' : 'no');
     _updateField((s) => s.copyWith(pitchCorrection: enable),
         _reactives.pitchCorrection, enable);
@@ -71,6 +77,7 @@ mixin _AudioModule on _PlayerBase {
   /// stripped before the value is sent to mpv.
   Future<void> setAudioDelay(Duration delay) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-delay', durationToSeconds(delay).toStringAsFixed(3));
     _updateField(
         (s) => s.copyWith(audioDelay: delay), _reactives.audioDelay, delay);
@@ -80,6 +87,7 @@ mixin _AudioModule on _PlayerBase {
   /// available variants.
   Future<void> setGapless(Gapless gapless) async {
     _checkNotDisposed();
+    await _ready;
     _prop('gapless-audio', gapless.mpvValue);
     _updateField(
         (s) => s.copyWith(gapless: gapless), _reactives.gapless, gapless);
@@ -95,6 +103,7 @@ mixin _AudioModule on _PlayerBase {
   /// state.
   Future<void> setReplayGain(ReplayGainSettings settings) async {
     _checkNotDisposed();
+    await _ready;
     final previous = state.replayGain;
     final writes = <(String, String, String)>[
       ('replaygain', settings.mode.mpvValue, previous.mode.mpvValue),
@@ -128,8 +137,8 @@ mixin _AudioModule on _PlayerBase {
       }
       rethrow;
     }
-    _updateField((s) => s.copyWith(replayGain: settings),
-        _reactives.replayGain, settings);
+    _updateField((s) => s.copyWith(replayGain: settings), _reactives.replayGain,
+        settings);
   }
 
   /// Sets volume gain in dB (pre-amplification on top of [setVolume]).
@@ -140,6 +149,7 @@ mixin _AudioModule on _PlayerBase {
   /// unless [setReplayGain] or a downstream limiter is in the chain.
   Future<void> setVolumeGain(double gainDb) async {
     _checkNotDisposed();
+    await _ready;
     _checkFinite(gainDb, 'gainDb');
     _prop('volume-gain', gainDb.toStringAsFixed(2));
     _updateField(
@@ -154,6 +164,7 @@ mixin _AudioModule on _PlayerBase {
   /// values below 100.
   Future<void> setVolumeMax(double limit) async {
     _checkNotDisposed();
+    await _ready;
     _checkFinite(limit, 'limit');
     _prop('volume-max', limit.toStringAsFixed(1));
     _updateField(
@@ -163,6 +174,7 @@ mixin _AudioModule on _PlayerBase {
   /// Enables exclusive audio mode (WASAPI / ALSA / CoreAudio).
   Future<void> setAudioExclusive(bool exclusive) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-exclusive', exclusive ? 'yes' : 'no');
     _updateField((s) => s.copyWith(audioExclusive: exclusive),
         _reactives.audioExclusive, exclusive);
@@ -175,6 +187,7 @@ mixin _AudioModule on _PlayerBase {
   /// passthrough entirely. Order does not matter.
   Future<void> setAudioSpdif(Set<Spdif> codecs) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-spdif', Spdif.formatMpvList(codecs));
     _updateField(
         (s) => s.copyWith(audioSpdif: codecs), _reactives.audioSpdif, codecs);
@@ -191,12 +204,14 @@ mixin _AudioModule on _PlayerBase {
   /// (no optimistic update — mpv may reject an unknown id).
   Future<void> setAudioTrack(Track track) async {
     _checkNotDisposed();
+    await _ready;
     _prop('aid', track.mpvValue);
   }
 
   /// Forcibly reloads the audio output.
   Future<void> reloadAudio() async {
     _checkNotDisposed();
+    await _ready;
     _command(['ao-reload']);
   }
 
@@ -222,6 +237,7 @@ mixin _AudioModule on _PlayerBase {
   /// here.
   Future<void> setAudioEffects(AudioEffects effects) async {
     _checkNotDisposed();
+    await _ready;
     _prop('af', effects.toAfChain());
     _updateField(
       (s) => s.copyWith(audioEffects: effects),
@@ -264,14 +280,16 @@ mixin _AudioModule on _PlayerBase {
   /// [PlayerStream.coverArt] regardless of this setting.
   Future<void> setCoverArtAuto(Cover cover) async {
     _checkNotDisposed();
+    await _ready;
     _prop('cover-art-auto', cover.mpvValue);
-    _updateField((s) => s.copyWith(coverArtAuto: cover),
-        _reactives.coverArtAuto, cover);
+    _updateField(
+        (s) => s.copyWith(coverArtAuto: cover), _reactives.coverArtAuto, cover);
   }
 
   /// Sets the target audio sample rate.
   Future<void> setAudioSampleRate(int rate) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-samplerate', rate.toString());
     _updateField((s) => s.copyWith(audioSampleRate: rate),
         _reactives.audioSampleRate, rate);
@@ -281,6 +299,7 @@ mixin _AudioModule on _PlayerBase {
   /// reset to mpv's pick.
   Future<void> setAudioFormat(Format format) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-format', format.mpvValue);
     _updateField(
         (s) => s.copyWith(audioFormat: format), _reactives.audioFormat, format);
@@ -292,6 +311,7 @@ mixin _AudioModule on _PlayerBase {
   /// string.
   Future<void> setAudioChannels(Channels channels) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-channels', channels.mpvValue);
     _updateField((s) => s.copyWith(audioChannels: channels),
         _reactives.audioChannels, channels);
@@ -300,6 +320,7 @@ mixin _AudioModule on _PlayerBase {
   /// Sets the audio client name.
   Future<void> setAudioClientName(String name) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-client-name', name);
     _updateField((s) => s.copyWith(audioClientName: name),
         _reactives.audioClientName, name);
@@ -308,6 +329,7 @@ mixin _AudioModule on _PlayerBase {
   /// Sets the audio output driver (e.g. 'auto', 'coreaudio', 'pulse', 'alsa', 'wasapi').
   Future<void> setAudioDriver(String driver) async {
     _checkNotDisposed();
+    await _ready;
     _prop('ao', driver);
     _updateField(
         (s) => s.copyWith(audioDriver: driver), _reactives.audioDriver, driver);
@@ -336,6 +358,7 @@ mixin _AudioModule on _PlayerBase {
   /// the first subscriber.
   Future<void> setSpectrum(SpectrumSettings settings) async {
     _checkNotDisposed();
+    await _ready;
     _spectrumPipeline.setSettings(settings);
   }
 

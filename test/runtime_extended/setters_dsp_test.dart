@@ -47,8 +47,7 @@ void main() {
       // Disabling preserves the band map.
       await player.updateAudioEffects(
         (e) => e.copyWith(
-          superequalizer:
-              e.superequalizer.copyWith(enabled: false),
+          superequalizer: e.superequalizer.copyWith(enabled: false),
         ),
       );
       expect(player.state.audioEffects.superequalizer.enabled, isFalse);
@@ -76,8 +75,8 @@ void main() {
 
       await player.updateAudioEffects(
         (e) => e.copyWith(
-          rubberband: const RubberbandSettings(
-              enabled: true, pitch: 1.5, tempo: 0.8),
+          rubberband:
+              const RubberbandSettings(enabled: true, pitch: 1.5, tempo: 0.8),
         ),
       );
       expect(player.state.audioEffects.rubberband.enabled, isTrue);
@@ -127,8 +126,8 @@ void main() {
     test('crossfeed round-trip — typed strength + range preserved', () async {
       await player.updateAudioEffects(
         (e) => e.copyWith(
-          crossfeed: const CrossfeedSettings(
-              enabled: true, strength: 0.4, range: 0.6),
+          crossfeed:
+              const CrossfeedSettings(enabled: true, strength: 0.4, range: 0.6),
         ),
       );
       expect(player.state.audioEffects.crossfeed.enabled, isTrue);
@@ -209,8 +208,7 @@ void main() {
       await player.updateAudioEffects(
         (e) => e.copyWith(
           custom: const ['lavfi-aresample=48000'],
-          acompressor: const AcompressorSettings(
-              enabled: true, threshold: 0.1),
+          acompressor: const AcompressorSettings(enabled: true, threshold: 0.1),
         ),
       );
       expect(player.state.audioEffects.custom, ['lavfi-aresample=48000']);

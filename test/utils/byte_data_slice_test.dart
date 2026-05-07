@@ -36,15 +36,15 @@ void main() {
       expect(fullView[63], 63);
     });
 
-    test('explicit offset+length asUint8List returns just the view slice',
-        () {
+    test('explicit offset+length asUint8List returns just the view slice', () {
       final backing = Uint8List(64);
       for (var i = 0; i < backing.length; i++) {
         backing[i] = i;
       }
       final view = ByteData.sublistView(backing, 16, 32);
 
-      final slice = view.buffer.asUint8List(view.offsetInBytes, view.lengthInBytes);
+      final slice =
+          view.buffer.asUint8List(view.offsetInBytes, view.lengthInBytes);
       expect(slice.length, 16);
       expect(slice.first, 16);
       expect(slice.last, 31);

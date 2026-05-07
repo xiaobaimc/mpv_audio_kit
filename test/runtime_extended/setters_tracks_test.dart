@@ -50,8 +50,7 @@ void main() {
           reason: 'fixture metadata: track 2 is French');
     }, timeout: const Timeout(Duration(seconds: 30)));
 
-    test('setAudioTrack(Track.off) disables audio output (`aid=no`)',
-        () async {
+    test('setAudioTrack(Track.off) disables audio output (`aid=no`)', () async {
       // mpv 0.41 does NOT emit a `current-tracks/audio` property-change
       // event when aid transitions from a numeric id to `no` — the
       // event is emitted only on track-to-track switches. We assert via

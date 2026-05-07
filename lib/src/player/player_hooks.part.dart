@@ -48,6 +48,7 @@ mixin _HooksModule on _PlayerBase {
   Future<void> registerHook(Hook hook,
       {int priority = 0, Duration? timeout}) async {
     _checkNotDisposed();
+    await _ready;
     final name = hook.mpvValue;
     if (timeout != null) _hookTimeouts[name] = timeout;
     if (_registeredHookNames.contains(name)) return;
@@ -79,6 +80,7 @@ mixin _HooksModule on _PlayerBase {
   /// [PlayerStream.internalLog] and the FFI call is skipped.
   Future<void> continueHook(int id) async {
     _checkNotDisposed();
+    await _ready;
     if (id <= 0) {
       _internalLog(
         'continueHook: ignored invalid hook id $id (must be a positive '

@@ -100,8 +100,7 @@ class _AoPageState extends State<AoPage> {
               subtitle: 'ao-null-untimed=${val ? 'yes' : 'no'}',
               icon: Icons.layers_clear_rounded,
               value: val,
-              onChanged: (v) =>
-                  unawaited(widget.player.setAudioNullUntimed(v)),
+              onChanged: (v) => unawaited(widget.player.setAudioNullUntimed(v)),
             );
           },
         ),

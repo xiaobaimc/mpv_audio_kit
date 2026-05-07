@@ -96,14 +96,18 @@ class FiltersPage extends StatelessWidget {
         return Card(
           elevation: 0,
           margin: EdgeInsets.zero,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           color: cs.surfaceContainerLow,
           child: ListTile(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 6,
+            ),
             leading: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(

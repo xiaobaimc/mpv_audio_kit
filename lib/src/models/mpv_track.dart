@@ -207,11 +207,9 @@ final class MpvTrack {
         image: image ?? this.image,
         albumArt: albumArt ?? this.albumArt,
         codec: identical(codec, unset) ? this.codec : codec as String?,
-        codecDesc: identical(codecDesc, unset)
-            ? this.codecDesc
-            : codecDesc as String?,
-        decoder:
-            identical(decoder, unset) ? this.decoder : decoder as String?,
+        codecDesc:
+            identical(codecDesc, unset) ? this.codecDesc : codecDesc as String?,
+        decoder: identical(decoder, unset) ? this.decoder : decoder as String?,
         decoderDesc: identical(decoderDesc, unset)
             ? this.decoderDesc
             : decoderDesc as String?,

@@ -76,8 +76,7 @@ void main() {
         // captured a TLS error in the log stream above.
         final demuxerOk = player.stream.demuxerViaNetwork
             .firstWhere((v) => v == true)
-            .timeout(const Duration(seconds: 15),
-                onTimeout: () => false);
+            .timeout(const Duration(seconds: 15), onTimeout: () => false);
 
         await player.open(Media(httpsUrl), play: false);
 

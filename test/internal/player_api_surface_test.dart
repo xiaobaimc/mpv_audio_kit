@@ -115,8 +115,7 @@ class _ApiProbe implements PlayerApi {
   Future<void> setAudioDevice(Device device) => _record('setAudioDevice');
 
   @override
-  Future<void> setPitchCorrection(bool enable) =>
-      _record('setPitchCorrection');
+  Future<void> setPitchCorrection(bool enable) => _record('setPitchCorrection');
 
   @override
   Future<void> setAudioDelay(Duration delay) => _record('setAudioDelay');
@@ -169,15 +168,13 @@ class _ApiProbe implements PlayerApi {
       _record('setAudioChannels');
 
   @override
-  Future<void> setAudioClientName(String name) =>
-      _record('setAudioClientName');
+  Future<void> setAudioClientName(String name) => _record('setAudioClientName');
 
   @override
   Future<void> setAudioDriver(String driver) => _record('setAudioDriver');
 
   @override
-  Future<void> setSpectrum(SpectrumSettings settings) =>
-      _record('setSpectrum');
+  Future<void> setSpectrum(SpectrumSettings settings) => _record('setSpectrum');
 
   @override
   Future<void> updateSpectrum(
@@ -220,8 +217,7 @@ class _ApiProbe implements PlayerApi {
       _record('setAudioNullUntimed');
 
   @override
-  Future<void> registerHook(Hook hook,
-          {int priority = 0, Duration? timeout}) =>
+  Future<void> registerHook(Hook hook, {int priority = 0, Duration? timeout}) =>
       _record('registerHook');
 
   @override
@@ -249,8 +245,7 @@ void main() {
       expect((api as _ApiProbe).calls, contains('setTlsCaFile'));
     });
 
-    test('Tls / network setters all reachable through the interface',
-        () async {
+    test('Tls / network setters all reachable through the interface', () async {
       final api = _ApiProbe();
       final PlayerApi typed = api;
       await typed.setTlsVerify(true);

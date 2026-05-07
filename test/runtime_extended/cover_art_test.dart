@@ -27,8 +27,7 @@ void main() {
 
   setUpAll(() => initLibmpvOrSkip());
 
-  test('coverArt stream emits bytes for cover, null for non-cover',
-      () async {
+  test('coverArt stream emits bytes for cover, null for non-cover', () async {
     final player = await buildPlayer();
 
     try {

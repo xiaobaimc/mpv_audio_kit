@@ -269,8 +269,7 @@ class _SeekerState extends State<Seeker> {
         ? liveBufferEnd
         : _maxBufferEnd;
     final bufferProgress =
-        ((bufferEnd.inMicroseconds - rangeStart.inMicroseconds) /
-                rangeMicros)
+        ((bufferEnd.inMicroseconds - rangeStart.inMicroseconds) / rangeMicros)
             .clamp(progress, 1.0);
 
     final displayPos = _isDragging
@@ -299,8 +298,7 @@ class _SeekerState extends State<Seeker> {
           activeColor: cs.primary,
           inactiveColor: cs.primary.withValues(alpha: 0.15),
           secondaryActiveColor: cs.primary.withValues(alpha: 0.45),
-          onChangeStart:
-              canSeek ? (v) => setState(() => _dragValue = v) : null,
+          onChangeStart: canSeek ? (v) => setState(() => _dragValue = v) : null,
           onChanged: canSeek ? (v) => setState(() => _dragValue = v) : null,
           onChangeEnd: canSeek
               ? (v) {
@@ -353,10 +351,7 @@ class _SeekerState extends State<Seeker> {
                         if (!(snap.data ?? false)) {
                           return const SizedBox.shrink();
                         }
-                        return const InfoChip(
-                          label: 'STALLED',
-                          muted: false,
-                        );
+                        return const InfoChip(label: 'STALLED', muted: false);
                       },
                     ),
                     StreamBuilder<Duration>(

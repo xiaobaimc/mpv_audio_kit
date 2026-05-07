@@ -32,11 +32,11 @@ void main() {
     test(
         'cover art / chapters / currentChapter are blank between open() returning and FILE_LOADED',
         () async {
-      final coverPath = '${Directory.current.path}/test/fixtures/sine_with_cover.flac';
+      final coverPath =
+          '${Directory.current.path}/test/fixtures/sine_with_cover.flac';
       final chaptersPath =
           '${Directory.current.path}/test/fixtures/with_chapters.mka';
-      if (!File(coverPath).existsSync() ||
-          !File(chaptersPath).existsSync()) {
+      if (!File(coverPath).existsSync() || !File(chaptersPath).existsSync()) {
         markTestSkipped('Cover / chapters fixture missing.');
         return;
       }
@@ -51,7 +51,8 @@ void main() {
       await player.open(Media(chaptersPath), play: false);
       await chaptersReady;
       expect(player.state.chapters, isNotEmpty,
-          reason: 'pre-condition: chapters fixture must populate state.chapters');
+          reason:
+              'pre-condition: chapters fixture must populate state.chapters');
 
       // 2. Issue the next open() but do NOT await the file-loaded
       //    event. The state must already be blank by the time `open()`

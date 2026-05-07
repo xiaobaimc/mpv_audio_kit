@@ -53,12 +53,17 @@ class _SpectrumPageState extends State<SpectrumPage> {
           value: _cfg.window,
           items: const [
             DropdownMenuItem(
-                value: WindowFunction.hann, child: Text('Hann (default)')),
+              value: WindowFunction.hann,
+              child: Text('Hann (default)'),
+            ),
             DropdownMenuItem(
-                value: WindowFunction.blackmanHarris,
-                child: Text('Blackman-Harris')),
+              value: WindowFunction.blackmanHarris,
+              child: Text('Blackman-Harris'),
+            ),
             DropdownMenuItem(
-                value: WindowFunction.rectangular, child: Text('Rectangular')),
+              value: WindowFunction.rectangular,
+              child: Text('Rectangular'),
+            ),
           ],
           onChanged: (w) {
             if (w != null) _apply(_cfg.copyWith(window: w));
@@ -111,13 +116,15 @@ class _SpectrumPageState extends State<SpectrumPage> {
           defaultValue: 33,
           labelBuilder: (v) =>
               '${v.toInt()}ms / ${(1000 / v).toStringAsFixed(0)}fps',
-          onChanged: (v) => _apply(_cfg.copyWith(
-              emitInterval: Duration(milliseconds: v.round()))),
+          onChanged: (v) => _apply(
+            _cfg.copyWith(emitInterval: Duration(milliseconds: v.round())),
+          ),
         ),
         const PropertySectionHeader(title: 'Smoothing'),
         SliderPropertyCard(
           title: 'Attack',
-          subtitle: 'attackSmoothing=${_cfg.attackSmoothing.toStringAsFixed(2)}',
+          subtitle:
+              'attackSmoothing=${_cfg.attackSmoothing.toStringAsFixed(2)}',
           icon: Icons.flash_on_rounded,
           value: _cfg.attackSmoothing,
           min: 0.1,

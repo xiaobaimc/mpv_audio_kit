@@ -20,13 +20,45 @@ class SuperequalizerWidget extends StatefulWidget {
 class _SuperequalizerWidgetState extends State<SuperequalizerWidget> {
   // ISO band centre frequencies for mpv's superequalizer 1b..18b.
   static const _bandKeys = [
-    '1b', '2b', '3b', '4b', '5b', '6b', '7b', '8b', '9b',
-    '10b', '11b', '12b', '13b', '14b', '15b', '16b', '17b', '18b',
+    '1b',
+    '2b',
+    '3b',
+    '4b',
+    '5b',
+    '6b',
+    '7b',
+    '8b',
+    '9b',
+    '10b',
+    '11b',
+    '12b',
+    '13b',
+    '14b',
+    '15b',
+    '16b',
+    '17b',
+    '18b',
   ];
 
   static const _bandLabels = [
-    '65', '92', '131', '185', '262', '370', '523', '740', '1k',
-    '1.5k', '2k', '3k', '4k', '6k', '8k', '12k', '17k', '20k',
+    '65',
+    '92',
+    '131',
+    '185',
+    '262',
+    '370',
+    '523',
+    '740',
+    '1k',
+    '1.5k',
+    '2k',
+    '3k',
+    '4k',
+    '6k',
+    '8k',
+    '12k',
+    '17k',
+    '20k',
   ];
 
   static const _min = 0.0;
@@ -37,9 +69,8 @@ class _SuperequalizerWidgetState extends State<SuperequalizerWidget> {
 
   Player get player => widget.player;
 
-  Stream<SuperequalizerSettings> get _stream => player.stream.audioEffects
-      .map((e) => e.superequalizer)
-      .distinct();
+  Stream<SuperequalizerSettings> get _stream =>
+      player.stream.audioEffects.map((e) => e.superequalizer).distinct();
 
   double _bandValue(SuperequalizerSettings s, int i) =>
       s.params[_bandKeys[i]] ?? _neutral;
@@ -76,7 +107,9 @@ class _SuperequalizerWidgetState extends State<SuperequalizerWidget> {
         return Card(
           elevation: 0,
           margin: const EdgeInsets.only(bottom: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           color: cs.surfaceContainerLow,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -129,9 +162,8 @@ class _SuperequalizerWidgetState extends State<SuperequalizerWidget> {
                     Switch(
                       value: s.enabled,
                       onChanged: (v) => player.updateAudioEffects(
-                        (e) => e.copyWith(
-                          superequalizer: s.copyWith(enabled: v),
-                        ),
+                        (e) =>
+                            e.copyWith(superequalizer: s.copyWith(enabled: v)),
                       ),
                     ),
                   ],
@@ -217,8 +249,7 @@ class _SuperequalizerWidgetState extends State<SuperequalizerWidget> {
                             min: _min,
                             max: _max,
                             value: v.clamp(_min, _max),
-                            onChanged: (nv) =>
-                                setState(() => _drag[i] = nv),
+                            onChanged: (nv) => setState(() => _drag[i] = nv),
                             onChangeEnd: (nv) {
                               _setBand(s, i, nv);
                               setState(() => _drag.remove(i));
@@ -263,8 +294,7 @@ class _TightTrackShape extends RoundedRectSliderTrackShape {
   }) {
     final trackHeight = sliderTheme.trackHeight!;
     final trackLeft = offset.dx;
-    final trackTop =
-        offset.dy + (parentBox.size.height - trackHeight) / 2;
+    final trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
     final trackWidth = parentBox.size.width;
     return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
   }

@@ -91,9 +91,14 @@ abstract final class MpvAudioKit {
     _initialized = true;
   }
 
-  /// Sets `LC_NUMERIC=C` on Linux and macOS so libmpv parses floats with
-  /// a dot regardless of the user's locale. Process-wide: every C
-  /// library in the process inherits the C locale.
+  /// Sets `LC_NUMERIC=C` process-wide on Linux and macOS — mandated
+  /// by libmpv's API contract (`mpv/client.h`; mpv aborts loading
+  /// otherwise).
+  ///
+  /// Process-wide is non-negotiable: mpv spawns its own threads at
+  /// `mpv_create` time, and POSIX threads inherit `LC_GLOBAL_LOCALE`,
+  /// not `uselocale`. Other locale categories (`LC_TIME`,
+  /// `LC_MESSAGES`, …) are left untouched.
   static void _applyPlatformQuirks() {
     if (Platform.isWindows || Platform.isAndroid) {
       return;

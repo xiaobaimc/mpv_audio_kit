@@ -37,17 +37,17 @@ void main() {
   // invocation since it has no way to fabricate sensible required
   // values across all of them.
   const requireParams = {
-    'aeval',         // expression(s)
-    'ametadata',     // mode + key
-    'arnndn',        // model file
-    'asegment',      // timestamps or counts
-    'asendcmd',      // commands or filename
-    'asidedata',     // side data type
+    'aeval', // expression(s)
+    'ametadata', // mode + key
+    'arnndn', // model file
+    'asegment', // timestamps or counts
+    'asendcmd', // commands or filename
+    'asidedata', // side data type
     'astreamselect', // mapping definition
-    'channelmap',    // output layout / map
-    'chorus',        // delays/decays/speeds/depths
-    'headphone',     // HRTF mapping
-    'pan',           // channel layout + definitions
+    'channelmap', // output layout / map
+    'chorus', // delays/decays/speeds/depths
+    'headphone', // HRTF mapping
+    'pan', // channel layout + definitions
   };
 
   // Filter names come from the auto-generated test manifest; sorting

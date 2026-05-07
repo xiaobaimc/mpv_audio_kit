@@ -100,8 +100,7 @@ class SpectrumPipeline {
   /// re-armed only when [SpectrumSettings.emitInterval] changes.
   void setSettings(SpectrumSettings next) {
     final fftSizeChanged = next.fftSize != _settings.fftSize;
-    final windowChanged =
-        next.window != _settings.window || fftSizeChanged;
+    final windowChanged = next.window != _settings.window || fftSizeChanged;
     final bandConfigChanged = next.bandCount != _settings.bandCount ||
         next.bandLowHz != _settings.bandLowHz ||
         next.bandHighHz != _settings.bandHighHz;
@@ -201,10 +200,7 @@ class SpectrumPipeline {
         }
       }
 
-      if (samples == null ||
-          sampleRate <= 0 ||
-          channels <= 0 ||
-          ptsNs == 0) {
+      if (samples == null || sampleRate <= 0 || channels <= 0 || ptsNs == 0) {
         return;
       }
       if (ptsNs == _lastPolledPtsNs) return;

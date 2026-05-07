@@ -5,6 +5,7 @@
 
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
 import '../mpv_bindings.dart';
@@ -12,11 +13,9 @@ import 'debug_log.dart';
 import 'orphan_handle_tracker.dart';
 
 /// Native-resource bag attached to a `Player` via [Finalizer].
-///
-/// Wraps the raw `mpv_handle*` and the `MpvLibrary` needed to call
-/// `mpv_terminate_destroy` on it. The owning player flips [disposed]
-/// the moment its `dispose()` runs; the finalizer then becomes a
-/// no-op when the GC eventually collects the player.
+/// Carries the `mpv_handle*` plus the `MpvLibrary` needed to send a
+/// cooperative `quit`. `Player.dispose()` flips [disposed] so a
+/// late-firing finalizer becomes a no-op.
 @internal
 class PlayerNativeResources {
   PlayerNativeResources(this.lib, this.handle);
@@ -26,34 +25,43 @@ class PlayerNativeResources {
   bool disposed = false;
 }
 
-/// Process-wide finalizer that fires when a `Player` instance is
-/// garbage-collected without its `dispose()` having run.
+/// Safety net for consumers that drop a `Player` without calling
+/// `dispose()` — fires on GC of the `Player` instance.
 ///
-/// Standard cleanup goes through the explicit `Player.dispose()` path
-/// — this is a safety net for consumers that drop a player on the
-/// floor (e.g. an exception unwinds before they can `await dispose()`).
-/// The handle still carries an exclusive-mode AO lock at that point,
-/// so leaking it without a `quit` keeps the device captured until the
-/// host process exits.
+/// The finalizer issues a cooperative `quit` via `mpv_command_string`
+/// rather than calling `mpv_terminate_destroy` directly. The latter
+/// would race the still-running event isolate (blocked inside
+/// `mpv_wait_event` on the same handle) and crash at process
+/// teardown. The cooperative quit lets mpv fire `MPV_EVENT_SHUTDOWN`
+/// and the isolate unwinds on its own; final handle release is left
+/// to the OS at process exit.
 ///
-/// **Hot-Restart is a separate story.** Finalizers don't fire when
-/// the Dart VM is replaced — for that path the [OrphanHandleTracker]
-/// rehydrates the orphan list across VM lifetimes.
+/// Hot-Restart is handled separately by [OrphanHandleTracker] — Dart
+/// finalizers don't fire when the VM is replaced.
 @internal
 final Finalizer<PlayerNativeResources> playerFinalizer =
-    Finalizer<PlayerNativeResources>(_finalize);
+    Finalizer<PlayerNativeResources>(finalizePlayerForTesting);
 
-void _finalize(PlayerNativeResources resources) {
+/// Internal entry point for the finalizer logic. Exposed (without
+/// underscore prefix) so unit tests can drive it with a spy
+/// [MpvLibrary] without forcing a real GC. Production code MUST NOT
+/// call this directly — use `Player.dispose()` instead.
+@visibleForTesting
+void finalizePlayerForTesting(PlayerNativeResources resources) {
   if (resources.disposed) return;
   try {
     debugLog(
-      'mpv_audio_kit: Player garbage-collected without dispose() '
-      '(handle=${resources.handle.address}). Reclaiming via '
-      'mpv_terminate_destroy. Always `await player.dispose()` to '
-      'avoid this safety net.',
+      'mpv_audio_kit: Player GC\'d without dispose() '
+      '(handle=${resources.handle.address}). Sending cooperative quit. '
+      'Prefer `await player.dispose()` to avoid this safety net.',
     );
     OrphanHandleTracker.instance.remove(resources.handle);
-    resources.lib.mpvTerminateDestroy(resources.handle);
+    final cmd = 'quit'.toNativeUtf8();
+    try {
+      resources.lib.mpvCommandString(resources.handle, cmd);
+    } finally {
+      calloc.free(cmd);
+    }
   } catch (e) {
     debugLog('mpv_audio_kit: finalizer cleanup failed: $e');
   } finally {

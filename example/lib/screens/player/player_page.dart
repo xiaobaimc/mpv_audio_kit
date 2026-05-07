@@ -133,9 +133,7 @@ class _PlayerPageState extends State<PlayerPage> {
                     // than the cover's full edges.
                     Positioned.fill(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: coverSize / 4,
-                        ),
+                        padding: EdgeInsets.symmetric(vertical: coverSize / 4),
                         child: SpectrumVisualizer(player: widget.player),
                       ),
                     ),

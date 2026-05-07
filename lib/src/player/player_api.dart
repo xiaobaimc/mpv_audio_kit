@@ -133,8 +133,7 @@ abstract interface class PlayerApi {
 
   // ── Hooks ──────────────────────────────────────────────────────────
 
-  Future<void> registerHook(Hook hook,
-      {int priority = 0, Duration? timeout});
+  Future<void> registerHook(Hook hook, {int priority = 0, Duration? timeout});
   Future<void> continueHook(int id);
 
   // ── Raw escape hatch ───────────────────────────────────────────────

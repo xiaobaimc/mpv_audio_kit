@@ -15,8 +15,14 @@ mixin _PlaylistModule on _PlayerBase {
   /// only loads minutes later when playback advances.
   Future<void> add(Media media) async {
     _checkNotDisposed();
+    await _ready;
+    _validateHttpHeaders(media.httpHeaders);
     _mediaCache[media.uri] = media;
+    // TLS gate: HTTPS appends right after construction must see
+    // `tls-ca-file` before loadfile fires.
+    final tls = _tlsBundleReady;
     final resolved = await resolveUri(media.uri);
+    await tls;
     if (_disposed) {
       await resolved.dispose?.call();
       return;
@@ -33,18 +39,21 @@ mixin _PlaylistModule on _PlayerBase {
   /// Removes the track at [index] from the playlist.
   Future<void> remove(int index) async {
     _checkNotDisposed();
+    await _ready;
     _command(['playlist-remove', index.toString()]);
   }
 
   /// Skips to the next track.
   Future<void> next() async {
     _checkNotDisposed();
+    await _ready;
     _command(['playlist-next']);
   }
 
   /// Skips to the previous track.
   Future<void> previous() async {
     _checkNotDisposed();
+    await _ready;
     _command(['playlist-prev']);
   }
 
@@ -55,6 +64,7 @@ mixin _PlaylistModule on _PlayerBase {
   /// shared `_pendingPlay` field to race on with concurrent `open()` calls.
   Future<void> jump(int index) async {
     _checkNotDisposed();
+    await _ready;
     _prop('pause', 'no');
     _command(['playlist-play-index', index.toString()]);
   }
@@ -62,6 +72,7 @@ mixin _PlaylistModule on _PlayerBase {
   /// Moves the track at [from] to position [to].
   Future<void> move(int from, int to) async {
     _checkNotDisposed();
+    await _ready;
     _command(['playlist-move', from.toString(), to.toString()]);
   }
 
@@ -77,8 +88,12 @@ mixin _PlaylistModule on _PlayerBase {
   /// this build.)
   Future<void> replace(int index, Media media) async {
     _checkNotDisposed();
+    await _ready;
+    _validateHttpHeaders(media.httpHeaders);
     _mediaCache[media.uri] = media;
+    final tls = _tlsBundleReady;
     final resolved = await resolveUri(media.uri);
+    await tls;
     if (_disposed) {
       await resolved.dispose?.call();
       return;
@@ -100,8 +115,7 @@ mixin _PlaylistModule on _PlayerBase {
         _command(['loadfile', resolved.uri, 'insert-at', at.toString()]);
       } else {
         // 4th-arg options require an explicit index argument (mpv 0.38+).
-        _command(
-            ['loadfile', resolved.uri, 'insert-at', at.toString(), opts]);
+        _command(['loadfile', resolved.uri, 'insert-at', at.toString(), opts]);
       }
     }
 
@@ -119,10 +133,17 @@ mixin _PlaylistModule on _PlayerBase {
     }
   }
 
-  /// Clears all tracks from the playlist.
+  /// Clears the playlist, **including the currently-playing track**.
+  /// Playback stops; `state.playlist.items` becomes empty and
+  /// `state.playing` becomes `false`. Use [remove] for selective
+  /// clearing that keeps the active entry alive.
   Future<void> clearPlaylist() async {
     _checkNotDisposed();
+    await _ready;
     _mediaCache.clear();
+    // mpv's `playlist-clear` alone keeps the active entry; the
+    // explicit `playlist-remove current` makes the call match the
+    // method name.
     _command(['playlist-clear']);
     _command(['playlist-remove', 'current']);
   }
@@ -134,6 +155,7 @@ mixin _PlaylistModule on _PlayerBase {
   /// never observes a half-applied loop mode.
   Future<void> setLoop(Loop loop) async {
     _checkNotDisposed();
+    await _ready;
     String loopFile(Loop l) => l == Loop.file ? 'inf' : 'no';
     String loopPlaylist(Loop l) => l == Loop.playlist ? 'inf' : 'no';
     final previous = state.loop;
@@ -156,6 +178,7 @@ mixin _PlaylistModule on _PlayerBase {
   /// Enables or disables shuffle mode.
   Future<void> setShuffle(bool shuffle) async {
     _checkNotDisposed();
+    await _ready;
     _prop('shuffle', shuffle ? 'yes' : 'no');
     if (shuffle) {
       _command(['playlist-shuffle']);
@@ -174,6 +197,7 @@ mixin _PlaylistModule on _PlayerBase {
   /// [PlayerStream.prefetchState].
   Future<void> setPrefetchPlaylist(bool enabled) async {
     _checkNotDisposed();
+    await _ready;
     _prop('prefetch-playlist', enabled ? 'yes' : 'no');
     _updateField((s) => s.copyWith(prefetchPlaylist: enabled),
         _reactives.prefetchPlaylist, enabled);

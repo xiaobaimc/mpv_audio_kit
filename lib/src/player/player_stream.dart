@@ -148,8 +148,7 @@ class PlayerStream {
         ffmpegVersion = reactives.ffmpegVersion.stream,
         buffering = buffering.stream,
         completed = completed.stream,
-        playbackState =
-            _playbackStateStream(reactives, buffering, completed),
+        playbackState = _playbackStateStream(reactives, buffering, completed),
         playlist = playlist.stream,
         loop = loop.stream,
         audioDevices = audioDevices.stream,

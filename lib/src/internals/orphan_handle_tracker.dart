@@ -224,8 +224,7 @@ class OrphanHandleTracker {
       for (int i = 0; i < _kBufferSize; i++) {
         final cookieRef = _buffer + (i * _kSlotStride);
         final addrRef = _buffer + (i * _kSlotStride + 1);
-        if (cookieRef.value == _kCookie &&
-            addrRef.value == handle.address) {
+        if (cookieRef.value == _kCookie && addrRef.value == handle.address) {
           cookieRef.value = 0;
           addrRef.value = 0;
           break;

@@ -33,7 +33,8 @@ class AudioPage extends StatelessWidget {
               initialData: player.state.audioDevice,
               builder: (context, deviceSnap) {
                 final currentDevice =
-                    deviceSnap.data ?? const Device(name: 'auto', description: 'Auto');
+                    deviceSnap.data ??
+                    const Device(name: 'auto', description: 'Auto');
                 final currentValue =
                     devices.any((d) => d.name == currentDevice.name)
                     ? currentDevice.name
@@ -81,9 +82,7 @@ class AudioPage extends StatelessWidget {
               subtitle: 'audio-spdif=$wire',
               icon: Icons.settings_input_hdmi_rounded,
               values: selected,
-              options: [
-                for (final v in Spdif.values) (v, v.mpvValue),
-              ],
+              options: [for (final v in Spdif.values) (v, v.mpvValue)],
               onChanged: player.setAudioSpdif,
             );
           },

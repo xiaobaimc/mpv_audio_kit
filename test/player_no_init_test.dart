@@ -10,24 +10,26 @@ import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 
 void main() {
   group('Player() without MpvAudioKit.ensureInitialized', () {
-    test('throws MpvLibraryException pointing at the missing bundled libmpv',
-        () {
+    test(
+        'player.ready surfaces a libmpv-related failure when the bundled '
+        'library is missing', () async {
       // No ensureInitialized() call: MpvAudioKit.libraryPath is null,
-      // and MpvLibrary._resolvePath() looks for libmpv inside the
-      // Flutter app bundle (../Frameworks/...). In a `dart test` /
-      // `flutter test` process, those paths don't exist and the
-      // wrapper must surface a typed MpvLibraryException — never a
-      // raw FFI failure.
-      expect(
-        () => Player(),
+      // and the resolver looks for libmpv inside the Flutter app
+      // bundle. In a test process those paths don't exist; the failure
+      // now arrives on `player.ready` because mpv init runs in the
+      // event isolate.
+      final player = Player();
+      await expectLater(
+        player.ready,
         throwsA(
-          isA<MpvLibraryException>().having(
+          isA<StateError>().having(
             (e) => e.message,
             'message',
             contains('libmpv'),
           ),
         ),
       );
+      await player.dispose();
     });
   });
 }

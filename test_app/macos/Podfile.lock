@@ -1,6 +1,6 @@
 PODS:
   - FlutterMacOS (1.0.0)
-  - mpv_audio_kit (0.1.0):
+  - mpv_audio_kit (0.1.1):
     - FlutterMacOS
 
 DEPENDENCIES:
@@ -15,8 +15,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  mpv_audio_kit: 3f40c8a58aa9bc39b2394cc5a38ce6d0b0959870
+  mpv_audio_kit: 0e2ad770547e02e4dafab42af6c93da45c896761
 
-PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
+PODFILE CHECKSUM: 1e95c36afbfd1cb6423ceca4de7a8e1b256fb6ac
 
 COCOAPODS: 1.16.2

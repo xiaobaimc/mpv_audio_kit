@@ -93,8 +93,7 @@ void main() {
       expect(next!.mute, isTrue);
     });
 
-    test('parse can transform raw values (empty string → Format.auto)',
-        () {
+    test('parse can transform raw values (empty string → Format.auto)', () {
       final audioFormat = ReactiveProperty<Format>(Format.s16);
       final registry = PropertyRegistry()
         ..register(MpvPropertySpec<Format>.string(

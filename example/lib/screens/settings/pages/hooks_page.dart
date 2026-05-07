@@ -115,8 +115,8 @@ class _HooksPageState extends State<HooksPage> {
   Player get player => widget.player;
 
   Set<Hook> get _registeredHooks => {
-        for (final r in _enabled) ..._recipeSpecs[r]!.hooks,
-      };
+    for (final r in _enabled) ..._recipeSpecs[r]!.hooks,
+  };
 
   @override
   void dispose() {
@@ -406,8 +406,7 @@ class _RecipeCard extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: [
-                for (final h in spec.hooks)
-                  _HookChip(hook: h, active: enabled),
+                for (final h in spec.hooks) _HookChip(hook: h, active: enabled),
                 if (spec.mpvProperty != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -497,7 +496,8 @@ class _LogTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final ts = entry.timestamp;
-    final timeStr = '${ts.hour.toString().padLeft(2, '0')}:'
+    final timeStr =
+        '${ts.hour.toString().padLeft(2, '0')}:'
         '${ts.minute.toString().padLeft(2, '0')}:'
         '${ts.second.toString().padLeft(2, '0')}.'
         '${ts.millisecond.toString().padLeft(3, '0')}';
@@ -606,10 +606,7 @@ class _ActionRow extends StatelessWidget {
               Icon(spec.icon, size: 14, color: cs.primary),
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6,
-                  vertical: 1,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
                   color: cs.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(4),
@@ -627,10 +624,7 @@ class _ActionRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   action.label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: cs.onSurface,
-                  ),
+                  style: TextStyle(fontSize: 11, color: cs.onSurface),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

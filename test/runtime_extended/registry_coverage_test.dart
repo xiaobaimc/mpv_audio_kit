@@ -279,9 +279,8 @@ void main() {
         if (registrationOnly.contains(name)) continue;
         cannotFind.clear();
         final arg = argDefaults[name];
-        final filterStr = arg == null || arg.isEmpty
-            ? 'lavfi-$name'
-            : 'lavfi-$name=$arg';
+        final filterStr =
+            arg == null || arg.isEmpty ? 'lavfi-$name' : 'lavfi-$name=$arg';
         try {
           await player.setAudioEffects(AudioEffects(custom: [filterStr]));
         } catch (_) {

@@ -14,6 +14,7 @@ mixin _NetworkModule on _PlayerBase {
   /// `await player.setCache(state.cache.copyWith(secs: const Duration(seconds: 30)))`.
   Future<void> setCache(CacheSettings settings) async {
     _checkNotDisposed();
+    await _ready;
     final previous = state.cache;
     final writes = <(String, String, String)>[
       ('cache', settings.mode.mpvValue, previous.mode.mpvValue),
@@ -64,6 +65,7 @@ mixin _NetworkModule on _PlayerBase {
   /// decrease for live monitoring or low-latency listening.
   Future<void> setAudioBuffer(Duration size) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-buffer', durationToSeconds(size).toStringAsFixed(3));
     _updateField(
         (s) => s.copyWith(audioBuffer: size), _reactives.audioBuffer, size);
@@ -72,6 +74,7 @@ mixin _NetworkModule on _PlayerBase {
   /// Enables or disables streaming silence when no audio is playing.
   Future<void> setAudioStreamSilence(bool enable) async {
     _checkNotDisposed();
+    await _ready;
     _prop('audio-stream-silence', enable ? 'yes' : 'no');
     _updateField((s) => s.copyWith(audioStreamSilence: enable),
         _reactives.audioStreamSilence, enable);
@@ -85,6 +88,7 @@ mixin _NetworkModule on _PlayerBase {
   /// down to the microsecond.
   Future<void> setNetworkTimeout(Duration timeout) async {
     _checkNotDisposed();
+    await _ready;
     // mpv's `network-timeout` accepts a fractional second value (e.g.
     // "0.5"). Truncating with `inSeconds` would collapse any sub-second
     // duration to 0, which mpv interprets as "no timeout".
@@ -97,6 +101,7 @@ mixin _NetworkModule on _PlayerBase {
   /// Whether to verify TLS/SSL certificates for network streams.
   Future<void> setTlsVerify(bool enable) async {
     _checkNotDisposed();
+    await _ready;
     _prop('tls-verify', enable ? 'yes' : 'no');
     _updateField(
         (s) => s.copyWith(tlsVerify: enable), _reactives.tlsVerify, enable);
@@ -113,10 +118,11 @@ mixin _NetworkModule on _PlayerBase {
   /// literal `tls-ca-file=""` would silently disable peer verification.
   Future<void> setTlsCaFile(String path) async {
     _checkNotDisposed();
+    await _ready;
     final effective = path.isEmpty ? (_autoTlsCaBundlePath ?? '') : path;
     _prop('tls-ca-file', effective);
-    _updateField((s) => s.copyWith(tlsCaFile: effective),
-        _reactives.tlsCaFile, effective);
+    _updateField((s) => s.copyWith(tlsCaFile: effective), _reactives.tlsCaFile,
+        effective);
   }
 
   /// Sets the maximum bytes the demuxer is allowed to cache.
@@ -127,6 +133,7 @@ mixin _NetworkModule on _PlayerBase {
   /// suffixes interchangeably).
   Future<void> setDemuxerMaxBytes(int bytes) async {
     _checkNotDisposed();
+    await _ready;
     _prop('demuxer-max-bytes', bytes.toString());
     _updateField((s) => s.copyWith(demuxerMaxBytes: bytes),
         _reactives.demuxerMaxBytes, bytes);
@@ -136,6 +143,7 @@ mixin _NetworkModule on _PlayerBase {
   /// See [setDemuxerMaxBytes] for the byte-precision contract.
   Future<void> setDemuxerMaxBackBytes(int bytes) async {
     _checkNotDisposed();
+    await _ready;
     _prop('demuxer-max-back-bytes', bytes.toString());
     _updateField((s) => s.copyWith(demuxerMaxBackBytes: bytes),
         _reactives.demuxerMaxBackBytes, bytes);
@@ -144,6 +152,7 @@ mixin _NetworkModule on _PlayerBase {
   /// Sets the demuxer readahead time.
   Future<void> setDemuxerReadaheadSecs(int seconds) async {
     _checkNotDisposed();
+    await _ready;
     _prop('demuxer-readahead-secs', seconds.toString());
     _updateField((s) => s.copyWith(demuxerReadaheadSecs: seconds),
         _reactives.demuxerReadaheadSecs, seconds);
@@ -152,6 +161,7 @@ mixin _NetworkModule on _PlayerBase {
   /// Whether to fallback to untimed null output if audio output fails.
   Future<void> setAudioNullUntimed(bool enable) async {
     _checkNotDisposed();
+    await _ready;
     _prop('ao-null-untimed', enable ? 'yes' : 'no');
     _updateField((s) => s.copyWith(audioNullUntimed: enable),
         _reactives.audioNullUntimed, enable);

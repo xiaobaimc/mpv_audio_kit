@@ -35,8 +35,7 @@ void showFloatingSnack(
   final width = MediaQuery.of(context).size.width;
   final isWide = width >= AppMetrics.wideLayoutThreshold;
   final showPinned = isWide && consolePinnedNotifier.value;
-  final rightMargin =
-      showPinned ? AppMetrics.consolePinnedWidth + 16 : 16.0;
+  final rightMargin = showPinned ? AppMetrics.consolePinnedWidth + 16 : 16.0;
 
   final wrapped = foreground == null
       ? content

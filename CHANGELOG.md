@@ -1,3 +1,15 @@
+## [0.1.2] - 7-05-2026
+
+### Changed
+- `Player()` returns immediately during cold start: the heavy libmpv init (library open, handle creation and initialisation, ~80 property observers) now runs on the background event isolate instead of the host isolate.
+- The background event isolate now blocks on `mpv_wait_event` instead of polling every 50 ms, eliminating ~20 spurious wake-ups per second during idle playback.
+- `dispose()` is robust against being called before `Player()` finishes coming up: it waits for init to settle (or fail) before issuing the cooperative quit and tearing down the streams, so the safety timeout never fires on construction-then-dispose patterns.
+
+### Fixed
+- `Media.httpHeaders` now validate keys and values and throw `ArgumentError` on inputs that would corrupt the outgoing HTTP request.
+- `Player.add()` and `Player.replace()` now wait for the bundled CA file before emitting `loadfile`, matching `Player.open()`. The first HTTPS append issued immediately after construction no longer races peer verification.
+- The Player finalizer now issues a cooperative quit instead of tearing down the handle directly, eliminating a possible crash when a Player is garbage-collected without `dispose()`.
+
 ## [0.1.1] - 6-05-2026
 
 ### Changed

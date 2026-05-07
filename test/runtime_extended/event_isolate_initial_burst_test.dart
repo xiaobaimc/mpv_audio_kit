@@ -35,8 +35,7 @@ void main() {
   //   `initialVolume` and asserting it propagates.
   setUpAll(() => initLibmpvOrSkip());
 
-  test('initial property burst from libmpv reaches the main isolate',
-      () async {
+  test('initial property burst from libmpv reaches the main isolate', () async {
     final player = Player(
       configuration: const PlayerConfiguration(
         autoPlay: false,
@@ -52,8 +51,7 @@ void main() {
       // emit was lost between observe and listen.
       final firstVolume = await player.stream.volume
           .firstWhere((v) => v == 42.5)
-          .timeout(const Duration(seconds: 5),
-              onTimeout: () => double.nan);
+          .timeout(const Duration(seconds: 5), onTimeout: () => double.nan);
 
       expect(firstVolume, 42.5,
           reason: 'The initial PROPERTY_CHANGE burst from libmpv must '

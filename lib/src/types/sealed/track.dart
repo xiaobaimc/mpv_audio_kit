@@ -52,8 +52,7 @@ final class TrackId extends Track {
 
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TrackId && other.trackId == trackId;
+      identical(this, other) || other is TrackId && other.trackId == trackId;
 
   @override
   int get hashCode => Object.hash(TrackId, trackId);

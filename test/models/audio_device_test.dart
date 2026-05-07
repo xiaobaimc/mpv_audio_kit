@@ -19,8 +19,7 @@ void main() {
       // differ between system probes (locale changes, plug/unplug
       // events) without being a "different device".
       const a = Device(name: 'hw:0,0', description: 'Built-in');
-      const b =
-          Device(name: 'hw:0,0', description: 'Built-in (Localized)');
+      const b = Device(name: 'hw:0,0', description: 'Built-in (Localized)');
       expect(a, b);
       expect(a.hashCode, b.hashCode);
     });

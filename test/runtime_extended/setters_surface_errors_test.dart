@@ -38,8 +38,7 @@ void main() {
       throwsA(isA<MpvException>()
           .having((e) => e.name, 'name', 'volume-max')
           .having((e) => e.code, 'code', lessThan(0))),
-      reason:
-          'A typed setter that hands an out-of-range value to mpv must '
+      reason: 'A typed setter that hands an out-of-range value to mpv must '
           'throw MpvException, not silently swallow the rc and leave '
           'state.volumeMax desynced from the engine.',
     );

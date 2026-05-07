@@ -49,8 +49,8 @@ void main() {
       });
       try {
         await player.play();
-        final frame = await completer.future
-            .timeout(const Duration(seconds: 2));
+        final frame =
+            await completer.future.timeout(const Duration(seconds: 2));
         expect(frame.samples.length, greaterThan(0));
         expect(frame.sampleRate, greaterThan(0));
         expect(frame.channels, greaterThanOrEqualTo(1));
@@ -85,14 +85,13 @@ void main() {
       });
       try {
         await player.play();
-        final frame = await completer.future
-            .timeout(const Duration(seconds: 3));
+        final frame =
+            await completer.future.timeout(const Duration(seconds: 3));
         expect(frame.bands.length, 64);
         expect(frame.bins.length, 512); // fftSize / 2
         expect(frame.sampleRate, greaterThan(0));
         // The 440 Hz sine fixture should peak in a low band.
-        final maxBand =
-            frame.bands.reduce((a, b) => a > b ? a : b);
+        final maxBand = frame.bands.reduce((a, b) => a > b ? a : b);
         expect(maxBand, greaterThan(0.01));
       } finally {
         await sub.cancel();

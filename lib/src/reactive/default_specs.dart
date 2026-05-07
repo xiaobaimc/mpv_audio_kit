@@ -87,7 +87,7 @@ class DefaultPropertyReactives {
       ReactiveProperty<int>(50 * 1024 * 1024);
   final ReactiveProperty<Duration> networkTimeout =
       ReactiveProperty<Duration>(const Duration(seconds: 60));
-  final ReactiveProperty<bool> tlsVerify = ReactiveProperty<bool>(true);
+  final ReactiveProperty<bool> tlsVerify = ReactiveProperty<bool>(false);
   final ReactiveProperty<String> tlsCaFile = ReactiveProperty<String>('');
   final ReactiveProperty<bool> pausedForCache = ReactiveProperty<bool>(false);
   final ReactiveProperty<bool> demuxerViaNetwork =
@@ -832,4 +832,3 @@ int? _parseAbLoopCount(String raw) {
   if (raw == 'inf' || raw.isEmpty) return null;
   return int.tryParse(raw);
 }
-

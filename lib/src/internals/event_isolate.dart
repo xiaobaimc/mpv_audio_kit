@@ -21,6 +21,12 @@ import '../mpv_bindings.dart' as mpv;
 /// progress bar update and keeps the message bus uncluttered.
 const int _kTimePosThrottleMs = 33;
 
+/// `mpv_wait_event` timeout. `-1` blocks until the next mpv event
+/// (the documented pattern in `mpv/client.h`); `MPV_EVENT_SHUTDOWN`
+/// from `dispose()`'s `quit` command unblocks the call naturally,
+/// so no `mpv_wakeup` plumbing is needed.
+const double _kWaitEventTimeoutSeconds = -1.0;
+
 /// Maximum time [MpvEventIsolate.stop] waits for the background isolate
 /// to finish unwinding after `MPV_EVENT_SHUTDOWN`. The loop's natural
 /// exit is fast on every supported platform; this bound caps the worst
@@ -30,17 +36,63 @@ const Duration _kIsolateExitTimeout = Duration(seconds: 2);
 
 // ── Messages: main → isolate ─────────────────────────────────────────────────
 
-/// Sent once when the isolate starts to hand it the mpv handle address and
-/// the [SendPort] on which it should send events back.
+/// Carries the full "init recipe" so the isolate can run the heavy
+/// FFI sequence (`mpv_create` → pre-init opts → `mpv_initialize` →
+/// post-init opts → `mpv_observe_property` × N) off the main thread.
 class _InitMessage {
-  final int handleAddress;
   final SendPort toMain;
   final String? libraryPath;
-  _InitMessage(this.handleAddress, this.toMain, {this.libraryPath});
+  final Map<String, String> preInitOptions;
+  final Map<String, String> postInitOptions;
+  final List<MpvObserveSpec> observes;
+
+  /// Optional `mpv_request_log_messages` level, applied between
+  /// `mpv_create` and `mpv_initialize`.
+  final String? logLevel;
+
+  /// Test-only: address of an `Int64` cell incremented once per
+  /// `mpv_wait_event` return, so tests can assert the loop doesn't
+  /// busy-poll. `null` in production.
+  final int? wakeupCounterAddress;
+
+  _InitMessage(
+    this.toMain, {
+    this.libraryPath,
+    required this.preInitOptions,
+    required this.postInitOptions,
+    required this.observes,
+    this.logLevel,
+    this.wakeupCounterAddress,
+  });
+}
+
+/// Single property to register via `mpv_observe_property` from the
+/// isolate. [replyId] is opaque user data; the dispatcher matches by
+/// name on the receive side.
+class MpvObserveSpec {
+  final String name;
+  final int format;
+  final int replyId;
+  const MpvObserveSpec(this.name, this.format, this.replyId);
 }
 
 /// Tells the event loop isolate to exit cleanly.
 class _ShutdownMessage {}
+
+// ── Messages: isolate → main (init handshake only) ───────────────────────────
+
+/// Init succeeded; carries the live `mpv_handle*` address so the main
+/// isolate can wrap it as a `Pointer<MpvHandle>`.
+class _InitDone {
+  final int handleAddress;
+  _InitDone(this.handleAddress);
+}
+
+/// Init failed somewhere between `mpv_create` and the final observe.
+class _InitFailed {
+  final String message;
+  _InitFailed(this.message);
+}
 
 // ── Events: isolate → main ───────────────────────────────────────────────────
 
@@ -111,6 +163,55 @@ class MpvEventHookFired extends MpvIsolateEvent {
 
 // ── Isolate entry point ───────────────────────────────────────────────────────
 
+void _applyOptionStrings(
+  mpv.MpvLibrary lib,
+  Pointer<mpv.MpvHandle> handle,
+  Map<String, String> opts,
+) {
+  for (final entry in opts.entries) {
+    using((arena) {
+      lib.mpvSetOptionString(
+        handle,
+        entry.key.toNativeUtf8(allocator: arena),
+        entry.value.toNativeUtf8(allocator: arena),
+      );
+    });
+  }
+}
+
+void _applyPropertyStrings(
+  mpv.MpvLibrary lib,
+  Pointer<mpv.MpvHandle> handle,
+  Map<String, String> props,
+) {
+  for (final entry in props.entries) {
+    using((arena) {
+      lib.mpvSetPropertyString(
+        handle,
+        entry.key.toNativeUtf8(allocator: arena),
+        entry.value.toNativeUtf8(allocator: arena),
+      );
+    });
+  }
+}
+
+void _applyObserves(
+  mpv.MpvLibrary lib,
+  Pointer<mpv.MpvHandle> handle,
+  List<MpvObserveSpec> observes,
+) {
+  for (final spec in observes) {
+    using((arena) {
+      lib.mpvObserveProperty(
+        handle,
+        spec.replyId,
+        spec.name.toNativeUtf8(allocator: arena),
+        spec.format,
+      );
+    });
+  }
+}
+
 void _isolateEntry(SendPort initialReplyPort) {
   final fromMain = ReceivePort();
   initialReplyPort.send(fromMain.sendPort);
@@ -127,13 +228,56 @@ void _isolateEntry(SendPort initialReplyPort) {
   fromMain.listen((message) {
     if (message is _InitMessage) {
       toMain = message.toMain;
-      lib = mpv.MpvLibrary.open(message.libraryPath);
-      handle = Pointer<mpv.MpvHandle>.fromAddress(message.handleAddress);
+      final wakeupCounter = message.wakeupCounterAddress != null
+          ? Pointer<Int64>.fromAddress(message.wakeupCounterAddress!)
+          : null;
+      try {
+        // The heavy FFI sequence runs here — off the main isolate so
+        // the host UI keeps rendering during cold start.
+        lib = mpv.MpvLibrary.open(message.libraryPath);
+        final h = lib!.mpvCreate();
+        if (h == nullptr) {
+          toMain!.send(_InitFailed('mpv_create() returned NULL'));
+          fromMain.close();
+          return;
+        }
+        handle = h;
+        _applyOptionStrings(lib!, h, message.preInitOptions);
+        if (message.logLevel != null) {
+          using((arena) {
+            lib!.mpvRequestLogMessages(
+              h,
+              message.logLevel!.toNativeUtf8(allocator: arena),
+            );
+          });
+        }
+        final rc = lib!.mpvInitialize(h);
+        if (rc < 0) {
+          lib!.mpvTerminateDestroy(h);
+          toMain!.send(_InitFailed('mpv_initialize() failed: rc=$rc'));
+          fromMain.close();
+          return;
+        }
+        _applyPropertyStrings(lib!, h, message.postInitOptions);
+        _applyObserves(lib!, h, message.observes);
+        toMain!.send(_InitDone(h.address));
+      } catch (e, st) {
+        toMain!.send(_InitFailed('init crashed: $e\n$st'));
+        fromMain.close();
+        return;
+      }
       // Blocking call — returns when `_runEventLoop` breaks out of
       // its loop on MPV_EVENT_SHUTDOWN (sent by mpv after the main
       // isolate's `quit` command in dispose()).
       _runEventLoop(
-          lib!, handle!, toMain!, () => running, lastValues, lastTimestamps);
+        lib!,
+        handle!,
+        toMain!,
+        () => running,
+        lastValues,
+        lastTimestamps,
+        wakeupCounter,
+      );
       // Drop the last live ReceivePort so the VM tears the isolate
       // down naturally — this runs the per-isolate finalizers that
       // release libmpv-side state loaded via `MpvLibrary.open`.
@@ -157,11 +301,19 @@ void _runEventLoop(
   bool Function() isRunning,
   Map<String, dynamic> lastValues,
   Map<String, int> lastTimestamps,
+  Pointer<Int64>? wakeupCounter,
 ) {
   while (isRunning()) {
-    final event = lib.mpvWaitEvent(handle, 0.05);
+    // Test-only telemetry; null in production.
+    if (wakeupCounter != null) {
+      wakeupCounter.value = wakeupCounter.value + 1;
+    }
+    final event = lib.mpvWaitEvent(handle, _kWaitEventTimeoutSeconds);
     final id = event.ref.eventId;
 
+    // With timeout < 0, MPV_EVENT_NONE is unreachable in steady state
+    // (mpv only returns `none` on positive-timeout expiry). Defensive
+    // continue for spurious wakeups.
     if (id == mpv.MpvEventId.mpvEventNone) {
       continue;
     }
@@ -395,18 +547,25 @@ class MpvEventIsolate {
 
   Stream<MpvIsolateEvent> get events => _events.stream;
 
-  /// Spawns the event loop isolate and wires it to [handle].
+  /// Spawns the event isolate, runs the heavy mpv init recipe inside
+  /// it, and resolves with the live `mpv_handle*` address. Heavy FFI
+  /// (`mpv_create`, `mpv_initialize`, ~80 `mpv_observe_property`)
+  /// never touches the main isolate, so the host UI stays responsive
+  /// during cold start.
   ///
-  /// If [onEvent] is provided, the listener is registered BEFORE the
-  /// init message is sent to the isolate, eliminating the broadcast
-  /// race that otherwise drops the initial property-change burst. When
-  /// [onEvent] is omitted the controller buffers and the caller can
-  /// subscribe via [events] later — but is responsible for ensuring no
-  /// events are dropped (the stream is single-subscription).
-  Future<void> start(
-    Pointer<mpv.MpvHandle> handle, {
+  /// The [onEvent] listener is wired BEFORE `_InitDone` is forwarded,
+  /// eliminating the broadcast race that otherwise drops the initial
+  /// property-change burst.
+  ///
+  /// [wakeupCounterAddress] is test-only.
+  Future<int> start({
     String? libraryPath,
     void Function(MpvIsolateEvent)? onEvent,
+    required Map<String, String> preInitOptions,
+    required Map<String, String> postInitOptions,
+    required List<MpvObserveSpec> observes,
+    String? logLevel,
+    int? wakeupCounterAddress,
   }) async {
     if (onEvent != null) _events.stream.listen(onEvent);
 
@@ -424,18 +583,23 @@ class MpvEventIsolate {
     initPort.close();
 
     // Arm the exit listener BEFORE the isolate can possibly tear down.
-    // The isolate ends naturally after `_runEventLoop` returns and its
-    // ReceivePort closes, which can race a `stop()` call from the main
-    // side: registering the listener inside `stop()` could attach it
-    // AFTER teardown, and `addOnExitListener` on an already-dead isolate
-    // never fires — leaving `stop()` to fall through its 2 s safety
-    // timeout on every clean shutdown.
     _exitPort = ReceivePort();
     _isolate!.addOnExitListener(_exitPort!.sendPort);
 
+    final initDone = Completer<int>();
     final fromIsolate = ReceivePort();
     _fromIsolate = fromIsolate;
     fromIsolate.listen((msg) {
+      if (msg is _InitDone) {
+        if (!initDone.isCompleted) initDone.complete(msg.handleAddress);
+        return;
+      }
+      if (msg is _InitFailed) {
+        if (!initDone.isCompleted) {
+          initDone.completeError(StateError(msg.message));
+        }
+        return;
+      }
       // Drop messages that arrive after `stop()` has closed the
       // controller. Without this guard the queued message would throw
       // "Bad state: Cannot add new events after calling close" —
@@ -446,8 +610,17 @@ class MpvEventIsolate {
       }
     });
 
-    _toIsolate!.send(_InitMessage(handle.address, fromIsolate.sendPort,
-        libraryPath: libraryPath));
+    _toIsolate!.send(_InitMessage(
+      fromIsolate.sendPort,
+      libraryPath: libraryPath,
+      preInitOptions: preInitOptions,
+      postInitOptions: postInitOptions,
+      observes: observes,
+      logLevel: logLevel,
+      wakeupCounterAddress: wakeupCounterAddress,
+    ));
+
+    return initDone.future;
   }
 
   /// Signals the isolate to exit and **awaits its actual termination**

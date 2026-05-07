@@ -93,8 +93,8 @@ final class SpectrumSettings {
     this.maxDb = -10.0,
   })  : assert(fftSize >= 256 && fftSize <= 4096,
             'fftSize must be in [256, 4096]'),
-        assert((fftSize & (fftSize - 1)) == 0,
-            'fftSize must be a power of two'),
+        assert(
+            (fftSize & (fftSize - 1)) == 0, 'fftSize must be a power of two'),
         assert(bandCount > 0, 'bandCount must be positive'),
         assert(bandLowHz > 0, 'bandLowHz must be positive'),
         assert(bandHighHz > bandLowHz,

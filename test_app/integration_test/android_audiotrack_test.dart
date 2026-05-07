@@ -61,8 +61,7 @@ void main() {
         final lower = entry.text.toLowerCase();
         if (lower.contains('no java virtual machine') ||
             (lower.contains('audiotrack') && lower.contains('error')) ||
-            (lower.contains('audio output') &&
-                lower.contains('not found'))) {
+            (lower.contains('audio output') && lower.contains('not found'))) {
           aoErrors.add('[${entry.prefix}] ${entry.text}');
         }
       });
