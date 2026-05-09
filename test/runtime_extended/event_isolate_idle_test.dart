@@ -58,19 +58,24 @@ void main() {
 
         final wakeupsDuringIdle = afterIdle - beforeIdle;
 
-        // Pre-fix (timeout = 0.05s): ~40 wakeups in 2s.
-        // Post-fix (timeout = -1):  near zero (only genuine mpv
-        // events; on an idle player with no file loaded that's
-        // typically zero, sometimes one or two from internal
-        // bookkeeping). 5 is a generous threshold that catches the
-        // pre-fix behaviour without flaking on incidental events.
+        // Pre-0.1.2 (timeout = 0.05s): ~40 wakeups in 2s — busy-poll.
+        // 0.1.2     (timeout = -1):     near zero — perfect at idle but
+        //                               deadlocks Hot Restart.
+        // 0.1.3     (debug: 0.1s, product: -1): ~20 in 2s under
+        //                               `flutter test` (debug build),
+        //                               near zero in product. The
+        //                               threshold is loosened to <30 to
+        //                               accommodate the 100 ms kill-
+        //                               checkpoint while still catching
+        //                               the pre-0.1.2 busy-poll pattern.
         expect(
           wakeupsDuringIdle,
-          lessThan(5),
-          reason: 'event isolate must block on mpv_wait_event(-1), '
-              'not busy-poll. Got $wakeupsDuringIdle wakeups in '
-              '${idleWindow.inSeconds}s of idle, which is consistent '
-              'with the pre-fix 50 ms timeout pattern.',
+          lessThan(30),
+          reason: 'event isolate must wake at most ~10 Hz in debug '
+              '(kill-checkpoint for Hot Restart), or never in product. '
+              'Got $wakeupsDuringIdle wakeups in ${idleWindow.inSeconds}s '
+              'of idle, which is consistent with the pre-0.1.2 50 ms '
+              'busy-poll pattern.',
         );
       } finally {
         await player.dispose();

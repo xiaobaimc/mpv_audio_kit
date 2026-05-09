@@ -1,3 +1,8 @@
+## [0.1.3] - 9-05-2026
+
+### Fixed
+- Flutter Hot Restart no longer hangs in debug builds when a `Player` is alive.
+
 ## [0.1.2] - 7-05-2026
 
 ### Changed
