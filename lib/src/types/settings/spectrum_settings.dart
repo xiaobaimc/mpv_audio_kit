@@ -71,14 +71,27 @@ final class SpectrumSettings {
   final double releaseSmoothing;
 
   /// Lower edge of the dB clip range mapped to band value 0.0.
-  /// Anything below [minDb] reads as silent. -70 dB default — leaves
-  /// some "lift" in the visualizer for quiet passages.
+  /// Anything below [minDb] reads as silent. -100 dB default — matches
+  /// the Web Audio API `AnalyserNode.minDecibels` default and gives
+  /// quiet passages room to breathe at the bottom of the visualizer.
   final double minDb;
 
   /// Upper edge of the dB clip range mapped to band value 1.0.
-  /// Anything above [maxDb] saturates at 1.0. -10 dB default — the
-  /// visualizer hits full scale on loud peaks before digital clipping.
+  /// Anything above [maxDb] saturates at 1.0. -30 dB default — matches
+  /// the Web Audio API `AnalyserNode.maxDecibels` default. Modern
+  /// loudness-war masters animate in the upper range with peaks
+  /// touching the top on transients; quieter classical material
+  /// occupies the lower range without bottoming out.
   final double maxDb;
+
+  /// Overlap-add factor for the FFT loop. `1` runs a single FFT per
+  /// emit on the latest [fftSize] samples (snappy, no interpolation
+  /// between blocks). `4` (default) runs four FFTs spaced
+  /// `fftSize / 4` samples apart — the classic 75 % overlap, visibly
+  /// smoother visualizer motion at no extra latency. Higher values
+  /// trade CPU for smoother curves; values must be powers of two so
+  /// `fftSize / overlapFactor` is an integer hop.
+  final int overlapFactor;
 
   const SpectrumSettings({
     this.fftSize = 2048,
@@ -89,8 +102,9 @@ final class SpectrumSettings {
     this.emitInterval = const Duration(milliseconds: 33),
     this.attackSmoothing = 0.5,
     this.releaseSmoothing = 0.1,
-    this.minDb = -70.0,
-    this.maxDb = -10.0,
+    this.minDb = -100.0,
+    this.maxDb = -30.0,
+    this.overlapFactor = 4,
   })  : assert(fftSize >= 256 && fftSize <= 4096,
             'fftSize must be in [256, 4096]'),
         assert(
@@ -103,7 +117,11 @@ final class SpectrumSettings {
             'attackSmoothing must be in [0, 1]'),
         assert(releaseSmoothing >= 0 && releaseSmoothing <= 1,
             'releaseSmoothing must be in [0, 1]'),
-        assert(maxDb > minDb, 'maxDb must be strictly greater than minDb');
+        assert(maxDb > minDb, 'maxDb must be strictly greater than minDb'),
+        assert(overlapFactor >= 1 && overlapFactor <= 16,
+            'overlapFactor must be in [1, 16]'),
+        assert((overlapFactor & (overlapFactor - 1)) == 0,
+            'overlapFactor must be a power of two');
 
   /// Default visualizer preset — 2048 Hann FFT at 30 fps with 64
   /// log-spaced bands. Convenience `setSpectrum(SpectrumSettings.defaults)`
@@ -121,6 +139,7 @@ final class SpectrumSettings {
     double? releaseSmoothing,
     double? minDb,
     double? maxDb,
+    int? overlapFactor,
   }) =>
       SpectrumSettings(
         fftSize: fftSize ?? this.fftSize,
@@ -133,6 +152,7 @@ final class SpectrumSettings {
         releaseSmoothing: releaseSmoothing ?? this.releaseSmoothing,
         minDb: minDb ?? this.minDb,
         maxDb: maxDb ?? this.maxDb,
+        overlapFactor: overlapFactor ?? this.overlapFactor,
       );
 
   @override
@@ -148,7 +168,8 @@ final class SpectrumSettings {
           other.attackSmoothing == attackSmoothing &&
           other.releaseSmoothing == releaseSmoothing &&
           other.minDb == minDb &&
-          other.maxDb == maxDb);
+          other.maxDb == maxDb &&
+          other.overlapFactor == overlapFactor);
 
   @override
   int get hashCode => Object.hash(
@@ -162,6 +183,7 @@ final class SpectrumSettings {
         releaseSmoothing,
         minDb,
         maxDb,
+        overlapFactor,
       );
 
   @override
@@ -169,5 +191,5 @@ final class SpectrumSettings {
       'bandCount: $bandCount, bandLowHz: $bandLowHz, bandHighHz: $bandHighHz, '
       'window: $window, emitInterval: $emitInterval, '
       'attackSmoothing: $attackSmoothing, releaseSmoothing: $releaseSmoothing, '
-      'minDb: $minDb, maxDb: $maxDb)';
+      'minDb: $minDb, maxDb: $maxDb, overlapFactor: $overlapFactor)';
 }

@@ -1,15 +1,17 @@
 import 'package:flutter/widgets.dart';
 
+import '../atoms/atom_close_x.dart';
 import '../atoms/atom_label.dart';
 import '../skin/console_skin.dart';
+import '../skin/paint_helpers.dart';
 import 'pro/pro_registry.dart';
 
 /// Compact filter chip for the FX rack. One small horizontal rectangle
-/// per active filter — status dot · name · open-page glyph · remove ×.
-/// Click anywhere on the chip body (or on the open-page glyph) to open
-/// the filter's dedicated page (the pro window). Click × to remove the
-/// filter from the chain. Filters without a registered pro window stay
-/// passive: they sit in the chain at default settings, removed via ×.
+/// per filter in the chain — bypass toggle · name · remove ×. Clicking
+/// the chip body opens the filter's dedicated page; clicking the toggle
+/// flips the filter's `enabled` flag (live bypass without removing it
+/// from the chain); clicking × removes the chip from the rack
+/// altogether.
 ///
 /// Chips lay out via [Wrap] in the parent rack — they fill horizontally
 /// and the rack's vertical extent grows when the chip row needs more
@@ -17,13 +19,19 @@ import 'pro/pro_registry.dart';
 class FxChip extends StatefulWidget {
   /// lavfi filter name (`acompressor`, `equalizer`, …).
   final String filterName;
-  /// Removes the filter from the rack chain (sets `enabled = false`
-  /// in its slot of the bundle).
+  /// Whether the filter's `enabled` flag is currently true.
+  final bool active;
+  /// Flips the filter's `enabled` flag without removing it from the
+  /// rack — live bypass.
+  final ValueChanged<bool> onToggle;
+  /// Drops the filter from the rack entirely (also disables it).
   final VoidCallback onRemove;
 
   const FxChip({
     super.key,
     required this.filterName,
+    required this.active,
+    required this.onToggle,
     required this.onRemove,
   });
 
@@ -35,16 +43,17 @@ class _FxChipState extends State<FxChip> {
   bool _hover = false;
 
   void _openPage() {
-    if (!proWindowFilters.contains(widget.filterName)) return;
+    if (!hasAnyEditor(widget.filterName)) return;
     openProWindow(context, widget.filterName);
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasPage = proWindowFilters.contains(widget.filterName);
+    final hasPage = hasAnyEditor(widget.filterName);
     final border = _hover && hasPage
         ? ConsoleSkin.accentDim
         : ConsoleSkin.hairline;
+    final labelColor = widget.active ? ConsoleSkin.fg : ConsoleSkin.fgDim;
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -59,6 +68,14 @@ class _FxChipState extends State<FxChip> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Bypass toggle — the chip's active/inactive switch.
+            Padding(
+              padding: const EdgeInsets.only(left: 6),
+              child: _BypassToggle(
+                value: widget.active,
+                onChanged: widget.onToggle,
+              ),
+            ),
             // Body — clicking it opens the page when one exists.
             Listener(
               behavior: HitTestBehavior.opaque,
@@ -68,28 +85,17 @@ class _FxChipState extends State<FxChip> {
                     ? SystemMouseCursors.click
                     : SystemMouseCursors.basic,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const _StatusDot(),
-                      const SizedBox(width: 8),
-                      AtomLabel(
-                        widget.filterName,
-                        fontSize: ConsoleSkin.sizeSmall,
-                        color: ConsoleSkin.fg,
-                        mono: true,
-                      ),
-                      if (hasPage) ...[
-                        const SizedBox(width: 6),
-                        const _OpenGlyph(),
-                      ],
-                    ],
+                  padding: const EdgeInsets.fromLTRB(6, 0, 8, 0),
+                  child: AtomLabel(
+                    widget.filterName,
+                    fontSize: ConsoleSkin.sizeSmall,
+                    color: labelColor,
+                    mono: true,
                   ),
                 ),
               ),
             ),
-            _XButton(onTap: widget.onRemove),
+            AtomCloseX(onTap: widget.onRemove),
           ],
         ),
       ),
@@ -97,82 +103,19 @@ class _FxChipState extends State<FxChip> {
   }
 }
 
-class _StatusDot extends StatelessWidget {
-  const _StatusDot();
+/// Compact bypass toggle scaled for the chip row — 12×12 painted glyph
+/// inside a 20×20 hit target. Mirrors [AtomToggle]'s look (filled accent
+/// when on, hairline border when off) at chip-friendly proportions.
+class _BypassToggle extends StatefulWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  const _BypassToggle({required this.value, required this.onChanged});
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 6,
-      height: 6,
-      child: CustomPaint(painter: _DotPainter()),
-    );
-  }
+  State<_BypassToggle> createState() => _BypassToggleState();
 }
 
-class _DotPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.drawCircle(
-      Offset(size.width / 2, size.height / 2),
-      3,
-      Paint()..color = ConsoleSkin.accent..isAntiAlias = true,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_DotPainter old) => false;
-}
-
-class _OpenGlyph extends StatelessWidget {
-  const _OpenGlyph();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 12,
-      height: 12,
-      child: CustomPaint(painter: _ArrowPainter()),
-    );
-  }
-}
-
-class _ArrowPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    const r = 3.5;
-    final paint = Paint()
-      ..color = ConsoleSkin.fgDim
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..isAntiAlias = true
-      ..style = PaintingStyle.stroke;
-    // ↗ — up-right arrow.
-    final p = Path()
-      ..moveTo(cx - r, cy + r)
-      ..lineTo(cx + r, cy - r)
-      ..moveTo(cx, cy - r)
-      ..lineTo(cx + r, cy - r)
-      ..lineTo(cx + r, cy);
-    canvas.drawPath(p, paint);
-  }
-
-  @override
-  bool shouldRepaint(_ArrowPainter old) => false;
-}
-
-class _XButton extends StatefulWidget {
-  final VoidCallback onTap;
-  const _XButton({required this.onTap});
-
-  @override
-  State<_XButton> createState() => _XButtonState();
-}
-
-class _XButtonState extends State<_XButton> {
+class _BypassToggleState extends State<_BypassToggle> {
   bool _hover = false;
 
   @override
@@ -183,13 +126,21 @@ class _XButtonState extends State<_XButton> {
       onExit: (_) => setState(() => _hover = false),
       child: Listener(
         behavior: HitTestBehavior.opaque,
-        onPointerDown: (_) => widget.onTap(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: SizedBox(
-            width: 14,
-            height: 26,
-            child: CustomPaint(painter: _XPainter(hover: _hover)),
+        onPointerDown: (_) => widget.onChanged(!widget.value),
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: Center(
+            child: SizedBox(
+              width: 12,
+              height: 12,
+              child: CustomPaint(
+                painter: _BypassTogglePainter(
+                  value: widget.value,
+                  hover: _hover,
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -197,24 +148,36 @@ class _XButtonState extends State<_XButton> {
   }
 }
 
-class _XPainter extends CustomPainter {
+class _BypassTogglePainter extends CustomPainter {
+  final bool value;
   final bool hover;
-  _XPainter({required this.hover});
+  _BypassTogglePainter({required this.value, required this.hover});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    const r = 3.5;
-    final paint = Paint()
-      ..color = hover ? ConsoleSkin.fg : ConsoleSkin.fgDim
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round
-      ..isAntiAlias = true;
-    canvas.drawLine(Offset(cx - r, cy - r), Offset(cx + r, cy + r), paint);
-    canvas.drawLine(Offset(cx - r, cy + r), Offset(cx + r, cy - r), paint);
+    final rect = Offset.zero & size;
+    final fill = value ? ConsoleSkin.accent : ConsoleSkin.bgRaised;
+    final border = hover ? ConsoleSkin.accentDim : ConsoleSkin.hairline;
+    box(canvas, rect, fill: fill, border: border);
+    if (value) {
+      // Tiny check glyph identical in shape to AtomToggle's, scaled to
+      // the smaller box.
+      final paint = Paint()
+        ..color = ConsoleSkin.bg
+        ..strokeWidth = 1.4
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke
+        ..isAntiAlias = true;
+      final path = Path()
+        ..moveTo(size.width * 0.22, size.height * 0.55)
+        ..lineTo(size.width * 0.42, size.height * 0.74)
+        ..lineTo(size.width * 0.78, size.height * 0.30);
+      canvas.drawPath(path, paint);
+    }
   }
 
   @override
-  bool shouldRepaint(_XPainter old) => old.hover != hover;
+  bool shouldRepaint(_BypassTogglePainter old) =>
+      old.value != value || old.hover != hover;
 }

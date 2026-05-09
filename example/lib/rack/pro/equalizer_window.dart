@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
@@ -9,8 +8,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../atoms/atom_knob.dart';
+import '../../atoms/atom_plot_chrome.dart';
 import '../../atoms/atom_spectrum_curve.dart';
-import '../../atoms/pcm_band_processor.dart';
 import '../../shell/studio_scope.dart';
 import '../../skin/console_skin.dart';
 import 'pro_plugin_window.dart';
@@ -67,30 +66,58 @@ const double _dbMin = -24;
 const double _dbMax = 24;
 
 class _GraphState extends State<_Graph> {
-  // Two FFT processors fed by the per-filter pre / post taps. The
-  // band snapshots flow into a pair of ValueNotifiers so the
-  // CustomPaint repaints WITHOUT rebuilding the widget tree —
-  // setState at 60 Hz on a complex pro-window subtree was
-  // measurably laggy.
-  final _preProc = PcmBandProcessor();
-  final _postProc = PcmBandProcessor();
+  // Pre / post FFT bands derived from the per-filter PCM tap.
+  // [BandProcessor] runs the same FFT / windowing / smoothing the
+  // library uses for the global visualizer, so the curves here pulse
+  // with the same ballistic. ValueNotifier-driven so CustomPaint
+  // repaints WITHOUT rebuilding the widget tree.
   final _preBands = ValueNotifier<Float32List?>(null);
   final _postBands = ValueNotifier<Float32List?>(null);
+  // Slow-falling per-band peak-hold buffers — universal pro analyzer
+  // convention. Refreshed each time a new bands frame arrives.
+  SpectrumPeakHold? _preHold;
+  SpectrumPeakHold? _postHold;
+  late final BandProcessor _preProc;
+  late final BandProcessor _postProc;
   StreamSubscription<PcmFrame>? _preSub;
   StreamSubscription<PcmFrame>? _postSub;
+  StreamSubscription<SpectrumSettings>? _cfgSub;
 
   bool _dragging = false;
+
+  Duration get _now => Duration(
+      milliseconds: DateTime.now().millisecondsSinceEpoch);
 
   @override
   void initState() {
     super.initState();
-    _preSub = widget.player.tapPre('equalizer').listen((frame) {
-      if (!mounted) return;
-      _preBands.value = _preProc.process(frame);
+    _preProc = BandProcessor(widget.player.spectrumSettings);
+    _postProc = BandProcessor(widget.player.spectrumSettings);
+    _cfgSub = widget.player.stream.spectrum.listen((s) {
+      _preProc.setSettings(s);
+      _postProc.setSettings(s);
     });
-    _postSub = widget.player.tapPost('equalizer').listen((frame) {
+    _preSub = widget.player.stream
+        .tap(AudioEffect.equalizer, side: TapSide.pre)
+        .listen((pcm) {
       if (!mounted) return;
-      _postBands.value = _postProc.process(frame);
+      final f = _preProc.process(pcm);
+      if (f != null) {
+        _preHold ??= SpectrumPeakHold(length: f.bands.length);
+        _preHold!.update(f.bands, _now);
+        _preBands.value = f.bands;
+      }
+    });
+    _postSub = widget.player.stream
+        .tap(AudioEffect.equalizer, side: TapSide.post)
+        .listen((pcm) {
+      if (!mounted) return;
+      final f = _postProc.process(pcm);
+      if (f != null) {
+        _postHold ??= SpectrumPeakHold(length: f.bands.length);
+        _postHold!.update(f.bands, _now);
+        _postBands.value = f.bands;
+      }
     });
   }
 
@@ -98,6 +125,7 @@ class _GraphState extends State<_Graph> {
   void dispose() {
     _preSub?.cancel();
     _postSub?.cancel();
+    _cfgSub?.cancel();
     _preBands.dispose();
     _postBands.dispose();
     super.dispose();
@@ -105,9 +133,11 @@ class _GraphState extends State<_Graph> {
 
   void _setFromPosition(Offset local, Size size) {
     if (size.width <= 0 || size.height <= 0) return;
-    final tX = (local.dx / size.width).clamp(0.0, 1.0);
+    final plot = PlotChrome.plotRect(size);
+    if (plot.width <= 0 || plot.height <= 0) return;
+    final tX = ((local.dx - plot.left) / plot.width).clamp(0.0, 1.0);
     final newFreq = _fMin * math.pow(_fMax / _fMin, tX).toDouble();
-    final tY = (1 - (local.dy / size.height).clamp(0.0, 1.0));
+    final tY = (1 - ((local.dy - plot.top) / plot.height).clamp(0.0, 1.0));
     final newGain = _dbMin + tY * (_dbMax - _dbMin);
     widget.player.updateAudioEffects(
       (b) => b.copyWith(
@@ -143,6 +173,8 @@ class _GraphState extends State<_Graph> {
                   q: widget.settings.width,
                   preBands: _preBands,
                   postBands: _postBands,
+                  preHold: _preHold,
+                  postHold: _postHold,
                   dragging: _dragging,
                 ),
                 size: Size.infinite,
@@ -163,13 +195,14 @@ class _EqGraphPainter extends CustomPainter {
   final double q;
   final ValueListenable<Float32List?> preBands;
   final ValueListenable<Float32List?> postBands;
+  final SpectrumPeakHold? preHold;
+  final SpectrumPeakHold? postHold;
   final bool dragging;
 
-  // Fixed grid lines drawn behind both the spectrum and the EQ curve.
-  // Keeping decade marks lets the eye relate frequency knob value to
-  // a visual landmark instantly.
-  static const _freqGrid = [50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
-  static const _dbGrid = [-18, -12, -6, 0, 6, 12, 18];
+  // Two-tier grid: majors are labelled and brighter, minors are dim
+  // hairlines. Same pattern every painter follows.
+  static const _dbGridMajor = [-18, -12, -6, 0, 6, 12, 18];
+  static const _dbGridMinor = [-15, -9, -3, 3, 9, 15];
 
   _EqGraphPainter({
     required this.frequency,
@@ -177,6 +210,8 @@ class _EqGraphPainter extends CustomPainter {
     required this.q,
     required this.preBands,
     required this.postBands,
+    required this.preHold,
+    required this.postHold,
     required this.dragging,
   }) : super(repaint: Listenable.merge([preBands, postBands]));
 
@@ -191,14 +226,16 @@ class _EqGraphPainter extends CustomPainter {
   }
 
   static double _xOf(double f, Size size) {
+    final plot = PlotChrome.plotRect(size);
     final t = (math.log(f / _fMin) / math.log(_fMax / _fMin))
         .clamp(0.0, 1.0);
-    return size.width * t;
+    return plot.left + plot.width * t;
   }
 
   static double _yOf(double db, Size size) {
+    final plot = PlotChrome.plotRect(size);
     final t = ((db - _dbMin) / (_dbMax - _dbMin)).clamp(0.0, 1.0);
-    return size.height * (1 - t);
+    return plot.top + plot.height * (1 - t);
   }
 
   /// Approximate magnitude (dB) of a bell-shaped peaking EQ band at
@@ -215,42 +252,37 @@ class _EqGraphPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Background well.
-    canvas.drawRect(Offset.zero & size, Paint()..color = ConsoleSkin.bgDeep);
+    final plot = PlotChrome.plotRect(size);
 
-    // Grid: vertical decade marks.
-    final gridPaint = Paint()
-      ..color = ConsoleSkin.hairline
-      ..strokeWidth = ConsoleSkin.hairlinePx
-      ..isAntiAlias = false;
-    for (final f in _freqGrid) {
-      final x = _xOf(f.toDouble(), size).floorToDouble() + 0.5;
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), gridPaint);
+    // Background well — only inside the plot, gutters stay on the
+    // panel base colour.
+    canvas.drawRect(plot, Paint()..color = ConsoleSkin.bgDeep);
+
+    // Minor grid first (drawn under), majors on top.
+    for (final f in PlotChrome.freqMinor) {
+      PlotChrome.drawVGrid(canvas, size, _xOf(f, size));
     }
-    // Grid: horizontal dB marks.
-    for (final db in _dbGrid) {
-      final y = _yOf(db.toDouble(), size).floorToDouble() + 0.5;
-      final color = db == 0 ? ConsoleSkin.fgFaint : ConsoleSkin.hairline;
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(size.width, y),
-        Paint()
-          ..color = color
-          ..strokeWidth = ConsoleSkin.hairlinePx
-          ..isAntiAlias = false,
-      );
+    for (final db in _dbGridMinor) {
+      PlotChrome.drawHGrid(canvas, size, _yOf(db.toDouble(), size));
     }
+    for (final f in PlotChrome.freqMajor) {
+      PlotChrome.drawVGrid(canvas, size, _xOf(f, size),
+          color: ConsoleSkin.fgFaint);
+    }
+    for (final db in _dbGridMajor) {
+      if (db == 0) continue;
+      PlotChrome.drawHGrid(canvas, size, _yOf(db.toDouble(), size));
+    }
+    PlotChrome.drawZeroH(canvas, size, _yOf(0, size));
 
     // Pro-Q-style dual spectrum: input (faint grey) + post-filter
-    // output (accent), both drawn in the bottom 55% so they never
-    // collide with the EQ-response curve at extreme gains. Read the
-    // notifiers' current values directly — the painter has been
-    // wired to repaint when either of them notifies (see ctor).
+    // output (accent), both drawn in the bottom 55% of the plot so
+    // they never collide with the EQ-response curve at extreme gains.
     final specRect = Rect.fromLTWH(
-      0,
-      size.height * 0.45,
-      size.width,
-      size.height * 0.55,
+      plot.left,
+      plot.top + plot.height * 0.45,
+      plot.width,
+      plot.height * 0.55,
     );
     final pre = preBands.value;
     if (pre != null && pre.isNotEmpty) {
@@ -258,9 +290,11 @@ class _EqGraphPainter extends CustomPainter {
         canvas,
         specRect,
         pre,
+        peakBands: preHold?.bands,
         color: ConsoleSkin.fgFaint,
         fillAlpha: 0.18,
         strokeWidth: 1.0,
+        tiltDbPerOctave: 4.5,
       );
     }
     final post = postBands.value;
@@ -269,9 +303,11 @@ class _EqGraphPainter extends CustomPainter {
         canvas,
         specRect,
         post,
+        peakBands: postHold?.bands,
         color: ConsoleSkin.accent,
         fillAlpha: 0.25,
         strokeWidth: 1.2,
+        tiltDbPerOctave: 4.5,
       );
     }
 
@@ -321,11 +357,11 @@ class _EqGraphPainter extends CustomPainter {
           ..isAntiAlias = true,
       );
       if (dragging) {
-        // Vertical guide line through the marker for visual alignment
-        // with the frequency axis labels.
+        // Vertical guide line through the marker, clipped to the plot
+        // rect so it doesn't bleed into the gutters.
         canvas.drawLine(
-          Offset(mx, 0),
-          Offset(mx, size.height),
+          Offset(mx, plot.top),
+          Offset(mx, plot.bottom),
           Paint()
             ..color = ConsoleSkin.accentDim
             ..strokeWidth = ConsoleSkin.hairlinePx
@@ -334,40 +370,22 @@ class _EqGraphPainter extends CustomPainter {
       }
     }
 
-    // Axis labels (right edge: dB, bottom: a few Hz markers).
-    _drawAxisLabels(canvas, size);
-  }
-
-  void _drawAxisLabels(Canvas canvas, Size size) {
-    final labels = <(double, String)>[
-      (50, '50'),
-      (100, '100'),
-      (1000, '1k'),
-      (10000, '10k'),
-    ];
-    for (final (f, txt) in labels) {
-      final x = _xOf(f, size);
-      _paragraph(txt, color: ConsoleSkin.fgDim).draw(canvas, Offset(x + 2, size.height - 12));
+    // Axis labels — major frequency ticks along the bottom gutter,
+    // major dB ticks along the right gutter.
+    for (final f in PlotChrome.freqMajor) {
+      PlotChrome.drawXLabel(
+          canvas, size, _xOf(f, size), PlotChrome.formatHz(f));
     }
-    for (final db in [-12, 0, 12]) {
-      final y = _yOf(db.toDouble(), size);
-      _paragraph(
-        '${db > 0 ? '+' : ''}$db',
+    for (final db in _dbGridMajor) {
+      final txt = '${db > 0 ? '+' : ''}$db';
+      PlotChrome.drawYLabelRight(
+        canvas,
+        size,
+        _yOf(db.toDouble(), size),
+        txt,
         color: db == 0 ? ConsoleSkin.fgDim : ConsoleSkin.fgFaint,
-      ).draw(canvas, Offset(size.width - 22, y - 4));
+      );
     }
-  }
-
-  _Paragraph _paragraph(String text, {required Color color}) {
-    final builder = ui.ParagraphBuilder(ui.ParagraphStyle(
-      fontFamily: ConsoleSkin.fontMono,
-      fontSize: ConsoleSkin.sizeTiny,
-    ))
-      ..pushStyle(ui.TextStyle(color: color, fontSize: ConsoleSkin.sizeTiny))
-      ..addText(text);
-    final p = builder.build()
-      ..layout(const ui.ParagraphConstraints(width: 64));
-    return _Paragraph(p);
   }
 
   @override
@@ -378,12 +396,6 @@ class _EqGraphPainter extends CustomPainter {
       old.dragging != dragging;
   // preBands / postBands are Listenables — the painter's `repaint`
   // ctor arg drives spectrum repaints, no identity check needed.
-}
-
-class _Paragraph {
-  final ui.Paragraph p;
-  _Paragraph(this.p);
-  void draw(Canvas canvas, Offset offset) => canvas.drawParagraph(p, offset);
 }
 
 // ──────────────────────────────────────────────────────────────────────
@@ -437,6 +449,7 @@ class _Controls extends StatelessWidget {
             min: -24,
             max: 24,
             defaultValue: 0,
+            bipolar: true,
             onChanged: (v) => player.updateAudioEffects(
               (b) => b.copyWith(equalizer: settings.copyWith(gain: v)),
             ),

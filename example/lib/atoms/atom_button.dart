@@ -282,8 +282,12 @@ class _ButtonPainter extends CustomPainter {
         _drawPanelIcon(canvas, size, color, _PanelSide.left,
             segmentColor: iconActive ? ConsoleSkin.accent : color);
         break;
-      case IconGlyph.panelBottom:
-        _drawPanelIcon(canvas, size, color, _PanelSide.bottom,
+      case IconGlyph.panelBottomFx:
+        _drawPanelIcon(canvas, size, color, _PanelSide.bottomTop,
+            segmentColor: iconActive ? ConsoleSkin.accent : color);
+        break;
+      case IconGlyph.panelBottomConsole:
+        _drawPanelIcon(canvas, size, color, _PanelSide.bottomBottom,
             segmentColor: iconActive ? ConsoleSkin.accent : color);
         break;
       case IconGlyph.panelRight:
@@ -376,23 +380,41 @@ class _ButtonPainter extends CustomPainter {
           );
         }
         break;
-      case _PanelSide.bottom:
-        final segH = h * segRatio;
+      case _PanelSide.bottomTop:
+      case _PanelSide.bottomBottom:
+        // Two stacked panels in the bottom 50 % of the icon. Both
+        // dividers are always painted (regardless of active state)
+        // so the user reads "two stacked panels" at a glance and the
+        // accent fill identifies which of the two this button toggles.
+        final segH = h * 0.25;
+        final upperTop = top + h - 2 * segH;
+        final lowerTop = top + h - segH;
+        canvas.drawLine(
+          Offset(left, upperTop),
+          Offset(left + w, upperTop),
+          divider,
+        );
+        canvas.drawLine(
+          Offset(left, lowerTop),
+          Offset(left + w, lowerTop),
+          divider,
+        );
         if (activeFill) {
-          canvas.drawRRect(
-            RRect.fromRectAndCorners(
-              Rect.fromLTWH(left, top + h - segH, w, segH),
-              bottomLeft: cornerR,
-              bottomRight: cornerR,
-            ),
-            fill,
-          );
-        } else {
-          canvas.drawLine(
-            Offset(left, top + h - segH),
-            Offset(left + w, top + h - segH),
-            divider,
-          );
+          if (side == _PanelSide.bottomTop) {
+            canvas.drawRect(
+              Rect.fromLTWH(left, upperTop, w, segH),
+              fill,
+            );
+          } else {
+            canvas.drawRRect(
+              RRect.fromRectAndCorners(
+                Rect.fromLTWH(left, lowerTop, w, segH),
+                bottomLeft: cornerR,
+                bottomRight: cornerR,
+              ),
+              fill,
+            );
+          }
         }
         break;
     }
@@ -413,7 +435,11 @@ class _ButtonPainter extends CustomPainter {
 
 enum IconGlyph {
   play, pause, stop, prev, next, shuffle, loop,
-  panelLeft, panelBottom, panelRight,
+  panelLeft, panelRight,
+  /// Top of two stacked bottom panels — used by the FX rack toggle.
+  panelBottomFx,
+  /// Bottom of two stacked bottom panels — used by the Console toggle.
+  panelBottomConsole,
 }
 
-enum _PanelSide { left, right, bottom }
+enum _PanelSide { left, right, bottomTop, bottomBottom }

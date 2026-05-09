@@ -4733,3 +4733,112 @@ enum TrebleWidthType {
     }
   }
 }
+
+/// Identifies a single typed audio filter from the
+/// [AudioEffects] bundle.
+///
+/// One value per filter on the AUDIO_FILTERS whitelist —
+/// the same set surfaced as `*Settings` fields on
+/// [AudioEffects]. Use it as a typed identifier in APIs
+/// that pick a single filter slot, e.g.
+/// `player.stream.tap(AudioEffect.equalizer, side: TapSide.post)`.
+enum AudioEffect {
+  acompressor,
+  acontrast,
+  acrusher,
+  adeclick,
+  adeclip,
+  adecorrelate,
+  adelay,
+  adenorm,
+  aderivative,
+  adrc,
+  adynamicequalizer,
+  adynamicsmooth,
+  aecho,
+  aemphasis,
+  aeval,
+  aexciter,
+  afade,
+  afftdn,
+  afftfilt,
+  aformat,
+  afreqshift,
+  afwtdn,
+  agate,
+  aiir,
+  alimiter,
+  allpass,
+  anequalizer,
+  anlmdn,
+  apad,
+  aphaser,
+  aphaseshift,
+  apsyclip,
+  apulsator,
+  aresample,
+  arnndn,
+  asoftclip,
+  asubboost,
+  asubcut,
+  asupercut,
+  asuperpass,
+  asuperstop,
+  atempo,
+  atilt,
+  bandpass,
+  bandreject,
+  bass,
+  biquad,
+  channelmap,
+  chorus,
+  compand,
+  compensationdelay,
+  crossfeed,
+  crystalizer,
+  dcshift,
+  deesser,
+  dialoguenhance,
+  drmeter,
+  dynaudnorm,
+  earwax,
+  ebur128,
+  equalizer,
+  extrastereo,
+  firequalizer,
+  flanger,
+  haas,
+  hdcd,
+  headphone,
+  highpass,
+  highshelf,
+  loudnorm,
+  lowpass,
+  lowshelf,
+  mcompand,
+  pan,
+  rubberband,
+  silenceremove,
+  speechnorm,
+  stereotools,
+  stereowiden,
+  superequalizer,
+  surround,
+  tiltshelf,
+  treble,
+  tremolo,
+  vibrato,
+  virtualbass,
+  ;
+
+  /// mpv filter-type name. Coincides with the enum value
+  /// [name] for every entry on the current whitelist; the
+  /// getter exists so consumers don't depend on that
+  /// coincidence (a future filter colliding with a Dart
+  /// reserved word would gain a trailing `_` on its enum
+  /// value, which this getter would strip).
+  String get filterName {
+    final n = name;
+    return n.endsWith('_') ? n.substring(0, n.length - 1) : n;
+  }
+}

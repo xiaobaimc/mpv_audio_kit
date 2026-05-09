@@ -27,8 +27,19 @@ class Rack extends StatefulWidget {
   State<Rack> createState() => _RackState();
 }
 
+/// Lookup table from filter name to its catalogue entry — built once
+/// at first access since [filterCatalog] is `final` and immutable.
+final Map<String, FxMeta> _byName = {
+  for (final f in filterCatalog) f.name: f,
+};
+
 class _RackState extends State<Rack> {
   OverlayEntry? _pickerEntry;
+  /// Filter names the user has bypassed via the chip's toggle but kept
+  /// in the rack. The bundle's `enabled` flag is the live bypass — when
+  /// it's false the rack would normally hide the chip; this set keeps
+  /// it visible so the user can flick the toggle back on.
+  final Set<String> _bypassed = <String>{};
 
   void _openPicker() {
     if (_pickerEntry != null) return;
@@ -61,31 +72,50 @@ class _RackState extends State<Rack> {
         initialData: p.state.audioEffects,
         builder: (ctx, snap) {
           final bundle = snap.data ?? const AudioEffects();
-          final active = filterCatalog
-              .where((f) => f.isOn(bundle))
+          // If a filter became enabled externally (re-picked from the
+          // picker, set programmatically), drop it from the bypassed
+          // set so the chip's state stays consistent with the bundle.
+          _bypassed.removeWhere((name) {
+            final meta = _byName[name];
+            return meta != null && meta.isOn(bundle);
+          });
+          final inRack = filterCatalog
+              .where((f) => f.isOn(bundle) || _bypassed.contains(f.name))
               .toList(growable: false);
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Header(count: active.length, onAdd: _openPicker),
+              _Header(count: inRack.length, onAdd: _openPicker),
               const _Hairline(),
               Expanded(
-                child: active.isEmpty
-                    ? const _Empty()
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
-                        child: Wrap(
-                          children: [
-                            for (final meta in active)
-                              FxChip(
-                                key: ValueKey(meta.name),
-                                filterName: meta.name,
-                                onRemove: () => p.updateAudioEffects(
-                                    (b) => meta.toggle(b, false)),
-                              ),
-                          ],
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                  child: Wrap(
+                    children: [
+                      for (final meta in inRack)
+                        FxChip(
+                          key: ValueKey(meta.name),
+                          filterName: meta.name,
+                          active: meta.isOn(bundle),
+                          onToggle: (on) {
+                            p.updateAudioEffects((b) => meta.toggle(b, on));
+                            setState(() {
+                              if (on) {
+                                _bypassed.remove(meta.name);
+                              } else {
+                                _bypassed.add(meta.name);
+                              }
+                            });
+                          },
+                          onRemove: () {
+                            p.updateAudioEffects(
+                                (b) => meta.toggle(b, false));
+                            setState(() => _bypassed.remove(meta.name));
+                          },
                         ),
-                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           );
@@ -118,7 +148,7 @@ class _Header extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             AtomLabel(
-              count == 0 ? 'empty' : '$count',
+              count == 0 ? '' : '$count',
               fontSize: ConsoleSkin.sizeTiny,
               color: ConsoleSkin.fgDim,
               mono: true,
@@ -182,22 +212,6 @@ class _PlusPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_PlusPainter old) => old.hover != hover;
-}
-
-class _Empty extends StatelessWidget {
-  const _Empty();
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: AtomLabel(
-        'no filters\nclick  +  to add',
-        fontSize: ConsoleSkin.sizeSmall,
-        color: ConsoleSkin.fgFaint,
-        mono: true,
-        letterSpacing: 0.5,
-      ),
-    );
-  }
 }
 
 class _Hairline extends StatelessWidget {

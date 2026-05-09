@@ -2,7 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 
-import '../atoms/atom_button.dart';
+import '../atoms/atom_close_x.dart';
 import '../atoms/atom_label.dart';
 import '../atoms/atom_text_input.dart';
 import '../shell/studio_scope.dart';
@@ -191,12 +191,9 @@ class _Header extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            AtomButton(
-              label: '×',
-              onTap: onClose,
-              width: 28,
-              height: 24,
-            ),
+            // Same `×` glyph the FX chips and pro-plugin windows use,
+            // so the dismiss affordance reads consistently across the app.
+            AtomCloseX(onTap: onClose),
           ],
         ),
       ),
@@ -302,6 +299,12 @@ class _SidebarItemState extends State<_SidebarItem> {
         behavior: HitTestBehavior.opaque,
         onPointerDown: (_) => widget.onTap(),
         child: Container(
+          // Same 28-tall fixed row + centerLeft alignment the
+          // preferences sidebar uses (`_SidebarItem` in
+          // preferences_overlay.dart). Keeping the two sidebars
+          // visually identical is load-bearing — they live next to
+          // each other in the studio chrome and any divergence reads
+          // as a bug.
           height: 28,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
@@ -325,6 +328,7 @@ class _SidebarItemState extends State<_SidebarItem> {
                   letterSpacing: 0.5,
                 ),
               ),
+              const SizedBox(width: 6),
               AtomLabel(
                 '${widget.count}',
                 fontSize: ConsoleSkin.sizeTiny,
@@ -397,6 +401,7 @@ class _FilterRowState extends State<_FilterRow> {
                           widget.meta.description,
                           fontSize: ConsoleSkin.sizeTiny,
                           color: ConsoleSkin.fgFaint,
+                          wrap: true,
                         ),
                       ),
                   ],

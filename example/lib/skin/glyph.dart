@@ -15,7 +15,11 @@ class Glyph {
   /// Layout + paint [text] at [offset]. Returns the entry size so the
   /// caller can advance its layout cursor.
   ///
-  /// Pass [maxWidth] to clip overlong strings with an ellipsis (single line).
+  /// Pass [maxWidth] to clip overlong strings with an ellipsis (single
+  /// line). Pass [wrap] = true to allow multi-line wrapping at
+  /// [maxWidth] instead of ellipsizing. Pass [tabular] = true to
+  /// enable tabular figures (`tnum`) so digit-substituting readouts
+  /// don't reflow horizontally.
   static Size draw(
     Canvas canvas,
     String text, {
@@ -27,9 +31,11 @@ class Glyph {
     double? letterSpacing,
     TextAlign align = TextAlign.left,
     double? maxWidth,
+    bool wrap = false,
+    bool tabular = false,
   }) {
-    final entry = _entry(
-        text, size, color, mono, weight, letterSpacing, align, maxWidth);
+    final entry = _entry(text, size, color, mono, weight, letterSpacing, align,
+        maxWidth, wrap, tabular);
     canvas.drawParagraph(entry.paragraph, offset);
     return entry.size;
   }
@@ -45,9 +51,11 @@ class Glyph {
     double? letterSpacing,
     TextAlign align = TextAlign.left,
     double? maxWidth,
+    bool wrap = false,
+    bool tabular = false,
   }) {
-    return _entry(
-            text, size, color, mono, weight, letterSpacing, align, maxWidth)
+    return _entry(text, size, color, mono, weight, letterSpacing, align,
+            maxWidth, wrap, tabular)
         .size;
   }
 
@@ -60,21 +68,27 @@ class Glyph {
     double? letterSpacing,
     TextAlign align,
     double? maxWidth,
+    bool wrap,
+    bool tabular,
   ) {
-    final key = Object.hash(
-        text, size, color, mono, weight, letterSpacing, align, maxWidth);
+    final key = Object.hash(text, size, color, mono, weight, letterSpacing,
+        align, maxWidth, wrap, tabular);
     final hit = _cache.remove(key);
     if (hit != null) {
       _cache[key] = hit;
       return hit;
     }
+    // Three behaviours, picked by the (maxWidth, wrap) pair:
+    //   - maxWidth == null            → unlimited width, single line.
+    //   - maxWidth set, wrap == false → single line, ellipsized at maxWidth.
+    //   - maxWidth set, wrap == true  → wrapped to multiple lines at maxWidth.
     final builder = ParagraphBuilder(ParagraphStyle(
       textAlign: align,
       fontFamily: mono ? ConsoleSkin.fontMono : ConsoleSkin.fontUI,
       fontSize: size,
       fontWeight: weight,
-      maxLines: maxWidth != null ? 1 : null,
-      ellipsis: maxWidth != null ? '…' : null,
+      maxLines: (maxWidth != null && !wrap) ? 1 : null,
+      ellipsis: (maxWidth != null && !wrap) ? '…' : null,
     ))
       ..pushStyle(TextStyle(
         color: color,
@@ -82,14 +96,21 @@ class Glyph {
         fontWeight: weight,
         letterSpacing: letterSpacing,
         fontFamily: mono ? ConsoleSkin.fontMono : ConsoleSkin.fontUI,
+        fontFeatures: tabular ? const [FontFeature.tabularFigures()] : null,
       ))
       ..addText(text);
     final paragraph = builder.build()
       ..layout(ParagraphConstraints(width: maxWidth ?? double.infinity));
+    // When wrapping, `paragraph.width` is the constraint we passed in
+    // (the max), not the actual rendered width. `longestLine` gives
+    // the bounding box of the laid-out glyphs — that's the size we
+    // report so the row doesn't reserve trailing whitespace.
     final entry = _Entry(
       paragraph,
       Size(
-        maxWidth != null ? paragraph.width : paragraph.maxIntrinsicWidth,
+        maxWidth == null
+            ? paragraph.maxIntrinsicWidth
+            : (wrap ? paragraph.longestLine : paragraph.width),
         paragraph.height,
       ),
     );

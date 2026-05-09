@@ -40,6 +40,21 @@ bool _listEq<T>(List<T> a, List<T> b) {
   return true;
 }
 
+/// Wire-format a double for the lavfi af-chain. Uses 3-decimal
+/// fixed-point for normal values; falls back to a 1-significant-
+/// figure exponential for tiny values that would otherwise round
+/// to `0.000` (e.g. `1e-6` for `asoftclip.threshold`'s minimum).
+/// `toStringAsExponential()` is deterministic across runtimes
+/// (Dart's `toString()` chooses between decimal and exponential
+/// based on magnitude and platform), and mpv's AVOption parser
+/// accepts exponential floats natively.
+String _wireDouble(double v) {
+  final fixed = v.toStringAsFixed(3);
+  if (v == 0 || double.parse(fixed) == v) return fixed;
+  if (v.abs() < 0.001) return v.toStringAsExponential();
+  return fixed;
+}
+
 /// Configuration for the `acompressor` audio effect.
 ///
 /// A compressor is mainly used to reduce the dynamic range of a signal.
@@ -85,6 +100,34 @@ bool _listEq<T>(List<T> a, List<T> b) {
 /// - [release]: Amount of milliseconds the signal has to fall below the threshold before reduction is decreased again. Default is 250. Range is between 0.01 and 9000. (range 0.01..9000, default 250)
 /// - [threshold]: If a signal of stream rises above this level it will affect the gain reduction. By default it is 0.125. Range is between 0.00097563 and 1. (range 0.000976563..1, default 0.125)
 final class AcompressorSettings {
+  static const double attackDefault = 20.0;
+  static const double attackMin = 0.01;
+  static const double attackMax = 2000.0;
+  static const double kneeDefault = 2.82843;
+  static const double kneeMin = 1.0;
+  static const double kneeMax = 8.0;
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = 0.015625;
+  static const double level_inMax = 64.0;
+  static const double level_scDefault = 1.0;
+  static const double level_scMin = 0.015625;
+  static const double level_scMax = 64.0;
+  static const double makeupDefault = 1.0;
+  static const double makeupMin = 1.0;
+  static const double makeupMax = 64.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const double ratioDefault = 2.0;
+  static const double ratioMin = 1.0;
+  static const double ratioMax = 20.0;
+  static const double releaseDefault = 250.0;
+  static const double releaseMin = 0.01;
+  static const double releaseMax = 9000.0;
+  static const double thresholdDefault = 0.125;
+  static const double thresholdMin = 0.000976563;
+  static const double thresholdMax = 1.0;
+
   final bool enabled;
   final double attack;
   final AcompressorDetection detection;
@@ -175,40 +218,39 @@ final class AcompressorSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(attack >= 0.01, 'acompressor.attack must be >= 0.01');
-    assert(attack <= 2000, 'acompressor.attack must be <= 2000');
-    assert(knee >= 1, 'acompressor.knee must be >= 1');
-    assert(knee <= 8, 'acompressor.knee must be <= 8');
-    assert(level_in >= 0.015625, 'acompressor.level_in must be >= 0.015625');
-    assert(level_in <= 64, 'acompressor.level_in must be <= 64');
-    assert(level_sc >= 0.015625, 'acompressor.level_sc must be >= 0.015625');
-    assert(level_sc <= 64, 'acompressor.level_sc must be <= 64');
-    assert(makeup >= 1, 'acompressor.makeup must be >= 1');
-    assert(makeup <= 64, 'acompressor.makeup must be <= 64');
-    assert(mix >= 0, 'acompressor.mix must be >= 0');
-    assert(mix <= 1, 'acompressor.mix must be <= 1');
-    assert(ratio >= 1, 'acompressor.ratio must be >= 1');
-    assert(ratio <= 20, 'acompressor.ratio must be <= 20');
-    assert(release >= 0.01, 'acompressor.release must be >= 0.01');
-    assert(release <= 9000, 'acompressor.release must be <= 9000');
-    assert(threshold >= 0.000976563,
+    assert(attack >= attackMin, 'acompressor.attack must be >= 0.01');
+    assert(attack <= attackMax, 'acompressor.attack must be <= 2000');
+    assert(knee >= kneeMin, 'acompressor.knee must be >= 1');
+    assert(knee <= kneeMax, 'acompressor.knee must be <= 8');
+    assert(level_in >= level_inMin, 'acompressor.level_in must be >= 0.015625');
+    assert(level_in <= level_inMax, 'acompressor.level_in must be <= 64');
+    assert(level_sc >= level_scMin, 'acompressor.level_sc must be >= 0.015625');
+    assert(level_sc <= level_scMax, 'acompressor.level_sc must be <= 64');
+    assert(makeup >= makeupMin, 'acompressor.makeup must be >= 1');
+    assert(makeup <= makeupMax, 'acompressor.makeup must be <= 64');
+    assert(mix >= mixMin, 'acompressor.mix must be >= 0');
+    assert(mix <= mixMax, 'acompressor.mix must be <= 1');
+    assert(ratio >= ratioMin, 'acompressor.ratio must be >= 1');
+    assert(ratio <= ratioMax, 'acompressor.ratio must be <= 20');
+    assert(release >= releaseMin, 'acompressor.release must be >= 0.01');
+    assert(release <= releaseMax, 'acompressor.release must be <= 9000');
+    assert(threshold >= thresholdMin,
         'acompressor.threshold must be >= 0.000976563');
-    assert(threshold <= 1, 'acompressor.threshold must be <= 1');
+    assert(threshold <= thresholdMax, 'acompressor.threshold must be <= 1');
     final parts = <String>[];
-    if (attack != 20.0) parts.add('attack=' + attack.toStringAsFixed(3));
+    if (attack != 20.0) parts.add('attack=' + _wireDouble(attack));
     if (detection != AcompressorDetection.rms)
       parts.add('detection=' + detection.mpvValue);
-    if (knee != 2.82843) parts.add('knee=' + knee.toStringAsFixed(3));
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_sc != 1.0) parts.add('level_sc=' + level_sc.toStringAsFixed(3));
+    if (knee != 2.82843) parts.add('knee=' + _wireDouble(knee));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_sc != 1.0) parts.add('level_sc=' + _wireDouble(level_sc));
     if (link != AcompressorLink.average) parts.add('link=' + link.mpvValue);
-    if (makeup != 1.0) parts.add('makeup=' + makeup.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (makeup != 1.0) parts.add('makeup=' + _wireDouble(makeup));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (mode != AcompressorMode.downward) parts.add('mode=' + mode.mpvValue);
-    if (ratio != 2.0) parts.add('ratio=' + ratio.toStringAsFixed(3));
-    if (release != 250.0) parts.add('release=' + release.toStringAsFixed(3));
-    if (threshold != 0.125)
-      parts.add('threshold=' + threshold.toStringAsFixed(3));
+    if (ratio != 2.0) parts.add('ratio=' + _wireDouble(ratio));
+    if (release != 250.0) parts.add('release=' + _wireDouble(release));
+    if (threshold != 0.125) parts.add('threshold=' + _wireDouble(threshold));
     return parts.isEmpty
         ? 'lavfi-acompressor'
         : 'lavfi-acompressor=' + parts.join(':');
@@ -224,6 +266,10 @@ final class AcompressorSettings {
 /// Parameters:
 /// - [contrast]: Set contrast. Default is 33. Allowed range is between 0 and 100. (range 0..100, default 33)
 final class AcontrastSettings {
+  static const double contrastDefault = 33.0;
+  static const double contrastMin = 0.0;
+  static const double contrastMax = 100.0;
+
   final bool enabled;
   final double contrast;
 
@@ -258,10 +304,10 @@ final class AcontrastSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(contrast >= 0, 'acontrast.contrast must be >= 0');
-    assert(contrast <= 100, 'acontrast.contrast must be <= 100');
+    assert(contrast >= contrastMin, 'acontrast.contrast must be >= 0');
+    assert(contrast <= contrastMax, 'acontrast.contrast must be <= 100');
     final parts = <String>[];
-    if (contrast != 33.0) parts.add('contrast=' + contrast.toStringAsFixed(3));
+    if (contrast != 33.0) parts.add('contrast=' + _wireDouble(contrast));
     return parts.isEmpty
         ? 'lavfi-acontrast'
         : 'lavfi-acontrast=' + parts.join(':');
@@ -294,16 +340,44 @@ final class AcontrastSettings {
 /// Parameters:
 /// - [aa]: Set anti-aliasing. (range 0..1, default .5)
 /// - [bits]: Set bit reduction. (range 1..64, default 8)
-/// - [dc]: Set DC. (default 1)
+/// - [dc]: Set DC. (range .25..4, default 1)
 /// - [level_in]: Set level in. (range 0.015625..64, default 1)
 /// - [level_out]: Set level out. (range 0.015625..64, default 1)
 /// - [lfo]: Enable LFO. By default disabled. (range 0..1, default 0)
 /// - [lforange]: Set LFO range. (range 1..250, default 20)
-/// - [lforate]: Set LFO rate. (default .3)
+/// - [lforate]: Set LFO rate. (range .01..200, default .3)
 /// - [mix]: Set mixing amount. (range 0..1, default .5)
 /// - [mode]: Can be linear: `lin` or logarithmic: `log`. (range 0..1, default 0)
 /// - [samples]: Set sample reduction. (range 1..250, default 1)
 final class AcrusherSettings {
+  static const double aaDefault = .5;
+  static const double aaMin = 0.0;
+  static const double aaMax = 1.0;
+  static const double bitsDefault = 8.0;
+  static const double bitsMin = 1.0;
+  static const double bitsMax = 64.0;
+  static const double dcDefault = 1.0;
+  static const double dcMin = .25;
+  static const double dcMax = 4.0;
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = 0.015625;
+  static const double level_inMax = 64.0;
+  static const double level_outDefault = 1.0;
+  static const double level_outMin = 0.015625;
+  static const double level_outMax = 64.0;
+  static const double lforangeDefault = 20.0;
+  static const double lforangeMin = 1.0;
+  static const double lforangeMax = 250.0;
+  static const double lforateDefault = .3;
+  static const double lforateMin = .01;
+  static const double lforateMax = 200.0;
+  static const double mixDefault = .5;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const double samplesDefault = 1.0;
+  static const double samplesMin = 1.0;
+  static const double samplesMax = 250.0;
+
   final bool enabled;
   final double aa;
   final double bits;
@@ -389,33 +463,34 @@ final class AcrusherSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(aa >= 0, 'acrusher.aa must be >= 0');
-    assert(aa <= 1, 'acrusher.aa must be <= 1');
-    assert(bits >= 1, 'acrusher.bits must be >= 1');
-    assert(bits <= 64, 'acrusher.bits must be <= 64');
-    assert(level_in >= 0.015625, 'acrusher.level_in must be >= 0.015625');
-    assert(level_in <= 64, 'acrusher.level_in must be <= 64');
-    assert(level_out >= 0.015625, 'acrusher.level_out must be >= 0.015625');
-    assert(level_out <= 64, 'acrusher.level_out must be <= 64');
-    assert(lforange >= 1, 'acrusher.lforange must be >= 1');
-    assert(lforange <= 250, 'acrusher.lforange must be <= 250');
-    assert(mix >= 0, 'acrusher.mix must be >= 0');
-    assert(mix <= 1, 'acrusher.mix must be <= 1');
-    assert(samples >= 1, 'acrusher.samples must be >= 1');
-    assert(samples <= 250, 'acrusher.samples must be <= 250');
+    assert(aa >= aaMin, 'acrusher.aa must be >= 0');
+    assert(aa <= aaMax, 'acrusher.aa must be <= 1');
+    assert(bits >= bitsMin, 'acrusher.bits must be >= 1');
+    assert(bits <= bitsMax, 'acrusher.bits must be <= 64');
+    assert(level_in >= level_inMin, 'acrusher.level_in must be >= 0.015625');
+    assert(level_in <= level_inMax, 'acrusher.level_in must be <= 64');
+    assert(level_out >= level_outMin, 'acrusher.level_out must be >= 0.015625');
+    assert(level_out <= level_outMax, 'acrusher.level_out must be <= 64');
+    assert(lforange >= lforangeMin, 'acrusher.lforange must be >= 1');
+    assert(lforange <= lforangeMax, 'acrusher.lforange must be <= 250');
+    assert(lforate >= lforateMin, 'acrusher.lforate must be >= .01');
+    assert(lforate <= lforateMax, 'acrusher.lforate must be <= 200');
+    assert(mix >= mixMin, 'acrusher.mix must be >= 0');
+    assert(mix <= mixMax, 'acrusher.mix must be <= 1');
+    assert(samples >= samplesMin, 'acrusher.samples must be >= 1');
+    assert(samples <= samplesMax, 'acrusher.samples must be <= 250');
     final parts = <String>[];
-    if (aa != .5) parts.add('aa=' + aa.toStringAsFixed(3));
-    if (bits != 8.0) parts.add('bits=' + bits.toStringAsFixed(3));
-    if (dc != 1.0) parts.add('dc=' + dc.toStringAsFixed(3));
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_out != 1.0)
-      parts.add('level_out=' + level_out.toStringAsFixed(3));
+    if (aa != .5) parts.add('aa=' + _wireDouble(aa));
+    if (bits != 8.0) parts.add('bits=' + _wireDouble(bits));
+    if (dc != 1.0) parts.add('dc=' + _wireDouble(dc));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_out != 1.0) parts.add('level_out=' + _wireDouble(level_out));
     if (lfo != false) parts.add('lfo=' + (lfo ? '1' : '0'));
-    if (lforange != 20.0) parts.add('lforange=' + lforange.toStringAsFixed(3));
-    if (lforate != .3) parts.add('lforate=' + lforate.toStringAsFixed(3));
-    if (mix != .5) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (lforange != 20.0) parts.add('lforange=' + _wireDouble(lforange));
+    if (lforate != .3) parts.add('lforate=' + _wireDouble(lforate));
+    if (mix != .5) parts.add('mix=' + _wireDouble(mix));
     if (mode != AcrusherMode.lin) parts.add('mode=' + mode.mpvValue);
-    if (samples != 1.0) parts.add('samples=' + samples.toStringAsFixed(3));
+    if (samples != 1.0) parts.add('samples=' + _wireDouble(samples));
     return parts.isEmpty
         ? 'lavfi-acrusher'
         : 'lavfi-acrusher=' + parts.join(':');
@@ -443,6 +518,37 @@ final class AcrusherSettings {
 /// - [w]: Set window size, in milliseconds. Allowed range is from `10` to `100`. Default value is `55` milliseconds. This sets size of window which will be processed at once. (range 10..100, default 55)
 /// - [window]: Set window size, in milliseconds. Allowed range is from `10` to `100`. Default value is `55` milliseconds. This sets size of window which will be processed at once. (range 10..100, default 55)
 final class AdeclickSettings {
+  static const double aDefault = 2.0;
+  static const double aMin = 0.0;
+  static const double aMax = 25.0;
+  static const double arorderDefault = 2.0;
+  static const double arorderMin = 0.0;
+  static const double arorderMax = 25.0;
+  static const double bDefault = 2.0;
+  static const double bMin = 0.0;
+  static const double bMax = 10.0;
+  static const double burstDefault = 2.0;
+  static const double burstMin = 0.0;
+  static const double burstMax = 10.0;
+  static const double oDefault = 75.0;
+  static const double oMin = 50.0;
+  static const double oMax = 95.0;
+  static const double overlapDefault = 75.0;
+  static const double overlapMin = 50.0;
+  static const double overlapMax = 95.0;
+  static const double tDefault = 2.0;
+  static const double tMin = 1.0;
+  static const double tMax = 100.0;
+  static const double thresholdDefault = 2.0;
+  static const double thresholdMin = 1.0;
+  static const double thresholdMax = 100.0;
+  static const double wDefault = 55.0;
+  static const double wMin = 10.0;
+  static const double wMax = 100.0;
+  static const double windowDefault = 55.0;
+  static const double windowMin = 10.0;
+  static const double windowMax = 100.0;
+
   final bool enabled;
   final double a;
   final double arorder;
@@ -533,40 +639,39 @@ final class AdeclickSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(a >= 0, 'adeclick.a must be >= 0');
-    assert(a <= 25, 'adeclick.a must be <= 25');
-    assert(arorder >= 0, 'adeclick.arorder must be >= 0');
-    assert(arorder <= 25, 'adeclick.arorder must be <= 25');
-    assert(b >= 0, 'adeclick.b must be >= 0');
-    assert(b <= 10, 'adeclick.b must be <= 10');
-    assert(burst >= 0, 'adeclick.burst must be >= 0');
-    assert(burst <= 10, 'adeclick.burst must be <= 10');
-    assert(o >= 50, 'adeclick.o must be >= 50');
-    assert(o <= 95, 'adeclick.o must be <= 95');
-    assert(overlap >= 50, 'adeclick.overlap must be >= 50');
-    assert(overlap <= 95, 'adeclick.overlap must be <= 95');
-    assert(t >= 1, 'adeclick.t must be >= 1');
-    assert(t <= 100, 'adeclick.t must be <= 100');
-    assert(threshold >= 1, 'adeclick.threshold must be >= 1');
-    assert(threshold <= 100, 'adeclick.threshold must be <= 100');
-    assert(w >= 10, 'adeclick.w must be >= 10');
-    assert(w <= 100, 'adeclick.w must be <= 100');
-    assert(window >= 10, 'adeclick.window must be >= 10');
-    assert(window <= 100, 'adeclick.window must be <= 100');
+    assert(a >= aMin, 'adeclick.a must be >= 0');
+    assert(a <= aMax, 'adeclick.a must be <= 25');
+    assert(arorder >= arorderMin, 'adeclick.arorder must be >= 0');
+    assert(arorder <= arorderMax, 'adeclick.arorder must be <= 25');
+    assert(b >= bMin, 'adeclick.b must be >= 0');
+    assert(b <= bMax, 'adeclick.b must be <= 10');
+    assert(burst >= burstMin, 'adeclick.burst must be >= 0');
+    assert(burst <= burstMax, 'adeclick.burst must be <= 10');
+    assert(o >= oMin, 'adeclick.o must be >= 50');
+    assert(o <= oMax, 'adeclick.o must be <= 95');
+    assert(overlap >= overlapMin, 'adeclick.overlap must be >= 50');
+    assert(overlap <= overlapMax, 'adeclick.overlap must be <= 95');
+    assert(t >= tMin, 'adeclick.t must be >= 1');
+    assert(t <= tMax, 'adeclick.t must be <= 100');
+    assert(threshold >= thresholdMin, 'adeclick.threshold must be >= 1');
+    assert(threshold <= thresholdMax, 'adeclick.threshold must be <= 100');
+    assert(w >= wMin, 'adeclick.w must be >= 10');
+    assert(w <= wMax, 'adeclick.w must be <= 100');
+    assert(window >= windowMin, 'adeclick.window must be >= 10');
+    assert(window <= windowMax, 'adeclick.window must be <= 100');
     final parts = <String>[];
-    if (a != 2.0) parts.add('a=' + a.toStringAsFixed(3));
-    if (arorder != 2.0) parts.add('arorder=' + arorder.toStringAsFixed(3));
-    if (b != 2.0) parts.add('b=' + b.toStringAsFixed(3));
-    if (burst != 2.0) parts.add('burst=' + burst.toStringAsFixed(3));
+    if (a != 2.0) parts.add('a=' + _wireDouble(a));
+    if (arorder != 2.0) parts.add('arorder=' + _wireDouble(arorder));
+    if (b != 2.0) parts.add('b=' + _wireDouble(b));
+    if (burst != 2.0) parts.add('burst=' + _wireDouble(burst));
     if (m != AdeclickM.add) parts.add('m=' + m.mpvValue);
     if (method != AdeclickM.add) parts.add('method=' + method.mpvValue);
-    if (o != 75.0) parts.add('o=' + o.toStringAsFixed(3));
-    if (overlap != 75.0) parts.add('overlap=' + overlap.toStringAsFixed(3));
-    if (t != 2.0) parts.add('t=' + t.toStringAsFixed(3));
-    if (threshold != 2.0)
-      parts.add('threshold=' + threshold.toStringAsFixed(3));
-    if (w != 55.0) parts.add('w=' + w.toStringAsFixed(3));
-    if (window != 55.0) parts.add('window=' + window.toStringAsFixed(3));
+    if (o != 75.0) parts.add('o=' + _wireDouble(o));
+    if (overlap != 75.0) parts.add('overlap=' + _wireDouble(overlap));
+    if (t != 2.0) parts.add('t=' + _wireDouble(t));
+    if (threshold != 2.0) parts.add('threshold=' + _wireDouble(threshold));
+    if (w != 55.0) parts.add('w=' + _wireDouble(w));
+    if (window != 55.0) parts.add('window=' + _wireDouble(window));
     return parts.isEmpty
         ? 'lavfi-adeclick'
         : 'lavfi-adeclick=' + parts.join(':');
@@ -594,6 +699,37 @@ final class AdeclickSettings {
 /// - [w]: Set window size, in milliseconds. Allowed range is from `10` to `100`. Default value is `55` milliseconds. This sets size of window which will be processed at once. (range 10..100, default 55)
 /// - [window]: Set window size, in milliseconds. Allowed range is from `10` to `100`. Default value is `55` milliseconds. This sets size of window which will be processed at once. (range 10..100, default 55)
 final class AdeclipSettings {
+  static const double aDefault = 8.0;
+  static const double aMin = 0.0;
+  static const double aMax = 25.0;
+  static const double arorderDefault = 8.0;
+  static const double arorderMin = 0.0;
+  static const double arorderMax = 25.0;
+  static const int hsizeDefault = 1000;
+  static const int hsizeMin = 100;
+  static const int hsizeMax = 9999;
+  static const int nDefault = 1000;
+  static const int nMin = 100;
+  static const int nMax = 9999;
+  static const double oDefault = 75.0;
+  static const double oMin = 50.0;
+  static const double oMax = 95.0;
+  static const double overlapDefault = 75.0;
+  static const double overlapMin = 50.0;
+  static const double overlapMax = 95.0;
+  static const double tDefault = 10.0;
+  static const double tMin = 1.0;
+  static const double tMax = 100.0;
+  static const double thresholdDefault = 10.0;
+  static const double thresholdMin = 1.0;
+  static const double thresholdMax = 100.0;
+  static const double wDefault = 55.0;
+  static const double wMin = 10.0;
+  static const double wMax = 100.0;
+  static const double windowDefault = 55.0;
+  static const double windowMin = 10.0;
+  static const double windowMax = 100.0;
+
   final bool enabled;
   final double a;
   final double arorder;
@@ -684,40 +820,39 @@ final class AdeclipSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(a >= 0, 'adeclip.a must be >= 0');
-    assert(a <= 25, 'adeclip.a must be <= 25');
-    assert(arorder >= 0, 'adeclip.arorder must be >= 0');
-    assert(arorder <= 25, 'adeclip.arorder must be <= 25');
-    assert(hsize >= 100, 'adeclip.hsize must be >= 100');
-    assert(hsize <= 9999, 'adeclip.hsize must be <= 9999');
-    assert(n >= 100, 'adeclip.n must be >= 100');
-    assert(n <= 9999, 'adeclip.n must be <= 9999');
-    assert(o >= 50, 'adeclip.o must be >= 50');
-    assert(o <= 95, 'adeclip.o must be <= 95');
-    assert(overlap >= 50, 'adeclip.overlap must be >= 50');
-    assert(overlap <= 95, 'adeclip.overlap must be <= 95');
-    assert(t >= 1, 'adeclip.t must be >= 1');
-    assert(t <= 100, 'adeclip.t must be <= 100');
-    assert(threshold >= 1, 'adeclip.threshold must be >= 1');
-    assert(threshold <= 100, 'adeclip.threshold must be <= 100');
-    assert(w >= 10, 'adeclip.w must be >= 10');
-    assert(w <= 100, 'adeclip.w must be <= 100');
-    assert(window >= 10, 'adeclip.window must be >= 10');
-    assert(window <= 100, 'adeclip.window must be <= 100');
+    assert(a >= aMin, 'adeclip.a must be >= 0');
+    assert(a <= aMax, 'adeclip.a must be <= 25');
+    assert(arorder >= arorderMin, 'adeclip.arorder must be >= 0');
+    assert(arorder <= arorderMax, 'adeclip.arorder must be <= 25');
+    assert(hsize >= hsizeMin, 'adeclip.hsize must be >= 100');
+    assert(hsize <= hsizeMax, 'adeclip.hsize must be <= 9999');
+    assert(n >= nMin, 'adeclip.n must be >= 100');
+    assert(n <= nMax, 'adeclip.n must be <= 9999');
+    assert(o >= oMin, 'adeclip.o must be >= 50');
+    assert(o <= oMax, 'adeclip.o must be <= 95');
+    assert(overlap >= overlapMin, 'adeclip.overlap must be >= 50');
+    assert(overlap <= overlapMax, 'adeclip.overlap must be <= 95');
+    assert(t >= tMin, 'adeclip.t must be >= 1');
+    assert(t <= tMax, 'adeclip.t must be <= 100');
+    assert(threshold >= thresholdMin, 'adeclip.threshold must be >= 1');
+    assert(threshold <= thresholdMax, 'adeclip.threshold must be <= 100');
+    assert(w >= wMin, 'adeclip.w must be >= 10');
+    assert(w <= wMax, 'adeclip.w must be <= 100');
+    assert(window >= windowMin, 'adeclip.window must be >= 10');
+    assert(window <= windowMax, 'adeclip.window must be <= 100');
     final parts = <String>[];
-    if (a != 8.0) parts.add('a=' + a.toStringAsFixed(3));
-    if (arorder != 8.0) parts.add('arorder=' + arorder.toStringAsFixed(3));
+    if (a != 8.0) parts.add('a=' + _wireDouble(a));
+    if (arorder != 8.0) parts.add('arorder=' + _wireDouble(arorder));
     if (hsize != 1000) parts.add('hsize=' + hsize.toString());
     if (m != AdeclipM.add) parts.add('m=' + m.mpvValue);
     if (method != AdeclipM.add) parts.add('method=' + method.mpvValue);
     if (n != 1000) parts.add('n=' + n.toString());
-    if (o != 75.0) parts.add('o=' + o.toStringAsFixed(3));
-    if (overlap != 75.0) parts.add('overlap=' + overlap.toStringAsFixed(3));
-    if (t != 10.0) parts.add('t=' + t.toStringAsFixed(3));
-    if (threshold != 10.0)
-      parts.add('threshold=' + threshold.toStringAsFixed(3));
-    if (w != 55.0) parts.add('w=' + w.toStringAsFixed(3));
-    if (window != 55.0) parts.add('window=' + window.toStringAsFixed(3));
+    if (o != 75.0) parts.add('o=' + _wireDouble(o));
+    if (overlap != 75.0) parts.add('overlap=' + _wireDouble(overlap));
+    if (t != 10.0) parts.add('t=' + _wireDouble(t));
+    if (threshold != 10.0) parts.add('threshold=' + _wireDouble(threshold));
+    if (w != 55.0) parts.add('w=' + _wireDouble(w));
+    if (window != 55.0) parts.add('window=' + _wireDouble(window));
     return parts.isEmpty ? 'lavfi-adeclip' : 'lavfi-adeclip=' + parts.join(':');
   }
 }
@@ -731,6 +866,9 @@ final class AdeclipSettings {
 /// Parameters:
 /// - [stages]: Set decorrelation stages of filtering. Allowed range is from 1 to 16. Default value is 6. (default 6)
 final class AdecorrelateSettings {
+  static const int stagesDefault = 6;
+  static const int stagesMin = 1;
+
   final bool enabled;
   final int stages;
 
@@ -765,7 +903,7 @@ final class AdecorrelateSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(stages >= 1, 'adecorrelate.stages must be >= 1');
+    assert(stages >= stagesMin, 'adecorrelate.stages must be >= 1');
     final parts = <String>[];
     if (stages != 6) parts.add('stages=' + stages.toString());
     return parts.isEmpty
@@ -844,6 +982,10 @@ final class AdelaySettings {
 /// - [level]: Set level of added noise in dB. Default is `-351`. Allowed range is from -451 to -90. (range -451..-90, default -351)
 /// - [type]: Set type of added noise. (default DC_TYPE)
 final class AdenormSettings {
+  static const double levelDefault = -351.0;
+  static const double levelMin = -451.0;
+  static const double levelMax = -90.0;
+
   final bool enabled;
   final double level;
   final AdenormType type;
@@ -883,10 +1025,10 @@ final class AdenormSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(level >= -451, 'adenorm.level must be >= -451');
-    assert(level <= -90, 'adenorm.level must be <= -90');
+    assert(level >= levelMin, 'adenorm.level must be >= -451');
+    assert(level <= levelMax, 'adenorm.level must be <= -90');
     final parts = <String>[];
-    if (level != -351.0) parts.add('level=' + level.toStringAsFixed(3));
+    if (level != -351.0) parts.add('level=' + _wireDouble(level));
     if (type != AdenormType.dc) parts.add('type=' + type.mpvValue);
     return parts.isEmpty ? 'lavfi-adenorm' : 'lavfi-adenorm=' + parts.join(':');
   }
@@ -941,6 +1083,13 @@ final class AderivativeSettings {
 /// - [release]: Set the release in milliseconds. Default is `100` milliseconds. Allowed range is from 5 to 2000 milliseconds. (range 5..2000, default 100.)
 /// - [transfer]: Set the transfer expression.  The expression can contain the following constants: (range 0..0, default "p")
 final class AdrcSettings {
+  static const double attackDefault = 50.0;
+  static const double attackMin = 1.0;
+  static const double attackMax = 1000.0;
+  static const double releaseDefault = 100.0;
+  static const double releaseMin = 5.0;
+  static const double releaseMax = 2000.0;
+
   final bool enabled;
   final double attack;
   final String channels;
@@ -990,14 +1139,14 @@ final class AdrcSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(attack >= 1, 'adrc.attack must be >= 1');
-    assert(attack <= 1000, 'adrc.attack must be <= 1000');
-    assert(release >= 5, 'adrc.release must be >= 5');
-    assert(release <= 2000, 'adrc.release must be <= 2000');
+    assert(attack >= attackMin, 'adrc.attack must be >= 1');
+    assert(attack <= attackMax, 'adrc.attack must be <= 1000');
+    assert(release >= releaseMin, 'adrc.release must be >= 5');
+    assert(release <= releaseMax, 'adrc.release must be <= 2000');
     final parts = <String>[];
-    if (attack != 50.0) parts.add('attack=' + attack.toStringAsFixed(3));
+    if (attack != 50.0) parts.add('attack=' + _wireDouble(attack));
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (release != 100.0) parts.add('release=' + release.toStringAsFixed(3));
+    if (release != 100.0) parts.add('release=' + _wireDouble(release));
     if (transfer != 'p') parts.add('transfer=' + '[' + transfer + ']');
     return parts.isEmpty ? 'lavfi-adrc' : 'lavfi-adrc=' + parts.join(':');
   }
@@ -1026,6 +1175,37 @@ final class AdrcSettings {
 /// - [threshold]: Set the detection threshold used to trigger equalization. Threshold detection is using detection filter. Default value is 0. Allowed range is from 0 to 100. (range 0..100, default 0)
 /// - [tqfactor]: Set the target resonance factor for target equalization filter. Default value is 1. Allowed range is from 0.001 to 1000. (range 0.001..1000, default 1)
 final class AdynamicequalizerSettings {
+  static const double attackDefault = 20.0;
+  static const double attackMin = 0.01;
+  static const double attackMax = 2000.0;
+  static const double dfrequencyDefault = 1000.0;
+  static const double dfrequencyMin = 2.0;
+  static const double dfrequencyMax = 1000000.0;
+  static const double dqfactorDefault = 1.0;
+  static const double dqfactorMin = 0.001;
+  static const double dqfactorMax = 1000.0;
+  static const double makeupDefault = 0.0;
+  static const double makeupMin = 0.0;
+  static const double makeupMax = 1000.0;
+  static const double rangeDefault = 50.0;
+  static const double rangeMin = 1.0;
+  static const double rangeMax = 2000.0;
+  static const double ratioDefault = 1.0;
+  static const double ratioMin = 0.0;
+  static const double ratioMax = 30.0;
+  static const double releaseDefault = 200.0;
+  static const double releaseMin = 0.01;
+  static const double releaseMax = 2000.0;
+  static const double tfrequencyDefault = 1000.0;
+  static const double tfrequencyMin = 2.0;
+  static const double tfrequencyMax = 1000000.0;
+  static const double thresholdDefault = 0.0;
+  static const double thresholdMin = 0.0;
+  static const double thresholdMax = 100.0;
+  static const double tqfactorDefault = 1.0;
+  static const double tqfactorMin = 0.001;
+  static const double tqfactorMax = 1000.0;
+
   final bool enabled;
   final double attack;
   final AdynamicequalizerAuto auto;
@@ -1147,50 +1327,57 @@ final class AdynamicequalizerSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(attack >= 0.01, 'adynamicequalizer.attack must be >= 0.01');
-    assert(attack <= 2000, 'adynamicequalizer.attack must be <= 2000');
-    assert(dfrequency >= 2, 'adynamicequalizer.dfrequency must be >= 2');
-    assert(dfrequency <= 1000000,
+    assert(attack >= attackMin, 'adynamicequalizer.attack must be >= 0.01');
+    assert(attack <= attackMax, 'adynamicequalizer.attack must be <= 2000');
+    assert(dfrequency >= dfrequencyMin,
+        'adynamicequalizer.dfrequency must be >= 2');
+    assert(dfrequency <= dfrequencyMax,
         'adynamicequalizer.dfrequency must be <= 1000000');
-    assert(dqfactor >= 0.001, 'adynamicequalizer.dqfactor must be >= 0.001');
-    assert(dqfactor <= 1000, 'adynamicequalizer.dqfactor must be <= 1000');
-    assert(makeup >= 0, 'adynamicequalizer.makeup must be >= 0');
-    assert(makeup <= 1000, 'adynamicequalizer.makeup must be <= 1000');
-    assert(range >= 1, 'adynamicequalizer.range must be >= 1');
-    assert(range <= 2000, 'adynamicequalizer.range must be <= 2000');
-    assert(ratio >= 0, 'adynamicequalizer.ratio must be >= 0');
-    assert(ratio <= 30, 'adynamicequalizer.ratio must be <= 30');
-    assert(release >= 0.01, 'adynamicequalizer.release must be >= 0.01');
-    assert(release <= 2000, 'adynamicequalizer.release must be <= 2000');
-    assert(tfrequency >= 2, 'adynamicequalizer.tfrequency must be >= 2');
-    assert(tfrequency <= 1000000,
+    assert(
+        dqfactor >= dqfactorMin, 'adynamicequalizer.dqfactor must be >= 0.001');
+    assert(
+        dqfactor <= dqfactorMax, 'adynamicequalizer.dqfactor must be <= 1000');
+    assert(makeup >= makeupMin, 'adynamicequalizer.makeup must be >= 0');
+    assert(makeup <= makeupMax, 'adynamicequalizer.makeup must be <= 1000');
+    assert(range >= rangeMin, 'adynamicequalizer.range must be >= 1');
+    assert(range <= rangeMax, 'adynamicequalizer.range must be <= 2000');
+    assert(ratio >= ratioMin, 'adynamicequalizer.ratio must be >= 0');
+    assert(ratio <= ratioMax, 'adynamicequalizer.ratio must be <= 30');
+    assert(release >= releaseMin, 'adynamicequalizer.release must be >= 0.01');
+    assert(release <= releaseMax, 'adynamicequalizer.release must be <= 2000');
+    assert(tfrequency >= tfrequencyMin,
+        'adynamicequalizer.tfrequency must be >= 2');
+    assert(tfrequency <= tfrequencyMax,
         'adynamicequalizer.tfrequency must be <= 1000000');
-    assert(threshold >= 0, 'adynamicequalizer.threshold must be >= 0');
-    assert(threshold <= 100, 'adynamicequalizer.threshold must be <= 100');
-    assert(tqfactor >= 0.001, 'adynamicequalizer.tqfactor must be >= 0.001');
-    assert(tqfactor <= 1000, 'adynamicequalizer.tqfactor must be <= 1000');
+    assert(
+        threshold >= thresholdMin, 'adynamicequalizer.threshold must be >= 0');
+    assert(threshold <= thresholdMax,
+        'adynamicequalizer.threshold must be <= 100');
+    assert(
+        tqfactor >= tqfactorMin, 'adynamicequalizer.tqfactor must be >= 0.001');
+    assert(
+        tqfactor <= tqfactorMax, 'adynamicequalizer.tqfactor must be <= 1000');
     final parts = <String>[];
-    if (attack != 20.0) parts.add('attack=' + attack.toStringAsFixed(3));
+    if (attack != 20.0) parts.add('attack=' + _wireDouble(attack));
     if (auto != AdynamicequalizerAuto.off) parts.add('auto=' + auto.mpvValue);
     if (dfrequency != 1000.0)
-      parts.add('dfrequency=' + dfrequency.toStringAsFixed(3));
+      parts.add('dfrequency=' + _wireDouble(dfrequency));
     if (dftype != AdynamicequalizerDftype.bandpass)
       parts.add('dftype=' + dftype.mpvValue);
-    if (dqfactor != 1.0) parts.add('dqfactor=' + dqfactor.toStringAsFixed(3));
-    if (makeup != 0.0) parts.add('makeup=' + makeup.toStringAsFixed(3));
+    if (dqfactor != 1.0) parts.add('dqfactor=' + _wireDouble(dqfactor));
+    if (makeup != 0.0) parts.add('makeup=' + _wireDouble(makeup));
     if (mode != null) parts.add('mode=' + mode!.mpvValue);
     if (precision != AdynamicequalizerPrecision.auto)
       parts.add('precision=' + precision.mpvValue);
-    if (range != 50.0) parts.add('range=' + range.toStringAsFixed(3));
-    if (ratio != 1.0) parts.add('ratio=' + ratio.toStringAsFixed(3));
-    if (release != 200.0) parts.add('release=' + release.toStringAsFixed(3));
+    if (range != 50.0) parts.add('range=' + _wireDouble(range));
+    if (ratio != 1.0) parts.add('ratio=' + _wireDouble(ratio));
+    if (release != 200.0) parts.add('release=' + _wireDouble(release));
     if (tfrequency != 1000.0)
-      parts.add('tfrequency=' + tfrequency.toStringAsFixed(3));
+      parts.add('tfrequency=' + _wireDouble(tfrequency));
     if (tftype != AdynamicequalizerTftype.bell)
       parts.add('tftype=' + tftype.mpvValue);
-    if (threshold != 0.0)
-      parts.add('threshold=' + threshold.toStringAsFixed(3));
-    if (tqfactor != 1.0) parts.add('tqfactor=' + tqfactor.toStringAsFixed(3));
+    if (threshold != 0.0) parts.add('threshold=' + _wireDouble(threshold));
+    if (tqfactor != 1.0) parts.add('tqfactor=' + _wireDouble(tqfactor));
     return parts.isEmpty
         ? 'lavfi-adynamicequalizer'
         : 'lavfi-adynamicequalizer=' + parts.join(':');
@@ -1207,6 +1394,13 @@ final class AdynamicequalizerSettings {
 /// - [basefreq]: Set a base frequency for smoothing. Default value is 22050. Allowed range is from 2 to 1e+06. (range 2..1000000, default 22050)
 /// - [sensitivity]: Set an amount of sensitivity to frequency fluctations. Default is 2. Allowed range is from 0 to 1e+06. (range 0..1000000, default 2)
 final class AdynamicsmoothSettings {
+  static const double basefreqDefault = 22050.0;
+  static const double basefreqMin = 2.0;
+  static const double basefreqMax = 1000000.0;
+  static const double sensitivityDefault = 2.0;
+  static const double sensitivityMin = 0.0;
+  static const double sensitivityMax = 1000000.0;
+
   final bool enabled;
   final double basefreq;
   final double sensitivity;
@@ -1246,16 +1440,17 @@ final class AdynamicsmoothSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(basefreq >= 2, 'adynamicsmooth.basefreq must be >= 2');
-    assert(basefreq <= 1000000, 'adynamicsmooth.basefreq must be <= 1000000');
-    assert(sensitivity >= 0, 'adynamicsmooth.sensitivity must be >= 0');
-    assert(sensitivity <= 1000000,
+    assert(basefreq >= basefreqMin, 'adynamicsmooth.basefreq must be >= 2');
+    assert(
+        basefreq <= basefreqMax, 'adynamicsmooth.basefreq must be <= 1000000');
+    assert(sensitivity >= sensitivityMin,
+        'adynamicsmooth.sensitivity must be >= 0');
+    assert(sensitivity <= sensitivityMax,
         'adynamicsmooth.sensitivity must be <= 1000000');
     final parts = <String>[];
-    if (basefreq != 22050.0)
-      parts.add('basefreq=' + basefreq.toStringAsFixed(3));
+    if (basefreq != 22050.0) parts.add('basefreq=' + _wireDouble(basefreq));
     if (sensitivity != 2.0)
-      parts.add('sensitivity=' + sensitivity.toStringAsFixed(3));
+      parts.add('sensitivity=' + _wireDouble(sensitivity));
     return parts.isEmpty
         ? 'lavfi-adynamicsmooth'
         : 'lavfi-adynamicsmooth=' + parts.join(':');
@@ -1282,6 +1477,13 @@ final class AdynamicsmoothSettings {
 /// - [in_gain]: Set input gain of reflected signal. Default is `0.6`. (range 0..1, default 0.6)
 /// - [out_gain]: Set output gain of reflected signal. Default is `0.3`. (range 0..1, default 0.3)
 final class AechoSettings {
+  static const double in_gainDefault = 0.6;
+  static const double in_gainMin = 0.0;
+  static const double in_gainMax = 1.0;
+  static const double out_gainDefault = 0.3;
+  static const double out_gainMin = 0.0;
+  static const double out_gainMax = 1.0;
+
   final bool enabled;
   final String decays;
   final String delays;
@@ -1331,15 +1533,15 @@ final class AechoSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(in_gain >= 0, 'aecho.in_gain must be >= 0');
-    assert(in_gain <= 1, 'aecho.in_gain must be <= 1');
-    assert(out_gain >= 0, 'aecho.out_gain must be >= 0');
-    assert(out_gain <= 1, 'aecho.out_gain must be <= 1');
+    assert(in_gain >= in_gainMin, 'aecho.in_gain must be >= 0');
+    assert(in_gain <= in_gainMax, 'aecho.in_gain must be <= 1');
+    assert(out_gain >= out_gainMin, 'aecho.out_gain must be >= 0');
+    assert(out_gain <= out_gainMax, 'aecho.out_gain must be <= 1');
     final parts = <String>[];
     if (decays != '0.5') parts.add('decays=' + '[' + decays + ']');
     if (delays != '1000') parts.add('delays=' + '[' + delays + ']');
-    if (in_gain != 0.6) parts.add('in_gain=' + in_gain.toStringAsFixed(3));
-    if (out_gain != 0.3) parts.add('out_gain=' + out_gain.toStringAsFixed(3));
+    if (in_gain != 0.6) parts.add('in_gain=' + _wireDouble(in_gain));
+    if (out_gain != 0.3) parts.add('out_gain=' + _wireDouble(out_gain));
     return parts.isEmpty ? 'lavfi-aecho' : 'lavfi-aecho=' + parts.join(':');
   }
 }
@@ -1361,6 +1563,13 @@ final class AechoSettings {
 /// - [mode]: Set filter mode. For restoring material use `reproduction` mode, otherwise use `production` mode. Default is `reproduction` mode. (range 0..1, default 0)
 /// - [type]: Set filter type. Selects medium. Can be one of the following: (range 0..8, default 4)
 final class AemphasisSettings {
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = 0.0;
+  static const double level_inMax = 64.0;
+  static const double level_outDefault = 1.0;
+  static const double level_outMin = 0.0;
+  static const double level_outMax = 64.0;
+
   final bool enabled;
   final double level_in;
   final double level_out;
@@ -1410,14 +1619,13 @@ final class AemphasisSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(level_in >= 0, 'aemphasis.level_in must be >= 0');
-    assert(level_in <= 64, 'aemphasis.level_in must be <= 64');
-    assert(level_out >= 0, 'aemphasis.level_out must be >= 0');
-    assert(level_out <= 64, 'aemphasis.level_out must be <= 64');
+    assert(level_in >= level_inMin, 'aemphasis.level_in must be >= 0');
+    assert(level_in <= level_inMax, 'aemphasis.level_in must be <= 64');
+    assert(level_out >= level_outMin, 'aemphasis.level_out must be >= 0');
+    assert(level_out <= level_outMax, 'aemphasis.level_out must be <= 64');
     final parts = <String>[];
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_out != 1.0)
-      parts.add('level_out=' + level_out.toStringAsFixed(3));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_out != 1.0) parts.add('level_out=' + _wireDouble(level_out));
     if (mode != AemphasisMode.reproduction) parts.add('mode=' + mode.mpvValue);
     if (type != AemphasisType.cd) parts.add('type=' + type.mpvValue);
     return parts.isEmpty
@@ -1487,6 +1695,28 @@ final class AevalSettings {
 /// - [level_out]: Set output level after processing of signal. Allowed range is from 0 to 64. Default value is 1. (range 0..64, default 1)
 /// - [listen]: Mute the original signal and output only added harmonics. By default is disabled. (range 0..1, default 0)
 final class AexciterSettings {
+  static const double amountDefault = 1.0;
+  static const double amountMin = 0.0;
+  static const double amountMax = 64.0;
+  static const double blendDefault = 0.0;
+  static const double blendMin = -10.0;
+  static const double blendMax = 10.0;
+  static const double ceilDefault = 9999.0;
+  static const double ceilMin = 9999.0;
+  static const double ceilMax = 20000.0;
+  static const double driveDefault = 8.5;
+  static const double driveMin = 0.1;
+  static const double driveMax = 10.0;
+  static const double freqDefault = 7500.0;
+  static const double freqMin = 2000.0;
+  static const double freqMax = 12000.0;
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = 0.0;
+  static const double level_inMax = 64.0;
+  static const double level_outDefault = 1.0;
+  static const double level_outMin = 0.0;
+  static const double level_outMax = 64.0;
+
   final bool enabled;
   final double amount;
   final double blend;
@@ -1557,29 +1787,28 @@ final class AexciterSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(amount >= 0, 'aexciter.amount must be >= 0');
-    assert(amount <= 64, 'aexciter.amount must be <= 64');
-    assert(blend >= -10, 'aexciter.blend must be >= -10');
-    assert(blend <= 10, 'aexciter.blend must be <= 10');
-    assert(ceil >= 9999, 'aexciter.ceil must be >= 9999');
-    assert(ceil <= 20000, 'aexciter.ceil must be <= 20000');
-    assert(drive >= 0.1, 'aexciter.drive must be >= 0.1');
-    assert(drive <= 10, 'aexciter.drive must be <= 10');
-    assert(freq >= 2000, 'aexciter.freq must be >= 2000');
-    assert(freq <= 12000, 'aexciter.freq must be <= 12000');
-    assert(level_in >= 0, 'aexciter.level_in must be >= 0');
-    assert(level_in <= 64, 'aexciter.level_in must be <= 64');
-    assert(level_out >= 0, 'aexciter.level_out must be >= 0');
-    assert(level_out <= 64, 'aexciter.level_out must be <= 64');
+    assert(amount >= amountMin, 'aexciter.amount must be >= 0');
+    assert(amount <= amountMax, 'aexciter.amount must be <= 64');
+    assert(blend >= blendMin, 'aexciter.blend must be >= -10');
+    assert(blend <= blendMax, 'aexciter.blend must be <= 10');
+    assert(ceil >= ceilMin, 'aexciter.ceil must be >= 9999');
+    assert(ceil <= ceilMax, 'aexciter.ceil must be <= 20000');
+    assert(drive >= driveMin, 'aexciter.drive must be >= 0.1');
+    assert(drive <= driveMax, 'aexciter.drive must be <= 10');
+    assert(freq >= freqMin, 'aexciter.freq must be >= 2000');
+    assert(freq <= freqMax, 'aexciter.freq must be <= 12000');
+    assert(level_in >= level_inMin, 'aexciter.level_in must be >= 0');
+    assert(level_in <= level_inMax, 'aexciter.level_in must be <= 64');
+    assert(level_out >= level_outMin, 'aexciter.level_out must be >= 0');
+    assert(level_out <= level_outMax, 'aexciter.level_out must be <= 64');
     final parts = <String>[];
-    if (amount != 1.0) parts.add('amount=' + amount.toStringAsFixed(3));
-    if (blend != 0.0) parts.add('blend=' + blend.toStringAsFixed(3));
-    if (ceil != 9999.0) parts.add('ceil=' + ceil.toStringAsFixed(3));
-    if (drive != 8.5) parts.add('drive=' + drive.toStringAsFixed(3));
-    if (freq != 7500.0) parts.add('freq=' + freq.toStringAsFixed(3));
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_out != 1.0)
-      parts.add('level_out=' + level_out.toStringAsFixed(3));
+    if (amount != 1.0) parts.add('amount=' + _wireDouble(amount));
+    if (blend != 0.0) parts.add('blend=' + _wireDouble(blend));
+    if (ceil != 9999.0) parts.add('ceil=' + _wireDouble(ceil));
+    if (drive != 8.5) parts.add('drive=' + _wireDouble(drive));
+    if (freq != 7500.0) parts.add('freq=' + _wireDouble(freq));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_out != 1.0) parts.add('level_out=' + _wireDouble(level_out));
     if (listen != false) parts.add('listen=' + (listen ? '1' : '0'));
     return parts.isEmpty
         ? 'lavfi-aexciter'
@@ -1605,6 +1834,13 @@ final class AexciterSettings {
 /// - [type]: Specify the effect type, can be either `in` for fade-in, or `out` for a fade-out effect. Default is `in`. (range 0..1, default 0)
 /// - [unity]: Set the initial gain for fade-out or final gain for fade-in. Default value is `1.0`. (range 0..1, default 1)
 final class AfadeSettings {
+  static const double silenceDefault = 0.0;
+  static const double silenceMin = 0.0;
+  static const double silenceMax = 1.0;
+  static const double unityDefault = 1.0;
+  static const double unityMin = 0.0;
+  static const double unityMax = 1.0;
+
   final bool enabled;
   final AfadeCurve c;
   final AfadeCurve curve;
@@ -1685,27 +1921,25 @@ final class AfadeSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(silence >= 0, 'afade.silence must be >= 0');
-    assert(silence <= 1, 'afade.silence must be <= 1');
-    assert(unity >= 0, 'afade.unity must be >= 0');
-    assert(unity <= 1, 'afade.unity must be <= 1');
+    assert(silence >= silenceMin, 'afade.silence must be >= 0');
+    assert(silence <= silenceMax, 'afade.silence must be <= 1');
+    assert(unity >= unityMin, 'afade.unity must be >= 0');
+    assert(unity <= unityMax, 'afade.unity must be <= 1');
     final parts = <String>[];
     if (c != AfadeCurve.tri) parts.add('c=' + c.mpvValue);
     if (curve != AfadeCurve.tri) parts.add('curve=' + curve.mpvValue);
     if (d != const Duration(microseconds: 0))
-      parts.add('d=' + (d.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add('d=' + _wireDouble(d.inMicroseconds / 1e6));
     if (duration != const Duration(microseconds: 0))
-      parts.add(
-          'duration=' + (duration.inMicroseconds / 1e6).toStringAsFixed(3));
-    if (silence != 0.0) parts.add('silence=' + silence.toStringAsFixed(3));
+      parts.add('duration=' + _wireDouble(duration.inMicroseconds / 1e6));
+    if (silence != 0.0) parts.add('silence=' + _wireDouble(silence));
     if (st != const Duration(microseconds: 0))
-      parts.add('st=' + (st.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add('st=' + _wireDouble(st.inMicroseconds / 1e6));
     if (start_time != const Duration(microseconds: 0))
-      parts.add(
-          'start_time=' + (start_time.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add('start_time=' + _wireDouble(start_time.inMicroseconds / 1e6));
     if (t != AfadeType.in_) parts.add('t=' + t.mpvValue);
     if (type != AfadeType.in_) parts.add('type=' + type.mpvValue);
-    if (unity != 1.0) parts.add('unity=' + unity.toStringAsFixed(3));
+    if (unity != 1.0) parts.add('unity=' + _wireDouble(unity));
     return parts.isEmpty ? 'lavfi-afade' : 'lavfi-afade=' + parts.join(':');
   }
 }
@@ -1731,9 +1965,9 @@ final class AfadeSettings {
 /// - [nl]: Set the noise link used for multichannel audio.  It accepts the following values: (default MIN_LINK)
 /// - [noise_floor]: Set the noise floor in dB, allowed range is -80 to -20. Default value is -50 dB. (range -80..-20, default -50)
 /// - [noise_link]: Set the noise link used for multichannel audio.  It accepts the following values: (default MIN_LINK)
-/// - [noise_reduction]: Set the noise reduction in dB, allowed range is 0.01 to 97. Default value is 12 dB. (default 12)
+/// - [noise_reduction]: Set the noise reduction in dB, allowed range is 0.01 to 97. Default value is 12 dB. (range .01..97, default 12)
 /// - [noise_type]: Set the noise type.  It accepts the following values: (default WHITE_NOISE)
-/// - [nr]: Set the noise reduction in dB, allowed range is 0.01 to 97. Default value is 12 dB. (default 12)
+/// - [nr]: Set the noise reduction in dB, allowed range is 0.01 to 97. Default value is 12 dB. (range .01..97, default 12)
 /// - [nt]: Set the noise type.  It accepts the following values: (default WHITE_NOISE)
 /// - [om]: Set the output mode.  It accepts the following values: (default OUT_MODE)
 /// - [output_mode]: Set the output mode.  It accepts the following values: (default OUT_MODE)
@@ -1746,6 +1980,49 @@ final class AfadeSettings {
 /// - [track_noise]: Enable noise floor tracking. By default is disabled. With this enabled, noise floor is automatically adjusted. (range 0..1, default 0)
 /// - [track_residual]: Enable residual tracking. By default is disabled. (range 0..1, default 0)
 final class AfftdnSettings {
+  static const double adDefault = 0.5;
+  static const double adMin = 0.0;
+  static const double adMax = 1.0;
+  static const double adaptivityDefault = 0.5;
+  static const double adaptivityMin = 0.0;
+  static const double adaptivityMax = 1.0;
+  static const double band_multiplierDefault = 1.25;
+  static const double band_multiplierMin = 0.2;
+  static const double band_multiplierMax = 5.0;
+  static const double bmDefault = 1.25;
+  static const double bmMin = 0.2;
+  static const double bmMax = 5.0;
+  static const double floor_offsetDefault = 1.0;
+  static const double floor_offsetMin = -2.0;
+  static const double floor_offsetMax = 2.0;
+  static const double foDefault = 1.0;
+  static const double foMin = -2.0;
+  static const double foMax = 2.0;
+  static const int gain_smoothDefault = 0;
+  static const int gain_smoothMin = 0;
+  static const int gain_smoothMax = 50;
+  static const int gsDefault = 0;
+  static const int gsMin = 0;
+  static const int gsMax = 50;
+  static const double nfDefault = -50.0;
+  static const double nfMin = -80.0;
+  static const double nfMax = -20.0;
+  static const double noise_floorDefault = -50.0;
+  static const double noise_floorMin = -80.0;
+  static const double noise_floorMax = -20.0;
+  static const double noise_reductionDefault = 12.0;
+  static const double noise_reductionMin = .01;
+  static const double noise_reductionMax = 97.0;
+  static const double nrDefault = 12.0;
+  static const double nrMin = .01;
+  static const double nrMax = 97.0;
+  static const double residual_floorDefault = -38.0;
+  static const double residual_floorMin = -80.0;
+  static const double residual_floorMax = -20.0;
+  static const double rfDefault = -38.0;
+  static const double rfMin = -80.0;
+  static const double rfMax = -20.0;
+
   final bool enabled;
   final double ad;
   final double adaptivity;
@@ -1945,62 +2222,72 @@ final class AfftdnSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(ad >= 0, 'afftdn.ad must be >= 0');
-    assert(ad <= 1, 'afftdn.ad must be <= 1');
-    assert(adaptivity >= 0, 'afftdn.adaptivity must be >= 0');
-    assert(adaptivity <= 1, 'afftdn.adaptivity must be <= 1');
-    assert(band_multiplier >= 0.2, 'afftdn.band_multiplier must be >= 0.2');
-    assert(band_multiplier <= 5, 'afftdn.band_multiplier must be <= 5');
-    assert(bm >= 0.2, 'afftdn.bm must be >= 0.2');
-    assert(bm <= 5, 'afftdn.bm must be <= 5');
-    assert(floor_offset >= -2, 'afftdn.floor_offset must be >= -2');
-    assert(floor_offset <= 2, 'afftdn.floor_offset must be <= 2');
-    assert(fo >= -2, 'afftdn.fo must be >= -2');
-    assert(fo <= 2, 'afftdn.fo must be <= 2');
-    assert(gain_smooth >= 0, 'afftdn.gain_smooth must be >= 0');
-    assert(gain_smooth <= 50, 'afftdn.gain_smooth must be <= 50');
-    assert(gs >= 0, 'afftdn.gs must be >= 0');
-    assert(gs <= 50, 'afftdn.gs must be <= 50');
-    assert(nf >= -80, 'afftdn.nf must be >= -80');
-    assert(nf <= -20, 'afftdn.nf must be <= -20');
-    assert(noise_floor >= -80, 'afftdn.noise_floor must be >= -80');
-    assert(noise_floor <= -20, 'afftdn.noise_floor must be <= -20');
-    assert(residual_floor >= -80, 'afftdn.residual_floor must be >= -80');
-    assert(residual_floor <= -20, 'afftdn.residual_floor must be <= -20');
-    assert(rf >= -80, 'afftdn.rf must be >= -80');
-    assert(rf <= -20, 'afftdn.rf must be <= -20');
+    assert(ad >= adMin, 'afftdn.ad must be >= 0');
+    assert(ad <= adMax, 'afftdn.ad must be <= 1');
+    assert(adaptivity >= adaptivityMin, 'afftdn.adaptivity must be >= 0');
+    assert(adaptivity <= adaptivityMax, 'afftdn.adaptivity must be <= 1');
+    assert(band_multiplier >= band_multiplierMin,
+        'afftdn.band_multiplier must be >= 0.2');
+    assert(band_multiplier <= band_multiplierMax,
+        'afftdn.band_multiplier must be <= 5');
+    assert(bm >= bmMin, 'afftdn.bm must be >= 0.2');
+    assert(bm <= bmMax, 'afftdn.bm must be <= 5');
+    assert(
+        floor_offset >= floor_offsetMin, 'afftdn.floor_offset must be >= -2');
+    assert(floor_offset <= floor_offsetMax, 'afftdn.floor_offset must be <= 2');
+    assert(fo >= foMin, 'afftdn.fo must be >= -2');
+    assert(fo <= foMax, 'afftdn.fo must be <= 2');
+    assert(gain_smooth >= gain_smoothMin, 'afftdn.gain_smooth must be >= 0');
+    assert(gain_smooth <= gain_smoothMax, 'afftdn.gain_smooth must be <= 50');
+    assert(gs >= gsMin, 'afftdn.gs must be >= 0');
+    assert(gs <= gsMax, 'afftdn.gs must be <= 50');
+    assert(nf >= nfMin, 'afftdn.nf must be >= -80');
+    assert(nf <= nfMax, 'afftdn.nf must be <= -20');
+    assert(noise_floor >= noise_floorMin, 'afftdn.noise_floor must be >= -80');
+    assert(noise_floor <= noise_floorMax, 'afftdn.noise_floor must be <= -20');
+    assert(noise_reduction >= noise_reductionMin,
+        'afftdn.noise_reduction must be >= .01');
+    assert(noise_reduction <= noise_reductionMax,
+        'afftdn.noise_reduction must be <= 97');
+    assert(nr >= nrMin, 'afftdn.nr must be >= .01');
+    assert(nr <= nrMax, 'afftdn.nr must be <= 97');
+    assert(residual_floor >= residual_floorMin,
+        'afftdn.residual_floor must be >= -80');
+    assert(residual_floor <= residual_floorMax,
+        'afftdn.residual_floor must be <= -20');
+    assert(rf >= rfMin, 'afftdn.rf must be >= -80');
+    assert(rf <= rfMax, 'afftdn.rf must be <= -20');
     final parts = <String>[];
-    if (ad != 0.5) parts.add('ad=' + ad.toStringAsFixed(3));
-    if (adaptivity != 0.5)
-      parts.add('adaptivity=' + adaptivity.toStringAsFixed(3));
+    if (ad != 0.5) parts.add('ad=' + _wireDouble(ad));
+    if (adaptivity != 0.5) parts.add('adaptivity=' + _wireDouble(adaptivity));
     if (band_multiplier != 1.25)
-      parts.add('band_multiplier=' + band_multiplier.toStringAsFixed(3));
+      parts.add('band_multiplier=' + _wireDouble(band_multiplier));
     if (band_noise != '0') parts.add('band_noise=' + '[' + band_noise + ']');
-    if (bm != 1.25) parts.add('bm=' + bm.toStringAsFixed(3));
+    if (bm != 1.25) parts.add('bm=' + _wireDouble(bm));
     if (bn != '0') parts.add('bn=' + '[' + bn + ']');
     if (floor_offset != 1.0)
-      parts.add('floor_offset=' + floor_offset.toStringAsFixed(3));
-    if (fo != 1.0) parts.add('fo=' + fo.toStringAsFixed(3));
+      parts.add('floor_offset=' + _wireDouble(floor_offset));
+    if (fo != 1.0) parts.add('fo=' + _wireDouble(fo));
     if (gain_smooth != 0) parts.add('gain_smooth=' + gain_smooth.toString());
     if (gs != 0) parts.add('gs=' + gs.toString());
-    if (nf != -50.0) parts.add('nf=' + nf.toStringAsFixed(3));
+    if (nf != -50.0) parts.add('nf=' + _wireDouble(nf));
     if (nl != AfftdnLink.min) parts.add('nl=' + nl.mpvValue);
     if (noise_floor != -50.0)
-      parts.add('noise_floor=' + noise_floor.toStringAsFixed(3));
+      parts.add('noise_floor=' + _wireDouble(noise_floor));
     if (noise_link != AfftdnLink.min)
       parts.add('noise_link=' + noise_link.mpvValue);
     if (noise_reduction != 12.0)
-      parts.add('noise_reduction=' + noise_reduction.toStringAsFixed(3));
+      parts.add('noise_reduction=' + _wireDouble(noise_reduction));
     if (noise_type != AfftdnType.white)
       parts.add('noise_type=' + noise_type.mpvValue);
-    if (nr != 12.0) parts.add('nr=' + nr.toStringAsFixed(3));
+    if (nr != 12.0) parts.add('nr=' + _wireDouble(nr));
     if (nt != AfftdnType.white) parts.add('nt=' + nt.mpvValue);
     if (om != AfftdnMode.output) parts.add('om=' + om.mpvValue);
     if (output_mode != AfftdnMode.output)
       parts.add('output_mode=' + output_mode.mpvValue);
     if (residual_floor != -38.0)
-      parts.add('residual_floor=' + residual_floor.toStringAsFixed(3));
-    if (rf != -38.0) parts.add('rf=' + rf.toStringAsFixed(3));
+      parts.add('residual_floor=' + _wireDouble(residual_floor));
+    if (rf != -38.0) parts.add('rf=' + _wireDouble(rf));
     if (sample_noise != AfftdnSample.none)
       parts.add('sample_noise=' + sample_noise.mpvValue);
     if (sn != AfftdnSample.none) parts.add('sn=' + sn.mpvValue);
@@ -2024,6 +2311,13 @@ final class AfftdnSettings {
 /// - [real]: Set frequency domain real expression for each separate channel separated by '|'. Default is "re". If the number of input channels is greater than the number of expressions, the last specified expression is used for the remaining output channels. (range 0..0, default "re")
 /// - [win_size]: Set window size. Allowed range is from 16 to 131072. Default is `4096` (range 16..131072, default 4096)
 final class AfftfiltSettings {
+  static const double overlapDefault = 0.75;
+  static const double overlapMin = 0.0;
+  static const double overlapMax = 1.0;
+  static const int win_sizeDefault = 4096;
+  static const int win_sizeMin = 16;
+  static const int win_sizeMax = 131072;
+
   final bool enabled;
   final String imag;
   final double overlap;
@@ -2073,13 +2367,13 @@ final class AfftfiltSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(overlap >= 0, 'afftfilt.overlap must be >= 0');
-    assert(overlap <= 1, 'afftfilt.overlap must be <= 1');
-    assert(win_size >= 16, 'afftfilt.win_size must be >= 16');
-    assert(win_size <= 131072, 'afftfilt.win_size must be <= 131072');
+    assert(overlap >= overlapMin, 'afftfilt.overlap must be >= 0');
+    assert(overlap <= overlapMax, 'afftfilt.overlap must be <= 1');
+    assert(win_size >= win_sizeMin, 'afftfilt.win_size must be >= 16');
+    assert(win_size <= win_sizeMax, 'afftfilt.win_size must be <= 131072');
     final parts = <String>[];
     if (imag != 'im') parts.add('imag=' + '[' + imag + ']');
-    if (overlap != 0.75) parts.add('overlap=' + overlap.toStringAsFixed(3));
+    if (overlap != 0.75) parts.add('overlap=' + _wireDouble(overlap));
     if (real != 're') parts.add('real=' + '[' + real + ']');
     if (win_size != 4096) parts.add('win_size=' + win_size.toString());
     return parts.isEmpty
@@ -2137,6 +2431,13 @@ final class AformatSettings {
 /// - [order]: Set filter order used for filtering. Allowed range is from 1 to 16. Default value is 8. (default 8)
 /// - [shift]: Specify frequency shift. Allowed range is -INT_MAX to INT_MAX. Default value is 0.0. (default 0)
 final class AfreqshiftSettings {
+  static const double levelDefault = 1.0;
+  static const double levelMin = 0.0;
+  static const double levelMax = 1.0;
+  static const int orderDefault = 8;
+  static const int orderMin = 1;
+  static const double shiftDefault = 0.0;
+
   final bool enabled;
   final double level;
   final int order;
@@ -2181,13 +2482,13 @@ final class AfreqshiftSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(level >= 0.0, 'afreqshift.level must be >= 0.0');
-    assert(level <= 1.0, 'afreqshift.level must be <= 1.0');
-    assert(order >= 1, 'afreqshift.order must be >= 1');
+    assert(level >= levelMin, 'afreqshift.level must be >= 0.0');
+    assert(level <= levelMax, 'afreqshift.level must be <= 1.0');
+    assert(order >= orderMin, 'afreqshift.order must be >= 1');
     final parts = <String>[];
-    if (level != 1.0) parts.add('level=' + level.toStringAsFixed(3));
+    if (level != 1.0) parts.add('level=' + _wireDouble(level));
     if (order != 8) parts.add('order=' + order.toString());
-    if (shift != 0.0) parts.add('shift=' + shift.toStringAsFixed(3));
+    if (shift != 0.0) parts.add('shift=' + _wireDouble(shift));
     return parts.isEmpty
         ? 'lavfi-afreqshift'
         : 'lavfi-afreqshift=' + parts.join(':');
@@ -2210,6 +2511,21 @@ final class AfreqshiftSettings {
 /// - [softness]: set thresholding softness (range 0..10, default 1)
 /// - [wavet]: Set wavelet type for decomposition of input frame. They are sorted by number of coefficients, from lowest to highest. More coefficients means worse filtering speed, but overall better quality. Available wavelets are: (default SYM10)
 final class AfwtdnSettings {
+  static const int levelsDefault = 10;
+  static const int levelsMin = 1;
+  static const double percentDefault = 85.0;
+  static const double percentMin = 0.0;
+  static const double percentMax = 100.0;
+  static const int samplesDefault = 8192;
+  static const int samplesMin = 512;
+  static const int samplesMax = 65536;
+  static const double sigmaDefault = 0.0;
+  static const double sigmaMin = 0.0;
+  static const double sigmaMax = 1.0;
+  static const double softnessDefault = 1.0;
+  static const double softnessMin = 0.0;
+  static const double softnessMax = 10.0;
+
   final bool enabled;
   final bool adaptive;
   final int levels;
@@ -2280,23 +2596,23 @@ final class AfwtdnSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(levels >= 1, 'afwtdn.levels must be >= 1');
-    assert(percent >= 0, 'afwtdn.percent must be >= 0');
-    assert(percent <= 100, 'afwtdn.percent must be <= 100');
-    assert(samples >= 512, 'afwtdn.samples must be >= 512');
-    assert(samples <= 65536, 'afwtdn.samples must be <= 65536');
-    assert(sigma >= 0, 'afwtdn.sigma must be >= 0');
-    assert(sigma <= 1, 'afwtdn.sigma must be <= 1');
-    assert(softness >= 0, 'afwtdn.softness must be >= 0');
-    assert(softness <= 10, 'afwtdn.softness must be <= 10');
+    assert(levels >= levelsMin, 'afwtdn.levels must be >= 1');
+    assert(percent >= percentMin, 'afwtdn.percent must be >= 0');
+    assert(percent <= percentMax, 'afwtdn.percent must be <= 100');
+    assert(samples >= samplesMin, 'afwtdn.samples must be >= 512');
+    assert(samples <= samplesMax, 'afwtdn.samples must be <= 65536');
+    assert(sigma >= sigmaMin, 'afwtdn.sigma must be >= 0');
+    assert(sigma <= sigmaMax, 'afwtdn.sigma must be <= 1');
+    assert(softness >= softnessMin, 'afwtdn.softness must be >= 0');
+    assert(softness <= softnessMax, 'afwtdn.softness must be <= 10');
     final parts = <String>[];
     if (adaptive != false) parts.add('adaptive=' + (adaptive ? '1' : '0'));
     if (levels != 10) parts.add('levels=' + levels.toString());
-    if (percent != 85.0) parts.add('percent=' + percent.toStringAsFixed(3));
+    if (percent != 85.0) parts.add('percent=' + _wireDouble(percent));
     if (profile != false) parts.add('profile=' + (profile ? '1' : '0'));
     if (samples != 8192) parts.add('samples=' + samples.toString());
-    if (sigma != 0.0) parts.add('sigma=' + sigma.toStringAsFixed(3));
-    if (softness != 1.0) parts.add('softness=' + softness.toStringAsFixed(3));
+    if (sigma != 0.0) parts.add('sigma=' + _wireDouble(sigma));
+    if (softness != 1.0) parts.add('softness=' + _wireDouble(softness));
     if (wavet != AfwtdnWavet.sym10) parts.add('wavet=' + wavet.mpvValue);
     return parts.isEmpty ? 'lavfi-afwtdn' : 'lavfi-afwtdn=' + parts.join(':');
   }
@@ -2332,6 +2648,34 @@ final class AfwtdnSettings {
 /// - [release]: Amount of milliseconds the signal has to fall below the threshold before the reduction is increased again. Default is 250 milliseconds. Allowed range is from 0.01 to 9000. (range 0.01..9000, default 250)
 /// - [threshold]: If a signal rises above this level the gain reduction is released. Default is 0.125. Allowed range is from 0 to 1. (range 0..1, default 0.125)
 final class AgateSettings {
+  static const double attackDefault = 20.0;
+  static const double attackMin = 0.01;
+  static const double attackMax = 9000.0;
+  static const double kneeDefault = 2.828427125;
+  static const double kneeMin = 1.0;
+  static const double kneeMax = 8.0;
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = 0.015625;
+  static const double level_inMax = 64.0;
+  static const double level_scDefault = 1.0;
+  static const double level_scMin = 0.015625;
+  static const double level_scMax = 64.0;
+  static const double makeupDefault = 1.0;
+  static const double makeupMin = 1.0;
+  static const double makeupMax = 64.0;
+  static const double rangeDefault = 0.06125;
+  static const double rangeMin = 0.0;
+  static const double rangeMax = 1.0;
+  static const double ratioDefault = 2.0;
+  static const double ratioMin = 1.0;
+  static const double ratioMax = 9000.0;
+  static const double releaseDefault = 250.0;
+  static const double releaseMin = 0.01;
+  static const double releaseMax = 9000.0;
+  static const double thresholdDefault = 0.125;
+  static const double thresholdMin = 0.0;
+  static const double thresholdMax = 1.0;
+
   final bool enabled;
   final double attack;
   final AgateDetection detection;
@@ -2422,39 +2766,38 @@ final class AgateSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(attack >= 0.01, 'agate.attack must be >= 0.01');
-    assert(attack <= 9000, 'agate.attack must be <= 9000');
-    assert(knee >= 1, 'agate.knee must be >= 1');
-    assert(knee <= 8, 'agate.knee must be <= 8');
-    assert(level_in >= 0.015625, 'agate.level_in must be >= 0.015625');
-    assert(level_in <= 64, 'agate.level_in must be <= 64');
-    assert(level_sc >= 0.015625, 'agate.level_sc must be >= 0.015625');
-    assert(level_sc <= 64, 'agate.level_sc must be <= 64');
-    assert(makeup >= 1, 'agate.makeup must be >= 1');
-    assert(makeup <= 64, 'agate.makeup must be <= 64');
-    assert(range >= 0, 'agate.range must be >= 0');
-    assert(range <= 1, 'agate.range must be <= 1');
-    assert(ratio >= 1, 'agate.ratio must be >= 1');
-    assert(ratio <= 9000, 'agate.ratio must be <= 9000');
-    assert(release >= 0.01, 'agate.release must be >= 0.01');
-    assert(release <= 9000, 'agate.release must be <= 9000');
-    assert(threshold >= 0, 'agate.threshold must be >= 0');
-    assert(threshold <= 1, 'agate.threshold must be <= 1');
+    assert(attack >= attackMin, 'agate.attack must be >= 0.01');
+    assert(attack <= attackMax, 'agate.attack must be <= 9000');
+    assert(knee >= kneeMin, 'agate.knee must be >= 1');
+    assert(knee <= kneeMax, 'agate.knee must be <= 8');
+    assert(level_in >= level_inMin, 'agate.level_in must be >= 0.015625');
+    assert(level_in <= level_inMax, 'agate.level_in must be <= 64');
+    assert(level_sc >= level_scMin, 'agate.level_sc must be >= 0.015625');
+    assert(level_sc <= level_scMax, 'agate.level_sc must be <= 64');
+    assert(makeup >= makeupMin, 'agate.makeup must be >= 1');
+    assert(makeup <= makeupMax, 'agate.makeup must be <= 64');
+    assert(range >= rangeMin, 'agate.range must be >= 0');
+    assert(range <= rangeMax, 'agate.range must be <= 1');
+    assert(ratio >= ratioMin, 'agate.ratio must be >= 1');
+    assert(ratio <= ratioMax, 'agate.ratio must be <= 9000');
+    assert(release >= releaseMin, 'agate.release must be >= 0.01');
+    assert(release <= releaseMax, 'agate.release must be <= 9000');
+    assert(threshold >= thresholdMin, 'agate.threshold must be >= 0');
+    assert(threshold <= thresholdMax, 'agate.threshold must be <= 1');
     final parts = <String>[];
-    if (attack != 20.0) parts.add('attack=' + attack.toStringAsFixed(3));
+    if (attack != 20.0) parts.add('attack=' + _wireDouble(attack));
     if (detection != AgateDetection.rms)
       parts.add('detection=' + detection.mpvValue);
-    if (knee != 2.828427125) parts.add('knee=' + knee.toStringAsFixed(3));
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_sc != 1.0) parts.add('level_sc=' + level_sc.toStringAsFixed(3));
+    if (knee != 2.828427125) parts.add('knee=' + _wireDouble(knee));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_sc != 1.0) parts.add('level_sc=' + _wireDouble(level_sc));
     if (link != AgateLink.average) parts.add('link=' + link.mpvValue);
-    if (makeup != 1.0) parts.add('makeup=' + makeup.toStringAsFixed(3));
+    if (makeup != 1.0) parts.add('makeup=' + _wireDouble(makeup));
     if (mode != AgateMode.downward) parts.add('mode=' + mode.mpvValue);
-    if (range != 0.06125) parts.add('range=' + range.toStringAsFixed(3));
-    if (ratio != 2.0) parts.add('ratio=' + ratio.toStringAsFixed(3));
-    if (release != 250.0) parts.add('release=' + release.toStringAsFixed(3));
-    if (threshold != 0.125)
-      parts.add('threshold=' + threshold.toStringAsFixed(3));
+    if (range != 0.06125) parts.add('range=' + _wireDouble(range));
+    if (ratio != 2.0) parts.add('ratio=' + _wireDouble(ratio));
+    if (release != 250.0) parts.add('release=' + _wireDouble(release));
+    if (threshold != 0.125) parts.add('threshold=' + _wireDouble(threshold));
     return parts.isEmpty ? 'lavfi-agate' : 'lavfi-agate=' + parts.join(':');
   }
 }
@@ -2486,6 +2829,19 @@ final class AgateSettings {
 /// - [z]: Set B/numerator/zeros/reflection coefficients. (range 0..0)
 /// - [zeros]: Set B/numerator/zeros/reflection coefficients. (range 0..0)
 final class AiirSettings {
+  static const int channelDefault = 0;
+  static const int channelMin = 0;
+  static const int channelMax = 1024;
+  static const double dryDefault = 1.0;
+  static const double dryMin = 0.0;
+  static const double dryMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const double wetDefault = 1.0;
+  static const double wetMin = 0.0;
+  static const double wetMax = 1.0;
+
   final bool enabled;
   final int channel;
   final double dry;
@@ -2630,23 +2986,23 @@ final class AiirSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(channel >= 0, 'aiir.channel must be >= 0');
-    assert(channel <= 1024, 'aiir.channel must be <= 1024');
-    assert(dry >= 0, 'aiir.dry must be >= 0');
-    assert(dry <= 1, 'aiir.dry must be <= 1');
-    assert(mix >= 0, 'aiir.mix must be >= 0');
-    assert(mix <= 1, 'aiir.mix must be <= 1');
-    assert(wet >= 0, 'aiir.wet must be >= 0');
-    assert(wet <= 1, 'aiir.wet must be <= 1');
+    assert(channel >= channelMin, 'aiir.channel must be >= 0');
+    assert(channel <= channelMax, 'aiir.channel must be <= 1024');
+    assert(dry >= dryMin, 'aiir.dry must be >= 0');
+    assert(dry <= dryMax, 'aiir.dry must be <= 1');
+    assert(mix >= mixMin, 'aiir.mix must be >= 0');
+    assert(mix <= mixMax, 'aiir.mix must be <= 1');
+    assert(wet >= wetMin, 'aiir.wet must be >= 0');
+    assert(wet <= wetMax, 'aiir.wet must be <= 1');
     final parts = <String>[];
     if (channel != 0) parts.add('channel=' + channel.toString());
-    if (dry != 1.0) parts.add('dry=' + dry.toStringAsFixed(3));
+    if (dry != 1.0) parts.add('dry=' + _wireDouble(dry));
     if (e != AiirPrecision.dbl) parts.add('e=' + e.mpvValue);
     if (f != AiirFormat.zp) parts.add('f=' + f.mpvValue);
     if (format != AiirFormat.zp) parts.add('format=' + format.mpvValue);
     if (gains != '1|1') parts.add('gains=' + '[' + gains + ']');
     if (k != '1|1') parts.add('k=' + '[' + k + ']');
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != true) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != true) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != null) parts.add('p=' + '[' + p! + ']');
@@ -2656,7 +3012,7 @@ final class AiirSettings {
     if (process != AiirProcess.s) parts.add('process=' + process.mpvValue);
     if (r != AiirProcess.s) parts.add('r=' + r.mpvValue);
     if (response != false) parts.add('response=' + (response ? '1' : '0'));
-    if (wet != 1.0) parts.add('wet=' + wet.toStringAsFixed(3));
+    if (wet != 1.0) parts.add('wet=' + _wireDouble(wet));
     if (z != null) parts.add('z=' + '[' + z! + ']');
     if (zeros != null) parts.add('zeros=' + '[' + zeros! + ']');
     return parts.isEmpty ? 'lavfi-aiir' : 'lavfi-aiir=' + parts.join(':');
@@ -2678,11 +3034,30 @@ final class AiirSettings {
 /// - [attack]: The limiter will reach its attenuation level in this amount of time in milliseconds. Default is 5 milliseconds. (range 0.1..80, default 5)
 /// - [latency]: Compensate the delay introduced by using the lookahead buffer set with attack parameter. Also flush the valid audio data in the lookahead buffer when the stream hits EOF. (range 0..1, default 0)
 /// - [level]: Auto level output signal. Default is enabled. This normalizes audio back to 0dB if enabled. (range 0..1, default 1)
-/// - [level_in]: Set input gain. Default is 1. (default 1)
-/// - [level_out]: Set output gain. Default is 1. (default 1)
+/// - [level_in]: Set input gain. Default is 1. (range .015625..64, default 1)
+/// - [level_out]: Set output gain. Default is 1. (range .015625..64, default 1)
 /// - [limit]: Don't let signals above this level pass the limiter. Default is 1. (range 0.0625..1, default 1)
 /// - [release]: Come back from limiting to attenuation 1.0 in this amount of milliseconds. Default is 50 milliseconds. (range 1..8000, default 50)
 final class AlimiterSettings {
+  static const double asc_levelDefault = 0.5;
+  static const double asc_levelMin = 0.0;
+  static const double asc_levelMax = 1.0;
+  static const double attackDefault = 5.0;
+  static const double attackMin = 0.1;
+  static const double attackMax = 80.0;
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = .015625;
+  static const double level_inMax = 64.0;
+  static const double level_outDefault = 1.0;
+  static const double level_outMin = .015625;
+  static const double level_outMax = 64.0;
+  static const double limitDefault = 1.0;
+  static const double limitMin = 0.0625;
+  static const double limitMax = 1.0;
+  static const double releaseDefault = 50.0;
+  static const double releaseMin = 1.0;
+  static const double releaseMax = 8000.0;
+
   final bool enabled;
   final bool asc;
   final double asc_level;
@@ -2758,26 +3133,28 @@ final class AlimiterSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(asc_level >= 0, 'alimiter.asc_level must be >= 0');
-    assert(asc_level <= 1, 'alimiter.asc_level must be <= 1');
-    assert(attack >= 0.1, 'alimiter.attack must be >= 0.1');
-    assert(attack <= 80, 'alimiter.attack must be <= 80');
-    assert(limit >= 0.0625, 'alimiter.limit must be >= 0.0625');
-    assert(limit <= 1, 'alimiter.limit must be <= 1');
-    assert(release >= 1, 'alimiter.release must be >= 1');
-    assert(release <= 8000, 'alimiter.release must be <= 8000');
+    assert(asc_level >= asc_levelMin, 'alimiter.asc_level must be >= 0');
+    assert(asc_level <= asc_levelMax, 'alimiter.asc_level must be <= 1');
+    assert(attack >= attackMin, 'alimiter.attack must be >= 0.1');
+    assert(attack <= attackMax, 'alimiter.attack must be <= 80');
+    assert(level_in >= level_inMin, 'alimiter.level_in must be >= .015625');
+    assert(level_in <= level_inMax, 'alimiter.level_in must be <= 64');
+    assert(level_out >= level_outMin, 'alimiter.level_out must be >= .015625');
+    assert(level_out <= level_outMax, 'alimiter.level_out must be <= 64');
+    assert(limit >= limitMin, 'alimiter.limit must be >= 0.0625');
+    assert(limit <= limitMax, 'alimiter.limit must be <= 1');
+    assert(release >= releaseMin, 'alimiter.release must be >= 1');
+    assert(release <= releaseMax, 'alimiter.release must be <= 8000');
     final parts = <String>[];
     if (asc != false) parts.add('asc=' + (asc ? '1' : '0'));
-    if (asc_level != 0.5)
-      parts.add('asc_level=' + asc_level.toStringAsFixed(3));
-    if (attack != 5.0) parts.add('attack=' + attack.toStringAsFixed(3));
+    if (asc_level != 0.5) parts.add('asc_level=' + _wireDouble(asc_level));
+    if (attack != 5.0) parts.add('attack=' + _wireDouble(attack));
     if (latency != false) parts.add('latency=' + (latency ? '1' : '0'));
     if (level != true) parts.add('level=' + (level ? '1' : '0'));
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_out != 1.0)
-      parts.add('level_out=' + level_out.toStringAsFixed(3));
-    if (limit != 1.0) parts.add('limit=' + limit.toStringAsFixed(3));
-    if (release != 50.0) parts.add('release=' + release.toStringAsFixed(3));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_out != 1.0) parts.add('level_out=' + _wireDouble(level_out));
+    if (limit != 1.0) parts.add('limit=' + _wireDouble(limit));
+    if (release != 50.0) parts.add('release=' + _wireDouble(release));
     return parts.isEmpty
         ? 'lavfi-alimiter'
         : 'lavfi-alimiter=' + parts.join(':');
@@ -2813,6 +3190,31 @@ final class AlimiterSettings {
 /// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.707)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class AllpassSettings {
+  static const double fDefault = 3000.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 3000.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const int oDefault = 2;
+  static const int oMin = 1;
+  static const int oMax = 2;
+  static const int orderDefault = 2;
+  static const int orderMin = 1;
+  static const int orderMax = 2;
+  static const double wDefault = 0.707;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 0.707;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final AllpassTransformType a;
   final String c;
@@ -2933,31 +3335,30 @@ final class AllpassSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(f >= 0, 'allpass.f must be >= 0');
-    assert(f <= 999999, 'allpass.f must be <= 999999');
-    assert(frequency >= 0, 'allpass.frequency must be >= 0');
-    assert(frequency <= 999999, 'allpass.frequency must be <= 999999');
-    assert(m >= 0, 'allpass.m must be >= 0');
-    assert(m <= 1, 'allpass.m must be <= 1');
-    assert(mix >= 0, 'allpass.mix must be >= 0');
-    assert(mix <= 1, 'allpass.mix must be <= 1');
-    assert(o >= 1, 'allpass.o must be >= 1');
-    assert(o <= 2, 'allpass.o must be <= 2');
-    assert(order >= 1, 'allpass.order must be >= 1');
-    assert(order <= 2, 'allpass.order must be <= 2');
-    assert(w >= 0, 'allpass.w must be >= 0');
-    assert(w <= 99999, 'allpass.w must be <= 99999');
-    assert(width >= 0, 'allpass.width must be >= 0');
-    assert(width <= 99999, 'allpass.width must be <= 99999');
+    assert(f >= fMin, 'allpass.f must be >= 0');
+    assert(f <= fMax, 'allpass.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'allpass.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'allpass.frequency must be <= 999999');
+    assert(m >= mMin, 'allpass.m must be >= 0');
+    assert(m <= mMax, 'allpass.m must be <= 1');
+    assert(mix >= mixMin, 'allpass.mix must be >= 0');
+    assert(mix <= mixMax, 'allpass.mix must be <= 1');
+    assert(o >= oMin, 'allpass.o must be >= 1');
+    assert(o <= oMax, 'allpass.o must be <= 2');
+    assert(order >= orderMin, 'allpass.order must be >= 1');
+    assert(order <= orderMax, 'allpass.order must be <= 2');
+    assert(w >= wMin, 'allpass.w must be >= 0');
+    assert(w <= wMax, 'allpass.w must be <= 99999');
+    assert(width >= widthMin, 'allpass.width must be >= 0');
+    assert(width <= widthMax, 'allpass.width must be <= 99999');
     final parts = <String>[];
     if (a != AllpassTransformType.di) parts.add('a=' + a.mpvValue);
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 3000.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 3000.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 3000.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (o != 2) parts.add('o=' + o.toString());
@@ -2968,8 +3369,8 @@ final class AllpassSettings {
     if (t != AllpassWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != AllpassTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 0.707) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 0.707) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 0.707) parts.add('w=' + _wireDouble(w));
+    if (width != 0.707) parts.add('width=' + _wireDouble(width));
     if (width_type != AllpassWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-allpass' : 'lavfi-allpass=' + parts.join(':');
@@ -2989,6 +3390,10 @@ final class AllpassSettings {
 /// - [mgain]: set max gain (range -900..900, default 60)
 /// - [params]: This option string is in format: "c`chn` f=`cf` w=`w` g=`g` t=`f` | ..." Each equalizer band is separated by '|'. (range 0..0, default "")
 final class AnequalizerSettings {
+  static const double mgainDefault = 60.0;
+  static const double mgainMin = -900.0;
+  static const double mgainMax = 900.0;
+
   final bool enabled;
   final String colors;
   final bool curves;
@@ -3044,14 +3449,14 @@ final class AnequalizerSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(mgain >= -900, 'anequalizer.mgain must be >= -900');
-    assert(mgain <= 900, 'anequalizer.mgain must be <= 900');
+    assert(mgain >= mgainMin, 'anequalizer.mgain must be >= -900');
+    assert(mgain <= mgainMax, 'anequalizer.mgain must be <= 900');
     final parts = <String>[];
     if (colors != 'red|green|blue|yellow|orange|lime|pink|magenta|brown')
       parts.add('colors=' + '[' + colors + ']');
     if (curves != false) parts.add('curves=' + (curves ? '1' : '0'));
     if (fscale != AnequalizerFscale.log) parts.add('fscale=' + fscale.mpvValue);
-    if (mgain != 60.0) parts.add('mgain=' + mgain.toStringAsFixed(3));
+    if (mgain != 60.0) parts.add('mgain=' + _wireDouble(mgain));
     if (params != '') parts.add('params=' + '[' + params + ']');
     return parts.isEmpty
         ? 'lavfi-anequalizer'
@@ -3081,6 +3486,19 @@ final class AnequalizerSettings {
 /// - [smooth]: Set smooth factor. Default value is `11`. Allowed range is from `1` to `1000`. (range 1..1000, default 11.)
 /// - [strength]: Set denoising strength. Allowed range is from 0.00001 to 10000. Default value is 0.00001. (range 0.00001..10000, default 0.00001)
 final class AnlmdnSettings {
+  static const double mDefault = 11.0;
+  static const double mMin = 1.0;
+  static const double mMax = 1000.0;
+  static const double sDefault = 0.00001;
+  static const double sMin = 0.00001;
+  static const double sMax = 10000.0;
+  static const double smoothDefault = 11.0;
+  static const double smoothMin = 1.0;
+  static const double smoothMax = 1000.0;
+  static const double strengthDefault = 0.00001;
+  static const double strengthMin = 0.00001;
+  static const double strengthMax = 10000.0;
+
   final bool enabled;
   final double m;
   final AnlmdnMode o;
@@ -3161,31 +3579,29 @@ final class AnlmdnSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(m >= 1, 'anlmdn.m must be >= 1');
-    assert(m <= 1000, 'anlmdn.m must be <= 1000');
-    assert(s >= 0.00001, 'anlmdn.s must be >= 0.00001');
-    assert(s <= 10000, 'anlmdn.s must be <= 10000');
-    assert(smooth >= 1, 'anlmdn.smooth must be >= 1');
-    assert(smooth <= 1000, 'anlmdn.smooth must be <= 1000');
-    assert(strength >= 0.00001, 'anlmdn.strength must be >= 0.00001');
-    assert(strength <= 10000, 'anlmdn.strength must be <= 10000');
+    assert(m >= mMin, 'anlmdn.m must be >= 1');
+    assert(m <= mMax, 'anlmdn.m must be <= 1000');
+    assert(s >= sMin, 'anlmdn.s must be >= 0.00001');
+    assert(s <= sMax, 'anlmdn.s must be <= 10000');
+    assert(smooth >= smoothMin, 'anlmdn.smooth must be >= 1');
+    assert(smooth <= smoothMax, 'anlmdn.smooth must be <= 1000');
+    assert(strength >= strengthMin, 'anlmdn.strength must be >= 0.00001');
+    assert(strength <= strengthMax, 'anlmdn.strength must be <= 10000');
     final parts = <String>[];
-    if (m != 11.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (m != 11.0) parts.add('m=' + _wireDouble(m));
     if (o != AnlmdnMode.o) parts.add('o=' + o.mpvValue);
     if (output != AnlmdnMode.o) parts.add('output=' + output.mpvValue);
     if (p != const Duration(microseconds: 2000))
-      parts.add('p=' + (p.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add('p=' + _wireDouble(p.inMicroseconds / 1e6));
     if (patch != const Duration(microseconds: 2000))
-      parts.add('patch=' + (patch.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add('patch=' + _wireDouble(patch.inMicroseconds / 1e6));
     if (r != const Duration(microseconds: 6000))
-      parts.add('r=' + (r.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add('r=' + _wireDouble(r.inMicroseconds / 1e6));
     if (research != const Duration(microseconds: 6000))
-      parts.add(
-          'research=' + (research.inMicroseconds / 1e6).toStringAsFixed(3));
-    if (s != 0.00001) parts.add('s=' + s.toStringAsFixed(3));
-    if (smooth != 11.0) parts.add('smooth=' + smooth.toStringAsFixed(3));
-    if (strength != 0.00001)
-      parts.add('strength=' + strength.toStringAsFixed(3));
+      parts.add('research=' + _wireDouble(research.inMicroseconds / 1e6));
+    if (s != 0.00001) parts.add('s=' + _wireDouble(s));
+    if (smooth != 11.0) parts.add('smooth=' + _wireDouble(smooth));
+    if (strength != 0.00001) parts.add('strength=' + _wireDouble(strength));
     return parts.isEmpty ? 'lavfi-anlmdn' : 'lavfi-anlmdn=' + parts.join(':');
   }
 }
@@ -3204,6 +3620,9 @@ final class AnlmdnSettings {
 /// - [pad_dur]: Specify the duration of samples of silence to add. See time duration syntax for the accepted syntax. Used only if set to non-negative value. (default -1)
 /// - [whole_dur]: Specify the minimum total duration in the output audio stream. See time duration syntax for the accepted syntax. Used only if set to non-negative value. If the value is longer than the input audio length, silence is added to the end, until the value is reached. This option is mutually exclusive with @option{pad_dur} (default -1)
 final class ApadSettings {
+  static const int packet_sizeDefault = 4096;
+  static const int packet_sizeMin = 0;
+
   final bool enabled;
   final int packet_size;
   final Duration pad_dur;
@@ -3248,14 +3667,13 @@ final class ApadSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(packet_size >= 0, 'apad.packet_size must be >= 0');
+    assert(packet_size >= packet_sizeMin, 'apad.packet_size must be >= 0');
     final parts = <String>[];
     if (packet_size != 4096) parts.add('packet_size=' + packet_size.toString());
     if (pad_dur != const Duration(microseconds: -1))
-      parts.add('pad_dur=' + (pad_dur.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add('pad_dur=' + _wireDouble(pad_dur.inMicroseconds / 1e6));
     if (whole_dur != const Duration(microseconds: -1))
-      parts.add(
-          'whole_dur=' + (whole_dur.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add('whole_dur=' + _wireDouble(whole_dur.inMicroseconds / 1e6));
     return parts.isEmpty ? 'lavfi-apad' : 'lavfi-apad=' + parts.join(':');
   }
 }
@@ -3270,13 +3688,29 @@ final class ApadSettings {
 /// A description of the accepted parameters follows.
 ///
 /// Parameters:
-/// - [decay]: Set decay. Default is 0.4. (default .4)
+/// - [decay]: Set decay. Default is 0.4. (range 0...99, default .4)
 /// - [delay]: Set delay in milliseconds. Default is 3.0. (range 0..5, default 3.)
 /// - [in_gain]: Set input gain. Default is 0.4. (range 0..1, default .4)
 /// - [out_gain]: Set output gain. Default is 0.74 (range 0..1e9, default .74)
-/// - [speed]: Set modulation speed in Hz. Default is 0.5. (default .5)
+/// - [speed]: Set modulation speed in Hz. Default is 0.5. (range .1..2, default .5)
 /// - [type]: Set modulation type. Default is triangular.  It accepts the following values: (default WAVE_TRI)
 final class AphaserSettings {
+  static const double decayDefault = .4;
+  static const double decayMin = 0.0;
+  static const double decayMax = .99;
+  static const double delayDefault = 3.0;
+  static const double delayMin = 0.0;
+  static const double delayMax = 5.0;
+  static const double in_gainDefault = .4;
+  static const double in_gainMin = 0.0;
+  static const double in_gainMax = 1.0;
+  static const double out_gainDefault = .74;
+  static const double out_gainMin = 0.0;
+  static const double out_gainMax = 1e9;
+  static const double speedDefault = .5;
+  static const double speedMin = .1;
+  static const double speedMax = 2.0;
+
   final bool enabled;
   final double decay;
   final double delay;
@@ -3337,19 +3771,22 @@ final class AphaserSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(decay >= 0, 'aphaser.decay must be >= 0');
-    assert(delay >= 0, 'aphaser.delay must be >= 0');
-    assert(delay <= 5, 'aphaser.delay must be <= 5');
-    assert(in_gain >= 0, 'aphaser.in_gain must be >= 0');
-    assert(in_gain <= 1, 'aphaser.in_gain must be <= 1');
-    assert(out_gain >= 0, 'aphaser.out_gain must be >= 0');
-    assert(out_gain <= 1e9, 'aphaser.out_gain must be <= 1e9');
+    assert(decay >= decayMin, 'aphaser.decay must be >= 0');
+    assert(decay <= decayMax, 'aphaser.decay must be <= .99');
+    assert(delay >= delayMin, 'aphaser.delay must be >= 0');
+    assert(delay <= delayMax, 'aphaser.delay must be <= 5');
+    assert(in_gain >= in_gainMin, 'aphaser.in_gain must be >= 0');
+    assert(in_gain <= in_gainMax, 'aphaser.in_gain must be <= 1');
+    assert(out_gain >= out_gainMin, 'aphaser.out_gain must be >= 0');
+    assert(out_gain <= out_gainMax, 'aphaser.out_gain must be <= 1e9');
+    assert(speed >= speedMin, 'aphaser.speed must be >= .1');
+    assert(speed <= speedMax, 'aphaser.speed must be <= 2');
     final parts = <String>[];
-    if (decay != .4) parts.add('decay=' + decay.toStringAsFixed(3));
-    if (delay != 3.0) parts.add('delay=' + delay.toStringAsFixed(3));
-    if (in_gain != .4) parts.add('in_gain=' + in_gain.toStringAsFixed(3));
-    if (out_gain != .74) parts.add('out_gain=' + out_gain.toStringAsFixed(3));
-    if (speed != .5) parts.add('speed=' + speed.toStringAsFixed(3));
+    if (decay != .4) parts.add('decay=' + _wireDouble(decay));
+    if (delay != 3.0) parts.add('delay=' + _wireDouble(delay));
+    if (in_gain != .4) parts.add('in_gain=' + _wireDouble(in_gain));
+    if (out_gain != .74) parts.add('out_gain=' + _wireDouble(out_gain));
+    if (speed != .5) parts.add('speed=' + _wireDouble(speed));
     if (type != AphaserType.triangular) parts.add('type=' + type.mpvValue);
     return parts.isEmpty ? 'lavfi-aphaser' : 'lavfi-aphaser=' + parts.join(':');
   }
@@ -3366,6 +3803,15 @@ final class AphaserSettings {
 /// - [order]: Set filter order used for filtering. Allowed range is from 1 to 16. Default value is 8. (default 8)
 /// - [shift]: Specify phase shift. Allowed range is from -1.0 to 1.0. Default value is 0.0. (range -1.0..1.0, default 0)
 final class AphaseshiftSettings {
+  static const double levelDefault = 1.0;
+  static const double levelMin = 0.0;
+  static const double levelMax = 1.0;
+  static const int orderDefault = 8;
+  static const int orderMin = 1;
+  static const double shiftDefault = 0.0;
+  static const double shiftMin = -1.0;
+  static const double shiftMax = 1.0;
+
   final bool enabled;
   final double level;
   final int order;
@@ -3410,15 +3856,15 @@ final class AphaseshiftSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(level >= 0.0, 'aphaseshift.level must be >= 0.0');
-    assert(level <= 1.0, 'aphaseshift.level must be <= 1.0');
-    assert(order >= 1, 'aphaseshift.order must be >= 1');
-    assert(shift >= -1.0, 'aphaseshift.shift must be >= -1.0');
-    assert(shift <= 1.0, 'aphaseshift.shift must be <= 1.0');
+    assert(level >= levelMin, 'aphaseshift.level must be >= 0.0');
+    assert(level <= levelMax, 'aphaseshift.level must be <= 1.0');
+    assert(order >= orderMin, 'aphaseshift.order must be >= 1');
+    assert(shift >= shiftMin, 'aphaseshift.shift must be >= -1.0');
+    assert(shift <= shiftMax, 'aphaseshift.shift must be <= 1.0');
     final parts = <String>[];
-    if (level != 1.0) parts.add('level=' + level.toStringAsFixed(3));
+    if (level != 1.0) parts.add('level=' + _wireDouble(level));
     if (order != 8) parts.add('order=' + order.toString());
-    if (shift != 0.0) parts.add('shift=' + shift.toStringAsFixed(3));
+    if (shift != 0.0) parts.add('shift=' + _wireDouble(shift));
     return parts.isEmpty
         ? 'lavfi-aphaseshift'
         : 'lavfi-aphaseshift=' + parts.join(':');
@@ -3433,13 +3879,29 @@ final class AphaseshiftSettings {
 ///
 /// Parameters:
 /// - [adaptive]: Set strength of adaptive distortion applied. Default value is 0.5. Allowed range is from 0 to 1. (range 0..1, default 0.5)
-/// - [clip]: Set the clipping start value. Default value is 0dBFS or 1. (default 1)
+/// - [clip]: Set the clipping start value. Default value is 0dBFS or 1. (range .015625..1, default 1)
 /// - [diff]: Output only difference samples, useful to hear introduced distortions. By default is disabled. (range 0..1, default 0)
 /// - [iterations]: Set number of iterations of psychoacoustic clipper. Allowed range is from 1 to 20. Default value is 10. (range 1..20, default 10)
 /// - [level]: Auto level output signal. Default is disabled. This normalizes audio back to 0dBFS if enabled. (range 0..1, default 0)
-/// - [level_in]: Set input gain. By default it is 1. Range is [0.015625 - 64]. (default 1)
-/// - [level_out]: Set output gain. By default it is 1. Range is [0.015625 - 64]. (default 1)
+/// - [level_in]: Set input gain. By default it is 1. Range is [0.015625 - 64]. (range .015625..64, default 1)
+/// - [level_out]: Set output gain. By default it is 1. Range is [0.015625 - 64]. (range .015625..64, default 1)
 final class ApsyclipSettings {
+  static const double adaptiveDefault = 0.5;
+  static const double adaptiveMin = 0.0;
+  static const double adaptiveMax = 1.0;
+  static const double clipDefault = 1.0;
+  static const double clipMin = .015625;
+  static const double clipMax = 1.0;
+  static const int iterationsDefault = 10;
+  static const int iterationsMin = 1;
+  static const int iterationsMax = 20;
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = .015625;
+  static const double level_inMax = 64.0;
+  static const double level_outDefault = 1.0;
+  static const double level_outMin = .015625;
+  static const double level_outMax = 64.0;
+
   final bool enabled;
   final double adaptive;
   final double clip;
@@ -3505,20 +3967,24 @@ final class ApsyclipSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(adaptive >= 0, 'apsyclip.adaptive must be >= 0');
-    assert(adaptive <= 1, 'apsyclip.adaptive must be <= 1');
-    assert(clip >= 1, 'apsyclip.clip must be >= 1');
-    assert(iterations >= 1, 'apsyclip.iterations must be >= 1');
-    assert(iterations <= 20, 'apsyclip.iterations must be <= 20');
+    assert(adaptive >= adaptiveMin, 'apsyclip.adaptive must be >= 0');
+    assert(adaptive <= adaptiveMax, 'apsyclip.adaptive must be <= 1');
+    assert(clip >= clipMin, 'apsyclip.clip must be >= .015625');
+    assert(clip <= clipMax, 'apsyclip.clip must be <= 1');
+    assert(iterations >= iterationsMin, 'apsyclip.iterations must be >= 1');
+    assert(iterations <= iterationsMax, 'apsyclip.iterations must be <= 20');
+    assert(level_in >= level_inMin, 'apsyclip.level_in must be >= .015625');
+    assert(level_in <= level_inMax, 'apsyclip.level_in must be <= 64');
+    assert(level_out >= level_outMin, 'apsyclip.level_out must be >= .015625');
+    assert(level_out <= level_outMax, 'apsyclip.level_out must be <= 64');
     final parts = <String>[];
-    if (adaptive != 0.5) parts.add('adaptive=' + adaptive.toStringAsFixed(3));
-    if (clip != 1.0) parts.add('clip=' + clip.toStringAsFixed(3));
+    if (adaptive != 0.5) parts.add('adaptive=' + _wireDouble(adaptive));
+    if (clip != 1.0) parts.add('clip=' + _wireDouble(clip));
     if (diff != false) parts.add('diff=' + (diff ? '1' : '0'));
     if (iterations != 10) parts.add('iterations=' + iterations.toString());
     if (level != false) parts.add('level=' + (level ? '1' : '0'));
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_out != 1.0)
-      parts.add('level_out=' + level_out.toStringAsFixed(3));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_out != 1.0) parts.add('level_out=' + _wireDouble(level_out));
     return parts.isEmpty
         ? 'lavfi-apsyclip'
         : 'lavfi-apsyclip=' + parts.join(':');
@@ -3556,6 +4022,34 @@ final class ApsyclipSettings {
 /// - [timing]: Set possible timing mode. Can be one of: bpm, ms or hz. Default is hz. (default 2)
 /// - [width]: Set pulse width. Default is 1. Allowed range is [0 - 2]. (range 0..2, default 1)
 final class ApulsatorSettings {
+  static const double amountDefault = 1.0;
+  static const double amountMin = 0.0;
+  static const double amountMax = 1.0;
+  static const double bpmDefault = 120.0;
+  static const double bpmMin = 30.0;
+  static const double bpmMax = 300.0;
+  static const double hzDefault = 2.0;
+  static const double hzMin = 0.01;
+  static const double hzMax = 100.0;
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = 0.015625;
+  static const double level_inMax = 64.0;
+  static const double level_outDefault = 1.0;
+  static const double level_outMin = 0.015625;
+  static const double level_outMax = 64.0;
+  static const int msDefault = 500;
+  static const int msMin = 10;
+  static const int msMax = 2000;
+  static const double offset_lDefault = 0.0;
+  static const double offset_lMin = 0.0;
+  static const double offset_lMax = 1.0;
+  static const double offset_rDefault = .5;
+  static const double offset_rMin = 0.0;
+  static const double offset_rMax = 1.0;
+  static const double widthDefault = 1.0;
+  static const double widthMin = 0.0;
+  static const double widthMax = 2.0;
+
   final bool enabled;
   final double amount;
   final double bpm;
@@ -3642,37 +4136,37 @@ final class ApulsatorSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(amount >= 0, 'apulsator.amount must be >= 0');
-    assert(amount <= 1, 'apulsator.amount must be <= 1');
-    assert(bpm >= 30, 'apulsator.bpm must be >= 30');
-    assert(bpm <= 300, 'apulsator.bpm must be <= 300');
-    assert(hz >= 0.01, 'apulsator.hz must be >= 0.01');
-    assert(hz <= 100, 'apulsator.hz must be <= 100');
-    assert(level_in >= 0.015625, 'apulsator.level_in must be >= 0.015625');
-    assert(level_in <= 64, 'apulsator.level_in must be <= 64');
-    assert(level_out >= 0.015625, 'apulsator.level_out must be >= 0.015625');
-    assert(level_out <= 64, 'apulsator.level_out must be <= 64');
-    assert(ms >= 10, 'apulsator.ms must be >= 10');
-    assert(ms <= 2000, 'apulsator.ms must be <= 2000');
-    assert(offset_l >= 0, 'apulsator.offset_l must be >= 0');
-    assert(offset_l <= 1, 'apulsator.offset_l must be <= 1');
-    assert(offset_r >= 0, 'apulsator.offset_r must be >= 0');
-    assert(offset_r <= 1, 'apulsator.offset_r must be <= 1');
-    assert(width >= 0, 'apulsator.width must be >= 0');
-    assert(width <= 2, 'apulsator.width must be <= 2');
+    assert(amount >= amountMin, 'apulsator.amount must be >= 0');
+    assert(amount <= amountMax, 'apulsator.amount must be <= 1');
+    assert(bpm >= bpmMin, 'apulsator.bpm must be >= 30');
+    assert(bpm <= bpmMax, 'apulsator.bpm must be <= 300');
+    assert(hz >= hzMin, 'apulsator.hz must be >= 0.01');
+    assert(hz <= hzMax, 'apulsator.hz must be <= 100');
+    assert(level_in >= level_inMin, 'apulsator.level_in must be >= 0.015625');
+    assert(level_in <= level_inMax, 'apulsator.level_in must be <= 64');
+    assert(
+        level_out >= level_outMin, 'apulsator.level_out must be >= 0.015625');
+    assert(level_out <= level_outMax, 'apulsator.level_out must be <= 64');
+    assert(ms >= msMin, 'apulsator.ms must be >= 10');
+    assert(ms <= msMax, 'apulsator.ms must be <= 2000');
+    assert(offset_l >= offset_lMin, 'apulsator.offset_l must be >= 0');
+    assert(offset_l <= offset_lMax, 'apulsator.offset_l must be <= 1');
+    assert(offset_r >= offset_rMin, 'apulsator.offset_r must be >= 0');
+    assert(offset_r <= offset_rMax, 'apulsator.offset_r must be <= 1');
+    assert(width >= widthMin, 'apulsator.width must be >= 0');
+    assert(width <= widthMax, 'apulsator.width must be <= 2');
     final parts = <String>[];
-    if (amount != 1.0) parts.add('amount=' + amount.toStringAsFixed(3));
-    if (bpm != 120.0) parts.add('bpm=' + bpm.toStringAsFixed(3));
-    if (hz != 2.0) parts.add('hz=' + hz.toStringAsFixed(3));
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_out != 1.0)
-      parts.add('level_out=' + level_out.toStringAsFixed(3));
+    if (amount != 1.0) parts.add('amount=' + _wireDouble(amount));
+    if (bpm != 120.0) parts.add('bpm=' + _wireDouble(bpm));
+    if (hz != 2.0) parts.add('hz=' + _wireDouble(hz));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_out != 1.0) parts.add('level_out=' + _wireDouble(level_out));
     if (mode != ApulsatorMode.sine) parts.add('mode=' + mode.mpvValue);
     if (ms != 500) parts.add('ms=' + ms.toString());
-    if (offset_l != 0.0) parts.add('offset_l=' + offset_l.toStringAsFixed(3));
-    if (offset_r != .5) parts.add('offset_r=' + offset_r.toStringAsFixed(3));
+    if (offset_l != 0.0) parts.add('offset_l=' + _wireDouble(offset_l));
+    if (offset_r != .5) parts.add('offset_r=' + _wireDouble(offset_r));
     if (timing != null) parts.add('timing=' + timing!.mpvValue);
-    if (width != 1.0) parts.add('width=' + width.toStringAsFixed(3));
+    if (width != 1.0) parts.add('width=' + _wireDouble(width));
     return parts.isEmpty
         ? 'lavfi-apulsator'
         : 'lavfi-apulsator=' + parts.join(':');
@@ -3704,6 +4198,9 @@ final class ApulsatorSettings {
 /// Parameters:
 /// - [sample_rate]:  (default 0)
 final class AresampleSettings {
+  static const int sample_rateDefault = 0;
+  static const int sample_rateMin = 0;
+
   final bool enabled;
   final int sample_rate;
 
@@ -3738,7 +4235,7 @@ final class AresampleSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(sample_rate >= 0, 'aresample.sample_rate must be >= 0');
+    assert(sample_rate >= sample_rateMin, 'aresample.sample_rate must be >= 0');
     final parts = <String>[];
     if (sample_rate != 0) parts.add('sample_rate=' + sample_rate.toString());
     return parts.isEmpty
@@ -3758,6 +4255,10 @@ final class AresampleSettings {
 /// - [mix]: Set how much to mix filtered samples into final output. Allowed range is from -1 to 1. Default value is 1. Negative values are special, they set how much to keep filtered noise in the final filter output. Set this option to -1 to hear actual noise removed from input signal. (range -1..1, default 1.0)
 /// - [model]: Set train model file to load. This option is always required. (range 0..0, default NULL)
 final class ArnndnSettings {
+  static const double mixDefault = 1.0;
+  static const double mixMin = -1.0;
+  static const double mixMax = 1.0;
+
   final bool enabled;
   final String m;
   final double mix;
@@ -3802,11 +4303,11 @@ final class ArnndnSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(mix >= -1, 'arnndn.mix must be >= -1');
-    assert(mix <= 1, 'arnndn.mix must be <= 1');
+    assert(mix >= mixMin, 'arnndn.mix must be >= -1');
+    assert(mix <= mixMax, 'arnndn.mix must be <= 1');
     final parts = <String>[];
     if (m != 'NULL') parts.add('m=' + '[' + m + ']');
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (model != 'NULL') parts.add('model=' + '[' + model + ']');
     return parts.isEmpty ? 'lavfi-arnndn' : 'lavfi-arnndn=' + parts.join(':');
   }
@@ -3828,6 +4329,18 @@ final class ArnndnSettings {
 /// - [threshold]: Set threshold from where to start clipping. Default value is 0dB or 1. (range 0.000001..1, default 1)
 /// - [type]: Set type of soft-clipping.  It accepts the following values: (default 0)
 final class AsoftclipSettings {
+  static const double outputDefault = 1.0;
+  static const double outputMin = 0.000001;
+  static const double outputMax = 16.0;
+  static const int oversampleDefault = 1;
+  static const int oversampleMin = 1;
+  static const double paramDefault = 1.0;
+  static const double paramMin = 0.01;
+  static const double paramMax = 3.0;
+  static const double thresholdDefault = 1.0;
+  static const double thresholdMin = 0.000001;
+  static const double thresholdMax = 1.0;
+
   final bool enabled;
   final double output;
   final int oversample;
@@ -3883,19 +4396,19 @@ final class AsoftclipSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(output >= 0.000001, 'asoftclip.output must be >= 0.000001');
-    assert(output <= 16, 'asoftclip.output must be <= 16');
-    assert(oversample >= 1, 'asoftclip.oversample must be >= 1');
-    assert(param >= 0.01, 'asoftclip.param must be >= 0.01');
-    assert(param <= 3, 'asoftclip.param must be <= 3');
-    assert(threshold >= 0.000001, 'asoftclip.threshold must be >= 0.000001');
-    assert(threshold <= 1, 'asoftclip.threshold must be <= 1');
+    assert(output >= outputMin, 'asoftclip.output must be >= 0.000001');
+    assert(output <= outputMax, 'asoftclip.output must be <= 16');
+    assert(oversample >= oversampleMin, 'asoftclip.oversample must be >= 1');
+    assert(param >= paramMin, 'asoftclip.param must be >= 0.01');
+    assert(param <= paramMax, 'asoftclip.param must be <= 3');
+    assert(
+        threshold >= thresholdMin, 'asoftclip.threshold must be >= 0.000001');
+    assert(threshold <= thresholdMax, 'asoftclip.threshold must be <= 1');
     final parts = <String>[];
-    if (output != 1.0) parts.add('output=' + output.toStringAsFixed(3));
+    if (output != 1.0) parts.add('output=' + _wireDouble(output));
     if (oversample != 1) parts.add('oversample=' + oversample.toString());
-    if (param != 1.0) parts.add('param=' + param.toStringAsFixed(3));
-    if (threshold != 1.0)
-      parts.add('threshold=' + threshold.toStringAsFixed(3));
+    if (param != 1.0) parts.add('param=' + _wireDouble(param));
+    if (threshold != 1.0) parts.add('threshold=' + _wireDouble(threshold));
     if (type != null) parts.add('type=' + type!.mpvValue);
     return parts.isEmpty
         ? 'lavfi-asoftclip'
@@ -3920,6 +4433,31 @@ final class AsoftclipSettings {
 /// - [slope]: Set slope amount for cutoff frequency. Allowed range is 0.0001 to 1. Default value is 0.5. (range 0.0001..1, default 0.5)
 /// - [wet]: Set wet gain, how much of filtered signal is kept. Allowed range is from 0 to 1. Default value is 1.0. (range 0..1, default 1.0)
 final class AsubboostSettings {
+  static const double boostDefault = 2.0;
+  static const double boostMin = 1.0;
+  static const double boostMax = 12.0;
+  static const double cutoffDefault = 100.0;
+  static const double cutoffMin = 50.0;
+  static const double cutoffMax = 900.0;
+  static const double decayDefault = 0.0;
+  static const double decayMin = 0.0;
+  static const double decayMax = 1.0;
+  static const double delayDefault = 20.0;
+  static const double delayMin = 1.0;
+  static const double delayMax = 100.0;
+  static const double dryDefault = 1.0;
+  static const double dryMin = 0.0;
+  static const double dryMax = 1.0;
+  static const double feedbackDefault = 0.9;
+  static const double feedbackMin = 0.0;
+  static const double feedbackMax = 1.0;
+  static const double slopeDefault = 0.5;
+  static const double slopeMin = 0.0001;
+  static const double slopeMax = 1.0;
+  static const double wetDefault = 1.0;
+  static const double wetMin = 0.0;
+  static const double wetMax = 1.0;
+
   final bool enabled;
   final double boost;
   final String channels;
@@ -3995,32 +4533,32 @@ final class AsubboostSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(boost >= 1, 'asubboost.boost must be >= 1');
-    assert(boost <= 12, 'asubboost.boost must be <= 12');
-    assert(cutoff >= 50, 'asubboost.cutoff must be >= 50');
-    assert(cutoff <= 900, 'asubboost.cutoff must be <= 900');
-    assert(decay >= 0, 'asubboost.decay must be >= 0');
-    assert(decay <= 1, 'asubboost.decay must be <= 1');
-    assert(delay >= 1, 'asubboost.delay must be >= 1');
-    assert(delay <= 100, 'asubboost.delay must be <= 100');
-    assert(dry >= 0, 'asubboost.dry must be >= 0');
-    assert(dry <= 1, 'asubboost.dry must be <= 1');
-    assert(feedback >= 0, 'asubboost.feedback must be >= 0');
-    assert(feedback <= 1, 'asubboost.feedback must be <= 1');
-    assert(slope >= 0.0001, 'asubboost.slope must be >= 0.0001');
-    assert(slope <= 1, 'asubboost.slope must be <= 1');
-    assert(wet >= 0, 'asubboost.wet must be >= 0');
-    assert(wet <= 1, 'asubboost.wet must be <= 1');
+    assert(boost >= boostMin, 'asubboost.boost must be >= 1');
+    assert(boost <= boostMax, 'asubboost.boost must be <= 12');
+    assert(cutoff >= cutoffMin, 'asubboost.cutoff must be >= 50');
+    assert(cutoff <= cutoffMax, 'asubboost.cutoff must be <= 900');
+    assert(decay >= decayMin, 'asubboost.decay must be >= 0');
+    assert(decay <= decayMax, 'asubboost.decay must be <= 1');
+    assert(delay >= delayMin, 'asubboost.delay must be >= 1');
+    assert(delay <= delayMax, 'asubboost.delay must be <= 100');
+    assert(dry >= dryMin, 'asubboost.dry must be >= 0');
+    assert(dry <= dryMax, 'asubboost.dry must be <= 1');
+    assert(feedback >= feedbackMin, 'asubboost.feedback must be >= 0');
+    assert(feedback <= feedbackMax, 'asubboost.feedback must be <= 1');
+    assert(slope >= slopeMin, 'asubboost.slope must be >= 0.0001');
+    assert(slope <= slopeMax, 'asubboost.slope must be <= 1');
+    assert(wet >= wetMin, 'asubboost.wet must be >= 0');
+    assert(wet <= wetMax, 'asubboost.wet must be <= 1');
     final parts = <String>[];
-    if (boost != 2.0) parts.add('boost=' + boost.toStringAsFixed(3));
+    if (boost != 2.0) parts.add('boost=' + _wireDouble(boost));
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (cutoff != 100.0) parts.add('cutoff=' + cutoff.toStringAsFixed(3));
-    if (decay != 0.0) parts.add('decay=' + decay.toStringAsFixed(3));
-    if (delay != 20.0) parts.add('delay=' + delay.toStringAsFixed(3));
-    if (dry != 1.0) parts.add('dry=' + dry.toStringAsFixed(3));
-    if (feedback != 0.9) parts.add('feedback=' + feedback.toStringAsFixed(3));
-    if (slope != 0.5) parts.add('slope=' + slope.toStringAsFixed(3));
-    if (wet != 1.0) parts.add('wet=' + wet.toStringAsFixed(3));
+    if (cutoff != 100.0) parts.add('cutoff=' + _wireDouble(cutoff));
+    if (decay != 0.0) parts.add('decay=' + _wireDouble(decay));
+    if (delay != 20.0) parts.add('delay=' + _wireDouble(delay));
+    if (dry != 1.0) parts.add('dry=' + _wireDouble(dry));
+    if (feedback != 0.9) parts.add('feedback=' + _wireDouble(feedback));
+    if (slope != 0.5) parts.add('slope=' + _wireDouble(slope));
+    if (wet != 1.0) parts.add('wet=' + _wireDouble(wet));
     return parts.isEmpty
         ? 'lavfi-asubboost'
         : 'lavfi-asubboost=' + parts.join(':');
@@ -4042,6 +4580,16 @@ final class AsubboostSettings {
 /// - [level]: Set input gain level. Allowed range is from 0 to 1. Default value is 1. (range 0.0..1.0, default 1.)
 /// - [order]: Set filter order. Available values are from 3 to 20. Default value is 10. (range 3..20, default 10)
 final class AsubcutSettings {
+  static const double cutoffDefault = 20.0;
+  static const double cutoffMin = 2.0;
+  static const double cutoffMax = 200.0;
+  static const double levelDefault = 1.0;
+  static const double levelMin = 0.0;
+  static const double levelMax = 1.0;
+  static const int orderDefault = 10;
+  static const int orderMin = 3;
+  static const int orderMax = 20;
+
   final bool enabled;
   final double cutoff;
   final double level;
@@ -4086,15 +4634,15 @@ final class AsubcutSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(cutoff >= 2, 'asubcut.cutoff must be >= 2');
-    assert(cutoff <= 200, 'asubcut.cutoff must be <= 200');
-    assert(level >= 0.0, 'asubcut.level must be >= 0.0');
-    assert(level <= 1.0, 'asubcut.level must be <= 1.0');
-    assert(order >= 3, 'asubcut.order must be >= 3');
-    assert(order <= 20, 'asubcut.order must be <= 20');
+    assert(cutoff >= cutoffMin, 'asubcut.cutoff must be >= 2');
+    assert(cutoff <= cutoffMax, 'asubcut.cutoff must be <= 200');
+    assert(level >= levelMin, 'asubcut.level must be >= 0.0');
+    assert(level <= levelMax, 'asubcut.level must be <= 1.0');
+    assert(order >= orderMin, 'asubcut.order must be >= 3');
+    assert(order <= orderMax, 'asubcut.order must be <= 20');
     final parts = <String>[];
-    if (cutoff != 20.0) parts.add('cutoff=' + cutoff.toStringAsFixed(3));
-    if (level != 1.0) parts.add('level=' + level.toStringAsFixed(3));
+    if (cutoff != 20.0) parts.add('cutoff=' + _wireDouble(cutoff));
+    if (level != 1.0) parts.add('level=' + _wireDouble(level));
     if (order != 10) parts.add('order=' + order.toString());
     return parts.isEmpty ? 'lavfi-asubcut' : 'lavfi-asubcut=' + parts.join(':');
   }
@@ -4111,6 +4659,16 @@ final class AsubcutSettings {
 /// - [level]: Set input gain level. Allowed range is from 0 to 1. Default value is 1. (range 0.0..1.0, default 1.)
 /// - [order]: Set filter order. Available values are from 3 to 20. Default value is 10. (range 3..20, default 10)
 final class AsupercutSettings {
+  static const double cutoffDefault = 20000.0;
+  static const double cutoffMin = 20000.0;
+  static const double cutoffMax = 192000.0;
+  static const double levelDefault = 1.0;
+  static const double levelMin = 0.0;
+  static const double levelMax = 1.0;
+  static const int orderDefault = 10;
+  static const int orderMin = 3;
+  static const int orderMax = 20;
+
   final bool enabled;
   final double cutoff;
   final double level;
@@ -4155,15 +4713,15 @@ final class AsupercutSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(cutoff >= 20000, 'asupercut.cutoff must be >= 20000');
-    assert(cutoff <= 192000, 'asupercut.cutoff must be <= 192000');
-    assert(level >= 0.0, 'asupercut.level must be >= 0.0');
-    assert(level <= 1.0, 'asupercut.level must be <= 1.0');
-    assert(order >= 3, 'asupercut.order must be >= 3');
-    assert(order <= 20, 'asupercut.order must be <= 20');
+    assert(cutoff >= cutoffMin, 'asupercut.cutoff must be >= 20000');
+    assert(cutoff <= cutoffMax, 'asupercut.cutoff must be <= 192000');
+    assert(level >= levelMin, 'asupercut.level must be >= 0.0');
+    assert(level <= levelMax, 'asupercut.level must be <= 1.0');
+    assert(order >= orderMin, 'asupercut.order must be >= 3');
+    assert(order <= orderMax, 'asupercut.order must be <= 20');
     final parts = <String>[];
-    if (cutoff != 20000.0) parts.add('cutoff=' + cutoff.toStringAsFixed(3));
-    if (level != 1.0) parts.add('level=' + level.toStringAsFixed(3));
+    if (cutoff != 20000.0) parts.add('cutoff=' + _wireDouble(cutoff));
+    if (level != 1.0) parts.add('level=' + _wireDouble(level));
     if (order != 10) parts.add('order=' + order.toString());
     return parts.isEmpty
         ? 'lavfi-asupercut'
@@ -4183,6 +4741,19 @@ final class AsupercutSettings {
 /// - [order]: Set filter order. Available values are from 4 to 20. Default value is 4. (range 4..20, default 4)
 /// - [qfactor]: Set Q-factor. Allowed range is from 0.01 to 100. Default value is 1. (range 0.01..100.0, default 1.)
 final class AsuperpassSettings {
+  static const double centerfDefault = 1000.0;
+  static const double centerfMin = 2.0;
+  static const double centerfMax = 999999.0;
+  static const double levelDefault = 1.0;
+  static const double levelMin = 0.0;
+  static const double levelMax = 2.0;
+  static const int orderDefault = 4;
+  static const int orderMin = 4;
+  static const int orderMax = 20;
+  static const double qfactorDefault = 1.0;
+  static const double qfactorMin = 0.01;
+  static const double qfactorMax = 100.0;
+
   final bool enabled;
   final double centerf;
   final double level;
@@ -4232,19 +4803,19 @@ final class AsuperpassSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(centerf >= 2, 'asuperpass.centerf must be >= 2');
-    assert(centerf <= 999999, 'asuperpass.centerf must be <= 999999');
-    assert(level >= 0.0, 'asuperpass.level must be >= 0.0');
-    assert(level <= 2.0, 'asuperpass.level must be <= 2.0');
-    assert(order >= 4, 'asuperpass.order must be >= 4');
-    assert(order <= 20, 'asuperpass.order must be <= 20');
-    assert(qfactor >= 0.01, 'asuperpass.qfactor must be >= 0.01');
-    assert(qfactor <= 100.0, 'asuperpass.qfactor must be <= 100.0');
+    assert(centerf >= centerfMin, 'asuperpass.centerf must be >= 2');
+    assert(centerf <= centerfMax, 'asuperpass.centerf must be <= 999999');
+    assert(level >= levelMin, 'asuperpass.level must be >= 0.0');
+    assert(level <= levelMax, 'asuperpass.level must be <= 2.0');
+    assert(order >= orderMin, 'asuperpass.order must be >= 4');
+    assert(order <= orderMax, 'asuperpass.order must be <= 20');
+    assert(qfactor >= qfactorMin, 'asuperpass.qfactor must be >= 0.01');
+    assert(qfactor <= qfactorMax, 'asuperpass.qfactor must be <= 100.0');
     final parts = <String>[];
-    if (centerf != 1000.0) parts.add('centerf=' + centerf.toStringAsFixed(3));
-    if (level != 1.0) parts.add('level=' + level.toStringAsFixed(3));
+    if (centerf != 1000.0) parts.add('centerf=' + _wireDouble(centerf));
+    if (level != 1.0) parts.add('level=' + _wireDouble(level));
     if (order != 4) parts.add('order=' + order.toString());
-    if (qfactor != 1.0) parts.add('qfactor=' + qfactor.toStringAsFixed(3));
+    if (qfactor != 1.0) parts.add('qfactor=' + _wireDouble(qfactor));
     return parts.isEmpty
         ? 'lavfi-asuperpass'
         : 'lavfi-asuperpass=' + parts.join(':');
@@ -4263,6 +4834,19 @@ final class AsuperpassSettings {
 /// - [order]: Set filter order. Available values are from 4 to 20. Default value is 4. (range 4..20, default 4)
 /// - [qfactor]: Set Q-factor. Allowed range is from 0.01 to 100. Default value is 1. (range 0.01..100.0, default 1.)
 final class AsuperstopSettings {
+  static const double centerfDefault = 1000.0;
+  static const double centerfMin = 2.0;
+  static const double centerfMax = 999999.0;
+  static const double levelDefault = 1.0;
+  static const double levelMin = 0.0;
+  static const double levelMax = 2.0;
+  static const int orderDefault = 4;
+  static const int orderMin = 4;
+  static const int orderMax = 20;
+  static const double qfactorDefault = 1.0;
+  static const double qfactorMin = 0.01;
+  static const double qfactorMax = 100.0;
+
   final bool enabled;
   final double centerf;
   final double level;
@@ -4312,19 +4896,19 @@ final class AsuperstopSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(centerf >= 2, 'asuperstop.centerf must be >= 2');
-    assert(centerf <= 999999, 'asuperstop.centerf must be <= 999999');
-    assert(level >= 0.0, 'asuperstop.level must be >= 0.0');
-    assert(level <= 2.0, 'asuperstop.level must be <= 2.0');
-    assert(order >= 4, 'asuperstop.order must be >= 4');
-    assert(order <= 20, 'asuperstop.order must be <= 20');
-    assert(qfactor >= 0.01, 'asuperstop.qfactor must be >= 0.01');
-    assert(qfactor <= 100.0, 'asuperstop.qfactor must be <= 100.0');
+    assert(centerf >= centerfMin, 'asuperstop.centerf must be >= 2');
+    assert(centerf <= centerfMax, 'asuperstop.centerf must be <= 999999');
+    assert(level >= levelMin, 'asuperstop.level must be >= 0.0');
+    assert(level <= levelMax, 'asuperstop.level must be <= 2.0');
+    assert(order >= orderMin, 'asuperstop.order must be >= 4');
+    assert(order <= orderMax, 'asuperstop.order must be <= 20');
+    assert(qfactor >= qfactorMin, 'asuperstop.qfactor must be >= 0.01');
+    assert(qfactor <= qfactorMax, 'asuperstop.qfactor must be <= 100.0');
     final parts = <String>[];
-    if (centerf != 1000.0) parts.add('centerf=' + centerf.toStringAsFixed(3));
-    if (level != 1.0) parts.add('level=' + level.toStringAsFixed(3));
+    if (centerf != 1000.0) parts.add('centerf=' + _wireDouble(centerf));
+    if (level != 1.0) parts.add('level=' + _wireDouble(level));
     if (order != 4) parts.add('order=' + order.toString());
-    if (qfactor != 1.0) parts.add('qfactor=' + qfactor.toStringAsFixed(3));
+    if (qfactor != 1.0) parts.add('qfactor=' + _wireDouble(qfactor));
     return parts.isEmpty
         ? 'lavfi-asuperstop'
         : 'lavfi-asuperstop=' + parts.join(':');
@@ -4355,6 +4939,8 @@ final class AsuperstopSettings {
 /// Parameters:
 /// - [tempo]: Change filter tempo scale factor. Syntax for the command is : "`tempo`" (default 1.0)
 final class AtempoSettings {
+  static const double tempoDefault = 1.0;
+
   final bool enabled;
   final double tempo;
 
@@ -4389,7 +4975,7 @@ final class AtempoSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     final parts = <String>[];
-    if (tempo != 1.0) parts.add('tempo=' + tempo.toStringAsFixed(3));
+    if (tempo != 1.0) parts.add('tempo=' + _wireDouble(tempo));
     return parts.isEmpty ? 'lavfi-atempo' : 'lavfi-atempo=' + parts.join(':');
   }
 }
@@ -4409,6 +4995,21 @@ final class AtempoSettings {
 /// - [slope]: Set slope direction of tilt. Default is 0. Allowed range is from -1 to 1. (range -1..1, default 0)
 /// - [width]: Set width of tilt. Default is 1000. Allowed range is from 100 to 10000. (range 100..10000, default 1000)
 final class AtiltSettings {
+  static const double freqDefault = 10000.0;
+  static const double freqMin = 20.0;
+  static const double freqMax = 192000.0;
+  static const double levelDefault = 1.0;
+  static const double levelMin = 0.0;
+  static const double levelMax = 4.0;
+  static const int orderDefault = 5;
+  static const int orderMin = 2;
+  static const double slopeDefault = 0.0;
+  static const double slopeMin = -1.0;
+  static const double slopeMax = 1.0;
+  static const double widthDefault = 1000.0;
+  static const double widthMin = 100.0;
+  static const double widthMax = 10000.0;
+
   final bool enabled;
   final double freq;
   final double level;
@@ -4463,21 +5064,21 @@ final class AtiltSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(freq >= 20, 'atilt.freq must be >= 20');
-    assert(freq <= 192000, 'atilt.freq must be <= 192000');
-    assert(level >= 0.0, 'atilt.level must be >= 0.0');
-    assert(level <= 4.0, 'atilt.level must be <= 4.0');
-    assert(order >= 2, 'atilt.order must be >= 2');
-    assert(slope >= -1, 'atilt.slope must be >= -1');
-    assert(slope <= 1, 'atilt.slope must be <= 1');
-    assert(width >= 100, 'atilt.width must be >= 100');
-    assert(width <= 10000, 'atilt.width must be <= 10000');
+    assert(freq >= freqMin, 'atilt.freq must be >= 20');
+    assert(freq <= freqMax, 'atilt.freq must be <= 192000');
+    assert(level >= levelMin, 'atilt.level must be >= 0.0');
+    assert(level <= levelMax, 'atilt.level must be <= 4.0');
+    assert(order >= orderMin, 'atilt.order must be >= 2');
+    assert(slope >= slopeMin, 'atilt.slope must be >= -1');
+    assert(slope <= slopeMax, 'atilt.slope must be <= 1');
+    assert(width >= widthMin, 'atilt.width must be >= 100');
+    assert(width <= widthMax, 'atilt.width must be <= 10000');
     final parts = <String>[];
-    if (freq != 10000.0) parts.add('freq=' + freq.toStringAsFixed(3));
-    if (level != 1.0) parts.add('level=' + level.toStringAsFixed(3));
+    if (freq != 10000.0) parts.add('freq=' + _wireDouble(freq));
+    if (level != 1.0) parts.add('level=' + _wireDouble(level));
     if (order != 5) parts.add('order=' + order.toString());
-    if (slope != 0.0) parts.add('slope=' + slope.toStringAsFixed(3));
-    if (width != 1000.0) parts.add('width=' + width.toStringAsFixed(3));
+    if (slope != 0.0) parts.add('slope=' + _wireDouble(slope));
+    if (width != 1000.0) parts.add('width=' + _wireDouble(width));
     return parts.isEmpty ? 'lavfi-atilt' : 'lavfi-atilt=' + parts.join(':');
   }
 }
@@ -4513,6 +5114,31 @@ final class AtiltSettings {
 /// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class BandpassSettings {
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double fDefault = 3000.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 3000.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const double wDefault = 0.5;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 0.5;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final BandpassTransformType a;
   final int b;
@@ -4657,22 +5283,22 @@ final class BandpassSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'bandpass.b must be >= 0');
-    assert(b <= 32768, 'bandpass.b must be <= 32768');
-    assert(blocksize >= 0, 'bandpass.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'bandpass.blocksize must be <= 32768');
-    assert(f >= 0, 'bandpass.f must be >= 0');
-    assert(f <= 999999, 'bandpass.f must be <= 999999');
-    assert(frequency >= 0, 'bandpass.frequency must be >= 0');
-    assert(frequency <= 999999, 'bandpass.frequency must be <= 999999');
-    assert(m >= 0, 'bandpass.m must be >= 0');
-    assert(m <= 1, 'bandpass.m must be <= 1');
-    assert(mix >= 0, 'bandpass.mix must be >= 0');
-    assert(mix <= 1, 'bandpass.mix must be <= 1');
-    assert(w >= 0, 'bandpass.w must be >= 0');
-    assert(w <= 99999, 'bandpass.w must be <= 99999');
-    assert(width >= 0, 'bandpass.width must be >= 0');
-    assert(width <= 99999, 'bandpass.width must be <= 99999');
+    assert(b >= bMin, 'bandpass.b must be >= 0');
+    assert(b <= bMax, 'bandpass.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'bandpass.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'bandpass.blocksize must be <= 32768');
+    assert(f >= fMin, 'bandpass.f must be >= 0');
+    assert(f <= fMax, 'bandpass.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'bandpass.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'bandpass.frequency must be <= 999999');
+    assert(m >= mMin, 'bandpass.m must be >= 0');
+    assert(m <= mMax, 'bandpass.m must be <= 1');
+    assert(mix >= mixMin, 'bandpass.mix must be >= 0');
+    assert(mix <= mixMax, 'bandpass.mix must be <= 1');
+    assert(w >= wMin, 'bandpass.w must be >= 0');
+    assert(w <= wMax, 'bandpass.w must be <= 99999');
+    assert(width >= widthMin, 'bandpass.width must be >= 0');
+    assert(width <= widthMax, 'bandpass.width must be <= 99999');
     final parts = <String>[];
     if (a != BandpassTransformType.di) parts.add('a=' + a.mpvValue);
     if (b != 0) parts.add('b=' + b.toString());
@@ -4680,11 +5306,10 @@ final class BandpassSettings {
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (csg != false) parts.add('csg=' + (csg ? '1' : '0'));
-    if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 3000.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 3000.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 3000.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (precision != BandpassPrecision.auto)
@@ -4693,8 +5318,8 @@ final class BandpassSettings {
     if (t != BandpassWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != BandpassTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 0.5) parts.add('w=' + _wireDouble(w));
+    if (width != 0.5) parts.add('width=' + _wireDouble(width));
     if (width_type != BandpassWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
@@ -4731,6 +5356,31 @@ final class BandpassSettings {
 /// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class BandrejectSettings {
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double fDefault = 3000.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 3000.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const double wDefault = 0.5;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 0.5;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final BandrejectTransformType a;
   final int b;
@@ -4869,33 +5519,32 @@ final class BandrejectSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'bandreject.b must be >= 0');
-    assert(b <= 32768, 'bandreject.b must be <= 32768');
-    assert(blocksize >= 0, 'bandreject.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'bandreject.blocksize must be <= 32768');
-    assert(f >= 0, 'bandreject.f must be >= 0');
-    assert(f <= 999999, 'bandreject.f must be <= 999999');
-    assert(frequency >= 0, 'bandreject.frequency must be >= 0');
-    assert(frequency <= 999999, 'bandreject.frequency must be <= 999999');
-    assert(m >= 0, 'bandreject.m must be >= 0');
-    assert(m <= 1, 'bandreject.m must be <= 1');
-    assert(mix >= 0, 'bandreject.mix must be >= 0');
-    assert(mix <= 1, 'bandreject.mix must be <= 1');
-    assert(w >= 0, 'bandreject.w must be >= 0');
-    assert(w <= 99999, 'bandreject.w must be <= 99999');
-    assert(width >= 0, 'bandreject.width must be >= 0');
-    assert(width <= 99999, 'bandreject.width must be <= 99999');
+    assert(b >= bMin, 'bandreject.b must be >= 0');
+    assert(b <= bMax, 'bandreject.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'bandreject.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'bandreject.blocksize must be <= 32768');
+    assert(f >= fMin, 'bandreject.f must be >= 0');
+    assert(f <= fMax, 'bandreject.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'bandreject.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'bandreject.frequency must be <= 999999');
+    assert(m >= mMin, 'bandreject.m must be >= 0');
+    assert(m <= mMax, 'bandreject.m must be <= 1');
+    assert(mix >= mixMin, 'bandreject.mix must be >= 0');
+    assert(mix <= mixMax, 'bandreject.mix must be <= 1');
+    assert(w >= wMin, 'bandreject.w must be >= 0');
+    assert(w <= wMax, 'bandreject.w must be <= 99999');
+    assert(width >= widthMin, 'bandreject.width must be >= 0');
+    assert(width <= widthMax, 'bandreject.width must be <= 99999');
     final parts = <String>[];
     if (a != BandrejectTransformType.di) parts.add('a=' + a.mpvValue);
     if (b != 0) parts.add('b=' + b.toString());
     if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 3000.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 3000.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 3000.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (precision != BandrejectPrecision.auto)
@@ -4904,8 +5553,8 @@ final class BandrejectSettings {
     if (t != BandrejectWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != BandrejectTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 0.5) parts.add('w=' + _wireDouble(w));
+    if (width != 0.5) parts.add('width=' + _wireDouble(width));
     if (width_type != BandrejectWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
@@ -4946,6 +5595,43 @@ final class BandrejectSettings {
 /// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class BassSettings {
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double fDefault = 100.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 100.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double gDefault = 0.0;
+  static const double gMin = -900.0;
+  static const double gMax = 900.0;
+  static const double gainDefault = 0.0;
+  static const double gainMin = -900.0;
+  static const double gainMax = 900.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const int pDefault = 2;
+  static const int pMin = 1;
+  static const int pMax = 2;
+  static const int polesDefault = 2;
+  static const int polesMin = 1;
+  static const int polesMax = 2;
+  static const double wDefault = 0.5;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 0.5;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final BassTransformType a;
   final int b;
@@ -5109,43 +5795,42 @@ final class BassSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'bass.b must be >= 0');
-    assert(b <= 32768, 'bass.b must be <= 32768');
-    assert(blocksize >= 0, 'bass.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'bass.blocksize must be <= 32768');
-    assert(f >= 0, 'bass.f must be >= 0');
-    assert(f <= 999999, 'bass.f must be <= 999999');
-    assert(frequency >= 0, 'bass.frequency must be >= 0');
-    assert(frequency <= 999999, 'bass.frequency must be <= 999999');
-    assert(g >= -900, 'bass.g must be >= -900');
-    assert(g <= 900, 'bass.g must be <= 900');
-    assert(gain >= -900, 'bass.gain must be >= -900');
-    assert(gain <= 900, 'bass.gain must be <= 900');
-    assert(m >= 0, 'bass.m must be >= 0');
-    assert(m <= 1, 'bass.m must be <= 1');
-    assert(mix >= 0, 'bass.mix must be >= 0');
-    assert(mix <= 1, 'bass.mix must be <= 1');
-    assert(p >= 1, 'bass.p must be >= 1');
-    assert(p <= 2, 'bass.p must be <= 2');
-    assert(poles >= 1, 'bass.poles must be >= 1');
-    assert(poles <= 2, 'bass.poles must be <= 2');
-    assert(w >= 0, 'bass.w must be >= 0');
-    assert(w <= 99999, 'bass.w must be <= 99999');
-    assert(width >= 0, 'bass.width must be >= 0');
-    assert(width <= 99999, 'bass.width must be <= 99999');
+    assert(b >= bMin, 'bass.b must be >= 0');
+    assert(b <= bMax, 'bass.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'bass.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'bass.blocksize must be <= 32768');
+    assert(f >= fMin, 'bass.f must be >= 0');
+    assert(f <= fMax, 'bass.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'bass.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'bass.frequency must be <= 999999');
+    assert(g >= gMin, 'bass.g must be >= -900');
+    assert(g <= gMax, 'bass.g must be <= 900');
+    assert(gain >= gainMin, 'bass.gain must be >= -900');
+    assert(gain <= gainMax, 'bass.gain must be <= 900');
+    assert(m >= mMin, 'bass.m must be >= 0');
+    assert(m <= mMax, 'bass.m must be <= 1');
+    assert(mix >= mixMin, 'bass.mix must be >= 0');
+    assert(mix <= mixMax, 'bass.mix must be <= 1');
+    assert(p >= pMin, 'bass.p must be >= 1');
+    assert(p <= pMax, 'bass.p must be <= 2');
+    assert(poles >= polesMin, 'bass.poles must be >= 1');
+    assert(poles <= polesMax, 'bass.poles must be <= 2');
+    assert(w >= wMin, 'bass.w must be >= 0');
+    assert(w <= wMax, 'bass.w must be <= 99999');
+    assert(width >= widthMin, 'bass.width must be >= 0');
+    assert(width <= widthMax, 'bass.width must be <= 99999');
     final parts = <String>[];
     if (a != BassTransformType.di) parts.add('a=' + a.mpvValue);
     if (b != 0) parts.add('b=' + b.toString());
     if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (f != 100.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 100.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
-    if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 100.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 100.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (g != 0.0) parts.add('g=' + _wireDouble(g));
+    if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
@@ -5156,8 +5841,8 @@ final class BassSettings {
     if (t != BassWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != BassTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 0.5) parts.add('w=' + _wireDouble(w));
+    if (width != 0.5) parts.add('width=' + _wireDouble(width));
     if (width_type != BassWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-bass' : 'lavfi-bass=' + parts.join(':');
@@ -5194,6 +5879,25 @@ final class BassSettings {
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
 /// - [transform]: Set transform type of IIR filter. (default DI)
 final class BiquadSettings {
+  static const double a0Default = 1.0;
+  static const double a1Default = 0.0;
+  static const double a2Default = 0.0;
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const double b0Default = 0.0;
+  static const double b1Default = 0.0;
+  static const double b2Default = 0.0;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+
   final bool enabled;
   final BiquadTransformType a;
   final double a0;
@@ -5314,28 +6018,28 @@ final class BiquadSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'biquad.b must be >= 0');
-    assert(b <= 32768, 'biquad.b must be <= 32768');
-    assert(blocksize >= 0, 'biquad.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'biquad.blocksize must be <= 32768');
-    assert(m >= 0, 'biquad.m must be >= 0');
-    assert(m <= 1, 'biquad.m must be <= 1');
-    assert(mix >= 0, 'biquad.mix must be >= 0');
-    assert(mix <= 1, 'biquad.mix must be <= 1');
+    assert(b >= bMin, 'biquad.b must be >= 0');
+    assert(b <= bMax, 'biquad.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'biquad.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'biquad.blocksize must be <= 32768');
+    assert(m >= mMin, 'biquad.m must be >= 0');
+    assert(m <= mMax, 'biquad.m must be <= 1');
+    assert(mix >= mixMin, 'biquad.mix must be >= 0');
+    assert(mix <= mixMax, 'biquad.mix must be <= 1');
     final parts = <String>[];
     if (a != BiquadTransformType.di) parts.add('a=' + a.mpvValue);
-    if (a0 != 1.0) parts.add('a0=' + a0.toStringAsFixed(3));
-    if (a1 != 0.0) parts.add('a1=' + a1.toStringAsFixed(3));
-    if (a2 != 0.0) parts.add('a2=' + a2.toStringAsFixed(3));
+    if (a0 != 1.0) parts.add('a0=' + _wireDouble(a0));
+    if (a1 != 0.0) parts.add('a1=' + _wireDouble(a1));
+    if (a2 != 0.0) parts.add('a2=' + _wireDouble(a2));
     if (b != 0) parts.add('b=' + b.toString());
-    if (b0 != 0.0) parts.add('b0=' + b0.toStringAsFixed(3));
-    if (b1 != 0.0) parts.add('b1=' + b1.toStringAsFixed(3));
-    if (b2 != 0.0) parts.add('b2=' + b2.toStringAsFixed(3));
+    if (b0 != 0.0) parts.add('b0=' + _wireDouble(b0));
+    if (b1 != 0.0) parts.add('b1=' + _wireDouble(b1));
+    if (b2 != 0.0) parts.add('b2=' + _wireDouble(b2));
     if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (precision != BiquadPrecision.auto)
@@ -5431,6 +6135,13 @@ final class ChannelmapSettings {
 /// - [out_gain]: Set output gain. Default is 0.4. (range 0..1, default .4)
 /// - [speeds]: Set speeds. (range 0..0, default NULL)
 final class ChorusSettings {
+  static const double in_gainDefault = .4;
+  static const double in_gainMin = 0.0;
+  static const double in_gainMax = 1.0;
+  static const double out_gainDefault = .4;
+  static const double out_gainMin = 0.0;
+  static const double out_gainMax = 1.0;
+
   final bool enabled;
   final String decays;
   final String delays;
@@ -5491,16 +6202,16 @@ final class ChorusSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(in_gain >= 0, 'chorus.in_gain must be >= 0');
-    assert(in_gain <= 1, 'chorus.in_gain must be <= 1');
-    assert(out_gain >= 0, 'chorus.out_gain must be >= 0');
-    assert(out_gain <= 1, 'chorus.out_gain must be <= 1');
+    assert(in_gain >= in_gainMin, 'chorus.in_gain must be >= 0');
+    assert(in_gain <= in_gainMax, 'chorus.in_gain must be <= 1');
+    assert(out_gain >= out_gainMin, 'chorus.out_gain must be >= 0');
+    assert(out_gain <= out_gainMax, 'chorus.out_gain must be <= 1');
     final parts = <String>[];
     if (decays != 'NULL') parts.add('decays=' + '[' + decays + ']');
     if (delays != 'NULL') parts.add('delays=' + '[' + delays + ']');
     if (depths != 'NULL') parts.add('depths=' + '[' + depths + ']');
-    if (in_gain != .4) parts.add('in_gain=' + in_gain.toStringAsFixed(3));
-    if (out_gain != .4) parts.add('out_gain=' + out_gain.toStringAsFixed(3));
+    if (in_gain != .4) parts.add('in_gain=' + _wireDouble(in_gain));
+    if (out_gain != .4) parts.add('out_gain=' + _wireDouble(out_gain));
     if (speeds != 'NULL') parts.add('speeds=' + '[' + speeds + ']');
     return parts.isEmpty ? 'lavfi-chorus' : 'lavfi-chorus=' + parts.join(':');
   }
@@ -5524,6 +6235,16 @@ final class ChorusSettings {
 /// their original key in the [params] map:
 /// - `soft-knee`: Set the curve radius in dB for all joints. It defaults to 0.01. (range 0.01..900, default 0.01)
 final class CompandSettings {
+  static const double delayDefault = 0.0;
+  static const double delayMin = 0.0;
+  static const double delayMax = 20.0;
+  static const double gainDefault = 0.0;
+  static const double gainMin = -900.0;
+  static const double gainMax = 900.0;
+  static const double volumeDefault = 0.0;
+  static const double volumeMin = -900.0;
+  static const double volumeMax = 0.0;
+
   final bool enabled;
   final String attacks;
   final String decays;
@@ -5597,20 +6318,20 @@ final class CompandSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(delay >= 0, 'compand.delay must be >= 0');
-    assert(delay <= 20, 'compand.delay must be <= 20');
-    assert(gain >= -900, 'compand.gain must be >= -900');
-    assert(gain <= 900, 'compand.gain must be <= 900');
-    assert(volume >= -900, 'compand.volume must be >= -900');
-    assert(volume <= 0, 'compand.volume must be <= 0');
+    assert(delay >= delayMin, 'compand.delay must be >= 0');
+    assert(delay <= delayMax, 'compand.delay must be <= 20');
+    assert(gain >= gainMin, 'compand.gain must be >= -900');
+    assert(gain <= gainMax, 'compand.gain must be <= 900');
+    assert(volume >= volumeMin, 'compand.volume must be >= -900');
+    assert(volume <= volumeMax, 'compand.volume must be <= 0');
     final parts = <String>[];
     if (attacks != '0') parts.add('attacks=' + '[' + attacks + ']');
     if (decays != '0.8') parts.add('decays=' + '[' + decays + ']');
-    if (delay != 0.0) parts.add('delay=' + delay.toStringAsFixed(3));
-    if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
+    if (delay != 0.0) parts.add('delay=' + _wireDouble(delay));
+    if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
     if (points != null) parts.add('points=' + '[' + points! + ']');
-    if (volume != 0.0) parts.add('volume=' + volume.toStringAsFixed(3));
-    params.forEach((k, v) => parts.add('$k=' + v.toStringAsFixed(3)));
+    if (volume != 0.0) parts.add('volume=' + _wireDouble(volume));
+    params.forEach((k, v) => parts.add('$k=' + _wireDouble(v)));
     return parts.isEmpty ? 'lavfi-compand' : 'lavfi-compand=' + parts.join(':');
   }
 }
@@ -5645,6 +6366,25 @@ final class CompandSettings {
 /// - [temp]: Set temperature in degrees Celsius. This is the temperature of the environment. Default is 20. (range -50..50, default 20)
 /// - [wet]: Set wet amount. Amount of processed (wet) signal. Default is 1. (range 0..1, default 1)
 final class CompensationdelaySettings {
+  static const int cmDefault = 0;
+  static const int cmMin = 0;
+  static const int cmMax = 100;
+  static const double dryDefault = 0.0;
+  static const double dryMin = 0.0;
+  static const double dryMax = 1.0;
+  static const int mDefault = 0;
+  static const int mMin = 0;
+  static const int mMax = 100;
+  static const int mmDefault = 0;
+  static const int mmMin = 0;
+  static const int mmMax = 10;
+  static const int tempDefault = 20;
+  static const int tempMin = -50;
+  static const int tempMax = 50;
+  static const double wetDefault = 1.0;
+  static const double wetMin = 0.0;
+  static const double wetMax = 1.0;
+
   final bool enabled;
   final int cm;
   final double dry;
@@ -5704,25 +6444,25 @@ final class CompensationdelaySettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(cm >= 0, 'compensationdelay.cm must be >= 0');
-    assert(cm <= 100, 'compensationdelay.cm must be <= 100');
-    assert(dry >= 0, 'compensationdelay.dry must be >= 0');
-    assert(dry <= 1, 'compensationdelay.dry must be <= 1');
-    assert(m >= 0, 'compensationdelay.m must be >= 0');
-    assert(m <= 100, 'compensationdelay.m must be <= 100');
-    assert(mm >= 0, 'compensationdelay.mm must be >= 0');
-    assert(mm <= 10, 'compensationdelay.mm must be <= 10');
-    assert(temp >= -50, 'compensationdelay.temp must be >= -50');
-    assert(temp <= 50, 'compensationdelay.temp must be <= 50');
-    assert(wet >= 0, 'compensationdelay.wet must be >= 0');
-    assert(wet <= 1, 'compensationdelay.wet must be <= 1');
+    assert(cm >= cmMin, 'compensationdelay.cm must be >= 0');
+    assert(cm <= cmMax, 'compensationdelay.cm must be <= 100');
+    assert(dry >= dryMin, 'compensationdelay.dry must be >= 0');
+    assert(dry <= dryMax, 'compensationdelay.dry must be <= 1');
+    assert(m >= mMin, 'compensationdelay.m must be >= 0');
+    assert(m <= mMax, 'compensationdelay.m must be <= 100');
+    assert(mm >= mmMin, 'compensationdelay.mm must be >= 0');
+    assert(mm <= mmMax, 'compensationdelay.mm must be <= 10');
+    assert(temp >= tempMin, 'compensationdelay.temp must be >= -50');
+    assert(temp <= tempMax, 'compensationdelay.temp must be <= 50');
+    assert(wet >= wetMin, 'compensationdelay.wet must be >= 0');
+    assert(wet <= wetMax, 'compensationdelay.wet must be <= 1');
     final parts = <String>[];
     if (cm != 0) parts.add('cm=' + cm.toString());
-    if (dry != 0.0) parts.add('dry=' + dry.toStringAsFixed(3));
+    if (dry != 0.0) parts.add('dry=' + _wireDouble(dry));
     if (m != 0) parts.add('m=' + m.toString());
     if (mm != 0) parts.add('mm=' + mm.toString());
     if (temp != 20) parts.add('temp=' + temp.toString());
-    if (wet != 1.0) parts.add('wet=' + wet.toStringAsFixed(3));
+    if (wet != 1.0) parts.add('wet=' + _wireDouble(wet));
     return parts.isEmpty
         ? 'lavfi-compensationdelay'
         : 'lavfi-compensationdelay=' + parts.join(':');
@@ -5746,9 +6486,28 @@ final class CompensationdelaySettings {
 /// - [level_in]: Set input gain. Default is 0.9. (range 0..1, default .9)
 /// - [level_out]: Set output gain. Default is 1. (range 0..1, default 1.)
 /// - [range]: Set soundstage wideness. Default is 0.5. Allowed range is from 0 to 1. This sets cut off frequency of low shelf filter. Default is cut off near 1550 Hz. With range set to 1 cut off frequency is set to 2100 Hz. (range 0..1, default .5)
-/// - [slope]: Set curve slope of low shelf filter. Default is 0.5. Allowed range is from 0.01 to 1. (default .5)
+/// - [slope]: Set curve slope of low shelf filter. Default is 0.5. Allowed range is from 0.01 to 1. (range .01..1, default .5)
 /// - [strength]: Set strength of crossfeed. Default is 0.2. Allowed range is from 0 to 1. This sets gain of low shelf filter for side part of stereo image. Default is -6dB. Max allowed is -30db when strength is set to 1. (range 0..1, default .2)
 final class CrossfeedSettings {
+  static const int block_sizeDefault = 0;
+  static const int block_sizeMin = 0;
+  static const int block_sizeMax = 32768;
+  static const double level_inDefault = .9;
+  static const double level_inMin = 0.0;
+  static const double level_inMax = 1.0;
+  static const double level_outDefault = 1.0;
+  static const double level_outMin = 0.0;
+  static const double level_outMax = 1.0;
+  static const double rangeDefault = .5;
+  static const double rangeMin = 0.0;
+  static const double rangeMax = 1.0;
+  static const double slopeDefault = .5;
+  static const double slopeMin = .01;
+  static const double slopeMax = 1.0;
+  static const double strengthDefault = .2;
+  static const double strengthMin = 0.0;
+  static const double strengthMax = 1.0;
+
   final bool enabled;
   final int block_size;
   final double level_in;
@@ -5809,24 +6568,26 @@ final class CrossfeedSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(block_size >= 0, 'crossfeed.block_size must be >= 0');
-    assert(block_size <= 32768, 'crossfeed.block_size must be <= 32768');
-    assert(level_in >= 0, 'crossfeed.level_in must be >= 0');
-    assert(level_in <= 1, 'crossfeed.level_in must be <= 1');
-    assert(level_out >= 0, 'crossfeed.level_out must be >= 0');
-    assert(level_out <= 1, 'crossfeed.level_out must be <= 1');
-    assert(range >= 0, 'crossfeed.range must be >= 0');
-    assert(range <= 1, 'crossfeed.range must be <= 1');
-    assert(strength >= 0, 'crossfeed.strength must be >= 0');
-    assert(strength <= 1, 'crossfeed.strength must be <= 1');
+    assert(block_size >= block_sizeMin, 'crossfeed.block_size must be >= 0');
+    assert(
+        block_size <= block_sizeMax, 'crossfeed.block_size must be <= 32768');
+    assert(level_in >= level_inMin, 'crossfeed.level_in must be >= 0');
+    assert(level_in <= level_inMax, 'crossfeed.level_in must be <= 1');
+    assert(level_out >= level_outMin, 'crossfeed.level_out must be >= 0');
+    assert(level_out <= level_outMax, 'crossfeed.level_out must be <= 1');
+    assert(range >= rangeMin, 'crossfeed.range must be >= 0');
+    assert(range <= rangeMax, 'crossfeed.range must be <= 1');
+    assert(slope >= slopeMin, 'crossfeed.slope must be >= .01');
+    assert(slope <= slopeMax, 'crossfeed.slope must be <= 1');
+    assert(strength >= strengthMin, 'crossfeed.strength must be >= 0');
+    assert(strength <= strengthMax, 'crossfeed.strength must be <= 1');
     final parts = <String>[];
     if (block_size != 0) parts.add('block_size=' + block_size.toString());
-    if (level_in != .9) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_out != 1.0)
-      parts.add('level_out=' + level_out.toStringAsFixed(3));
-    if (range != .5) parts.add('range=' + range.toStringAsFixed(3));
-    if (slope != .5) parts.add('slope=' + slope.toStringAsFixed(3));
-    if (strength != .2) parts.add('strength=' + strength.toStringAsFixed(3));
+    if (level_in != .9) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_out != 1.0) parts.add('level_out=' + _wireDouble(level_out));
+    if (range != .5) parts.add('range=' + _wireDouble(range));
+    if (slope != .5) parts.add('slope=' + _wireDouble(slope));
+    if (strength != .2) parts.add('strength=' + _wireDouble(strength));
     return parts.isEmpty
         ? 'lavfi-crossfeed'
         : 'lavfi-crossfeed=' + parts.join(':');
@@ -5845,6 +6606,10 @@ final class CrossfeedSettings {
 /// - [c]: Enable clipping. By default is enabled. (range 0..1, default 1)
 /// - [i]: Sets the intensity of effect (default: 2.0). Must be in range between -10.0 to 0 (unchanged sound) to 10.0 (maximum effect). To inverse filtering use negative value. (range -10..10, default 2.0)
 final class CrystalizerSettings {
+  static const double iDefault = 2.0;
+  static const double iMin = -10.0;
+  static const double iMax = 10.0;
+
   final bool enabled;
   final bool c;
   final double i;
@@ -5883,11 +6648,11 @@ final class CrystalizerSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(i >= -10, 'crystalizer.i must be >= -10');
-    assert(i <= 10, 'crystalizer.i must be <= 10');
+    assert(i >= iMin, 'crystalizer.i must be >= -10');
+    assert(i <= iMax, 'crystalizer.i must be <= 10');
     final parts = <String>[];
     if (c != true) parts.add('c=' + (c ? '1' : '0'));
-    if (i != 2.0) parts.add('i=' + i.toStringAsFixed(3));
+    if (i != 2.0) parts.add('i=' + _wireDouble(i));
     return parts.isEmpty
         ? 'lavfi-crystalizer'
         : 'lavfi-crystalizer=' + parts.join(':');
@@ -5907,6 +6672,13 @@ final class CrystalizerSettings {
 /// - [limitergain]: Optional. It should have a value much less than 1 (e.g. 0.05 or 0.02) and is used to prevent clipping. (range 0..1, default 0)
 /// - [shift]: Set the DC shift, allowed range is [-1, 1]. It indicates the amount to shift the audio. (range -1..1, default 0)
 final class DcshiftSettings {
+  static const double limitergainDefault = 0.0;
+  static const double limitergainMin = 0.0;
+  static const double limitergainMax = 1.0;
+  static const double shiftDefault = 0.0;
+  static const double shiftMin = -1.0;
+  static const double shiftMax = 1.0;
+
   final bool enabled;
   final double limitergain;
   final double shift;
@@ -5946,14 +6718,14 @@ final class DcshiftSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(limitergain >= 0, 'dcshift.limitergain must be >= 0');
-    assert(limitergain <= 1, 'dcshift.limitergain must be <= 1');
-    assert(shift >= -1, 'dcshift.shift must be >= -1');
-    assert(shift <= 1, 'dcshift.shift must be <= 1');
+    assert(limitergain >= limitergainMin, 'dcshift.limitergain must be >= 0');
+    assert(limitergain <= limitergainMax, 'dcshift.limitergain must be <= 1');
+    assert(shift >= shiftMin, 'dcshift.shift must be >= -1');
+    assert(shift <= shiftMax, 'dcshift.shift must be <= 1');
     final parts = <String>[];
     if (limitergain != 0.0)
-      parts.add('limitergain=' + limitergain.toStringAsFixed(3));
-    if (shift != 0.0) parts.add('shift=' + shift.toStringAsFixed(3));
+      parts.add('limitergain=' + _wireDouble(limitergain));
+    if (shift != 0.0) parts.add('shift=' + _wireDouble(shift));
     return parts.isEmpty ? 'lavfi-dcshift' : 'lavfi-dcshift=' + parts.join(':');
   }
 }
@@ -5968,6 +6740,16 @@ final class DcshiftSettings {
 /// - [m]: Set amount of ducking on treble part of sound. Allowed range is from 0 to 1. Default is 0.5. (range 0.0..1.0, default 0.5)
 /// - [s]: Set the output mode.  It accepts the following values: (default OUT_MODE)
 final class DeesserSettings {
+  static const double fDefault = 0.5;
+  static const double fMin = 0.0;
+  static const double fMax = 1.0;
+  static const double iDefault = 0.0;
+  static const double iMin = 0.0;
+  static const double iMax = 1.0;
+  static const double mDefault = 0.5;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+
   final bool enabled;
   final double f;
   final double i;
@@ -6017,16 +6799,16 @@ final class DeesserSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(f >= 0.0, 'deesser.f must be >= 0.0');
-    assert(f <= 1.0, 'deesser.f must be <= 1.0');
-    assert(i >= 0.0, 'deesser.i must be >= 0.0');
-    assert(i <= 1.0, 'deesser.i must be <= 1.0');
-    assert(m >= 0.0, 'deesser.m must be >= 0.0');
-    assert(m <= 1.0, 'deesser.m must be <= 1.0');
+    assert(f >= fMin, 'deesser.f must be >= 0.0');
+    assert(f <= fMax, 'deesser.f must be <= 1.0');
+    assert(i >= iMin, 'deesser.i must be >= 0.0');
+    assert(i <= iMax, 'deesser.i must be <= 1.0');
+    assert(m >= mMin, 'deesser.m must be >= 0.0');
+    assert(m <= mMax, 'deesser.m must be <= 1.0');
     final parts = <String>[];
-    if (f != 0.5) parts.add('f=' + f.toStringAsFixed(3));
-    if (i != 0.0) parts.add('i=' + i.toStringAsFixed(3));
-    if (m != 0.5) parts.add('m=' + m.toStringAsFixed(3));
+    if (f != 0.5) parts.add('f=' + _wireDouble(f));
+    if (i != 0.0) parts.add('i=' + _wireDouble(i));
+    if (m != 0.5) parts.add('m=' + _wireDouble(m));
     if (s != DeesserMode.o) parts.add('s=' + s.mpvValue);
     return parts.isEmpty ? 'lavfi-deesser' : 'lavfi-deesser=' + parts.join(':');
   }
@@ -6048,6 +6830,16 @@ final class DeesserSettings {
 /// - [original]: Set the original center factor to keep in front center channel output. Allowed range is from 0 to 1. Default value is 1. (range 0..1, default 1)
 /// - [voice]: Set the voice detection factor. Allowed range is from 2 to 32. Default value is 2. (range 2..32, default 2)
 final class DialoguenhanceSettings {
+  static const double enhanceDefault = 1.0;
+  static const double enhanceMin = 0.0;
+  static const double enhanceMax = 3.0;
+  static const double originalDefault = 1.0;
+  static const double originalMin = 0.0;
+  static const double originalMax = 1.0;
+  static const double voiceDefault = 2.0;
+  static const double voiceMin = 2.0;
+  static const double voiceMax = 32.0;
+
   final bool enabled;
   final double enhance;
   final double original;
@@ -6092,16 +6884,16 @@ final class DialoguenhanceSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(enhance >= 0, 'dialoguenhance.enhance must be >= 0');
-    assert(enhance <= 3, 'dialoguenhance.enhance must be <= 3');
-    assert(original >= 0, 'dialoguenhance.original must be >= 0');
-    assert(original <= 1, 'dialoguenhance.original must be <= 1');
-    assert(voice >= 2, 'dialoguenhance.voice must be >= 2');
-    assert(voice <= 32, 'dialoguenhance.voice must be <= 32');
+    assert(enhance >= enhanceMin, 'dialoguenhance.enhance must be >= 0');
+    assert(enhance <= enhanceMax, 'dialoguenhance.enhance must be <= 3');
+    assert(original >= originalMin, 'dialoguenhance.original must be >= 0');
+    assert(original <= originalMax, 'dialoguenhance.original must be <= 1');
+    assert(voice >= voiceMin, 'dialoguenhance.voice must be >= 2');
+    assert(voice <= voiceMax, 'dialoguenhance.voice must be <= 32');
     final parts = <String>[];
-    if (enhance != 1.0) parts.add('enhance=' + enhance.toStringAsFixed(3));
-    if (original != 1.0) parts.add('original=' + original.toStringAsFixed(3));
-    if (voice != 2.0) parts.add('voice=' + voice.toStringAsFixed(3));
+    if (enhance != 1.0) parts.add('enhance=' + _wireDouble(enhance));
+    if (original != 1.0) parts.add('original=' + _wireDouble(original));
+    if (voice != 2.0) parts.add('voice=' + _wireDouble(voice));
     return parts.isEmpty
         ? 'lavfi-dialoguenhance'
         : 'lavfi-dialoguenhance=' + parts.join(':');
@@ -6119,8 +6911,12 @@ final class DialoguenhanceSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [length]: Set window length in seconds used to split audio into segments of equal length. Default is 3 seconds. (default 3)
+/// - [length]: Set window length in seconds used to split audio into segments of equal length. Default is 3 seconds. (range .01..10, default 3)
 final class DrmeterSettings {
+  static const double lengthDefault = 3.0;
+  static const double lengthMin = .01;
+  static const double lengthMax = 10.0;
+
   final bool enabled;
   final double length;
 
@@ -6154,8 +6950,10 @@ final class DrmeterSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(length >= lengthMin, 'drmeter.length must be >= .01');
+    assert(length <= lengthMax, 'drmeter.length must be <= 10');
     final parts = <String>[];
-    if (length != 3.0) parts.add('length=' + length.toStringAsFixed(3));
+    if (length != 3.0) parts.add('length=' + _wireDouble(length));
     return parts.isEmpty ? 'lavfi-drmeter' : 'lavfi-drmeter=' + parts.join(':');
   }
 }
@@ -6204,6 +7002,55 @@ final class DrmeterSettings {
 /// - [threshold]: Set the target threshold value. This specifies the lowest permissible magnitude level for the audio input which will be normalized. If input frame volume is above this value frame will be normalized. Otherwise frame may not be normalized at all. The default value is set to 0, which means all input frames will be normalized. This option is mostly useful if digital noise is not wanted to be amplified. (range 0.0..1.0, default 0.0)
 /// - [v]: Specify the peak mapping curve expression which is going to be used when calculating gain applied to frames. The max output frame gain will still be limited by other options mentioned previously for this filter.  The expression can contain the following constants: (default NULL)
 final class DynaudnormSettings {
+  static const double compressDefault = 0.0;
+  static const double compressMin = 0.0;
+  static const double compressMax = 30.0;
+  static const int fDefault = 500;
+  static const int fMin = 10;
+  static const int fMax = 8000;
+  static const int framelenDefault = 500;
+  static const int framelenMin = 10;
+  static const int framelenMax = 8000;
+  static const int gDefault = 31;
+  static const int gMin = 3;
+  static const int gMax = 301;
+  static const int gausssizeDefault = 31;
+  static const int gausssizeMin = 3;
+  static const int gausssizeMax = 301;
+  static const double mDefault = 10.0;
+  static const double mMin = 1.0;
+  static const double mMax = 100.0;
+  static const double maxgainDefault = 10.0;
+  static const double maxgainMin = 1.0;
+  static const double maxgainMax = 100.0;
+  static const double oDefault = .0;
+  static const double oMin = 0.0;
+  static const double oMax = 1.0;
+  static const double overlapDefault = .0;
+  static const double overlapMin = 0.0;
+  static const double overlapMax = 1.0;
+  static const double pDefault = 0.95;
+  static const double pMin = 0.0;
+  static const double pMax = 1.0;
+  static const double peakDefault = 0.95;
+  static const double peakMin = 0.0;
+  static const double peakMax = 1.0;
+  static const double rDefault = 0.0;
+  static const double rMin = 0.0;
+  static const double rMax = 1.0;
+  static const double sDefault = 0.0;
+  static const double sMin = 0.0;
+  static const double sMax = 30.0;
+  static const double tDefault = 0.0;
+  static const double tMin = 0.0;
+  static const double tMax = 1.0;
+  static const double targetrmsDefault = 0.0;
+  static const double targetrmsMin = 0.0;
+  static const double targetrmsMax = 1.0;
+  static const double thresholdDefault = 0.0;
+  static const double thresholdMin = 0.0;
+  static const double thresholdMax = 1.0;
+
   final bool enabled;
   final bool altboundary;
   final bool b;
@@ -6391,45 +7238,45 @@ final class DynaudnormSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(compress >= 0.0, 'dynaudnorm.compress must be >= 0.0');
-    assert(compress <= 30.0, 'dynaudnorm.compress must be <= 30.0');
-    assert(f >= 10, 'dynaudnorm.f must be >= 10');
-    assert(f <= 8000, 'dynaudnorm.f must be <= 8000');
-    assert(framelen >= 10, 'dynaudnorm.framelen must be >= 10');
-    assert(framelen <= 8000, 'dynaudnorm.framelen must be <= 8000');
-    assert(g >= 3, 'dynaudnorm.g must be >= 3');
-    assert(g <= 301, 'dynaudnorm.g must be <= 301');
-    assert(gausssize >= 3, 'dynaudnorm.gausssize must be >= 3');
-    assert(gausssize <= 301, 'dynaudnorm.gausssize must be <= 301');
-    assert(m >= 1.0, 'dynaudnorm.m must be >= 1.0');
-    assert(m <= 100.0, 'dynaudnorm.m must be <= 100.0');
-    assert(maxgain >= 1.0, 'dynaudnorm.maxgain must be >= 1.0');
-    assert(maxgain <= 100.0, 'dynaudnorm.maxgain must be <= 100.0');
-    assert(o >= 0.0, 'dynaudnorm.o must be >= 0.0');
-    assert(o <= 1.0, 'dynaudnorm.o must be <= 1.0');
-    assert(overlap >= 0.0, 'dynaudnorm.overlap must be >= 0.0');
-    assert(overlap <= 1.0, 'dynaudnorm.overlap must be <= 1.0');
-    assert(p >= 0.0, 'dynaudnorm.p must be >= 0.0');
-    assert(p <= 1.0, 'dynaudnorm.p must be <= 1.0');
-    assert(peak >= 0.0, 'dynaudnorm.peak must be >= 0.0');
-    assert(peak <= 1.0, 'dynaudnorm.peak must be <= 1.0');
-    assert(r >= 0.0, 'dynaudnorm.r must be >= 0.0');
-    assert(r <= 1.0, 'dynaudnorm.r must be <= 1.0');
-    assert(s >= 0.0, 'dynaudnorm.s must be >= 0.0');
-    assert(s <= 30.0, 'dynaudnorm.s must be <= 30.0');
-    assert(t >= 0.0, 'dynaudnorm.t must be >= 0.0');
-    assert(t <= 1.0, 'dynaudnorm.t must be <= 1.0');
-    assert(targetrms >= 0.0, 'dynaudnorm.targetrms must be >= 0.0');
-    assert(targetrms <= 1.0, 'dynaudnorm.targetrms must be <= 1.0');
-    assert(threshold >= 0.0, 'dynaudnorm.threshold must be >= 0.0');
-    assert(threshold <= 1.0, 'dynaudnorm.threshold must be <= 1.0');
+    assert(compress >= compressMin, 'dynaudnorm.compress must be >= 0.0');
+    assert(compress <= compressMax, 'dynaudnorm.compress must be <= 30.0');
+    assert(f >= fMin, 'dynaudnorm.f must be >= 10');
+    assert(f <= fMax, 'dynaudnorm.f must be <= 8000');
+    assert(framelen >= framelenMin, 'dynaudnorm.framelen must be >= 10');
+    assert(framelen <= framelenMax, 'dynaudnorm.framelen must be <= 8000');
+    assert(g >= gMin, 'dynaudnorm.g must be >= 3');
+    assert(g <= gMax, 'dynaudnorm.g must be <= 301');
+    assert(gausssize >= gausssizeMin, 'dynaudnorm.gausssize must be >= 3');
+    assert(gausssize <= gausssizeMax, 'dynaudnorm.gausssize must be <= 301');
+    assert(m >= mMin, 'dynaudnorm.m must be >= 1.0');
+    assert(m <= mMax, 'dynaudnorm.m must be <= 100.0');
+    assert(maxgain >= maxgainMin, 'dynaudnorm.maxgain must be >= 1.0');
+    assert(maxgain <= maxgainMax, 'dynaudnorm.maxgain must be <= 100.0');
+    assert(o >= oMin, 'dynaudnorm.o must be >= 0.0');
+    assert(o <= oMax, 'dynaudnorm.o must be <= 1.0');
+    assert(overlap >= overlapMin, 'dynaudnorm.overlap must be >= 0.0');
+    assert(overlap <= overlapMax, 'dynaudnorm.overlap must be <= 1.0');
+    assert(p >= pMin, 'dynaudnorm.p must be >= 0.0');
+    assert(p <= pMax, 'dynaudnorm.p must be <= 1.0');
+    assert(peak >= peakMin, 'dynaudnorm.peak must be >= 0.0');
+    assert(peak <= peakMax, 'dynaudnorm.peak must be <= 1.0');
+    assert(r >= rMin, 'dynaudnorm.r must be >= 0.0');
+    assert(r <= rMax, 'dynaudnorm.r must be <= 1.0');
+    assert(s >= sMin, 'dynaudnorm.s must be >= 0.0');
+    assert(s <= sMax, 'dynaudnorm.s must be <= 30.0');
+    assert(t >= tMin, 'dynaudnorm.t must be >= 0.0');
+    assert(t <= tMax, 'dynaudnorm.t must be <= 1.0');
+    assert(targetrms >= targetrmsMin, 'dynaudnorm.targetrms must be >= 0.0');
+    assert(targetrms <= targetrmsMax, 'dynaudnorm.targetrms must be <= 1.0');
+    assert(threshold >= thresholdMin, 'dynaudnorm.threshold must be >= 0.0');
+    assert(threshold <= thresholdMax, 'dynaudnorm.threshold must be <= 1.0');
     final parts = <String>[];
     if (altboundary != false)
       parts.add('altboundary=' + (altboundary ? '1' : '0'));
     if (b != false) parts.add('b=' + (b ? '1' : '0'));
     if (c != false) parts.add('c=' + (c ? '1' : '0'));
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (compress != 0.0) parts.add('compress=' + compress.toStringAsFixed(3));
+    if (compress != 0.0) parts.add('compress=' + _wireDouble(compress));
     if (correctdc != false) parts.add('correctdc=' + (correctdc ? '1' : '0'));
     if (coupling != true) parts.add('coupling=' + (coupling ? '1' : '0'));
     if (curve != 'NULL') parts.add('curve=' + '[' + curve + ']');
@@ -6438,20 +7285,18 @@ final class DynaudnormSettings {
     if (g != 31) parts.add('g=' + g.toString());
     if (gausssize != 31) parts.add('gausssize=' + gausssize.toString());
     if (h != 'all') parts.add('h=' + '[' + h + ']');
-    if (m != 10.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (maxgain != 10.0) parts.add('maxgain=' + maxgain.toStringAsFixed(3));
+    if (m != 10.0) parts.add('m=' + _wireDouble(m));
+    if (maxgain != 10.0) parts.add('maxgain=' + _wireDouble(maxgain));
     if (n != true) parts.add('n=' + (n ? '1' : '0'));
-    if (o != .0) parts.add('o=' + o.toStringAsFixed(3));
-    if (overlap != .0) parts.add('overlap=' + overlap.toStringAsFixed(3));
-    if (p != 0.95) parts.add('p=' + p.toStringAsFixed(3));
-    if (peak != 0.95) parts.add('peak=' + peak.toStringAsFixed(3));
-    if (r != 0.0) parts.add('r=' + r.toStringAsFixed(3));
-    if (s != 0.0) parts.add('s=' + s.toStringAsFixed(3));
-    if (t != 0.0) parts.add('t=' + t.toStringAsFixed(3));
-    if (targetrms != 0.0)
-      parts.add('targetrms=' + targetrms.toStringAsFixed(3));
-    if (threshold != 0.0)
-      parts.add('threshold=' + threshold.toStringAsFixed(3));
+    if (o != .0) parts.add('o=' + _wireDouble(o));
+    if (overlap != .0) parts.add('overlap=' + _wireDouble(overlap));
+    if (p != 0.95) parts.add('p=' + _wireDouble(p));
+    if (peak != 0.95) parts.add('peak=' + _wireDouble(peak));
+    if (r != 0.0) parts.add('r=' + _wireDouble(r));
+    if (s != 0.0) parts.add('s=' + _wireDouble(s));
+    if (t != 0.0) parts.add('t=' + _wireDouble(t));
+    if (targetrms != 0.0) parts.add('targetrms=' + _wireDouble(targetrms));
+    if (threshold != 0.0) parts.add('threshold=' + _wireDouble(threshold));
     if (v != 'NULL') parts.add('v=' + '[' + v + ']');
     return parts.isEmpty
         ? 'lavfi-dynaudnorm'
@@ -6547,6 +7392,22 @@ final class EarwaxSettings {
 /// - [true_peak]: true peak (dBFS) (default 0)
 /// - [video]: Activate the video output. The audio stream is passed unchanged whether this option is set or no. The video stream will be the first output stream if activated. Default is `0`. (range 0..1, default 0)
 final class Ebur128Settings {
+  static const double integratedDefault = 0.0;
+  static const double lra_highDefault = 0.0;
+  static const double lra_lowDefault = 0.0;
+  static const int meterDefault = 9;
+  static const int meterMin = 9;
+  static const int meterMax = 18;
+  static const double panlawDefault = -3.01029995663978;
+  static const double panlawMin = -10.0;
+  static const double panlawMax = 0.0;
+  static const double rangeDefault = 0.0;
+  static const double sample_peakDefault = 0.0;
+  static const int targetDefault = -23;
+  static const int targetMin = -23;
+  static const int targetMax = 0;
+  static const double true_peakDefault = 0.0;
+
   final bool enabled;
   final bool dualmono;
   final Ebur128Level? framelog;
@@ -6677,33 +7538,30 @@ final class Ebur128Settings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(meter >= 9, 'ebur128.meter must be >= 9');
-    assert(meter <= 18, 'ebur128.meter must be <= 18');
-    assert(panlaw >= -10.0, 'ebur128.panlaw must be >= -10.0');
-    assert(panlaw <= 0.0, 'ebur128.panlaw must be <= 0.0');
-    assert(target >= -23, 'ebur128.target must be >= -23');
-    assert(target <= 0, 'ebur128.target must be <= 0');
+    assert(meter >= meterMin, 'ebur128.meter must be >= 9');
+    assert(meter <= meterMax, 'ebur128.meter must be <= 18');
+    assert(panlaw >= panlawMin, 'ebur128.panlaw must be >= -10.0');
+    assert(panlaw <= panlawMax, 'ebur128.panlaw must be <= 0.0');
+    assert(target >= targetMin, 'ebur128.target must be >= -23');
+    assert(target <= targetMax, 'ebur128.target must be <= 0');
     final parts = <String>[];
     if (dualmono != false) parts.add('dualmono=' + (dualmono ? '1' : '0'));
     if (framelog != null) parts.add('framelog=' + framelog!.mpvValue);
     if (gauge != null) parts.add('gauge=' + gauge!.mpvValue);
-    if (integrated != 0.0)
-      parts.add('integrated=' + integrated.toStringAsFixed(3));
-    if (lra_high != 0.0) parts.add('lra_high=' + lra_high.toStringAsFixed(3));
-    if (lra_low != 0.0) parts.add('lra_low=' + lra_low.toStringAsFixed(3));
+    if (integrated != 0.0) parts.add('integrated=' + _wireDouble(integrated));
+    if (lra_high != 0.0) parts.add('lra_high=' + _wireDouble(lra_high));
+    if (lra_low != 0.0) parts.add('lra_low=' + _wireDouble(lra_low));
     if (metadata != false) parts.add('metadata=' + (metadata ? '1' : '0'));
     if (meter != 9) parts.add('meter=' + meter.toString());
-    if (panlaw != -3.01029995663978)
-      parts.add('panlaw=' + panlaw.toStringAsFixed(3));
+    if (panlaw != -3.01029995663978) parts.add('panlaw=' + _wireDouble(panlaw));
     if (peak.isNotEmpty)
       parts.add('peak=' + peak.map((e) => e.mpvValue).join('+'));
-    if (range != 0.0) parts.add('range=' + range.toStringAsFixed(3));
+    if (range != 0.0) parts.add('range=' + _wireDouble(range));
     if (sample_peak != 0.0)
-      parts.add('sample_peak=' + sample_peak.toStringAsFixed(3));
+      parts.add('sample_peak=' + _wireDouble(sample_peak));
     if (scale != null) parts.add('scale=' + scale!.mpvValue);
     if (target != -23) parts.add('target=' + target.toString());
-    if (true_peak != 0.0)
-      parts.add('true_peak=' + true_peak.toStringAsFixed(3));
+    if (true_peak != 0.0) parts.add('true_peak=' + _wireDouble(true_peak));
     if (video != false) parts.add('video=' + (video ? '1' : '0'));
     return parts.isEmpty ? 'lavfi-ebur128' : 'lavfi-ebur128=' + parts.join(':');
   }
@@ -6743,6 +7601,37 @@ final class Ebur128Settings {
 /// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 1.0)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class EqualizerSettings {
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double fDefault = 0.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 0.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double gDefault = 0.0;
+  static const double gMin = -900.0;
+  static const double gMax = 900.0;
+  static const double gainDefault = 0.0;
+  static const double gainMin = -900.0;
+  static const double gainMax = 900.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const double wDefault = 1.0;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 1.0;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final EqualizerTransformType a;
   final int b;
@@ -6894,39 +7783,38 @@ final class EqualizerSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'equalizer.b must be >= 0');
-    assert(b <= 32768, 'equalizer.b must be <= 32768');
-    assert(blocksize >= 0, 'equalizer.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'equalizer.blocksize must be <= 32768');
-    assert(f >= 0, 'equalizer.f must be >= 0');
-    assert(f <= 999999, 'equalizer.f must be <= 999999');
-    assert(frequency >= 0, 'equalizer.frequency must be >= 0');
-    assert(frequency <= 999999, 'equalizer.frequency must be <= 999999');
-    assert(g >= -900, 'equalizer.g must be >= -900');
-    assert(g <= 900, 'equalizer.g must be <= 900');
-    assert(gain >= -900, 'equalizer.gain must be >= -900');
-    assert(gain <= 900, 'equalizer.gain must be <= 900');
-    assert(m >= 0, 'equalizer.m must be >= 0');
-    assert(m <= 1, 'equalizer.m must be <= 1');
-    assert(mix >= 0, 'equalizer.mix must be >= 0');
-    assert(mix <= 1, 'equalizer.mix must be <= 1');
-    assert(w >= 0, 'equalizer.w must be >= 0');
-    assert(w <= 99999, 'equalizer.w must be <= 99999');
-    assert(width >= 0, 'equalizer.width must be >= 0');
-    assert(width <= 99999, 'equalizer.width must be <= 99999');
+    assert(b >= bMin, 'equalizer.b must be >= 0');
+    assert(b <= bMax, 'equalizer.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'equalizer.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'equalizer.blocksize must be <= 32768');
+    assert(f >= fMin, 'equalizer.f must be >= 0');
+    assert(f <= fMax, 'equalizer.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'equalizer.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'equalizer.frequency must be <= 999999');
+    assert(g >= gMin, 'equalizer.g must be >= -900');
+    assert(g <= gMax, 'equalizer.g must be <= 900');
+    assert(gain >= gainMin, 'equalizer.gain must be >= -900');
+    assert(gain <= gainMax, 'equalizer.gain must be <= 900');
+    assert(m >= mMin, 'equalizer.m must be >= 0');
+    assert(m <= mMax, 'equalizer.m must be <= 1');
+    assert(mix >= mixMin, 'equalizer.mix must be >= 0');
+    assert(mix <= mixMax, 'equalizer.mix must be <= 1');
+    assert(w >= wMin, 'equalizer.w must be >= 0');
+    assert(w <= wMax, 'equalizer.w must be <= 99999');
+    assert(width >= widthMin, 'equalizer.width must be >= 0');
+    assert(width <= widthMax, 'equalizer.width must be <= 99999');
     final parts = <String>[];
     if (a != EqualizerTransformType.di) parts.add('a=' + a.mpvValue);
     if (b != 0) parts.add('b=' + b.toString());
     if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (f != 0.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 0.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
-    if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 0.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 0.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (g != 0.0) parts.add('g=' + _wireDouble(g));
+    if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (precision != EqualizerPrecision.auto)
@@ -6935,8 +7823,8 @@ final class EqualizerSettings {
     if (t != EqualizerWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != EqualizerTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 1.0) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 1.0) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 1.0) parts.add('w=' + _wireDouble(w));
+    if (width != 1.0) parts.add('width=' + _wireDouble(width));
     if (width_type != EqualizerWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
@@ -6956,6 +7844,10 @@ final class EqualizerSettings {
 /// - [c]: Enable clipping. By default is enabled. (range 0..1, default 1)
 /// - [m]: Sets the difference coefficient (default: 2.5). 0.0 means mono sound (average of both channels), with 1.0 sound will be unchanged, with -1.0 left and right channels will be swapped. (range -10..10, default 2.5)
 final class ExtrastereoSettings {
+  static const double mDefault = 2.5;
+  static const double mMin = -10.0;
+  static const double mMax = 10.0;
+
   final bool enabled;
   final bool c;
   final double m;
@@ -6994,11 +7886,11 @@ final class ExtrastereoSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(m >= -10, 'extrastereo.m must be >= -10');
-    assert(m <= 10, 'extrastereo.m must be <= 10');
+    assert(m >= mMin, 'extrastereo.m must be >= -10');
+    assert(m <= mMax, 'extrastereo.m must be <= 10');
     final parts = <String>[];
     if (c != true) parts.add('c=' + (c ? '1' : '0'));
-    if (m != 2.5) parts.add('m=' + m.toStringAsFixed(3));
+    if (m != 2.5) parts.add('m=' + _wireDouble(m));
     return parts.isEmpty
         ? 'lavfi-extrastereo'
         : 'lavfi-extrastereo=' + parts.join(':');
@@ -7026,6 +7918,13 @@ final class ExtrastereoSettings {
 /// - [wfunc]: Set window function. Acceptable values are: (default WFUNC_HANN)
 /// - [zero_phase]: Enable zero phase mode by subtracting timestamp to compensate delay. Default is disabled. (range 0..1, default 0)
 final class FirequalizerSettings {
+  static const double accuracyDefault = 5.0;
+  static const double accuracyMin = 0.0;
+  static const double accuracyMax = 1e10;
+  static const double delayDefault = 0.01;
+  static const double delayMin = 0.0;
+  static const double delayMax = 1e10;
+
   final bool enabled;
   final double accuracy;
   final double delay;
@@ -7134,13 +8033,13 @@ final class FirequalizerSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(accuracy >= 0.0, 'firequalizer.accuracy must be >= 0.0');
-    assert(accuracy <= 1e10, 'firequalizer.accuracy must be <= 1e10');
-    assert(delay >= 0.0, 'firequalizer.delay must be >= 0.0');
-    assert(delay <= 1e10, 'firequalizer.delay must be <= 1e10');
+    assert(accuracy >= accuracyMin, 'firequalizer.accuracy must be >= 0.0');
+    assert(accuracy <= accuracyMax, 'firequalizer.accuracy must be <= 1e10');
+    assert(delay >= delayMin, 'firequalizer.delay must be >= 0.0');
+    assert(delay <= delayMax, 'firequalizer.delay must be <= 1e10');
     final parts = <String>[];
-    if (accuracy != 5.0) parts.add('accuracy=' + accuracy.toStringAsFixed(3));
-    if (delay != 0.01) parts.add('delay=' + delay.toStringAsFixed(3));
+    if (accuracy != 5.0) parts.add('accuracy=' + _wireDouble(accuracy));
+    if (delay != 0.01) parts.add('delay=' + _wireDouble(delay));
     if (dumpfile != 'NULL') parts.add('dumpfile=' + '[' + dumpfile + ']');
     if (dumpscale != FirequalizerScale.linlog)
       parts.add('dumpscale=' + dumpscale.mpvValue);
@@ -7176,6 +8075,25 @@ final class FirequalizerSettings {
 /// - [speed]: Set sweeps per second (Hz). Range from 0.1 to 10. Default value is 0.5. (range 0.1..10, default 0.5)
 /// - [width]: Set percentage of delayed signal mixed with original. Range from 0 to 100. Default value is 71. (range 0..100, default 71)
 final class FlangerSettings {
+  static const double delayDefault = 0.0;
+  static const double delayMin = 0.0;
+  static const double delayMax = 30.0;
+  static const double depthDefault = 2.0;
+  static const double depthMin = 0.0;
+  static const double depthMax = 10.0;
+  static const double phaseDefault = 25.0;
+  static const double phaseMin = 0.0;
+  static const double phaseMax = 100.0;
+  static const double regenDefault = 0.0;
+  static const double regenMin = -95.0;
+  static const double regenMax = 95.0;
+  static const double speedDefault = 0.5;
+  static const double speedMin = 0.1;
+  static const double speedMax = 10.0;
+  static const double widthDefault = 71.0;
+  static const double widthMin = 0.0;
+  static const double widthMax = 100.0;
+
   final bool enabled;
   final double delay;
   final double depth;
@@ -7247,27 +8165,27 @@ final class FlangerSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(delay >= 0, 'flanger.delay must be >= 0');
-    assert(delay <= 30, 'flanger.delay must be <= 30');
-    assert(depth >= 0, 'flanger.depth must be >= 0');
-    assert(depth <= 10, 'flanger.depth must be <= 10');
-    assert(phase >= 0, 'flanger.phase must be >= 0');
-    assert(phase <= 100, 'flanger.phase must be <= 100');
-    assert(regen >= -95, 'flanger.regen must be >= -95');
-    assert(regen <= 95, 'flanger.regen must be <= 95');
-    assert(speed >= 0.1, 'flanger.speed must be >= 0.1');
-    assert(speed <= 10, 'flanger.speed must be <= 10');
-    assert(width >= 0, 'flanger.width must be >= 0');
-    assert(width <= 100, 'flanger.width must be <= 100');
+    assert(delay >= delayMin, 'flanger.delay must be >= 0');
+    assert(delay <= delayMax, 'flanger.delay must be <= 30');
+    assert(depth >= depthMin, 'flanger.depth must be >= 0');
+    assert(depth <= depthMax, 'flanger.depth must be <= 10');
+    assert(phase >= phaseMin, 'flanger.phase must be >= 0');
+    assert(phase <= phaseMax, 'flanger.phase must be <= 100');
+    assert(regen >= regenMin, 'flanger.regen must be >= -95');
+    assert(regen <= regenMax, 'flanger.regen must be <= 95');
+    assert(speed >= speedMin, 'flanger.speed must be >= 0.1');
+    assert(speed <= speedMax, 'flanger.speed must be <= 10');
+    assert(width >= widthMin, 'flanger.width must be >= 0');
+    assert(width <= widthMax, 'flanger.width must be <= 100');
     final parts = <String>[];
-    if (delay != 0.0) parts.add('delay=' + delay.toStringAsFixed(3));
-    if (depth != 2.0) parts.add('depth=' + depth.toStringAsFixed(3));
+    if (delay != 0.0) parts.add('delay=' + _wireDouble(delay));
+    if (depth != 2.0) parts.add('depth=' + _wireDouble(depth));
     if (interp != null) parts.add('interp=' + interp!.mpvValue);
-    if (phase != 25.0) parts.add('phase=' + phase.toStringAsFixed(3));
-    if (regen != 0.0) parts.add('regen=' + regen.toStringAsFixed(3));
+    if (phase != 25.0) parts.add('phase=' + _wireDouble(phase));
+    if (regen != 0.0) parts.add('regen=' + _wireDouble(regen));
     if (shape != FlangerType.sinusoidal) parts.add('shape=' + shape.mpvValue);
-    if (speed != 0.5) parts.add('speed=' + speed.toStringAsFixed(3));
-    if (width != 71.0) parts.add('width=' + width.toStringAsFixed(3));
+    if (speed != 0.5) parts.add('speed=' + _wireDouble(speed));
+    if (width != 71.0) parts.add('width=' + _wireDouble(width));
     return parts.isEmpty ? 'lavfi-flanger' : 'lavfi-flanger=' + parts.join(':');
   }
 }
@@ -7297,6 +8215,32 @@ final class FlangerSettings {
 /// - [right_phase]: set right phase (range 0..1, default 1)
 /// - [side_gain]: Set gain applied to side part of signal. By default is `1`. (range 0.015625..64, default 1)
 final class HaasSettings {
+  static const double left_balanceDefault = -1.0;
+  static const double left_balanceMin = -1.0;
+  static const double left_balanceMax = 1.0;
+  static const double left_delayDefault = 2.05;
+  static const double left_delayMin = 0.0;
+  static const double left_gainDefault = 1.0;
+  static const double left_gainMin = 0.015625;
+  static const double left_gainMax = 64.0;
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = 0.015625;
+  static const double level_inMax = 64.0;
+  static const double level_outDefault = 1.0;
+  static const double level_outMin = 0.015625;
+  static const double level_outMax = 64.0;
+  static const double right_balanceDefault = 1.0;
+  static const double right_balanceMin = -1.0;
+  static const double right_balanceMax = 1.0;
+  static const double right_delayDefault = 2.12;
+  static const double right_delayMin = 0.0;
+  static const double right_gainDefault = 1.0;
+  static const double right_gainMin = 0.015625;
+  static const double right_gainMax = 64.0;
+  static const double side_gainDefault = 1.0;
+  static const double side_gainMin = 0.015625;
+  static const double side_gainMax = 64.0;
+
   final bool enabled;
   final double left_balance;
   final double left_delay;
@@ -7405,48 +8349,45 @@ final class HaasSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(left_balance >= -1, 'haas.left_balance must be >= -1');
-    assert(left_balance <= 1, 'haas.left_balance must be <= 1');
-    assert(left_delay >= 0, 'haas.left_delay must be >= 0');
-    assert(left_gain >= 0.015625, 'haas.left_gain must be >= 0.015625');
-    assert(left_gain <= 64, 'haas.left_gain must be <= 64');
-    assert(level_in >= 0.015625, 'haas.level_in must be >= 0.015625');
-    assert(level_in <= 64, 'haas.level_in must be <= 64');
-    assert(level_out >= 0.015625, 'haas.level_out must be >= 0.015625');
-    assert(level_out <= 64, 'haas.level_out must be <= 64');
-    assert(right_balance >= -1, 'haas.right_balance must be >= -1');
-    assert(right_balance <= 1, 'haas.right_balance must be <= 1');
-    assert(right_delay >= 0, 'haas.right_delay must be >= 0');
-    assert(right_gain >= 0.015625, 'haas.right_gain must be >= 0.015625');
-    assert(right_gain <= 64, 'haas.right_gain must be <= 64');
-    assert(side_gain >= 0.015625, 'haas.side_gain must be >= 0.015625');
-    assert(side_gain <= 64, 'haas.side_gain must be <= 64');
+    assert(left_balance >= left_balanceMin, 'haas.left_balance must be >= -1');
+    assert(left_balance <= left_balanceMax, 'haas.left_balance must be <= 1');
+    assert(left_delay >= left_delayMin, 'haas.left_delay must be >= 0');
+    assert(left_gain >= left_gainMin, 'haas.left_gain must be >= 0.015625');
+    assert(left_gain <= left_gainMax, 'haas.left_gain must be <= 64');
+    assert(level_in >= level_inMin, 'haas.level_in must be >= 0.015625');
+    assert(level_in <= level_inMax, 'haas.level_in must be <= 64');
+    assert(level_out >= level_outMin, 'haas.level_out must be >= 0.015625');
+    assert(level_out <= level_outMax, 'haas.level_out must be <= 64');
+    assert(
+        right_balance >= right_balanceMin, 'haas.right_balance must be >= -1');
+    assert(
+        right_balance <= right_balanceMax, 'haas.right_balance must be <= 1');
+    assert(right_delay >= right_delayMin, 'haas.right_delay must be >= 0');
+    assert(right_gain >= right_gainMin, 'haas.right_gain must be >= 0.015625');
+    assert(right_gain <= right_gainMax, 'haas.right_gain must be <= 64');
+    assert(side_gain >= side_gainMin, 'haas.side_gain must be >= 0.015625');
+    assert(side_gain <= side_gainMax, 'haas.side_gain must be <= 64');
     final parts = <String>[];
     if (left_balance != -1.0)
-      parts.add('left_balance=' + left_balance.toStringAsFixed(3));
-    if (left_delay != 2.05)
-      parts.add('left_delay=' + left_delay.toStringAsFixed(3));
-    if (left_gain != 1.0)
-      parts.add('left_gain=' + left_gain.toStringAsFixed(3));
+      parts.add('left_balance=' + _wireDouble(left_balance));
+    if (left_delay != 2.05) parts.add('left_delay=' + _wireDouble(left_delay));
+    if (left_gain != 1.0) parts.add('left_gain=' + _wireDouble(left_gain));
     if (left_phase != false)
       parts.add('left_phase=' + (left_phase ? '1' : '0'));
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_out != 1.0)
-      parts.add('level_out=' + level_out.toStringAsFixed(3));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_out != 1.0) parts.add('level_out=' + _wireDouble(level_out));
     if (middle_phase != false)
       parts.add('middle_phase=' + (middle_phase ? '1' : '0'));
     if (middle_source != HaasSource.mid)
       parts.add('middle_source=' + middle_source.mpvValue);
     if (right_balance != 1.0)
-      parts.add('right_balance=' + right_balance.toStringAsFixed(3));
+      parts.add('right_balance=' + _wireDouble(right_balance));
     if (right_delay != 2.12)
-      parts.add('right_delay=' + right_delay.toStringAsFixed(3));
-    if (right_gain != 1.0)
-      parts.add('right_gain=' + right_gain.toStringAsFixed(3));
+      parts.add('right_delay=' + _wireDouble(right_delay));
+    if (right_gain != 1.0) parts.add('right_gain=' + _wireDouble(right_gain));
     if (right_phase != true)
       parts.add('right_phase=' + (right_phase ? '1' : '0'));
-    if (side_gain != 1.0)
-      parts.add('side_gain=' + side_gain.toStringAsFixed(3));
+    if (side_gain != 1.0) parts.add('side_gain=' + _wireDouble(side_gain));
     return parts.isEmpty ? 'lavfi-haas' : 'lavfi-haas=' + parts.join(':');
   }
 }
@@ -7475,6 +8416,10 @@ final class HaasSettings {
 /// - [force_pe]: Always extend peaks above -3dBFS even if PE isn't signaled. (range 0..1, default 0)
 /// - [process_stereo]: Process the stereo channels together. If target_gain does not match between channels, consider it invalid and use the last valid target_gain. (range 0..1, default HDCD_PROCESS_STEREO_DEFAULT)
 final class HdcdSettings {
+  static const int cdt_msDefault = 2000;
+  static const int cdt_msMin = 100;
+  static const int cdt_msMax = 60000;
+
   final bool enabled;
   final HdcdAnalyzeMode analyze_mode;
   final HdcdBitsPerSample bits_per_sample;
@@ -7535,8 +8480,8 @@ final class HdcdSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(cdt_ms >= 100, 'hdcd.cdt_ms must be >= 100');
-    assert(cdt_ms <= 60000, 'hdcd.cdt_ms must be <= 60000');
+    assert(cdt_ms >= cdt_msMin, 'hdcd.cdt_ms must be >= 100');
+    assert(cdt_ms <= cdt_msMax, 'hdcd.cdt_ms must be <= 60000');
     final parts = <String>[];
     if (analyze_mode != HdcdAnalyzeMode.off)
       parts.add('analyze_mode=' + analyze_mode.mpvValue);
@@ -7569,6 +8514,16 @@ final class HdcdSettings {
 /// - [size]: Set size of frame in number of samples which will be processed at once. Default value is `1024`. Allowed range is from 1024 to 96000. (range 1024..96000, default 1024)
 /// - [type]: Set processing type. Can be `time` or `freq`. `time` is processing audio in time domain which is slow. `freq` is processing audio in frequency domain which is fast. Default is `freq`. (range 0..1, default 1)
 final class HeadphoneSettings {
+  static const double gainDefault = 0.0;
+  static const double gainMin = -20.0;
+  static const double gainMax = 40.0;
+  static const double lfeDefault = 0.0;
+  static const double lfeMin = -20.0;
+  static const double lfeMax = 40.0;
+  static const int sizeDefault = 1024;
+  static const int sizeMin = 1024;
+  static const int sizeMax = 96000;
+
   final bool enabled;
   final double gain;
   final HeadphoneHrir hrir;
@@ -7628,16 +8583,16 @@ final class HeadphoneSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(gain >= -20, 'headphone.gain must be >= -20');
-    assert(gain <= 40, 'headphone.gain must be <= 40');
-    assert(lfe >= -20, 'headphone.lfe must be >= -20');
-    assert(lfe <= 40, 'headphone.lfe must be <= 40');
-    assert(size >= 1024, 'headphone.size must be >= 1024');
-    assert(size <= 96000, 'headphone.size must be <= 96000');
+    assert(gain >= gainMin, 'headphone.gain must be >= -20');
+    assert(gain <= gainMax, 'headphone.gain must be <= 40');
+    assert(lfe >= lfeMin, 'headphone.lfe must be >= -20');
+    assert(lfe <= lfeMax, 'headphone.lfe must be <= 40');
+    assert(size >= sizeMin, 'headphone.size must be >= 1024');
+    assert(size <= sizeMax, 'headphone.size must be <= 96000');
     final parts = <String>[];
-    if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
+    if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
     if (hrir != HeadphoneHrir.stereo) parts.add('hrir=' + hrir.mpvValue);
-    if (lfe != 0.0) parts.add('lfe=' + lfe.toStringAsFixed(3));
+    if (lfe != 0.0) parts.add('lfe=' + _wireDouble(lfe));
     if (map != 'NULL') parts.add('map=' + '[' + map + ']');
     if (size != 1024) parts.add('size=' + size.toString());
     if (type != HeadphoneType.freq) parts.add('type=' + type.mpvValue);
@@ -7677,6 +8632,37 @@ final class HeadphoneSettings {
 /// - [width]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class HighpassSettings {
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double fDefault = 3000.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 3000.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const int pDefault = 2;
+  static const int pMin = 1;
+  static const int pMax = 2;
+  static const int polesDefault = 2;
+  static const int polesMin = 1;
+  static const int polesMax = 2;
+  static const double wDefault = 0.707;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 0.707;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final HighpassTransformType a;
   final int b;
@@ -7828,37 +8814,36 @@ final class HighpassSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'highpass.b must be >= 0');
-    assert(b <= 32768, 'highpass.b must be <= 32768');
-    assert(blocksize >= 0, 'highpass.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'highpass.blocksize must be <= 32768');
-    assert(f >= 0, 'highpass.f must be >= 0');
-    assert(f <= 999999, 'highpass.f must be <= 999999');
-    assert(frequency >= 0, 'highpass.frequency must be >= 0');
-    assert(frequency <= 999999, 'highpass.frequency must be <= 999999');
-    assert(m >= 0, 'highpass.m must be >= 0');
-    assert(m <= 1, 'highpass.m must be <= 1');
-    assert(mix >= 0, 'highpass.mix must be >= 0');
-    assert(mix <= 1, 'highpass.mix must be <= 1');
-    assert(p >= 1, 'highpass.p must be >= 1');
-    assert(p <= 2, 'highpass.p must be <= 2');
-    assert(poles >= 1, 'highpass.poles must be >= 1');
-    assert(poles <= 2, 'highpass.poles must be <= 2');
-    assert(w >= 0, 'highpass.w must be >= 0');
-    assert(w <= 99999, 'highpass.w must be <= 99999');
-    assert(width >= 0, 'highpass.width must be >= 0');
-    assert(width <= 99999, 'highpass.width must be <= 99999');
+    assert(b >= bMin, 'highpass.b must be >= 0');
+    assert(b <= bMax, 'highpass.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'highpass.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'highpass.blocksize must be <= 32768');
+    assert(f >= fMin, 'highpass.f must be >= 0');
+    assert(f <= fMax, 'highpass.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'highpass.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'highpass.frequency must be <= 999999');
+    assert(m >= mMin, 'highpass.m must be >= 0');
+    assert(m <= mMax, 'highpass.m must be <= 1');
+    assert(mix >= mixMin, 'highpass.mix must be >= 0');
+    assert(mix <= mixMax, 'highpass.mix must be <= 1');
+    assert(p >= pMin, 'highpass.p must be >= 1');
+    assert(p <= pMax, 'highpass.p must be <= 2');
+    assert(poles >= polesMin, 'highpass.poles must be >= 1');
+    assert(poles <= polesMax, 'highpass.poles must be <= 2');
+    assert(w >= wMin, 'highpass.w must be >= 0');
+    assert(w <= wMax, 'highpass.w must be <= 99999');
+    assert(width >= widthMin, 'highpass.width must be >= 0');
+    assert(width <= widthMax, 'highpass.width must be <= 99999');
     final parts = <String>[];
     if (a != HighpassTransformType.di) parts.add('a=' + a.mpvValue);
     if (b != 0) parts.add('b=' + b.toString());
     if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 3000.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 3000.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 3000.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
@@ -7869,8 +8854,8 @@ final class HighpassSettings {
     if (t != HighpassWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != HighpassTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 0.707) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 0.707) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 0.707) parts.add('w=' + _wireDouble(w));
+    if (width != 0.707) parts.add('width=' + _wireDouble(width));
     if (width_type != HighpassWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
@@ -7911,6 +8896,43 @@ final class HighpassSettings {
 /// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class HighshelfSettings {
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double fDefault = 3000.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 3000.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double gDefault = 0.0;
+  static const double gMin = -900.0;
+  static const double gMax = 900.0;
+  static const double gainDefault = 0.0;
+  static const double gainMin = -900.0;
+  static const double gainMax = 900.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const int pDefault = 2;
+  static const int pMin = 1;
+  static const int pMax = 2;
+  static const int polesDefault = 2;
+  static const int polesMin = 1;
+  static const int polesMax = 2;
+  static const double wDefault = 0.5;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 0.5;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final HighshelfTransformType a;
   final int b;
@@ -8074,43 +9096,42 @@ final class HighshelfSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'highshelf.b must be >= 0');
-    assert(b <= 32768, 'highshelf.b must be <= 32768');
-    assert(blocksize >= 0, 'highshelf.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'highshelf.blocksize must be <= 32768');
-    assert(f >= 0, 'highshelf.f must be >= 0');
-    assert(f <= 999999, 'highshelf.f must be <= 999999');
-    assert(frequency >= 0, 'highshelf.frequency must be >= 0');
-    assert(frequency <= 999999, 'highshelf.frequency must be <= 999999');
-    assert(g >= -900, 'highshelf.g must be >= -900');
-    assert(g <= 900, 'highshelf.g must be <= 900');
-    assert(gain >= -900, 'highshelf.gain must be >= -900');
-    assert(gain <= 900, 'highshelf.gain must be <= 900');
-    assert(m >= 0, 'highshelf.m must be >= 0');
-    assert(m <= 1, 'highshelf.m must be <= 1');
-    assert(mix >= 0, 'highshelf.mix must be >= 0');
-    assert(mix <= 1, 'highshelf.mix must be <= 1');
-    assert(p >= 1, 'highshelf.p must be >= 1');
-    assert(p <= 2, 'highshelf.p must be <= 2');
-    assert(poles >= 1, 'highshelf.poles must be >= 1');
-    assert(poles <= 2, 'highshelf.poles must be <= 2');
-    assert(w >= 0, 'highshelf.w must be >= 0');
-    assert(w <= 99999, 'highshelf.w must be <= 99999');
-    assert(width >= 0, 'highshelf.width must be >= 0');
-    assert(width <= 99999, 'highshelf.width must be <= 99999');
+    assert(b >= bMin, 'highshelf.b must be >= 0');
+    assert(b <= bMax, 'highshelf.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'highshelf.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'highshelf.blocksize must be <= 32768');
+    assert(f >= fMin, 'highshelf.f must be >= 0');
+    assert(f <= fMax, 'highshelf.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'highshelf.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'highshelf.frequency must be <= 999999');
+    assert(g >= gMin, 'highshelf.g must be >= -900');
+    assert(g <= gMax, 'highshelf.g must be <= 900');
+    assert(gain >= gainMin, 'highshelf.gain must be >= -900');
+    assert(gain <= gainMax, 'highshelf.gain must be <= 900');
+    assert(m >= mMin, 'highshelf.m must be >= 0');
+    assert(m <= mMax, 'highshelf.m must be <= 1');
+    assert(mix >= mixMin, 'highshelf.mix must be >= 0');
+    assert(mix <= mixMax, 'highshelf.mix must be <= 1');
+    assert(p >= pMin, 'highshelf.p must be >= 1');
+    assert(p <= pMax, 'highshelf.p must be <= 2');
+    assert(poles >= polesMin, 'highshelf.poles must be >= 1');
+    assert(poles <= polesMax, 'highshelf.poles must be <= 2');
+    assert(w >= wMin, 'highshelf.w must be >= 0');
+    assert(w <= wMax, 'highshelf.w must be <= 99999');
+    assert(width >= widthMin, 'highshelf.width must be >= 0');
+    assert(width <= widthMax, 'highshelf.width must be <= 99999');
     final parts = <String>[];
     if (a != HighshelfTransformType.di) parts.add('a=' + a.mpvValue);
     if (b != 0) parts.add('b=' + b.toString());
     if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 3000.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
-    if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 3000.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 3000.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (g != 0.0) parts.add('g=' + _wireDouble(g));
+    if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
@@ -8121,8 +9142,8 @@ final class HighshelfSettings {
     if (t != HighshelfWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != HighshelfTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 0.5) parts.add('w=' + _wireDouble(w));
+    if (width != 0.5) parts.add('width=' + _wireDouble(width));
     if (width_type != HighshelfWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
@@ -8160,6 +9181,49 @@ final class HighshelfSettings {
 /// - [print_format]: Set print format for stats. Options are summary, json, or none. Default value is none. (default NONE)
 /// - [tp]: Set maximum true peak. Range is -9.0 - +0.0. Default value is -2.0. (range -9.0..0.0, default -2.)
 final class LoudnormSettings {
+  static const double IDefault = -24.0;
+  static const double IMin = -70.0;
+  static const double IMax = -5.0;
+  static const double LRADefault = 7.0;
+  static const double LRAMin = 1.0;
+  static const double LRAMax = 50.0;
+  static const double TPDefault = -2.0;
+  static const double TPMin = -9.0;
+  static const double TPMax = 0.0;
+  static const double iDefault = -24.0;
+  static const double iMin = -70.0;
+  static const double iMax = -5.0;
+  static const double lraDefault = 7.0;
+  static const double lraMin = 1.0;
+  static const double lraMax = 50.0;
+  static const double measured_IDefault = 0.0;
+  static const double measured_IMin = -99.0;
+  static const double measured_IMax = 0.0;
+  static const double measured_LRADefault = 0.0;
+  static const double measured_LRAMin = 0.0;
+  static const double measured_LRAMax = 99.0;
+  static const double measured_TPDefault = 99.0;
+  static const double measured_TPMin = -99.0;
+  static const double measured_TPMax = 99.0;
+  static const double measured_iDefault = 0.0;
+  static const double measured_iMin = -99.0;
+  static const double measured_iMax = 0.0;
+  static const double measured_lraDefault = 0.0;
+  static const double measured_lraMin = 0.0;
+  static const double measured_lraMax = 99.0;
+  static const double measured_threshDefault = -70.0;
+  static const double measured_threshMin = -99.0;
+  static const double measured_threshMax = 0.0;
+  static const double measured_tpDefault = 99.0;
+  static const double measured_tpMin = -99.0;
+  static const double measured_tpMax = 99.0;
+  static const double offsetDefault = 0.0;
+  static const double offsetMin = -99.0;
+  static const double offsetMax = 99.0;
+  static const double tpDefault = -2.0;
+  static const double tpMin = -9.0;
+  static const double tpMax = 0.0;
+
   final bool enabled;
   final double I;
   final double LRA;
@@ -8292,61 +9356,68 @@ final class LoudnormSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(I >= -70.0, 'loudnorm.I must be >= -70.0');
-    assert(I <= -5.0, 'loudnorm.I must be <= -5.0');
-    assert(LRA >= 1.0, 'loudnorm.LRA must be >= 1.0');
-    assert(LRA <= 50.0, 'loudnorm.LRA must be <= 50.0');
-    assert(TP >= -9.0, 'loudnorm.TP must be >= -9.0');
-    assert(TP <= 0.0, 'loudnorm.TP must be <= 0.0');
-    assert(i >= -70.0, 'loudnorm.i must be >= -70.0');
-    assert(i <= -5.0, 'loudnorm.i must be <= -5.0');
-    assert(lra >= 1.0, 'loudnorm.lra must be >= 1.0');
-    assert(lra <= 50.0, 'loudnorm.lra must be <= 50.0');
-    assert(measured_I >= -99.0, 'loudnorm.measured_I must be >= -99.0');
-    assert(measured_I <= 0.0, 'loudnorm.measured_I must be <= 0.0');
-    assert(measured_LRA >= 0.0, 'loudnorm.measured_LRA must be >= 0.0');
-    assert(measured_LRA <= 99.0, 'loudnorm.measured_LRA must be <= 99.0');
-    assert(measured_TP >= -99.0, 'loudnorm.measured_TP must be >= -99.0');
-    assert(measured_TP <= 99.0, 'loudnorm.measured_TP must be <= 99.0');
-    assert(measured_i >= -99.0, 'loudnorm.measured_i must be >= -99.0');
-    assert(measured_i <= 0.0, 'loudnorm.measured_i must be <= 0.0');
-    assert(measured_lra >= 0.0, 'loudnorm.measured_lra must be >= 0.0');
-    assert(measured_lra <= 99.0, 'loudnorm.measured_lra must be <= 99.0');
+    assert(I >= IMin, 'loudnorm.I must be >= -70.0');
+    assert(I <= IMax, 'loudnorm.I must be <= -5.0');
+    assert(LRA >= LRAMin, 'loudnorm.LRA must be >= 1.0');
+    assert(LRA <= LRAMax, 'loudnorm.LRA must be <= 50.0');
+    assert(TP >= TPMin, 'loudnorm.TP must be >= -9.0');
+    assert(TP <= TPMax, 'loudnorm.TP must be <= 0.0');
+    assert(i >= iMin, 'loudnorm.i must be >= -70.0');
+    assert(i <= iMax, 'loudnorm.i must be <= -5.0');
+    assert(lra >= lraMin, 'loudnorm.lra must be >= 1.0');
+    assert(lra <= lraMax, 'loudnorm.lra must be <= 50.0');
+    assert(measured_I >= measured_IMin, 'loudnorm.measured_I must be >= -99.0');
+    assert(measured_I <= measured_IMax, 'loudnorm.measured_I must be <= 0.0');
+    assert(measured_LRA >= measured_LRAMin,
+        'loudnorm.measured_LRA must be >= 0.0');
+    assert(measured_LRA <= measured_LRAMax,
+        'loudnorm.measured_LRA must be <= 99.0');
     assert(
-        measured_thresh >= -99.0, 'loudnorm.measured_thresh must be >= -99.0');
-    assert(measured_thresh <= 0.0, 'loudnorm.measured_thresh must be <= 0.0');
-    assert(measured_tp >= -99.0, 'loudnorm.measured_tp must be >= -99.0');
-    assert(measured_tp <= 99.0, 'loudnorm.measured_tp must be <= 99.0');
-    assert(offset >= -99.0, 'loudnorm.offset must be >= -99.0');
-    assert(offset <= 99.0, 'loudnorm.offset must be <= 99.0');
-    assert(tp >= -9.0, 'loudnorm.tp must be >= -9.0');
-    assert(tp <= 0.0, 'loudnorm.tp must be <= 0.0');
+        measured_TP >= measured_TPMin, 'loudnorm.measured_TP must be >= -99.0');
+    assert(
+        measured_TP <= measured_TPMax, 'loudnorm.measured_TP must be <= 99.0');
+    assert(measured_i >= measured_iMin, 'loudnorm.measured_i must be >= -99.0');
+    assert(measured_i <= measured_iMax, 'loudnorm.measured_i must be <= 0.0');
+    assert(measured_lra >= measured_lraMin,
+        'loudnorm.measured_lra must be >= 0.0');
+    assert(measured_lra <= measured_lraMax,
+        'loudnorm.measured_lra must be <= 99.0');
+    assert(measured_thresh >= measured_threshMin,
+        'loudnorm.measured_thresh must be >= -99.0');
+    assert(measured_thresh <= measured_threshMax,
+        'loudnorm.measured_thresh must be <= 0.0');
+    assert(
+        measured_tp >= measured_tpMin, 'loudnorm.measured_tp must be >= -99.0');
+    assert(
+        measured_tp <= measured_tpMax, 'loudnorm.measured_tp must be <= 99.0');
+    assert(offset >= offsetMin, 'loudnorm.offset must be >= -99.0');
+    assert(offset <= offsetMax, 'loudnorm.offset must be <= 99.0');
+    assert(tp >= tpMin, 'loudnorm.tp must be >= -9.0');
+    assert(tp <= tpMax, 'loudnorm.tp must be <= 0.0');
     final parts = <String>[];
-    if (I != -24.0) parts.add('I=' + I.toStringAsFixed(3));
-    if (LRA != 7.0) parts.add('LRA=' + LRA.toStringAsFixed(3));
-    if (TP != -2.0) parts.add('TP=' + TP.toStringAsFixed(3));
+    if (I != -24.0) parts.add('I=' + _wireDouble(I));
+    if (LRA != 7.0) parts.add('LRA=' + _wireDouble(LRA));
+    if (TP != -2.0) parts.add('TP=' + _wireDouble(TP));
     if (dual_mono != false) parts.add('dual_mono=' + (dual_mono ? '1' : '0'));
-    if (i != -24.0) parts.add('i=' + i.toStringAsFixed(3));
+    if (i != -24.0) parts.add('i=' + _wireDouble(i));
     if (linear != true) parts.add('linear=' + (linear ? '1' : '0'));
-    if (lra != 7.0) parts.add('lra=' + lra.toStringAsFixed(3));
-    if (measured_I != 0.0)
-      parts.add('measured_I=' + measured_I.toStringAsFixed(3));
+    if (lra != 7.0) parts.add('lra=' + _wireDouble(lra));
+    if (measured_I != 0.0) parts.add('measured_I=' + _wireDouble(measured_I));
     if (measured_LRA != 0.0)
-      parts.add('measured_LRA=' + measured_LRA.toStringAsFixed(3));
+      parts.add('measured_LRA=' + _wireDouble(measured_LRA));
     if (measured_TP != 99.0)
-      parts.add('measured_TP=' + measured_TP.toStringAsFixed(3));
-    if (measured_i != 0.0)
-      parts.add('measured_i=' + measured_i.toStringAsFixed(3));
+      parts.add('measured_TP=' + _wireDouble(measured_TP));
+    if (measured_i != 0.0) parts.add('measured_i=' + _wireDouble(measured_i));
     if (measured_lra != 0.0)
-      parts.add('measured_lra=' + measured_lra.toStringAsFixed(3));
+      parts.add('measured_lra=' + _wireDouble(measured_lra));
     if (measured_thresh != -70.0)
-      parts.add('measured_thresh=' + measured_thresh.toStringAsFixed(3));
+      parts.add('measured_thresh=' + _wireDouble(measured_thresh));
     if (measured_tp != 99.0)
-      parts.add('measured_tp=' + measured_tp.toStringAsFixed(3));
-    if (offset != 0.0) parts.add('offset=' + offset.toStringAsFixed(3));
+      parts.add('measured_tp=' + _wireDouble(measured_tp));
+    if (offset != 0.0) parts.add('offset=' + _wireDouble(offset));
     if (print_format != LoudnormPrintFormat.none)
       parts.add('print_format=' + print_format.mpvValue);
-    if (tp != -2.0) parts.add('tp=' + tp.toStringAsFixed(3));
+    if (tp != -2.0) parts.add('tp=' + _wireDouble(tp));
     return parts.isEmpty
         ? 'lavfi-loudnorm'
         : 'lavfi-loudnorm=' + parts.join(':');
@@ -8383,6 +9454,37 @@ final class LoudnormSettings {
 /// - [width]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class LowpassSettings {
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double fDefault = 500.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 500.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const int pDefault = 2;
+  static const int pMin = 1;
+  static const int pMax = 2;
+  static const int polesDefault = 2;
+  static const int polesMin = 1;
+  static const int polesMax = 2;
+  static const double wDefault = 0.707;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 0.707;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final LowpassTransformType a;
   final int b;
@@ -8534,37 +9636,36 @@ final class LowpassSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'lowpass.b must be >= 0');
-    assert(b <= 32768, 'lowpass.b must be <= 32768');
-    assert(blocksize >= 0, 'lowpass.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'lowpass.blocksize must be <= 32768');
-    assert(f >= 0, 'lowpass.f must be >= 0');
-    assert(f <= 999999, 'lowpass.f must be <= 999999');
-    assert(frequency >= 0, 'lowpass.frequency must be >= 0');
-    assert(frequency <= 999999, 'lowpass.frequency must be <= 999999');
-    assert(m >= 0, 'lowpass.m must be >= 0');
-    assert(m <= 1, 'lowpass.m must be <= 1');
-    assert(mix >= 0, 'lowpass.mix must be >= 0');
-    assert(mix <= 1, 'lowpass.mix must be <= 1');
-    assert(p >= 1, 'lowpass.p must be >= 1');
-    assert(p <= 2, 'lowpass.p must be <= 2');
-    assert(poles >= 1, 'lowpass.poles must be >= 1');
-    assert(poles <= 2, 'lowpass.poles must be <= 2');
-    assert(w >= 0, 'lowpass.w must be >= 0');
-    assert(w <= 99999, 'lowpass.w must be <= 99999');
-    assert(width >= 0, 'lowpass.width must be >= 0');
-    assert(width <= 99999, 'lowpass.width must be <= 99999');
+    assert(b >= bMin, 'lowpass.b must be >= 0');
+    assert(b <= bMax, 'lowpass.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'lowpass.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'lowpass.blocksize must be <= 32768');
+    assert(f >= fMin, 'lowpass.f must be >= 0');
+    assert(f <= fMax, 'lowpass.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'lowpass.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'lowpass.frequency must be <= 999999');
+    assert(m >= mMin, 'lowpass.m must be >= 0');
+    assert(m <= mMax, 'lowpass.m must be <= 1');
+    assert(mix >= mixMin, 'lowpass.mix must be >= 0');
+    assert(mix <= mixMax, 'lowpass.mix must be <= 1');
+    assert(p >= pMin, 'lowpass.p must be >= 1');
+    assert(p <= pMax, 'lowpass.p must be <= 2');
+    assert(poles >= polesMin, 'lowpass.poles must be >= 1');
+    assert(poles <= polesMax, 'lowpass.poles must be <= 2');
+    assert(w >= wMin, 'lowpass.w must be >= 0');
+    assert(w <= wMax, 'lowpass.w must be <= 99999');
+    assert(width >= widthMin, 'lowpass.width must be >= 0');
+    assert(width <= widthMax, 'lowpass.width must be <= 99999');
     final parts = <String>[];
     if (a != LowpassTransformType.di) parts.add('a=' + a.mpvValue);
     if (b != 0) parts.add('b=' + b.toString());
     if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (f != 500.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 500.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 500.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 500.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
@@ -8575,8 +9676,8 @@ final class LowpassSettings {
     if (t != LowpassWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != LowpassTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 0.707) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 0.707) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 0.707) parts.add('w=' + _wireDouble(w));
+    if (width != 0.707) parts.add('width=' + _wireDouble(width));
     if (width_type != LowpassWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-lowpass' : 'lavfi-lowpass=' + parts.join(':');
@@ -8615,6 +9716,43 @@ final class LowpassSettings {
 /// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class LowshelfSettings {
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double fDefault = 100.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 100.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double gDefault = 0.0;
+  static const double gMin = -900.0;
+  static const double gMax = 900.0;
+  static const double gainDefault = 0.0;
+  static const double gainMin = -900.0;
+  static const double gainMax = 900.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const int pDefault = 2;
+  static const int pMin = 1;
+  static const int pMax = 2;
+  static const int polesDefault = 2;
+  static const int polesMin = 1;
+  static const int polesMax = 2;
+  static const double wDefault = 0.5;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 0.5;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final LowshelfTransformType a;
   final int b;
@@ -8778,43 +9916,42 @@ final class LowshelfSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'lowshelf.b must be >= 0');
-    assert(b <= 32768, 'lowshelf.b must be <= 32768');
-    assert(blocksize >= 0, 'lowshelf.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'lowshelf.blocksize must be <= 32768');
-    assert(f >= 0, 'lowshelf.f must be >= 0');
-    assert(f <= 999999, 'lowshelf.f must be <= 999999');
-    assert(frequency >= 0, 'lowshelf.frequency must be >= 0');
-    assert(frequency <= 999999, 'lowshelf.frequency must be <= 999999');
-    assert(g >= -900, 'lowshelf.g must be >= -900');
-    assert(g <= 900, 'lowshelf.g must be <= 900');
-    assert(gain >= -900, 'lowshelf.gain must be >= -900');
-    assert(gain <= 900, 'lowshelf.gain must be <= 900');
-    assert(m >= 0, 'lowshelf.m must be >= 0');
-    assert(m <= 1, 'lowshelf.m must be <= 1');
-    assert(mix >= 0, 'lowshelf.mix must be >= 0');
-    assert(mix <= 1, 'lowshelf.mix must be <= 1');
-    assert(p >= 1, 'lowshelf.p must be >= 1');
-    assert(p <= 2, 'lowshelf.p must be <= 2');
-    assert(poles >= 1, 'lowshelf.poles must be >= 1');
-    assert(poles <= 2, 'lowshelf.poles must be <= 2');
-    assert(w >= 0, 'lowshelf.w must be >= 0');
-    assert(w <= 99999, 'lowshelf.w must be <= 99999');
-    assert(width >= 0, 'lowshelf.width must be >= 0');
-    assert(width <= 99999, 'lowshelf.width must be <= 99999');
+    assert(b >= bMin, 'lowshelf.b must be >= 0');
+    assert(b <= bMax, 'lowshelf.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'lowshelf.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'lowshelf.blocksize must be <= 32768');
+    assert(f >= fMin, 'lowshelf.f must be >= 0');
+    assert(f <= fMax, 'lowshelf.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'lowshelf.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'lowshelf.frequency must be <= 999999');
+    assert(g >= gMin, 'lowshelf.g must be >= -900');
+    assert(g <= gMax, 'lowshelf.g must be <= 900');
+    assert(gain >= gainMin, 'lowshelf.gain must be >= -900');
+    assert(gain <= gainMax, 'lowshelf.gain must be <= 900');
+    assert(m >= mMin, 'lowshelf.m must be >= 0');
+    assert(m <= mMax, 'lowshelf.m must be <= 1');
+    assert(mix >= mixMin, 'lowshelf.mix must be >= 0');
+    assert(mix <= mixMax, 'lowshelf.mix must be <= 1');
+    assert(p >= pMin, 'lowshelf.p must be >= 1');
+    assert(p <= pMax, 'lowshelf.p must be <= 2');
+    assert(poles >= polesMin, 'lowshelf.poles must be >= 1');
+    assert(poles <= polesMax, 'lowshelf.poles must be <= 2');
+    assert(w >= wMin, 'lowshelf.w must be >= 0');
+    assert(w <= wMax, 'lowshelf.w must be <= 99999');
+    assert(width >= widthMin, 'lowshelf.width must be >= 0');
+    assert(width <= widthMax, 'lowshelf.width must be <= 99999');
     final parts = <String>[];
     if (a != LowshelfTransformType.di) parts.add('a=' + a.mpvValue);
     if (b != 0) parts.add('b=' + b.toString());
     if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (f != 100.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 100.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
-    if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 100.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 100.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (g != 0.0) parts.add('g=' + _wireDouble(g));
+    if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
@@ -8825,8 +9962,8 @@ final class LowshelfSettings {
     if (t != LowshelfWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != LowshelfTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 0.5) parts.add('w=' + _wireDouble(w));
+    if (width != 0.5) parts.add('width=' + _wireDouble(width));
     if (width_type != LowshelfWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
@@ -8961,6 +10098,13 @@ final class PanSettings {
 /// - [transients]: Set transients detector. Possible values are: (default 0)
 /// - [window]: set window (default 0)
 final class RubberbandSettings {
+  static const double pitchDefault = 1.0;
+  static const double pitchMin = 0.01;
+  static const double pitchMax = 100.0;
+  static const double tempoDefault = 1.0;
+  static const double tempoMin = 0.01;
+  static const double tempoMax = 100.0;
+
   final bool enabled;
   final RubberbandChannels? channels;
   final RubberbandDetector? detector;
@@ -9054,19 +10198,19 @@ final class RubberbandSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(pitch >= 0.01, 'rubberband.pitch must be >= 0.01');
-    assert(pitch <= 100, 'rubberband.pitch must be <= 100');
-    assert(tempo >= 0.01, 'rubberband.tempo must be >= 0.01');
-    assert(tempo <= 100, 'rubberband.tempo must be <= 100');
+    assert(pitch >= pitchMin, 'rubberband.pitch must be >= 0.01');
+    assert(pitch <= pitchMax, 'rubberband.pitch must be <= 100');
+    assert(tempo >= tempoMin, 'rubberband.tempo must be >= 0.01');
+    assert(tempo <= tempoMax, 'rubberband.tempo must be <= 100');
     final parts = <String>[];
     if (channels != null) parts.add('channels=' + channels!.mpvValue);
     if (detector != null) parts.add('detector=' + detector!.mpvValue);
     if (formant != null) parts.add('formant=' + formant!.mpvValue);
     if (phase != null) parts.add('phase=' + phase!.mpvValue);
-    if (pitch != 1.0) parts.add('pitch=' + pitch.toStringAsFixed(3));
+    if (pitch != 1.0) parts.add('pitch=' + _wireDouble(pitch));
     if (pitchq != null) parts.add('pitchq=' + pitchq!.mpvValue);
     if (smoothing != null) parts.add('smoothing=' + smoothing!.mpvValue);
-    if (tempo != 1.0) parts.add('tempo=' + tempo.toStringAsFixed(3));
+    if (tempo != 1.0) parts.add('tempo=' + _wireDouble(tempo));
     if (transients != null) parts.add('transients=' + transients!.mpvValue);
     if (window != null) parts.add('window=' + window!.mpvValue);
     return parts.isEmpty
@@ -9096,6 +10240,17 @@ final class RubberbandSettings {
 /// - [timestamp]: Set processing mode of every audio frame output timestamp. (default TS_WRITE)
 /// - [window]: Set duration in number of seconds used to calculate size of window in number of samples for detecting silence. Using `0` will effectively disable any windowing and use only single sample per channel for silence detection. In that case it may be needed to also set @option{start_silence} and/or @option{stop_silence} to nonzero values with also @option{start_duration} and/or @option{stop_duration} to nonzero values. Default value is `0.02`. Allowed range is from `0` to `10`. (range 0..100000000, default 20000)
 final class SilenceremoveSettings {
+  static const int start_periodsDefault = 0;
+  static const int start_periodsMin = 0;
+  static const int start_periodsMax = 9000;
+  static const double start_thresholdDefault = 0.0;
+  static const double start_thresholdMin = 0.0;
+  static const int stop_periodsDefault = 0;
+  static const int stop_periodsMin = -9000;
+  static const int stop_periodsMax = 9000;
+  static const double stop_thresholdDefault = 0.0;
+  static const double stop_thresholdMin = 0.0;
+
   final bool enabled;
   final SilenceremoveDetection detection;
   final Duration start_duration;
@@ -9206,43 +10361,47 @@ final class SilenceremoveSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(start_periods >= 0, 'silenceremove.start_periods must be >= 0');
-    assert(
-        start_periods <= 9000, 'silenceremove.start_periods must be <= 9000');
-    assert(start_threshold >= 0, 'silenceremove.start_threshold must be >= 0');
-    assert(
-        stop_periods >= -9000, 'silenceremove.stop_periods must be >= -9000');
-    assert(stop_periods <= 9000, 'silenceremove.stop_periods must be <= 9000');
-    assert(stop_threshold >= 0, 'silenceremove.stop_threshold must be >= 0');
+    assert(start_periods >= start_periodsMin,
+        'silenceremove.start_periods must be >= 0');
+    assert(start_periods <= start_periodsMax,
+        'silenceremove.start_periods must be <= 9000');
+    assert(start_threshold >= start_thresholdMin,
+        'silenceremove.start_threshold must be >= 0');
+    assert(stop_periods >= stop_periodsMin,
+        'silenceremove.stop_periods must be >= -9000');
+    assert(stop_periods <= stop_periodsMax,
+        'silenceremove.stop_periods must be <= 9000');
+    assert(stop_threshold >= stop_thresholdMin,
+        'silenceremove.stop_threshold must be >= 0');
     final parts = <String>[];
     if (detection != SilenceremoveDetection.rms)
       parts.add('detection=' + detection.mpvValue);
     if (start_duration != const Duration(microseconds: 0))
-      parts.add('start_duration=' +
-          (start_duration.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add(
+          'start_duration=' + _wireDouble(start_duration.inMicroseconds / 1e6));
     if (start_mode != SilenceremoveMode.any)
       parts.add('start_mode=' + start_mode.mpvValue);
     if (start_periods != 0)
       parts.add('start_periods=' + start_periods.toString());
     if (start_silence != const Duration(microseconds: 0))
-      parts.add('start_silence=' +
-          (start_silence.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add(
+          'start_silence=' + _wireDouble(start_silence.inMicroseconds / 1e6));
     if (start_threshold != 0.0)
-      parts.add('start_threshold=' + start_threshold.toStringAsFixed(3));
+      parts.add('start_threshold=' + _wireDouble(start_threshold));
     if (stop_duration != const Duration(microseconds: 0))
-      parts.add('stop_duration=' +
-          (stop_duration.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add(
+          'stop_duration=' + _wireDouble(stop_duration.inMicroseconds / 1e6));
     if (stop_mode != SilenceremoveMode.all)
       parts.add('stop_mode=' + stop_mode.mpvValue);
     if (stop_periods != 0) parts.add('stop_periods=' + stop_periods.toString());
     if (stop_silence != const Duration(microseconds: 0))
-      parts.add('stop_silence=' +
-          (stop_silence.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add(
+          'stop_silence=' + _wireDouble(stop_silence.inMicroseconds / 1e6));
     if (stop_threshold != 0.0)
-      parts.add('stop_threshold=' + stop_threshold.toStringAsFixed(3));
+      parts.add('stop_threshold=' + _wireDouble(stop_threshold));
     if (timestamp != null) parts.add('timestamp=' + timestamp!.mpvValue);
     if (window != const Duration(microseconds: 20000))
-      parts.add('window=' + (window.inMicroseconds / 1e6).toStringAsFixed(3));
+      parts.add('window=' + _wireDouble(window.inMicroseconds / 1e6));
     return parts.isEmpty
         ? 'lavfi-silenceremove'
         : 'lavfi-silenceremove=' + parts.join(':');
@@ -9281,6 +10440,49 @@ final class SilenceremoveSettings {
 /// - [t]: Set the threshold value. Default value is 0.0. Allowed range is from 0.0 to 1.0. This option specifies which half-cycles of samples will be compressed and which will be expanded. Any half-cycle samples with their local peak value below or same as this option value will be compressed by current compression factor, otherwise, if greater than threshold value they will be expanded with expansion factor so that it could reach peak target value but never surpass it. (range 0.0..1.0, default 0)
 /// - [threshold]: Set the threshold value. Default value is 0.0. Allowed range is from 0.0 to 1.0. This option specifies which half-cycles of samples will be compressed and which will be expanded. Any half-cycle samples with their local peak value below or same as this option value will be compressed by current compression factor, otherwise, if greater than threshold value they will be expanded with expansion factor so that it could reach peak target value but never surpass it. (range 0.0..1.0, default 0)
 final class SpeechnormSettings {
+  static const double cDefault = 2.0;
+  static const double cMin = 1.0;
+  static const double cMax = 50.0;
+  static const double compressionDefault = 2.0;
+  static const double compressionMin = 1.0;
+  static const double compressionMax = 50.0;
+  static const double eDefault = 2.0;
+  static const double eMin = 1.0;
+  static const double eMax = 50.0;
+  static const double expansionDefault = 2.0;
+  static const double expansionMin = 1.0;
+  static const double expansionMax = 50.0;
+  static const double fDefault = 0.001;
+  static const double fMin = 0.0;
+  static const double fMax = 1.0;
+  static const double fallDefault = 0.001;
+  static const double fallMin = 0.0;
+  static const double fallMax = 1.0;
+  static const double mDefault = 0.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double pDefault = 0.95;
+  static const double pMin = 0.0;
+  static const double pMax = 1.0;
+  static const double peakDefault = 0.95;
+  static const double peakMin = 0.0;
+  static const double peakMax = 1.0;
+  static const double rDefault = 0.001;
+  static const double rMin = 0.0;
+  static const double rMax = 1.0;
+  static const double raiseDefault = 0.001;
+  static const double raiseMin = 0.0;
+  static const double raiseMax = 1.0;
+  static const double rmsDefault = 0.0;
+  static const double rmsMin = 0.0;
+  static const double rmsMax = 1.0;
+  static const double tDefault = 0.0;
+  static const double tMin = 0.0;
+  static const double tMax = 1.0;
+  static const double thresholdDefault = 0.0;
+  static const double thresholdMin = 0.0;
+  static const double thresholdMax = 1.0;
+
   final bool enabled;
   final double c;
   final String channels;
@@ -9432,58 +10634,58 @@ final class SpeechnormSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(c >= 1.0, 'speechnorm.c must be >= 1.0');
-    assert(c <= 50.0, 'speechnorm.c must be <= 50.0');
-    assert(compression >= 1.0, 'speechnorm.compression must be >= 1.0');
-    assert(compression <= 50.0, 'speechnorm.compression must be <= 50.0');
-    assert(e >= 1.0, 'speechnorm.e must be >= 1.0');
-    assert(e <= 50.0, 'speechnorm.e must be <= 50.0');
-    assert(expansion >= 1.0, 'speechnorm.expansion must be >= 1.0');
-    assert(expansion <= 50.0, 'speechnorm.expansion must be <= 50.0');
-    assert(f >= 0.0, 'speechnorm.f must be >= 0.0');
-    assert(f <= 1.0, 'speechnorm.f must be <= 1.0');
-    assert(fall >= 0.0, 'speechnorm.fall must be >= 0.0');
-    assert(fall <= 1.0, 'speechnorm.fall must be <= 1.0');
-    assert(m >= 0.0, 'speechnorm.m must be >= 0.0');
-    assert(m <= 1.0, 'speechnorm.m must be <= 1.0');
-    assert(p >= 0.0, 'speechnorm.p must be >= 0.0');
-    assert(p <= 1.0, 'speechnorm.p must be <= 1.0');
-    assert(peak >= 0.0, 'speechnorm.peak must be >= 0.0');
-    assert(peak <= 1.0, 'speechnorm.peak must be <= 1.0');
-    assert(r >= 0.0, 'speechnorm.r must be >= 0.0');
-    assert(r <= 1.0, 'speechnorm.r must be <= 1.0');
-    assert(raise >= 0.0, 'speechnorm.raise must be >= 0.0');
-    assert(raise <= 1.0, 'speechnorm.raise must be <= 1.0');
-    assert(rms >= 0.0, 'speechnorm.rms must be >= 0.0');
-    assert(rms <= 1.0, 'speechnorm.rms must be <= 1.0');
-    assert(t >= 0.0, 'speechnorm.t must be >= 0.0');
-    assert(t <= 1.0, 'speechnorm.t must be <= 1.0');
-    assert(threshold >= 0.0, 'speechnorm.threshold must be >= 0.0');
-    assert(threshold <= 1.0, 'speechnorm.threshold must be <= 1.0');
+    assert(c >= cMin, 'speechnorm.c must be >= 1.0');
+    assert(c <= cMax, 'speechnorm.c must be <= 50.0');
+    assert(
+        compression >= compressionMin, 'speechnorm.compression must be >= 1.0');
+    assert(compression <= compressionMax,
+        'speechnorm.compression must be <= 50.0');
+    assert(e >= eMin, 'speechnorm.e must be >= 1.0');
+    assert(e <= eMax, 'speechnorm.e must be <= 50.0');
+    assert(expansion >= expansionMin, 'speechnorm.expansion must be >= 1.0');
+    assert(expansion <= expansionMax, 'speechnorm.expansion must be <= 50.0');
+    assert(f >= fMin, 'speechnorm.f must be >= 0.0');
+    assert(f <= fMax, 'speechnorm.f must be <= 1.0');
+    assert(fall >= fallMin, 'speechnorm.fall must be >= 0.0');
+    assert(fall <= fallMax, 'speechnorm.fall must be <= 1.0');
+    assert(m >= mMin, 'speechnorm.m must be >= 0.0');
+    assert(m <= mMax, 'speechnorm.m must be <= 1.0');
+    assert(p >= pMin, 'speechnorm.p must be >= 0.0');
+    assert(p <= pMax, 'speechnorm.p must be <= 1.0');
+    assert(peak >= peakMin, 'speechnorm.peak must be >= 0.0');
+    assert(peak <= peakMax, 'speechnorm.peak must be <= 1.0');
+    assert(r >= rMin, 'speechnorm.r must be >= 0.0');
+    assert(r <= rMax, 'speechnorm.r must be <= 1.0');
+    assert(raise >= raiseMin, 'speechnorm.raise must be >= 0.0');
+    assert(raise <= raiseMax, 'speechnorm.raise must be <= 1.0');
+    assert(rms >= rmsMin, 'speechnorm.rms must be >= 0.0');
+    assert(rms <= rmsMax, 'speechnorm.rms must be <= 1.0');
+    assert(t >= tMin, 'speechnorm.t must be >= 0.0');
+    assert(t <= tMax, 'speechnorm.t must be <= 1.0');
+    assert(threshold >= thresholdMin, 'speechnorm.threshold must be >= 0.0');
+    assert(threshold <= thresholdMax, 'speechnorm.threshold must be <= 1.0');
     final parts = <String>[];
-    if (c != 2.0) parts.add('c=' + c.toStringAsFixed(3));
+    if (c != 2.0) parts.add('c=' + _wireDouble(c));
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (compression != 2.0)
-      parts.add('compression=' + compression.toStringAsFixed(3));
-    if (e != 2.0) parts.add('e=' + e.toStringAsFixed(3));
-    if (expansion != 2.0)
-      parts.add('expansion=' + expansion.toStringAsFixed(3));
-    if (f != 0.001) parts.add('f=' + f.toStringAsFixed(3));
-    if (fall != 0.001) parts.add('fall=' + fall.toStringAsFixed(3));
+      parts.add('compression=' + _wireDouble(compression));
+    if (e != 2.0) parts.add('e=' + _wireDouble(e));
+    if (expansion != 2.0) parts.add('expansion=' + _wireDouble(expansion));
+    if (f != 0.001) parts.add('f=' + _wireDouble(f));
+    if (fall != 0.001) parts.add('fall=' + _wireDouble(fall));
     if (h != 'all') parts.add('h=' + '[' + h + ']');
     if (i != false) parts.add('i=' + (i ? '1' : '0'));
     if (invert != false) parts.add('invert=' + (invert ? '1' : '0'));
     if (l != false) parts.add('l=' + (l ? '1' : '0'));
     if (link != false) parts.add('link=' + (link ? '1' : '0'));
-    if (m != 0.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (p != 0.95) parts.add('p=' + p.toStringAsFixed(3));
-    if (peak != 0.95) parts.add('peak=' + peak.toStringAsFixed(3));
-    if (r != 0.001) parts.add('r=' + r.toStringAsFixed(3));
-    if (raise != 0.001) parts.add('raise=' + raise.toStringAsFixed(3));
-    if (rms != 0.0) parts.add('rms=' + rms.toStringAsFixed(3));
-    if (t != 0.0) parts.add('t=' + t.toStringAsFixed(3));
-    if (threshold != 0.0)
-      parts.add('threshold=' + threshold.toStringAsFixed(3));
+    if (m != 0.0) parts.add('m=' + _wireDouble(m));
+    if (p != 0.95) parts.add('p=' + _wireDouble(p));
+    if (peak != 0.95) parts.add('peak=' + _wireDouble(peak));
+    if (r != 0.001) parts.add('r=' + _wireDouble(r));
+    if (raise != 0.001) parts.add('raise=' + _wireDouble(raise));
+    if (rms != 0.0) parts.add('rms=' + _wireDouble(rms));
+    if (t != 0.0) parts.add('t=' + _wireDouble(t));
+    if (threshold != 0.0) parts.add('threshold=' + _wireDouble(threshold));
     return parts.isEmpty
         ? 'lavfi-speechnorm'
         : 'lavfi-speechnorm=' + parts.join(':');
@@ -9520,6 +10722,43 @@ final class SpeechnormSettings {
 /// - [slev]: set side level (range 0.015625..64, default 1)
 /// - [softclip]: Enable softclipping. Results in analog distortion instead of harsh digital 0dB clipping. Disabled by default. (range 0..1, default 0)
 final class StereotoolsSettings {
+  static const double balance_inDefault = 0.0;
+  static const double balance_inMin = -1.0;
+  static const double balance_inMax = 1.0;
+  static const double balance_outDefault = 0.0;
+  static const double balance_outMin = -1.0;
+  static const double balance_outMax = 1.0;
+  static const double baseDefault = 0.0;
+  static const double baseMin = -1.0;
+  static const double baseMax = 1.0;
+  static const double delayDefault = 0.0;
+  static const double delayMin = -20.0;
+  static const double delayMax = 20.0;
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = 0.015625;
+  static const double level_inMax = 64.0;
+  static const double level_outDefault = 1.0;
+  static const double level_outMin = 0.015625;
+  static const double level_outMax = 64.0;
+  static const double mlevDefault = 1.0;
+  static const double mlevMin = 0.015625;
+  static const double mlevMax = 64.0;
+  static const double mpanDefault = 0.0;
+  static const double mpanMin = -1.0;
+  static const double mpanMax = 1.0;
+  static const double phaseDefault = 0.0;
+  static const double phaseMin = 0.0;
+  static const double phaseMax = 360.0;
+  static const double sbalDefault = 0.0;
+  static const double sbalMin = -1.0;
+  static const double sbalMax = 1.0;
+  static const double sclevelDefault = 1.0;
+  static const double sclevelMin = 1.0;
+  static const double sclevelMax = 100.0;
+  static const double slevDefault = 1.0;
+  static const double slevMin = 0.015625;
+  static const double slevMax = 64.0;
+
   final bool enabled;
   final double balance_in;
   final double balance_out;
@@ -9671,55 +10910,56 @@ final class StereotoolsSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(balance_in >= -1, 'stereotools.balance_in must be >= -1');
-    assert(balance_in <= 1, 'stereotools.balance_in must be <= 1');
-    assert(balance_out >= -1, 'stereotools.balance_out must be >= -1');
-    assert(balance_out <= 1, 'stereotools.balance_out must be <= 1');
-    assert(base >= -1, 'stereotools.base must be >= -1');
-    assert(base <= 1, 'stereotools.base must be <= 1');
-    assert(delay >= -20, 'stereotools.delay must be >= -20');
-    assert(delay <= 20, 'stereotools.delay must be <= 20');
-    assert(level_in >= 0.015625, 'stereotools.level_in must be >= 0.015625');
-    assert(level_in <= 64, 'stereotools.level_in must be <= 64');
-    assert(level_out >= 0.015625, 'stereotools.level_out must be >= 0.015625');
-    assert(level_out <= 64, 'stereotools.level_out must be <= 64');
-    assert(mlev >= 0.015625, 'stereotools.mlev must be >= 0.015625');
-    assert(mlev <= 64, 'stereotools.mlev must be <= 64');
-    assert(mpan >= -1, 'stereotools.mpan must be >= -1');
-    assert(mpan <= 1, 'stereotools.mpan must be <= 1');
-    assert(phase >= 0, 'stereotools.phase must be >= 0');
-    assert(phase <= 360, 'stereotools.phase must be <= 360');
-    assert(sbal >= -1, 'stereotools.sbal must be >= -1');
-    assert(sbal <= 1, 'stereotools.sbal must be <= 1');
-    assert(sclevel >= 1, 'stereotools.sclevel must be >= 1');
-    assert(sclevel <= 100, 'stereotools.sclevel must be <= 100');
-    assert(slev >= 0.015625, 'stereotools.slev must be >= 0.015625');
-    assert(slev <= 64, 'stereotools.slev must be <= 64');
+    assert(balance_in >= balance_inMin, 'stereotools.balance_in must be >= -1');
+    assert(balance_in <= balance_inMax, 'stereotools.balance_in must be <= 1');
+    assert(
+        balance_out >= balance_outMin, 'stereotools.balance_out must be >= -1');
+    assert(
+        balance_out <= balance_outMax, 'stereotools.balance_out must be <= 1');
+    assert(base >= baseMin, 'stereotools.base must be >= -1');
+    assert(base <= baseMax, 'stereotools.base must be <= 1');
+    assert(delay >= delayMin, 'stereotools.delay must be >= -20');
+    assert(delay <= delayMax, 'stereotools.delay must be <= 20');
+    assert(level_in >= level_inMin, 'stereotools.level_in must be >= 0.015625');
+    assert(level_in <= level_inMax, 'stereotools.level_in must be <= 64');
+    assert(
+        level_out >= level_outMin, 'stereotools.level_out must be >= 0.015625');
+    assert(level_out <= level_outMax, 'stereotools.level_out must be <= 64');
+    assert(mlev >= mlevMin, 'stereotools.mlev must be >= 0.015625');
+    assert(mlev <= mlevMax, 'stereotools.mlev must be <= 64');
+    assert(mpan >= mpanMin, 'stereotools.mpan must be >= -1');
+    assert(mpan <= mpanMax, 'stereotools.mpan must be <= 1');
+    assert(phase >= phaseMin, 'stereotools.phase must be >= 0');
+    assert(phase <= phaseMax, 'stereotools.phase must be <= 360');
+    assert(sbal >= sbalMin, 'stereotools.sbal must be >= -1');
+    assert(sbal <= sbalMax, 'stereotools.sbal must be <= 1');
+    assert(sclevel >= sclevelMin, 'stereotools.sclevel must be >= 1');
+    assert(sclevel <= sclevelMax, 'stereotools.sclevel must be <= 100');
+    assert(slev >= slevMin, 'stereotools.slev must be >= 0.015625');
+    assert(slev <= slevMax, 'stereotools.slev must be <= 64');
     final parts = <String>[];
-    if (balance_in != 0.0)
-      parts.add('balance_in=' + balance_in.toStringAsFixed(3));
+    if (balance_in != 0.0) parts.add('balance_in=' + _wireDouble(balance_in));
     if (balance_out != 0.0)
-      parts.add('balance_out=' + balance_out.toStringAsFixed(3));
-    if (base != 0.0) parts.add('base=' + base.toStringAsFixed(3));
+      parts.add('balance_out=' + _wireDouble(balance_out));
+    if (base != 0.0) parts.add('base=' + _wireDouble(base));
     if (bmode_in != StereotoolsBmode.balance)
       parts.add('bmode_in=' + bmode_in.mpvValue);
     if (bmode_out != StereotoolsBmode.balance)
       parts.add('bmode_out=' + bmode_out.mpvValue);
-    if (delay != 0.0) parts.add('delay=' + delay.toStringAsFixed(3));
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_out != 1.0)
-      parts.add('level_out=' + level_out.toStringAsFixed(3));
-    if (mlev != 1.0) parts.add('mlev=' + mlev.toStringAsFixed(3));
+    if (delay != 0.0) parts.add('delay=' + _wireDouble(delay));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_out != 1.0) parts.add('level_out=' + _wireDouble(level_out));
+    if (mlev != 1.0) parts.add('mlev=' + _wireDouble(mlev));
     if (mode != StereotoolsMode.lr_to_lr) parts.add('mode=' + mode.mpvValue);
-    if (mpan != 0.0) parts.add('mpan=' + mpan.toStringAsFixed(3));
+    if (mpan != 0.0) parts.add('mpan=' + _wireDouble(mpan));
     if (mutel != false) parts.add('mutel=' + (mutel ? '1' : '0'));
     if (muter != false) parts.add('muter=' + (muter ? '1' : '0'));
-    if (phase != 0.0) parts.add('phase=' + phase.toStringAsFixed(3));
+    if (phase != 0.0) parts.add('phase=' + _wireDouble(phase));
     if (phasel != false) parts.add('phasel=' + (phasel ? '1' : '0'));
     if (phaser != false) parts.add('phaser=' + (phaser ? '1' : '0'));
-    if (sbal != 0.0) parts.add('sbal=' + sbal.toStringAsFixed(3));
-    if (sclevel != 1.0) parts.add('sclevel=' + sclevel.toStringAsFixed(3));
-    if (slev != 1.0) parts.add('slev=' + slev.toStringAsFixed(3));
+    if (sbal != 0.0) parts.add('sbal=' + _wireDouble(sbal));
+    if (sclevel != 1.0) parts.add('sclevel=' + _wireDouble(sclevel));
+    if (slev != 1.0) parts.add('slev=' + _wireDouble(slev));
     if (softclip != false) parts.add('softclip=' + (softclip ? '1' : '0'));
     return parts.isEmpty
         ? 'lavfi-stereotools'
@@ -9741,6 +10981,19 @@ final class StereotoolsSettings {
 /// - [drymix]: Set level of input signal of original channel. Default is 0.8. (range 0..1.0, default .8)
 /// - [feedback]: Amount of gain in delayed signal into right and vice versa. Gives a delay effect of left signal in right output and vice versa which gives widening effect. Default is 0.3. (range 0..0.9, default .3)
 final class StereowidenSettings {
+  static const double crossfeedDefault = .3;
+  static const double crossfeedMin = 0.0;
+  static const double crossfeedMax = 0.8;
+  static const double delayDefault = 20.0;
+  static const double delayMin = 1.0;
+  static const double delayMax = 100.0;
+  static const double drymixDefault = .8;
+  static const double drymixMin = 0.0;
+  static const double drymixMax = 1.0;
+  static const double feedbackDefault = .3;
+  static const double feedbackMin = 0.0;
+  static const double feedbackMax = 0.9;
+
   final bool enabled;
   final double crossfeed;
   final double delay;
@@ -9790,19 +11043,19 @@ final class StereowidenSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(crossfeed >= 0, 'stereowiden.crossfeed must be >= 0');
-    assert(crossfeed <= 0.8, 'stereowiden.crossfeed must be <= 0.8');
-    assert(delay >= 1, 'stereowiden.delay must be >= 1');
-    assert(delay <= 100, 'stereowiden.delay must be <= 100');
-    assert(drymix >= 0, 'stereowiden.drymix must be >= 0');
-    assert(drymix <= 1.0, 'stereowiden.drymix must be <= 1.0');
-    assert(feedback >= 0, 'stereowiden.feedback must be >= 0');
-    assert(feedback <= 0.9, 'stereowiden.feedback must be <= 0.9');
+    assert(crossfeed >= crossfeedMin, 'stereowiden.crossfeed must be >= 0');
+    assert(crossfeed <= crossfeedMax, 'stereowiden.crossfeed must be <= 0.8');
+    assert(delay >= delayMin, 'stereowiden.delay must be >= 1');
+    assert(delay <= delayMax, 'stereowiden.delay must be <= 100');
+    assert(drymix >= drymixMin, 'stereowiden.drymix must be >= 0');
+    assert(drymix <= drymixMax, 'stereowiden.drymix must be <= 1.0');
+    assert(feedback >= feedbackMin, 'stereowiden.feedback must be >= 0');
+    assert(feedback <= feedbackMax, 'stereowiden.feedback must be <= 0.9');
     final parts = <String>[];
-    if (crossfeed != .3) parts.add('crossfeed=' + crossfeed.toStringAsFixed(3));
-    if (delay != 20.0) parts.add('delay=' + delay.toStringAsFixed(3));
-    if (drymix != .8) parts.add('drymix=' + drymix.toStringAsFixed(3));
-    if (feedback != .3) parts.add('feedback=' + feedback.toStringAsFixed(3));
+    if (crossfeed != .3) parts.add('crossfeed=' + _wireDouble(crossfeed));
+    if (delay != 20.0) parts.add('delay=' + _wireDouble(delay));
+    if (drymix != .8) parts.add('drymix=' + _wireDouble(drymix));
+    if (feedback != .3) parts.add('feedback=' + _wireDouble(feedback));
     return parts.isEmpty
         ? 'lavfi-stereowiden'
         : 'lavfi-stereowiden=' + parts.join(':');
@@ -9874,7 +11127,7 @@ final class SuperequalizerSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     final parts = <String>[];
-    params.forEach((k, v) => parts.add('$k=' + v.toStringAsFixed(3)));
+    params.forEach((k, v) => parts.add('$k=' + _wireDouble(v)));
     return parts.isEmpty
         ? 'lavfi-superequalizer'
         : 'lavfi-superequalizer=' + parts.join(':');
@@ -9895,31 +11148,31 @@ final class SuperequalizerSettings {
 /// - [angle]: Set angle of stereo surround transform, Allowed range is from `0` to `360`. Default is `90`. (range 0..360, default 90)
 /// - [bc_in]: Set back center input volume. By default, this is `1`. (range 0..10, default 1)
 /// - [bc_out]: Set back center output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [bcx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
-/// - [bcy]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
+/// - [bcx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
+/// - [bcy]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
 /// - [bl_in]: Set back left input volume. By default, this is `1`. (range 0..10, default 1)
 /// - [bl_out]: Set back left output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [blx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
-/// - [bly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
+/// - [blx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
+/// - [bly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
 /// - [br_in]: Set back right input volume. By default, this is `1`. (range 0..10, default 1)
 /// - [br_out]: Set back right output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [brx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
-/// - [bry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
+/// - [brx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
+/// - [bry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
 /// - [chl_in]: Set input channel layout. By default, this is `stereo`.  See channel layout syntax for the required syntax. (range 0..0, default "stereo")
 /// - [chl_out]: Set output channel layout. By default, this is `5.1`.  See channel layout syntax for the required syntax. (range 0..0, default "5.1")
 /// - [fc_in]: Set front center input volume. By default, this is `1`. (range 0..10, default 1)
 /// - [fc_out]: Set front center output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [fcx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
-/// - [fcy]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
+/// - [fcx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
+/// - [fcy]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
 /// - [fl_in]: Set front left input volume. By default, this is `1`. (range 0..10, default 1)
 /// - [fl_out]: Set front left output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [flx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
-/// - [fly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
+/// - [flx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
+/// - [fly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
 /// - [focus]: Set focus of stereo surround transform, Allowed range is from `-1` to `1`. Default is `0`. (range -1..1, default 0)
 /// - [fr_in]: Set front right input volume. By default, this is `1`. (range 0..10, default 1)
 /// - [fr_out]: Set front right output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [frx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
-/// - [fry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
+/// - [frx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
+/// - [fry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
 /// - [level_in]: Set input volume level. By default, this is `1`. (range 0..10, default 1)
 /// - [level_out]: Set output volume level. By default, this is `1`. (range 0..10, default 1)
 /// - [lfe]: Enable LFE channel output if output channel layout has it. By default, this is enabled. (range 0..1, default 1)
@@ -9931,15 +11184,151 @@ final class SuperequalizerSettings {
 /// - [overlap]: set window overlap (range 0..1, default 0.5)
 /// - [sl_in]: Set side left input volume. By default, this is `1`. (range 0..10, default 1)
 /// - [sl_out]: Set side left output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [slx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
-/// - [sly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
+/// - [slx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
+/// - [sly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
 /// - [smooth]: Set temporal smoothness strength, used to gradually change factors when transforming stereo sound in time. Allowed range is from `0.0` to `1.0`. Useful to improve output quality with `focus` option values greater than `0.0`. Default is `0.0`. Only values inside this range and without edges are effective. (range 0..1, default 0)
 /// - [sr_in]: Set side right input volume. By default, this is `1`. (range 0..10, default 1)
 /// - [sr_out]: Set side right output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [srx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
-/// - [sry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (default 0.5)
+/// - [srx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
+/// - [sry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
 /// - [win_size]: Set window size. Allowed range is from `1024` to `65536`. Default size is `4096`. (range 1024..65536, default 4096)
 final class SurroundSettings {
+  static const double allxDefault = -1.0;
+  static const double allxMin = -1.0;
+  static const double allxMax = 15.0;
+  static const double allyDefault = -1.0;
+  static const double allyMin = -1.0;
+  static const double allyMax = 15.0;
+  static const double angleDefault = 90.0;
+  static const double angleMin = 0.0;
+  static const double angleMax = 360.0;
+  static const double bc_inDefault = 1.0;
+  static const double bc_inMin = 0.0;
+  static const double bc_inMax = 10.0;
+  static const double bc_outDefault = 1.0;
+  static const double bc_outMin = 0.0;
+  static const double bc_outMax = 10.0;
+  static const double bcxDefault = 0.5;
+  static const double bcxMin = .06;
+  static const double bcxMax = 15.0;
+  static const double bcyDefault = 0.5;
+  static const double bcyMin = .06;
+  static const double bcyMax = 15.0;
+  static const double bl_inDefault = 1.0;
+  static const double bl_inMin = 0.0;
+  static const double bl_inMax = 10.0;
+  static const double bl_outDefault = 1.0;
+  static const double bl_outMin = 0.0;
+  static const double bl_outMax = 10.0;
+  static const double blxDefault = 0.5;
+  static const double blxMin = .06;
+  static const double blxMax = 15.0;
+  static const double blyDefault = 0.5;
+  static const double blyMin = .06;
+  static const double blyMax = 15.0;
+  static const double br_inDefault = 1.0;
+  static const double br_inMin = 0.0;
+  static const double br_inMax = 10.0;
+  static const double br_outDefault = 1.0;
+  static const double br_outMin = 0.0;
+  static const double br_outMax = 10.0;
+  static const double brxDefault = 0.5;
+  static const double brxMin = .06;
+  static const double brxMax = 15.0;
+  static const double bryDefault = 0.5;
+  static const double bryMin = .06;
+  static const double bryMax = 15.0;
+  static const double fc_inDefault = 1.0;
+  static const double fc_inMin = 0.0;
+  static const double fc_inMax = 10.0;
+  static const double fc_outDefault = 1.0;
+  static const double fc_outMin = 0.0;
+  static const double fc_outMax = 10.0;
+  static const double fcxDefault = 0.5;
+  static const double fcxMin = .06;
+  static const double fcxMax = 15.0;
+  static const double fcyDefault = 0.5;
+  static const double fcyMin = .06;
+  static const double fcyMax = 15.0;
+  static const double fl_inDefault = 1.0;
+  static const double fl_inMin = 0.0;
+  static const double fl_inMax = 10.0;
+  static const double fl_outDefault = 1.0;
+  static const double fl_outMin = 0.0;
+  static const double fl_outMax = 10.0;
+  static const double flxDefault = 0.5;
+  static const double flxMin = .06;
+  static const double flxMax = 15.0;
+  static const double flyDefault = 0.5;
+  static const double flyMin = .06;
+  static const double flyMax = 15.0;
+  static const double focusDefault = 0.0;
+  static const double focusMin = -1.0;
+  static const double focusMax = 1.0;
+  static const double fr_inDefault = 1.0;
+  static const double fr_inMin = 0.0;
+  static const double fr_inMax = 10.0;
+  static const double fr_outDefault = 1.0;
+  static const double fr_outMin = 0.0;
+  static const double fr_outMax = 10.0;
+  static const double frxDefault = 0.5;
+  static const double frxMin = .06;
+  static const double frxMax = 15.0;
+  static const double fryDefault = 0.5;
+  static const double fryMin = .06;
+  static const double fryMax = 15.0;
+  static const double level_inDefault = 1.0;
+  static const double level_inMin = 0.0;
+  static const double level_inMax = 10.0;
+  static const double level_outDefault = 1.0;
+  static const double level_outMin = 0.0;
+  static const double level_outMax = 10.0;
+  static const int lfe_highDefault = 256;
+  static const int lfe_highMin = 0;
+  static const int lfe_highMax = 512;
+  static const double lfe_inDefault = 1.0;
+  static const double lfe_inMin = 0.0;
+  static const double lfe_inMax = 10.0;
+  static const int lfe_lowDefault = 128;
+  static const int lfe_lowMin = 0;
+  static const int lfe_lowMax = 256;
+  static const double lfe_outDefault = 1.0;
+  static const double lfe_outMin = 0.0;
+  static const double lfe_outMax = 10.0;
+  static const double overlapDefault = 0.5;
+  static const double overlapMin = 0.0;
+  static const double overlapMax = 1.0;
+  static const double sl_inDefault = 1.0;
+  static const double sl_inMin = 0.0;
+  static const double sl_inMax = 10.0;
+  static const double sl_outDefault = 1.0;
+  static const double sl_outMin = 0.0;
+  static const double sl_outMax = 10.0;
+  static const double slxDefault = 0.5;
+  static const double slxMin = .06;
+  static const double slxMax = 15.0;
+  static const double slyDefault = 0.5;
+  static const double slyMin = .06;
+  static const double slyMax = 15.0;
+  static const double smoothDefault = 0.0;
+  static const double smoothMin = 0.0;
+  static const double smoothMax = 1.0;
+  static const double sr_inDefault = 1.0;
+  static const double sr_inMin = 0.0;
+  static const double sr_inMax = 10.0;
+  static const double sr_outDefault = 1.0;
+  static const double sr_outMin = 0.0;
+  static const double sr_outMax = 10.0;
+  static const double srxDefault = 0.5;
+  static const double srxMin = .06;
+  static const double srxMax = 15.0;
+  static const double sryDefault = 0.5;
+  static const double sryMin = .06;
+  static const double sryMax = 15.0;
+  static const int win_sizeDefault = 4096;
+  static const int win_sizeMin = 1024;
+  static const int win_sizeMax = 65536;
+
   final bool enabled;
   final double allx;
   final double ally;
@@ -10265,115 +11654,146 @@ final class SurroundSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(allx >= -1, 'surround.allx must be >= -1');
-    assert(allx <= 15, 'surround.allx must be <= 15');
-    assert(ally >= -1, 'surround.ally must be >= -1');
-    assert(ally <= 15, 'surround.ally must be <= 15');
-    assert(angle >= 0, 'surround.angle must be >= 0');
-    assert(angle <= 360, 'surround.angle must be <= 360');
-    assert(bc_in >= 0, 'surround.bc_in must be >= 0');
-    assert(bc_in <= 10, 'surround.bc_in must be <= 10');
-    assert(bc_out >= 0, 'surround.bc_out must be >= 0');
-    assert(bc_out <= 10, 'surround.bc_out must be <= 10');
-    assert(bl_in >= 0, 'surround.bl_in must be >= 0');
-    assert(bl_in <= 10, 'surround.bl_in must be <= 10');
-    assert(bl_out >= 0, 'surround.bl_out must be >= 0');
-    assert(bl_out <= 10, 'surround.bl_out must be <= 10');
-    assert(br_in >= 0, 'surround.br_in must be >= 0');
-    assert(br_in <= 10, 'surround.br_in must be <= 10');
-    assert(br_out >= 0, 'surround.br_out must be >= 0');
-    assert(br_out <= 10, 'surround.br_out must be <= 10');
-    assert(fc_in >= 0, 'surround.fc_in must be >= 0');
-    assert(fc_in <= 10, 'surround.fc_in must be <= 10');
-    assert(fc_out >= 0, 'surround.fc_out must be >= 0');
-    assert(fc_out <= 10, 'surround.fc_out must be <= 10');
-    assert(fl_in >= 0, 'surround.fl_in must be >= 0');
-    assert(fl_in <= 10, 'surround.fl_in must be <= 10');
-    assert(fl_out >= 0, 'surround.fl_out must be >= 0');
-    assert(fl_out <= 10, 'surround.fl_out must be <= 10');
-    assert(focus >= -1, 'surround.focus must be >= -1');
-    assert(focus <= 1, 'surround.focus must be <= 1');
-    assert(fr_in >= 0, 'surround.fr_in must be >= 0');
-    assert(fr_in <= 10, 'surround.fr_in must be <= 10');
-    assert(fr_out >= 0, 'surround.fr_out must be >= 0');
-    assert(fr_out <= 10, 'surround.fr_out must be <= 10');
-    assert(level_in >= 0, 'surround.level_in must be >= 0');
-    assert(level_in <= 10, 'surround.level_in must be <= 10');
-    assert(level_out >= 0, 'surround.level_out must be >= 0');
-    assert(level_out <= 10, 'surround.level_out must be <= 10');
-    assert(lfe_high >= 0, 'surround.lfe_high must be >= 0');
-    assert(lfe_high <= 512, 'surround.lfe_high must be <= 512');
-    assert(lfe_in >= 0, 'surround.lfe_in must be >= 0');
-    assert(lfe_in <= 10, 'surround.lfe_in must be <= 10');
-    assert(lfe_low >= 0, 'surround.lfe_low must be >= 0');
-    assert(lfe_low <= 256, 'surround.lfe_low must be <= 256');
-    assert(lfe_out >= 0, 'surround.lfe_out must be >= 0');
-    assert(lfe_out <= 10, 'surround.lfe_out must be <= 10');
-    assert(overlap >= 0, 'surround.overlap must be >= 0');
-    assert(overlap <= 1, 'surround.overlap must be <= 1');
-    assert(sl_in >= 0, 'surround.sl_in must be >= 0');
-    assert(sl_in <= 10, 'surround.sl_in must be <= 10');
-    assert(sl_out >= 0, 'surround.sl_out must be >= 0');
-    assert(sl_out <= 10, 'surround.sl_out must be <= 10');
-    assert(smooth >= 0, 'surround.smooth must be >= 0');
-    assert(smooth <= 1, 'surround.smooth must be <= 1');
-    assert(sr_in >= 0, 'surround.sr_in must be >= 0');
-    assert(sr_in <= 10, 'surround.sr_in must be <= 10');
-    assert(sr_out >= 0, 'surround.sr_out must be >= 0');
-    assert(sr_out <= 10, 'surround.sr_out must be <= 10');
-    assert(win_size >= 1024, 'surround.win_size must be >= 1024');
-    assert(win_size <= 65536, 'surround.win_size must be <= 65536');
+    assert(allx >= allxMin, 'surround.allx must be >= -1');
+    assert(allx <= allxMax, 'surround.allx must be <= 15');
+    assert(ally >= allyMin, 'surround.ally must be >= -1');
+    assert(ally <= allyMax, 'surround.ally must be <= 15');
+    assert(angle >= angleMin, 'surround.angle must be >= 0');
+    assert(angle <= angleMax, 'surround.angle must be <= 360');
+    assert(bc_in >= bc_inMin, 'surround.bc_in must be >= 0');
+    assert(bc_in <= bc_inMax, 'surround.bc_in must be <= 10');
+    assert(bc_out >= bc_outMin, 'surround.bc_out must be >= 0');
+    assert(bc_out <= bc_outMax, 'surround.bc_out must be <= 10');
+    assert(bcx >= bcxMin, 'surround.bcx must be >= .06');
+    assert(bcx <= bcxMax, 'surround.bcx must be <= 15');
+    assert(bcy >= bcyMin, 'surround.bcy must be >= .06');
+    assert(bcy <= bcyMax, 'surround.bcy must be <= 15');
+    assert(bl_in >= bl_inMin, 'surround.bl_in must be >= 0');
+    assert(bl_in <= bl_inMax, 'surround.bl_in must be <= 10');
+    assert(bl_out >= bl_outMin, 'surround.bl_out must be >= 0');
+    assert(bl_out <= bl_outMax, 'surround.bl_out must be <= 10');
+    assert(blx >= blxMin, 'surround.blx must be >= .06');
+    assert(blx <= blxMax, 'surround.blx must be <= 15');
+    assert(bly >= blyMin, 'surround.bly must be >= .06');
+    assert(bly <= blyMax, 'surround.bly must be <= 15');
+    assert(br_in >= br_inMin, 'surround.br_in must be >= 0');
+    assert(br_in <= br_inMax, 'surround.br_in must be <= 10');
+    assert(br_out >= br_outMin, 'surround.br_out must be >= 0');
+    assert(br_out <= br_outMax, 'surround.br_out must be <= 10');
+    assert(brx >= brxMin, 'surround.brx must be >= .06');
+    assert(brx <= brxMax, 'surround.brx must be <= 15');
+    assert(bry >= bryMin, 'surround.bry must be >= .06');
+    assert(bry <= bryMax, 'surround.bry must be <= 15');
+    assert(fc_in >= fc_inMin, 'surround.fc_in must be >= 0');
+    assert(fc_in <= fc_inMax, 'surround.fc_in must be <= 10');
+    assert(fc_out >= fc_outMin, 'surround.fc_out must be >= 0');
+    assert(fc_out <= fc_outMax, 'surround.fc_out must be <= 10');
+    assert(fcx >= fcxMin, 'surround.fcx must be >= .06');
+    assert(fcx <= fcxMax, 'surround.fcx must be <= 15');
+    assert(fcy >= fcyMin, 'surround.fcy must be >= .06');
+    assert(fcy <= fcyMax, 'surround.fcy must be <= 15');
+    assert(fl_in >= fl_inMin, 'surround.fl_in must be >= 0');
+    assert(fl_in <= fl_inMax, 'surround.fl_in must be <= 10');
+    assert(fl_out >= fl_outMin, 'surround.fl_out must be >= 0');
+    assert(fl_out <= fl_outMax, 'surround.fl_out must be <= 10');
+    assert(flx >= flxMin, 'surround.flx must be >= .06');
+    assert(flx <= flxMax, 'surround.flx must be <= 15');
+    assert(fly >= flyMin, 'surround.fly must be >= .06');
+    assert(fly <= flyMax, 'surround.fly must be <= 15');
+    assert(focus >= focusMin, 'surround.focus must be >= -1');
+    assert(focus <= focusMax, 'surround.focus must be <= 1');
+    assert(fr_in >= fr_inMin, 'surround.fr_in must be >= 0');
+    assert(fr_in <= fr_inMax, 'surround.fr_in must be <= 10');
+    assert(fr_out >= fr_outMin, 'surround.fr_out must be >= 0');
+    assert(fr_out <= fr_outMax, 'surround.fr_out must be <= 10');
+    assert(frx >= frxMin, 'surround.frx must be >= .06');
+    assert(frx <= frxMax, 'surround.frx must be <= 15');
+    assert(fry >= fryMin, 'surround.fry must be >= .06');
+    assert(fry <= fryMax, 'surround.fry must be <= 15');
+    assert(level_in >= level_inMin, 'surround.level_in must be >= 0');
+    assert(level_in <= level_inMax, 'surround.level_in must be <= 10');
+    assert(level_out >= level_outMin, 'surround.level_out must be >= 0');
+    assert(level_out <= level_outMax, 'surround.level_out must be <= 10');
+    assert(lfe_high >= lfe_highMin, 'surround.lfe_high must be >= 0');
+    assert(lfe_high <= lfe_highMax, 'surround.lfe_high must be <= 512');
+    assert(lfe_in >= lfe_inMin, 'surround.lfe_in must be >= 0');
+    assert(lfe_in <= lfe_inMax, 'surround.lfe_in must be <= 10');
+    assert(lfe_low >= lfe_lowMin, 'surround.lfe_low must be >= 0');
+    assert(lfe_low <= lfe_lowMax, 'surround.lfe_low must be <= 256');
+    assert(lfe_out >= lfe_outMin, 'surround.lfe_out must be >= 0');
+    assert(lfe_out <= lfe_outMax, 'surround.lfe_out must be <= 10');
+    assert(overlap >= overlapMin, 'surround.overlap must be >= 0');
+    assert(overlap <= overlapMax, 'surround.overlap must be <= 1');
+    assert(sl_in >= sl_inMin, 'surround.sl_in must be >= 0');
+    assert(sl_in <= sl_inMax, 'surround.sl_in must be <= 10');
+    assert(sl_out >= sl_outMin, 'surround.sl_out must be >= 0');
+    assert(sl_out <= sl_outMax, 'surround.sl_out must be <= 10');
+    assert(slx >= slxMin, 'surround.slx must be >= .06');
+    assert(slx <= slxMax, 'surround.slx must be <= 15');
+    assert(sly >= slyMin, 'surround.sly must be >= .06');
+    assert(sly <= slyMax, 'surround.sly must be <= 15');
+    assert(smooth >= smoothMin, 'surround.smooth must be >= 0');
+    assert(smooth <= smoothMax, 'surround.smooth must be <= 1');
+    assert(sr_in >= sr_inMin, 'surround.sr_in must be >= 0');
+    assert(sr_in <= sr_inMax, 'surround.sr_in must be <= 10');
+    assert(sr_out >= sr_outMin, 'surround.sr_out must be >= 0');
+    assert(sr_out <= sr_outMax, 'surround.sr_out must be <= 10');
+    assert(srx >= srxMin, 'surround.srx must be >= .06');
+    assert(srx <= srxMax, 'surround.srx must be <= 15');
+    assert(sry >= sryMin, 'surround.sry must be >= .06');
+    assert(sry <= sryMax, 'surround.sry must be <= 15');
+    assert(win_size >= win_sizeMin, 'surround.win_size must be >= 1024');
+    assert(win_size <= win_sizeMax, 'surround.win_size must be <= 65536');
     final parts = <String>[];
-    if (allx != -1.0) parts.add('allx=' + allx.toStringAsFixed(3));
-    if (ally != -1.0) parts.add('ally=' + ally.toStringAsFixed(3));
-    if (angle != 90.0) parts.add('angle=' + angle.toStringAsFixed(3));
-    if (bc_in != 1.0) parts.add('bc_in=' + bc_in.toStringAsFixed(3));
-    if (bc_out != 1.0) parts.add('bc_out=' + bc_out.toStringAsFixed(3));
-    if (bcx != 0.5) parts.add('bcx=' + bcx.toStringAsFixed(3));
-    if (bcy != 0.5) parts.add('bcy=' + bcy.toStringAsFixed(3));
-    if (bl_in != 1.0) parts.add('bl_in=' + bl_in.toStringAsFixed(3));
-    if (bl_out != 1.0) parts.add('bl_out=' + bl_out.toStringAsFixed(3));
-    if (blx != 0.5) parts.add('blx=' + blx.toStringAsFixed(3));
-    if (bly != 0.5) parts.add('bly=' + bly.toStringAsFixed(3));
-    if (br_in != 1.0) parts.add('br_in=' + br_in.toStringAsFixed(3));
-    if (br_out != 1.0) parts.add('br_out=' + br_out.toStringAsFixed(3));
-    if (brx != 0.5) parts.add('brx=' + brx.toStringAsFixed(3));
-    if (bry != 0.5) parts.add('bry=' + bry.toStringAsFixed(3));
+    if (allx != -1.0) parts.add('allx=' + _wireDouble(allx));
+    if (ally != -1.0) parts.add('ally=' + _wireDouble(ally));
+    if (angle != 90.0) parts.add('angle=' + _wireDouble(angle));
+    if (bc_in != 1.0) parts.add('bc_in=' + _wireDouble(bc_in));
+    if (bc_out != 1.0) parts.add('bc_out=' + _wireDouble(bc_out));
+    if (bcx != 0.5) parts.add('bcx=' + _wireDouble(bcx));
+    if (bcy != 0.5) parts.add('bcy=' + _wireDouble(bcy));
+    if (bl_in != 1.0) parts.add('bl_in=' + _wireDouble(bl_in));
+    if (bl_out != 1.0) parts.add('bl_out=' + _wireDouble(bl_out));
+    if (blx != 0.5) parts.add('blx=' + _wireDouble(blx));
+    if (bly != 0.5) parts.add('bly=' + _wireDouble(bly));
+    if (br_in != 1.0) parts.add('br_in=' + _wireDouble(br_in));
+    if (br_out != 1.0) parts.add('br_out=' + _wireDouble(br_out));
+    if (brx != 0.5) parts.add('brx=' + _wireDouble(brx));
+    if (bry != 0.5) parts.add('bry=' + _wireDouble(bry));
     if (chl_in != "stereo") parts.add('chl_in=' + '[' + chl_in + ']');
     if (chl_out != "5.1") parts.add('chl_out=' + '[' + chl_out + ']');
-    if (fc_in != 1.0) parts.add('fc_in=' + fc_in.toStringAsFixed(3));
-    if (fc_out != 1.0) parts.add('fc_out=' + fc_out.toStringAsFixed(3));
-    if (fcx != 0.5) parts.add('fcx=' + fcx.toStringAsFixed(3));
-    if (fcy != 0.5) parts.add('fcy=' + fcy.toStringAsFixed(3));
-    if (fl_in != 1.0) parts.add('fl_in=' + fl_in.toStringAsFixed(3));
-    if (fl_out != 1.0) parts.add('fl_out=' + fl_out.toStringAsFixed(3));
-    if (flx != 0.5) parts.add('flx=' + flx.toStringAsFixed(3));
-    if (fly != 0.5) parts.add('fly=' + fly.toStringAsFixed(3));
-    if (focus != 0.0) parts.add('focus=' + focus.toStringAsFixed(3));
-    if (fr_in != 1.0) parts.add('fr_in=' + fr_in.toStringAsFixed(3));
-    if (fr_out != 1.0) parts.add('fr_out=' + fr_out.toStringAsFixed(3));
-    if (frx != 0.5) parts.add('frx=' + frx.toStringAsFixed(3));
-    if (fry != 0.5) parts.add('fry=' + fry.toStringAsFixed(3));
-    if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
-    if (level_out != 1.0)
-      parts.add('level_out=' + level_out.toStringAsFixed(3));
+    if (fc_in != 1.0) parts.add('fc_in=' + _wireDouble(fc_in));
+    if (fc_out != 1.0) parts.add('fc_out=' + _wireDouble(fc_out));
+    if (fcx != 0.5) parts.add('fcx=' + _wireDouble(fcx));
+    if (fcy != 0.5) parts.add('fcy=' + _wireDouble(fcy));
+    if (fl_in != 1.0) parts.add('fl_in=' + _wireDouble(fl_in));
+    if (fl_out != 1.0) parts.add('fl_out=' + _wireDouble(fl_out));
+    if (flx != 0.5) parts.add('flx=' + _wireDouble(flx));
+    if (fly != 0.5) parts.add('fly=' + _wireDouble(fly));
+    if (focus != 0.0) parts.add('focus=' + _wireDouble(focus));
+    if (fr_in != 1.0) parts.add('fr_in=' + _wireDouble(fr_in));
+    if (fr_out != 1.0) parts.add('fr_out=' + _wireDouble(fr_out));
+    if (frx != 0.5) parts.add('frx=' + _wireDouble(frx));
+    if (fry != 0.5) parts.add('fry=' + _wireDouble(fry));
+    if (level_in != 1.0) parts.add('level_in=' + _wireDouble(level_in));
+    if (level_out != 1.0) parts.add('level_out=' + _wireDouble(level_out));
     if (lfe != true) parts.add('lfe=' + (lfe ? '1' : '0'));
     if (lfe_high != 256) parts.add('lfe_high=' + lfe_high.toString());
-    if (lfe_in != 1.0) parts.add('lfe_in=' + lfe_in.toStringAsFixed(3));
+    if (lfe_in != 1.0) parts.add('lfe_in=' + _wireDouble(lfe_in));
     if (lfe_low != 128) parts.add('lfe_low=' + lfe_low.toString());
     if (lfe_mode != SurroundLfeMode.add)
       parts.add('lfe_mode=' + lfe_mode.mpvValue);
-    if (lfe_out != 1.0) parts.add('lfe_out=' + lfe_out.toStringAsFixed(3));
-    if (overlap != 0.5) parts.add('overlap=' + overlap.toStringAsFixed(3));
-    if (sl_in != 1.0) parts.add('sl_in=' + sl_in.toStringAsFixed(3));
-    if (sl_out != 1.0) parts.add('sl_out=' + sl_out.toStringAsFixed(3));
-    if (slx != 0.5) parts.add('slx=' + slx.toStringAsFixed(3));
-    if (sly != 0.5) parts.add('sly=' + sly.toStringAsFixed(3));
-    if (smooth != 0.0) parts.add('smooth=' + smooth.toStringAsFixed(3));
-    if (sr_in != 1.0) parts.add('sr_in=' + sr_in.toStringAsFixed(3));
-    if (sr_out != 1.0) parts.add('sr_out=' + sr_out.toStringAsFixed(3));
-    if (srx != 0.5) parts.add('srx=' + srx.toStringAsFixed(3));
-    if (sry != 0.5) parts.add('sry=' + sry.toStringAsFixed(3));
+    if (lfe_out != 1.0) parts.add('lfe_out=' + _wireDouble(lfe_out));
+    if (overlap != 0.5) parts.add('overlap=' + _wireDouble(overlap));
+    if (sl_in != 1.0) parts.add('sl_in=' + _wireDouble(sl_in));
+    if (sl_out != 1.0) parts.add('sl_out=' + _wireDouble(sl_out));
+    if (slx != 0.5) parts.add('slx=' + _wireDouble(slx));
+    if (sly != 0.5) parts.add('sly=' + _wireDouble(sly));
+    if (smooth != 0.0) parts.add('smooth=' + _wireDouble(smooth));
+    if (sr_in != 1.0) parts.add('sr_in=' + _wireDouble(sr_in));
+    if (sr_out != 1.0) parts.add('sr_out=' + _wireDouble(sr_out));
+    if (srx != 0.5) parts.add('srx=' + _wireDouble(srx));
+    if (sry != 0.5) parts.add('sry=' + _wireDouble(sry));
     if (win_size != 4096) parts.add('win_size=' + win_size.toString());
     return parts.isEmpty
         ? 'lavfi-surround'
@@ -10414,6 +11834,43 @@ final class SurroundSettings {
 /// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class TiltshelfSettings {
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double fDefault = 3000.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 3000.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double gDefault = 0.0;
+  static const double gMin = -900.0;
+  static const double gMax = 900.0;
+  static const double gainDefault = 0.0;
+  static const double gainMin = -900.0;
+  static const double gainMax = 900.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const int pDefault = 2;
+  static const int pMin = 1;
+  static const int pMax = 2;
+  static const int polesDefault = 2;
+  static const int polesMin = 1;
+  static const int polesMax = 2;
+  static const double wDefault = 0.5;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 0.5;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final TiltshelfTransformType a;
   final int b;
@@ -10577,43 +12034,42 @@ final class TiltshelfSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'tiltshelf.b must be >= 0');
-    assert(b <= 32768, 'tiltshelf.b must be <= 32768');
-    assert(blocksize >= 0, 'tiltshelf.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'tiltshelf.blocksize must be <= 32768');
-    assert(f >= 0, 'tiltshelf.f must be >= 0');
-    assert(f <= 999999, 'tiltshelf.f must be <= 999999');
-    assert(frequency >= 0, 'tiltshelf.frequency must be >= 0');
-    assert(frequency <= 999999, 'tiltshelf.frequency must be <= 999999');
-    assert(g >= -900, 'tiltshelf.g must be >= -900');
-    assert(g <= 900, 'tiltshelf.g must be <= 900');
-    assert(gain >= -900, 'tiltshelf.gain must be >= -900');
-    assert(gain <= 900, 'tiltshelf.gain must be <= 900');
-    assert(m >= 0, 'tiltshelf.m must be >= 0');
-    assert(m <= 1, 'tiltshelf.m must be <= 1');
-    assert(mix >= 0, 'tiltshelf.mix must be >= 0');
-    assert(mix <= 1, 'tiltshelf.mix must be <= 1');
-    assert(p >= 1, 'tiltshelf.p must be >= 1');
-    assert(p <= 2, 'tiltshelf.p must be <= 2');
-    assert(poles >= 1, 'tiltshelf.poles must be >= 1');
-    assert(poles <= 2, 'tiltshelf.poles must be <= 2');
-    assert(w >= 0, 'tiltshelf.w must be >= 0');
-    assert(w <= 99999, 'tiltshelf.w must be <= 99999');
-    assert(width >= 0, 'tiltshelf.width must be >= 0');
-    assert(width <= 99999, 'tiltshelf.width must be <= 99999');
+    assert(b >= bMin, 'tiltshelf.b must be >= 0');
+    assert(b <= bMax, 'tiltshelf.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'tiltshelf.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'tiltshelf.blocksize must be <= 32768');
+    assert(f >= fMin, 'tiltshelf.f must be >= 0');
+    assert(f <= fMax, 'tiltshelf.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'tiltshelf.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'tiltshelf.frequency must be <= 999999');
+    assert(g >= gMin, 'tiltshelf.g must be >= -900');
+    assert(g <= gMax, 'tiltshelf.g must be <= 900');
+    assert(gain >= gainMin, 'tiltshelf.gain must be >= -900');
+    assert(gain <= gainMax, 'tiltshelf.gain must be <= 900');
+    assert(m >= mMin, 'tiltshelf.m must be >= 0');
+    assert(m <= mMax, 'tiltshelf.m must be <= 1');
+    assert(mix >= mixMin, 'tiltshelf.mix must be >= 0');
+    assert(mix <= mixMax, 'tiltshelf.mix must be <= 1');
+    assert(p >= pMin, 'tiltshelf.p must be >= 1');
+    assert(p <= pMax, 'tiltshelf.p must be <= 2');
+    assert(poles >= polesMin, 'tiltshelf.poles must be >= 1');
+    assert(poles <= polesMax, 'tiltshelf.poles must be <= 2');
+    assert(w >= wMin, 'tiltshelf.w must be >= 0');
+    assert(w <= wMax, 'tiltshelf.w must be <= 99999');
+    assert(width >= widthMin, 'tiltshelf.width must be >= 0');
+    assert(width <= widthMax, 'tiltshelf.width must be <= 99999');
     final parts = <String>[];
     if (a != TiltshelfTransformType.di) parts.add('a=' + a.mpvValue);
     if (b != 0) parts.add('b=' + b.toString());
     if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 3000.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
-    if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 3000.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 3000.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (g != 0.0) parts.add('g=' + _wireDouble(g));
+    if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
@@ -10624,8 +12080,8 @@ final class TiltshelfSettings {
     if (t != TiltshelfWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != TiltshelfTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 0.5) parts.add('w=' + _wireDouble(w));
+    if (width != 0.5) parts.add('width=' + _wireDouble(width));
     if (width_type != TiltshelfWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
@@ -10666,6 +12122,43 @@ final class TiltshelfSettings {
 /// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
 /// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class TrebleSettings {
+  static const int bDefault = 0;
+  static const int bMin = 0;
+  static const int bMax = 32768;
+  static const int blocksizeDefault = 0;
+  static const int blocksizeMin = 0;
+  static const int blocksizeMax = 32768;
+  static const double fDefault = 3000.0;
+  static const double fMin = 0.0;
+  static const double fMax = 999999.0;
+  static const double frequencyDefault = 3000.0;
+  static const double frequencyMin = 0.0;
+  static const double frequencyMax = 999999.0;
+  static const double gDefault = 0.0;
+  static const double gMin = -900.0;
+  static const double gMax = 900.0;
+  static const double gainDefault = 0.0;
+  static const double gainMin = -900.0;
+  static const double gainMax = 900.0;
+  static const double mDefault = 1.0;
+  static const double mMin = 0.0;
+  static const double mMax = 1.0;
+  static const double mixDefault = 1.0;
+  static const double mixMin = 0.0;
+  static const double mixMax = 1.0;
+  static const int pDefault = 2;
+  static const int pMin = 1;
+  static const int pMax = 2;
+  static const int polesDefault = 2;
+  static const int polesMin = 1;
+  static const int polesMax = 2;
+  static const double wDefault = 0.5;
+  static const double wMin = 0.0;
+  static const double wMax = 99999.0;
+  static const double widthDefault = 0.5;
+  static const double widthMin = 0.0;
+  static const double widthMax = 99999.0;
+
   final bool enabled;
   final TrebleTransformType a;
   final int b;
@@ -10829,43 +12322,42 @@ final class TrebleSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(b >= 0, 'treble.b must be >= 0');
-    assert(b <= 32768, 'treble.b must be <= 32768');
-    assert(blocksize >= 0, 'treble.blocksize must be >= 0');
-    assert(blocksize <= 32768, 'treble.blocksize must be <= 32768');
-    assert(f >= 0, 'treble.f must be >= 0');
-    assert(f <= 999999, 'treble.f must be <= 999999');
-    assert(frequency >= 0, 'treble.frequency must be >= 0');
-    assert(frequency <= 999999, 'treble.frequency must be <= 999999');
-    assert(g >= -900, 'treble.g must be >= -900');
-    assert(g <= 900, 'treble.g must be <= 900');
-    assert(gain >= -900, 'treble.gain must be >= -900');
-    assert(gain <= 900, 'treble.gain must be <= 900');
-    assert(m >= 0, 'treble.m must be >= 0');
-    assert(m <= 1, 'treble.m must be <= 1');
-    assert(mix >= 0, 'treble.mix must be >= 0');
-    assert(mix <= 1, 'treble.mix must be <= 1');
-    assert(p >= 1, 'treble.p must be >= 1');
-    assert(p <= 2, 'treble.p must be <= 2');
-    assert(poles >= 1, 'treble.poles must be >= 1');
-    assert(poles <= 2, 'treble.poles must be <= 2');
-    assert(w >= 0, 'treble.w must be >= 0');
-    assert(w <= 99999, 'treble.w must be <= 99999');
-    assert(width >= 0, 'treble.width must be >= 0');
-    assert(width <= 99999, 'treble.width must be <= 99999');
+    assert(b >= bMin, 'treble.b must be >= 0');
+    assert(b <= bMax, 'treble.b must be <= 32768');
+    assert(blocksize >= blocksizeMin, 'treble.blocksize must be >= 0');
+    assert(blocksize <= blocksizeMax, 'treble.blocksize must be <= 32768');
+    assert(f >= fMin, 'treble.f must be >= 0');
+    assert(f <= fMax, 'treble.f must be <= 999999');
+    assert(frequency >= frequencyMin, 'treble.frequency must be >= 0');
+    assert(frequency <= frequencyMax, 'treble.frequency must be <= 999999');
+    assert(g >= gMin, 'treble.g must be >= -900');
+    assert(g <= gMax, 'treble.g must be <= 900');
+    assert(gain >= gainMin, 'treble.gain must be >= -900');
+    assert(gain <= gainMax, 'treble.gain must be <= 900');
+    assert(m >= mMin, 'treble.m must be >= 0');
+    assert(m <= mMax, 'treble.m must be <= 1');
+    assert(mix >= mixMin, 'treble.mix must be >= 0');
+    assert(mix <= mixMax, 'treble.mix must be <= 1');
+    assert(p >= pMin, 'treble.p must be >= 1');
+    assert(p <= pMax, 'treble.p must be <= 2');
+    assert(poles >= polesMin, 'treble.poles must be >= 1');
+    assert(poles <= polesMax, 'treble.poles must be <= 2');
+    assert(w >= wMin, 'treble.w must be >= 0');
+    assert(w <= wMax, 'treble.w must be <= 99999');
+    assert(width >= widthMin, 'treble.width must be >= 0');
+    assert(width <= widthMax, 'treble.width must be <= 99999');
     final parts = <String>[];
     if (a != TrebleTransformType.di) parts.add('a=' + a.mpvValue);
     if (b != 0) parts.add('b=' + b.toString());
     if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
     if (c != 'all') parts.add('c=' + '[' + c + ']');
     if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
-    if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
-    if (frequency != 3000.0)
-      parts.add('frequency=' + frequency.toStringAsFixed(3));
-    if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
-    if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
-    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (f != 3000.0) parts.add('f=' + _wireDouble(f));
+    if (frequency != 3000.0) parts.add('frequency=' + _wireDouble(frequency));
+    if (g != 0.0) parts.add('g=' + _wireDouble(g));
+    if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
+    if (m != 1.0) parts.add('m=' + _wireDouble(m));
+    if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != false) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
@@ -10876,8 +12368,8 @@ final class TrebleSettings {
     if (t != TrebleWidthType.q) parts.add('t=' + t.mpvValue);
     if (transform != TrebleTransformType.di)
       parts.add('transform=' + transform.mpvValue);
-    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
-    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (w != 0.5) parts.add('w=' + _wireDouble(w));
+    if (width != 0.5) parts.add('width=' + _wireDouble(width));
     if (width_type != TrebleWidthType.q)
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-treble' : 'lavfi-treble=' + parts.join(':');
@@ -10894,6 +12386,13 @@ final class TrebleSettings {
 /// - [d]: Depth of modulation as a percentage. Range is 0.0 - 1.0. Default value is 0.5. (range 0.0..1.0, default 0.5)
 /// - [f]: Modulation frequency in Hertz. Modulation frequencies in the subharmonic range (20 Hz or lower) will result in a tremolo effect. This filter may also be used as a ring modulator by specifying a modulation frequency higher than 20 Hz. Range is 0.1 - 20000.0. Default value is 5.0 Hz. (range 0.1..20000.0, default 5.0)
 final class TremoloSettings {
+  static const double dDefault = 0.5;
+  static const double dMin = 0.0;
+  static const double dMax = 1.0;
+  static const double fDefault = 5.0;
+  static const double fMin = 0.1;
+  static const double fMax = 20000.0;
+
   final bool enabled;
   final double d;
   final double f;
@@ -10932,13 +12431,13 @@ final class TremoloSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(d >= 0.0, 'tremolo.d must be >= 0.0');
-    assert(d <= 1.0, 'tremolo.d must be <= 1.0');
-    assert(f >= 0.1, 'tremolo.f must be >= 0.1');
-    assert(f <= 20000.0, 'tremolo.f must be <= 20000.0');
+    assert(d >= dMin, 'tremolo.d must be >= 0.0');
+    assert(d <= dMax, 'tremolo.d must be <= 1.0');
+    assert(f >= fMin, 'tremolo.f must be >= 0.1');
+    assert(f <= fMax, 'tremolo.f must be <= 20000.0');
     final parts = <String>[];
-    if (d != 0.5) parts.add('d=' + d.toStringAsFixed(3));
-    if (f != 5.0) parts.add('f=' + f.toStringAsFixed(3));
+    if (d != 0.5) parts.add('d=' + _wireDouble(d));
+    if (f != 5.0) parts.add('f=' + _wireDouble(f));
     return parts.isEmpty ? 'lavfi-tremolo' : 'lavfi-tremolo=' + parts.join(':');
   }
 }
@@ -10953,6 +12452,13 @@ final class TremoloSettings {
 /// - [d]: Depth of modulation as a percentage. Range is 0.0 - 1.0. Default value is 0.5. (range 0.00..1.0, default 0.5)
 /// - [f]: Modulation frequency in Hertz. Range is 0.1 - 20000.0. Default value is 5.0 Hz. (range 0.1..20000.0, default 5.0)
 final class VibratoSettings {
+  static const double dDefault = 0.5;
+  static const double dMin = 0.00;
+  static const double dMax = 1.0;
+  static const double fDefault = 5.0;
+  static const double fMin = 0.1;
+  static const double fMax = 20000.0;
+
   final bool enabled;
   final double d;
   final double f;
@@ -10991,13 +12497,13 @@ final class VibratoSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(d >= 0.00, 'vibrato.d must be >= 0.00');
-    assert(d <= 1.0, 'vibrato.d must be <= 1.0');
-    assert(f >= 0.1, 'vibrato.f must be >= 0.1');
-    assert(f <= 20000.0, 'vibrato.f must be <= 20000.0');
+    assert(d >= dMin, 'vibrato.d must be >= 0.00');
+    assert(d <= dMax, 'vibrato.d must be <= 1.0');
+    assert(f >= fMin, 'vibrato.f must be >= 0.1');
+    assert(f <= fMax, 'vibrato.f must be <= 20000.0');
     final parts = <String>[];
-    if (d != 0.5) parts.add('d=' + d.toStringAsFixed(3));
-    if (f != 5.0) parts.add('f=' + f.toStringAsFixed(3));
+    if (d != 0.5) parts.add('d=' + _wireDouble(d));
+    if (f != 5.0) parts.add('f=' + _wireDouble(f));
     return parts.isEmpty ? 'lavfi-vibrato' : 'lavfi-vibrato=' + parts.join(':');
   }
 }
@@ -11016,6 +12522,13 @@ final class VibratoSettings {
 /// - [cutoff]: Set the virtual bass cutoff frequency. Default value is 250 Hz. Allowed range is from 100 to 500 Hz. (range 100..500, default 250)
 /// - [strength]: Set the virtual bass strength. Allowed range is from 0.5 to 3. Default value is 3. (range 0.5..3, default 3)
 final class VirtualbassSettings {
+  static const double cutoffDefault = 250.0;
+  static const double cutoffMin = 100.0;
+  static const double cutoffMax = 500.0;
+  static const double strengthDefault = 3.0;
+  static const double strengthMin = 0.5;
+  static const double strengthMax = 3.0;
+
   final bool enabled;
   final double cutoff;
   final double strength;
@@ -11055,13 +12568,13 @@ final class VirtualbassSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    assert(cutoff >= 100, 'virtualbass.cutoff must be >= 100');
-    assert(cutoff <= 500, 'virtualbass.cutoff must be <= 500');
-    assert(strength >= 0.5, 'virtualbass.strength must be >= 0.5');
-    assert(strength <= 3, 'virtualbass.strength must be <= 3');
+    assert(cutoff >= cutoffMin, 'virtualbass.cutoff must be >= 100');
+    assert(cutoff <= cutoffMax, 'virtualbass.cutoff must be <= 500');
+    assert(strength >= strengthMin, 'virtualbass.strength must be >= 0.5');
+    assert(strength <= strengthMax, 'virtualbass.strength must be <= 3');
     final parts = <String>[];
-    if (cutoff != 250.0) parts.add('cutoff=' + cutoff.toStringAsFixed(3));
-    if (strength != 3.0) parts.add('strength=' + strength.toStringAsFixed(3));
+    if (cutoff != 250.0) parts.add('cutoff=' + _wireDouble(cutoff));
+    if (strength != 3.0) parts.add('strength=' + _wireDouble(strength));
     return parts.isEmpty
         ? 'lavfi-virtualbass'
         : 'lavfi-virtualbass=' + parts.join(':');
@@ -11812,5 +13325,109 @@ final class AudioEffects {
     if (vibrato.enabled) parts.add(vibrato.toFilterString());
     if (virtualbass.enabled) parts.add(virtualbass.toFilterString());
     return parts.join(',');
+  }
+}
+
+/// Cross-link between the singular [AudioEffect] enum and the
+/// plural [AudioEffects] bundle: yields the [AudioEffect] for
+/// every slot whose `*Settings.enabled` is `true`, in the same
+/// declaration order as the bundle's fields.
+///
+/// Useful when iterating the active rack — e.g. attaching a
+/// per-filter visualizer to every enabled stage:
+///
+/// ```dart
+/// for (final f in player.state.audioEffects.active) {
+///   player.stream.tap(f, side: TapSide.post).listen(_paint);
+/// }
+/// ```
+extension AudioEffectsX on AudioEffects {
+  Iterable<AudioEffect> get active sync* {
+    if (acompressor.enabled) yield AudioEffect.acompressor;
+    if (acontrast.enabled) yield AudioEffect.acontrast;
+    if (acrusher.enabled) yield AudioEffect.acrusher;
+    if (adeclick.enabled) yield AudioEffect.adeclick;
+    if (adeclip.enabled) yield AudioEffect.adeclip;
+    if (adecorrelate.enabled) yield AudioEffect.adecorrelate;
+    if (adelay.enabled) yield AudioEffect.adelay;
+    if (adenorm.enabled) yield AudioEffect.adenorm;
+    if (aderivative.enabled) yield AudioEffect.aderivative;
+    if (adrc.enabled) yield AudioEffect.adrc;
+    if (adynamicequalizer.enabled) yield AudioEffect.adynamicequalizer;
+    if (adynamicsmooth.enabled) yield AudioEffect.adynamicsmooth;
+    if (aecho.enabled) yield AudioEffect.aecho;
+    if (aemphasis.enabled) yield AudioEffect.aemphasis;
+    if (aeval.enabled) yield AudioEffect.aeval;
+    if (aexciter.enabled) yield AudioEffect.aexciter;
+    if (afade.enabled) yield AudioEffect.afade;
+    if (afftdn.enabled) yield AudioEffect.afftdn;
+    if (afftfilt.enabled) yield AudioEffect.afftfilt;
+    if (aformat.enabled) yield AudioEffect.aformat;
+    if (afreqshift.enabled) yield AudioEffect.afreqshift;
+    if (afwtdn.enabled) yield AudioEffect.afwtdn;
+    if (agate.enabled) yield AudioEffect.agate;
+    if (aiir.enabled) yield AudioEffect.aiir;
+    if (alimiter.enabled) yield AudioEffect.alimiter;
+    if (allpass.enabled) yield AudioEffect.allpass;
+    if (anequalizer.enabled) yield AudioEffect.anequalizer;
+    if (anlmdn.enabled) yield AudioEffect.anlmdn;
+    if (apad.enabled) yield AudioEffect.apad;
+    if (aphaser.enabled) yield AudioEffect.aphaser;
+    if (aphaseshift.enabled) yield AudioEffect.aphaseshift;
+    if (apsyclip.enabled) yield AudioEffect.apsyclip;
+    if (apulsator.enabled) yield AudioEffect.apulsator;
+    if (aresample.enabled) yield AudioEffect.aresample;
+    if (arnndn.enabled) yield AudioEffect.arnndn;
+    if (asoftclip.enabled) yield AudioEffect.asoftclip;
+    if (asubboost.enabled) yield AudioEffect.asubboost;
+    if (asubcut.enabled) yield AudioEffect.asubcut;
+    if (asupercut.enabled) yield AudioEffect.asupercut;
+    if (asuperpass.enabled) yield AudioEffect.asuperpass;
+    if (asuperstop.enabled) yield AudioEffect.asuperstop;
+    if (atempo.enabled) yield AudioEffect.atempo;
+    if (atilt.enabled) yield AudioEffect.atilt;
+    if (bandpass.enabled) yield AudioEffect.bandpass;
+    if (bandreject.enabled) yield AudioEffect.bandreject;
+    if (bass.enabled) yield AudioEffect.bass;
+    if (biquad.enabled) yield AudioEffect.biquad;
+    if (channelmap.enabled) yield AudioEffect.channelmap;
+    if (chorus.enabled) yield AudioEffect.chorus;
+    if (compand.enabled) yield AudioEffect.compand;
+    if (compensationdelay.enabled) yield AudioEffect.compensationdelay;
+    if (crossfeed.enabled) yield AudioEffect.crossfeed;
+    if (crystalizer.enabled) yield AudioEffect.crystalizer;
+    if (dcshift.enabled) yield AudioEffect.dcshift;
+    if (deesser.enabled) yield AudioEffect.deesser;
+    if (dialoguenhance.enabled) yield AudioEffect.dialoguenhance;
+    if (drmeter.enabled) yield AudioEffect.drmeter;
+    if (dynaudnorm.enabled) yield AudioEffect.dynaudnorm;
+    if (earwax.enabled) yield AudioEffect.earwax;
+    if (ebur128.enabled) yield AudioEffect.ebur128;
+    if (equalizer.enabled) yield AudioEffect.equalizer;
+    if (extrastereo.enabled) yield AudioEffect.extrastereo;
+    if (firequalizer.enabled) yield AudioEffect.firequalizer;
+    if (flanger.enabled) yield AudioEffect.flanger;
+    if (haas.enabled) yield AudioEffect.haas;
+    if (hdcd.enabled) yield AudioEffect.hdcd;
+    if (headphone.enabled) yield AudioEffect.headphone;
+    if (highpass.enabled) yield AudioEffect.highpass;
+    if (highshelf.enabled) yield AudioEffect.highshelf;
+    if (loudnorm.enabled) yield AudioEffect.loudnorm;
+    if (lowpass.enabled) yield AudioEffect.lowpass;
+    if (lowshelf.enabled) yield AudioEffect.lowshelf;
+    if (mcompand.enabled) yield AudioEffect.mcompand;
+    if (pan.enabled) yield AudioEffect.pan;
+    if (rubberband.enabled) yield AudioEffect.rubberband;
+    if (silenceremove.enabled) yield AudioEffect.silenceremove;
+    if (speechnorm.enabled) yield AudioEffect.speechnorm;
+    if (stereotools.enabled) yield AudioEffect.stereotools;
+    if (stereowiden.enabled) yield AudioEffect.stereowiden;
+    if (superequalizer.enabled) yield AudioEffect.superequalizer;
+    if (surround.enabled) yield AudioEffect.surround;
+    if (tiltshelf.enabled) yield AudioEffect.tiltshelf;
+    if (treble.enabled) yield AudioEffect.treble;
+    if (tremolo.enabled) yield AudioEffect.tremolo;
+    if (vibrato.enabled) yield AudioEffect.vibrato;
+    if (virtualbass.enabled) yield AudioEffect.virtualbass;
   }
 }

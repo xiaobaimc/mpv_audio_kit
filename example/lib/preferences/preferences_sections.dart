@@ -1063,38 +1063,50 @@ class _PrefRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: _wLabel,
+    // Label + control sit side-by-side at desktop widths; on narrower
+    // panels [Wrap] flows the control onto a second line so the row
+    // never clips. The description sits below the wrap and pulls its
+    // own width from the parent column — left-aligned, no left-pad
+    // when wrapped (the label-column reservation only makes sense if
+    // the control is on the same row).
+    return LayoutBuilder(builder: (ctx, c) {
+      final wrapped = c.maxWidth < _wLabel + 240; // rough breakpoint
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 0,
+              runSpacing: 4,
+              children: [
+                SizedBox(
+                  width: _wLabel,
+                  child: AtomLabel(
+                    label,
+                    fontSize: ConsoleSkin.sizeSmall,
+                    color: ConsoleSkin.fg,
+                    mono: true,
+                  ),
+                ),
+                control,
+              ],
+            ),
+            if (description != null)
+              Padding(
+                padding: EdgeInsets.only(top: 2, left: wrapped ? 0 : _wLabel),
                 child: AtomLabel(
-                  label,
-                  fontSize: ConsoleSkin.sizeSmall,
-                  color: ConsoleSkin.fg,
-                  mono: true,
+                  description!,
+                  fontSize: ConsoleSkin.sizeTiny,
+                  color: ConsoleSkin.fgFaint,
+                  wrap: true,
                 ),
               ),
-              control,
-            ],
-          ),
-          if (description != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 2, left: _wLabel),
-              child: AtomLabel(
-                description!,
-                fontSize: ConsoleSkin.sizeTiny,
-                color: ConsoleSkin.fgFaint,
-              ),
-            ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 }
 

@@ -11,9 +11,9 @@ import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 import '../_helpers/setter_test_helpers.dart';
 
-/// End-to-end coverage for [Player.tapPre] / [Player.tapPost], backed
-/// by the `analyzer-taps` and `audio-tap-frames` mpv properties added
-/// by `patch_filter_label_tap.py`.
+/// End-to-end coverage for [PlayerStream.tap], backed by the
+/// `analyzer-taps` and `audio-tap-frames` mpv properties added by
+/// `patch_filter_label_tap.py`.
 ///
 /// On a libmpv binary without the patch the properties don't exist;
 /// the test set is marked skipped instead of failing the suite.
@@ -52,7 +52,9 @@ void main() {
         );
 
         final completer = Completer<PcmFrame>();
-        final sub = player.tapPost('equalizer').listen((f) {
+        final sub = player.stream
+            .tap(AudioEffect.equalizer, side: TapSide.post)
+            .listen((f) {
           if (!completer.isCompleted) completer.complete(f);
         });
         try {
@@ -90,7 +92,9 @@ void main() {
         expect(active ?? '', isEmpty);
 
         // First subscriber arms the tap.
-        final s1 = player.tapPre('equalizer').listen((_) {});
+        final s1 = player.stream
+            .tap(AudioEffect.equalizer, side: TapSide.pre)
+            .listen((_) {});
         // Give the pipeline a microtask tick to write the property.
         await Future<void>.delayed(const Duration(milliseconds: 50));
         active = await player.getRawProperty('analyzer-taps');
@@ -101,7 +105,9 @@ void main() {
 
         // Second subscriber on the same filter: refcount, not a
         // duplicate write.
-        final s2 = player.tapPost('equalizer').listen((_) {});
+        final s2 = player.stream
+            .tap(AudioEffect.equalizer, side: TapSide.post)
+            .listen((_) {});
         await Future<void>.delayed(const Duration(milliseconds: 50));
         active = await player.getRawProperty('analyzer-taps');
         expect(active, 'lavfi-equalizer');

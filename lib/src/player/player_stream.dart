@@ -22,6 +22,8 @@ import 'package:mpv_audio_kit/src/types/enums/cover.dart';
 import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
 import 'package:mpv_audio_kit/src/types/settings/audio_effects_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
+import 'package:mpv_audio_kit/src/types/enums/audio_effects.dart';
+import 'package:mpv_audio_kit/src/types/enums/tap_side.dart';
 import 'package:mpv_audio_kit/src/types/settings/spectrum_settings.dart';
 import 'package:mpv_audio_kit/src/models/chapter.dart';
 import 'package:mpv_audio_kit/src/types/state/mpv_playback_state.dart';
@@ -73,6 +75,7 @@ class PlayerStream {
     required this.pcm,
     required this.spectrum,
     required this.waveform,
+    required this.tap,
   })  : playing = reactives.playing.stream,
         position = reactives.position.stream,
         duration = reactives.duration.stream,
@@ -598,8 +601,8 @@ class PlayerStream {
 
   /// Real-time raw PCM samples of the audio currently playing through
   /// the player's output, captured post-DSP. Use for time-domain
-  /// visualisations: Audacity-style waveforms, accurate VU/peak
-  /// meters, oscilloscopes, custom feature extractors.
+  /// visualisations: scrolling waveforms, accurate VU/peak meters,
+  /// oscilloscopes, custom feature extractors.
   ///
   /// For frequency-domain visualisations (spectrum bars, glow
   /// effects), prefer [fft] which is computed from the same tap.
@@ -608,6 +611,27 @@ class PlayerStream {
   /// emit rate of [Player.setSpectrum] (the FFT-side knobs are
   /// ignored for this stream).
   final Stream<PcmFrame> pcm;
+
+  /// Per-filter PCM tap — emits [PcmFrame]s captured at the chosen
+  /// [TapSide] of [filter]'s slot in the `af` chain. Use
+  /// [TapSide.pre] for "input signal" overlays, [TapSide.post] for
+  /// "output signal" overlays in a per-filter editor.
+  ///
+  /// The tap is **lazy**: the engine activates the matching hook in
+  /// the audio chain only while at least one listener is attached,
+  /// and tears down on the last cancel. Multiple subscribers to the
+  /// same `(filter, side)` share a single underlying tap.
+  ///
+  /// [filter] is one of the typed [AudioEffect] values — the same
+  /// 86 filters surfaced as `*Settings` fields on [AudioEffects], so
+  /// every reachable filter is named at compile time. Live streams
+  /// without an active af chain emit no frames; the stream is silent
+  /// (no error) when the loaded libmpv does not expose the
+  /// filter-tap property.
+  final Stream<PcmFrame> Function(
+    AudioEffect filter, {
+    required TapSide side,
+  }) tap;
 
   /// Reactive view of the current [SpectrumSettings] — the configuration
   /// of the FFT pipeline (size, bands, window, emit rate, smoothing, dB
@@ -625,8 +649,8 @@ class PlayerStream {
   final Stream<SpectrumSettings> spectrum;
 
   /// Mono min/max waveform envelope of the current track, binned across
-  /// the track duration. Use for a Reaper / Audacity-style overview
-  /// strip with click-to-seek.
+  /// the track duration. Use for a full-track overview strip with
+  /// click-to-seek.
   ///
   /// On every `loadfile`, the engine spawns a background worker that
   /// bulk-decodes the file via libav and bins min/max into a

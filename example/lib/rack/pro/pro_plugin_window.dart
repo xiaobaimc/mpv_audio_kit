@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../atoms/atom_button.dart';
+import '../../atoms/atom_close_x.dart';
 import '../../atoms/atom_label.dart';
 import '../../skin/console_skin.dart';
 
@@ -150,12 +150,7 @@ class _Header extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            AtomButton(
-              label: '×',
-              onTap: onClose,
-              width: 24,
-              height: 20,
-            ),
+            AtomCloseX(onTap: onClose),
           ],
         ),
       ),

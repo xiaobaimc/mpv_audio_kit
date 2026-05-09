@@ -10,7 +10,7 @@ import 'dart:typed_data';
 /// Emitted on [PlayerStream.pcm] at the rate configured in
 /// [SpectrumSettings.emitInterval] (default ~30 Hz). Use this for
 /// time-domain visualisations the FFT pipeline can't express:
-/// Audacity-style waveforms, accurate VU/peak meters, oscilloscopes,
+/// scrolling waveforms, accurate VU/peak meters, oscilloscopes,
 /// vectorscopes, custom feature extractors that need raw amplitude.
 ///
 /// For a frequency-domain visualizer (spectrum bars, glow effects),

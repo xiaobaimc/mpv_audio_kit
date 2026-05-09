@@ -43,6 +43,7 @@ import '../models/device.dart';
 import '../types/enums/format.dart';
 import '../types/enums/cover.dart';
 import '../types/enums/gapless.dart';
+import '../types/enums/tap_side.dart';
 import '../types/enums/hook.dart';
 import '../types/enums/log_level.dart';
 import '../types/settings/audio_effects_settings.dart';
@@ -327,33 +328,6 @@ class Player extends _PlayerBase
     }
   }
 
-  /// Pre-filter PCM tap. Subscribers receive [PcmFrame]s captured
-  /// **before** the named filter applies its DSP — useful for the
-  /// FabFilter Pro-Q-style "input signal" overlay in a per-filter
-  /// editor.
-  ///
-  /// The tap is **lazy**: the engine activates the matching hook in
-  /// the audio chain only while at least one listener is attached.
-  /// On the last cancel the hook deactivates and the engine reverts
-  /// to zero-overhead default. Multiple subscribers to the same
-  /// filter share a single underlying tap.
-  ///
-  /// [filterName] is the libavfilter type name (e.g. `'equalizer'`,
-  /// `'acompressor'`). When the same filter type appears multiple
-  /// times in the chain, every instance is captured into the same
-  /// ring; the wrapper currently does not disambiguate by index.
-  ///
-  /// Live streams without an active af chain emit no frames. The
-  /// stream is silent (no error) when the loaded libmpv does not
-  /// expose the filter-tap property.
-  Stream<PcmFrame> tapPre(String filterName) =>
-      _filterTapPipeline.tapPre(filterName);
-
-  /// Post-filter PCM tap — identical to [tapPre] but captures the
-  /// frame **after** the named filter has processed it.
-  Stream<PcmFrame> tapPost(String filterName) =>
-      _filterTapPipeline.tapPost(filterName);
-
   @override
   Future<void> dispose() async {
     _cancelHookTimers();
@@ -455,8 +429,8 @@ abstract class _PlayerBase {
   late final WaveformPipeline _waveformPipeline;
 
   // Per-filter pre/post audio tap. Lazy: arms the analyzer-taps
-  // property only when at least one [tapPre] / [tapPost] stream has
-  // a listener.
+  // property only when at least one [PlayerStream.tap] stream has a
+  // listener.
   late final FilterTapPipeline _filterTapPipeline;
 
   PlayerState get state => _state;
@@ -511,6 +485,10 @@ abstract class _PlayerBase {
       pcm: _pcmStreamCtrl.stream,
       spectrum: _spectrumCtrl.stream,
       waveform: _waveformCtrl.stream,
+      tap: (filter, {required side}) => switch (side) {
+        TapSide.pre => _filterTapPipeline.tapPre(filter.filterName),
+        TapSide.post => _filterTapPipeline.tapPost(filter.filterName),
+      },
     );
 
     // Build the recipe and hand it to the event isolate. All heavy

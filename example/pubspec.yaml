@@ -33,11 +33,6 @@ dependencies:
   window_manager: ^0.5.1
   shared_preferences: ^2.5.4
   flutter_launcher_icons: ^0.14.4
-  # Used by the pro filter editors to compute the live FFT bands
-  # of `Player.tapPre` / `tapPost` (the per-filter PCM streams) for
-  # the dual input/output spectrum overlay. Same package the lib
-  # uses internally for its global spectrum pipeline.
-  fftea: ^1.5.0
 
 dev_dependencies:
   integration_test:

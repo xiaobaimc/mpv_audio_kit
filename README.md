@@ -220,6 +220,7 @@ bundle, and the escape hatches are now async. See the
     * [13.1 Subscribing to the spectrum stream](#131-subscribing-to-the-spectrum-stream)
     * [13.2 Configuring the pipeline](#132-configuring-the-pipeline)
     * [13.3 Raw PCM stream](#133-raw-pcm-stream)
+    * [13.4 Per-filter PCM taps](#134-per-filter-pcm-taps)
 
     </details>
 *   [Migration](#migration)
@@ -2025,8 +2026,8 @@ await player.setSpectrum(const SpectrumSettings(
   fftSize: 2048,
   bandCount: 128,
   emitInterval: Duration(milliseconds: 16),
-  minDb: -65,
-  maxDb: -5,
+  minDb: -90,
+  maxDb: -20,
 ));
 
 // Mutate one field, e.g. UI slider on attack smoothing:
@@ -2034,7 +2035,7 @@ await player.updateSpectrum((s) => s.copyWith(attackSmoothing: 0.7));
 ```
 
 <details>
-<summary><b>9 fields</b> (click to expand)</summary>
+<summary><b>10 fields</b> (click to expand)</summary>
 
 | Field             | Default        | Range or choice |
 |-------------------|----------------|----------------|
@@ -2046,7 +2047,8 @@ await player.updateSpectrum((s) => s.copyWith(attackSmoothing: 0.7));
 | `emitInterval`    | 33 ms (~30 fps)| 8–67 ms (~120–15 fps) |
 | `attackSmoothing` | 0.5            | EMA when band rises; higher = snappier |
 | `releaseSmoothing`| 0.1            | EMA when band falls; lower = slower decay |
-| `minDb`, `maxDb`  | -70, -10       | dB clip range mapped to `[0, 1]` |
+| `minDb`, `maxDb`  | -100, -30      | dB clip range mapped to `[0, 1]`. Matches Web Audio API `AnalyserNode.minDecibels` / `maxDecibels` defaults. |
+| `overlapFactor`   | 4              | Power of 2: 1 (no overlap), 2, 4 (75 %, default), 8, 16 |
 
 </details>
 
@@ -2081,6 +2083,56 @@ player.stream.pcm.listen((frame) {
 `samples` is a `Float32List` of interleaved channels (`L, R, L, R…`).
 Use `frame.samplesPerChannel` to compute the per-channel sample
 count.
+
+#### 13.4 Per-filter PCM taps
+
+`player.stream.tap(filter, side: ...)` captures raw audio samples at
+either side of a single filter in the `af` chain. The slot is named
+through the typed `AudioEffect` enum — same 86 values surfaced as
+`*Settings` fields on `AudioEffects`, so every reachable filter is
+chosen at compile time. The side is one of `TapSide.pre` (before the
+filter's DSP runs) or `TapSide.post` (after).
+
+```dart
+// Two-curve display: input vs output of a single filter.
+player.stream
+    .tap(AudioEffect.equalizer, side: TapSide.pre)
+    .listen((pcm) => paintInputWaveform(pcm.samples));
+player.stream
+    .tap(AudioEffect.equalizer, side: TapSide.post)
+    .listen((pcm) => paintOutputWaveform(pcm.samples));
+```
+
+For frequency-domain bands run the samples through `BandProcessor` —
+the same FFT / windowing / smoothing the library uses for the global
+visualizer, so per-filter and global curves pulse with the exact same
+ballistic:
+
+```dart
+final processor = BandProcessor(player.spectrumSettings);
+// Track the global config so the local FFT stays in lock-step.
+final cfgSub = player.stream.spectrum.listen(processor.setSettings);
+final tapSub = player.stream
+    .tap(AudioEffect.equalizer, side: TapSide.post)
+    .listen((pcm) {
+      final fft = processor.process(pcm);
+      if (fft != null) painter.bands = fft.bands;
+    });
+```
+
+`AudioEffectsX.active` cross-links the singular `AudioEffect` enum
+with the `AudioEffects` bundle — yields the enum value for every slot
+flagged `enabled: true`, so you can iterate the live rack:
+
+```dart
+for (final f in player.state.audioEffects.active) {
+  player.stream.tap(f, side: TapSide.post).listen(_paint);
+}
+```
+
+The taps are lazy in the same way the global pipeline is — the
+matching engine hook activates only while at least one listener is
+attached and tears down on the last cancel.
 
 ---
 

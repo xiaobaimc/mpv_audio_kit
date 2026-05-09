@@ -37,18 +37,15 @@ class _LibraryPanelState extends State<LibraryPanel> {
     _dir = _initialDir();
   }
 
-  /// Best initial location across platforms — the user's Music folder
-  /// when it exists, otherwise the home directory, otherwise the
-  /// filesystem root. Synchronous; called once from [initState].
+  /// Initial browser location — the user's home directory. Falls
+  /// back to the filesystem root when no `HOME` / `USERPROFILE` is
+  /// set in the environment (rare edge case). The [⌂] header button
+  /// uses the same target so the user can always jump back here.
   static Directory _initialDir() {
     final home = Platform.environment['HOME'] ??
-        Platform.environment['USERPROFILE'] ??
-        '/';
-    for (final candidate in [
-      '$home${Platform.pathSeparator}Music',
-      home,
-    ]) {
-      final d = Directory(candidate);
+        Platform.environment['USERPROFILE'];
+    if (home != null) {
+      final d = Directory(home);
       if (d.existsSync()) return d;
     }
     return Directory(Platform.pathSeparator);
@@ -281,12 +278,22 @@ class _Entry {
 }
 
 /// Reads [dir] synchronously, sorts folders first then audio files
-/// alphabetically (case-insensitive), and skips hidden dotfiles. Returns
-/// an empty list on permission errors / non-existent dirs — caller shows
-/// the empty state.
+/// alphabetically (case-insensitive), and skips hidden dotfiles.
+/// Returns an empty list on permission errors / non-existent dirs —
+/// caller shows the empty state.
+///
+/// Symbolic links are followed (`followLinks: true`) so a `~/Music`
+/// that's a symlink to `/Volumes/External/Music` shows up as a
+/// regular folder instead of disappearing. Broken links (target
+/// doesn't exist) still come back as `Link` objects from the OS and
+/// are filtered out — listing them would just give the user an entry
+/// they can't navigate into. macOS *Finder aliases* are a different
+/// beast (a metadata blob, not a Unix symlink) and aren't surfaced by
+/// `dart:io` at all; users on macOS who want those visible should
+/// `ln -s` the same target instead.
 List<_Entry> _readEntries(Directory dir) {
   try {
-    final all = dir.listSync(followLinks: false);
+    final all = dir.listSync(followLinks: true);
     final folders = <_Entry>[];
     final files = <_Entry>[];
     for (final e in all) {
@@ -297,6 +304,8 @@ List<_Entry> _readEntries(Directory dir) {
       } else if (e is File && _isSupported(e.path)) {
         files.add(_Entry(name: name, path: e.path, isFolder: false));
       }
+      // `Link` (broken symlink) entries are deliberately skipped — see
+      // the docstring above.
     }
     int byName(_Entry a, _Entry b) =>
         a.name.toLowerCase().compareTo(b.name.toLowerCase());

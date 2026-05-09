@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 
@@ -12,15 +13,29 @@ import '../skin/paint_helpers.dart';
 /// At [zoomLevel] = 1 the entire track is visible. At higher zooms the
 /// view auto-centres on the playhead UNTIL the user pans with the
 /// trackpad / wheel — after that the view sticks where the user left
-/// it. Re-zooming or seeking via click resets to auto-follow.
+/// it. Toolbar zoom buttons re-engage auto-follow; **Cmd / Ctrl +
+/// wheel** zooms anchored at the mouse position (the standard "zoom
+/// at cursor" pattern from Reaper, Logic, etc.).
 ///
-/// The bottom area paints the min/max envelope inset by a small
-/// vertical pad so the wave never bleeds into the surrounding chrome.
 /// A grey hover cursor follows the mouse while inside the strip,
 /// previewing where a click would seek.
 class WaveformView extends StatefulWidget {
   final int zoomLevel;
-  const WaveformView({super.key, this.zoomLevel = 1});
+  /// Allowed zoom range. The wheel-zoom shortcut respects these bounds;
+  /// outside them the wheel falls through to a normal pan.
+  final int zoomMin;
+  final int zoomMax;
+  /// Fired when the user changes zoom via Cmd / Ctrl + wheel so the
+  /// owning widget can keep its [zoomLevel] state in sync.
+  final ValueChanged<int>? onZoomChanged;
+
+  const WaveformView({
+    super.key,
+    this.zoomLevel = 1,
+    this.zoomMin = 1,
+    this.zoomMax = 16,
+    this.onZoomChanged,
+  });
 
   @override
   State<WaveformView> createState() => _WaveformViewState();
@@ -32,20 +47,37 @@ class _WaveformViewState extends State<WaveformView> {
   /// auto-centres on the playhead so playback never scrolls off.
   double _scrollFraction = 0;
   /// True after the first trackpad / wheel pan. Switches the view from
-  /// auto-follow-playhead to explicit-scroll. Reset on zoom change so
-  /// changing zoom always brings the playhead back into view.
+  /// auto-follow-playhead to explicit-scroll. Toolbar zoom changes
+  /// reset this back to false; wheel-zoom keeps it true so the mouse-
+  /// anchor [_scrollFraction] survives the rebuild.
   bool _userPanned = false;
   /// Mouse x while hovering the strip; null when the cursor is
   /// outside. Drives the grey vertical preview line.
   double? _hoverX;
+  /// Throttle the wheel-zoom path: the trackpad emits dozens of scroll
+  /// events per "tick", but our zoom levels are powers of two — one
+  /// step per ~120 ms keeps the gesture responsive without slingshot-
+  /// ing through the whole range on a single swipe.
+  DateTime _lastWheelZoomAt = DateTime.fromMillisecondsSinceEpoch(0);
+  static const _wheelZoomCooldown = Duration(milliseconds: 120);
+  /// Set true while we're in the middle of dispatching a wheel-zoom so
+  /// the next [didUpdateWidget] keeps [_userPanned] sticky instead of
+  /// re-engaging auto-follow.
+  bool _zoomedViaWheel = false;
 
   @override
   void didUpdateWidget(WaveformView old) {
     super.didUpdateWidget(old);
     if (old.zoomLevel != widget.zoomLevel) {
-      // Zoom in / out re-engages auto-follow so the user always lands
-      // back on the playhead instead of staring at unrelated audio.
-      _userPanned = false;
+      if (_zoomedViaWheel) {
+        // Wheel-zoom path: [_scrollFraction] was already set to anchor
+        // the mouse position; keep it sticky across the rebuild.
+        _zoomedViaWheel = false;
+      } else {
+        // Toolbar / external zoom change re-engages auto-follow so
+        // the user lands back on the playhead.
+        _userPanned = false;
+      }
     }
   }
 
@@ -72,6 +104,46 @@ class _WaveformViewState extends State<WaveformView> {
       _scrollFraction =
           (_scrollFraction + fracDelta).clamp(0.0, 1.0 - visibleWidth);
     });
+  }
+
+  /// Bumps the zoom one step in [direction] (+1 = in, -1 = out) so
+  /// the time at the mouse position stays at the mouse position. The
+  /// owning widget is notified via [WaveformView.onZoomChanged]; the
+  /// view re-engages auto-follow only when the bump comes from
+  /// somewhere else (e.g. toolbar buttons), not from this path.
+  void _zoomAtMouse(
+    double mouseX,
+    double containerWidth,
+    int direction,
+    double viewStart,
+    double viewEnd,
+  ) {
+    final cb = widget.onZoomChanged;
+    if (cb == null || containerWidth <= 0) return;
+
+    // Step the zoom on the same multiplicative scale the toolbar uses
+    // (1, 2, 4, 8, 16). One step per scroll burst, throttled below.
+    final cur = widget.zoomLevel;
+    final next = direction > 0 ? cur * 2 : cur ~/ 2;
+    final clamped = next.clamp(widget.zoomMin, widget.zoomMax);
+    if (clamped == cur) return;
+
+    // Anchor: time-fraction under the cursor must be the same before
+    // and after. Solve `viewStart' = tMouse - (mouseX/W) * newWidth`.
+    final mouseFrac = (mouseX / containerWidth).clamp(0.0, 1.0);
+    final tMouse = viewStart + mouseFrac * (viewEnd - viewStart);
+    final newVisible = 1.0 / clamped;
+    final newScroll = newVisible >= 1.0
+        ? 0.0
+        : (tMouse - mouseFrac * newVisible).clamp(0.0, 1.0 - newVisible);
+
+    setState(() {
+      _userPanned = clamped > 1;       // no point sticking when fully zoomed out
+      _scrollFraction = newScroll;
+      _zoomedViaWheel = true;
+      _lastWheelZoomAt = DateTime.now();
+    });
+    cb(clamped);
   }
 
   @override
@@ -108,22 +180,47 @@ class _WaveformViewState extends State<WaveformView> {
 
             return LayoutBuilder(
               builder: (ctx, c) => MouseRegion(
-                cursor: SystemMouseCursors.click,
+                cursor: SystemMouseCursors.basic,
                 onExit: (_) => setState(() => _hoverX = null),
                 child: Listener(
                   behavior: HitTestBehavior.opaque,
                   onPointerSignal: (e) {
-                    if (e is PointerScrollEvent) {
-                      // Either axis maps to a horizontal pan — most
-                      // trackpads emit dx for two-finger horizontal
-                      // and dy for vertical, mouse wheel emits dy.
-                      final delta =
-                          e.scrollDelta.dx.abs() > e.scrollDelta.dy.abs()
-                              ? e.scrollDelta.dx
-                              : e.scrollDelta.dy;
-                      if (delta != 0) {
-                        _pan(delta, c.maxWidth, visibleWidth);
+                    if (e is! PointerScrollEvent) return;
+                    final keys = HardwareKeyboard.instance;
+                    final zoomMod = keys.isMetaPressed ||
+                                    keys.isControlPressed;
+                    if (zoomMod) {
+                      // Cmd / Ctrl + wheel → zoom anchored at the
+                      // cursor. Throttle so a single trackpad swipe
+                      // doesn't slingshot through every zoom level.
+                      final now = DateTime.now();
+                      if (now.difference(_lastWheelZoomAt) <
+                          _wheelZoomCooldown) {
+                        return;
                       }
+                      // Up / forward (negative dy) zooms IN, down /
+                      // back zooms OUT — matches Reaper / Logic.
+                      final dy = e.scrollDelta.dy;
+                      if (dy.abs() < 0.5) return;
+                      _zoomAtMouse(
+                        e.localPosition.dx,
+                        c.maxWidth,
+                        dy < 0 ? 1 : -1,
+                        viewStart,
+                        viewEnd,
+                      );
+                      return;
+                    }
+                    // No modifier → horizontal pan. Either axis maps
+                    // to pan: most trackpads emit dx for two-finger
+                    // horizontal and dy for vertical; mouse wheel
+                    // emits dy.
+                    final delta =
+                        e.scrollDelta.dx.abs() > e.scrollDelta.dy.abs()
+                            ? e.scrollDelta.dx
+                            : e.scrollDelta.dy;
+                    if (delta != 0) {
+                      _pan(delta, c.maxWidth, visibleWidth);
                     }
                   },
                   onPointerHover: (e) =>
@@ -260,11 +357,25 @@ class _RulerPainter extends CustomPainter {
         Offset(x, size.height),
         color: majorPaint.color,
       );
+      // Label CENTRED horizontally on the major tick, top-aligned a
+      // few pixels below the ruler top. Edge-clamped so the first /
+      // last labels don't bleed past the canvas — keeps the ruler
+      // strip readable at every zoom level.
       final label = _formatTime(major, majorSecs);
+      final labelSize = Glyph.measure(
+        label,
+        size: 9,
+        mono: true,
+      );
+      var dx = x - labelSize.width / 2;
+      if (dx < 1) dx = 1;
+      if (dx + labelSize.width > size.width - 1) {
+        dx = size.width - 1 - labelSize.width;
+      }
       Glyph.draw(
         canvas,
         label,
-        offset: Offset(x + 3, 0),
+        offset: Offset(dx, 1),
         size: 9,
         color: ConsoleSkin.fgDim,
         mono: true,
@@ -327,11 +438,6 @@ class _WaveformPainter extends CustomPainter {
   final double viewEnd;
   final double? hoverX;
 
-  /// Empty space between the canvas edges and the peak amplitude — so
-  /// the rendered min/max columns never look like the chrome is
-  /// clipping them. Tuned to ~10 % of the strip's typical height.
-  static const double _verticalPad = 10;
-
   _WaveformPainter({
     required this.wave,
     required this.pos,
@@ -346,10 +452,9 @@ class _WaveformPainter extends CustomPainter {
     canvas.drawRect(Offset.zero & size, Paint()..color = ConsoleSkin.bgDeep);
 
     final cy = size.height / 2;
-    // Effective half-height for the wave columns. A peak amplitude of
-    // 1.0 reaches `cy ± ampY`, which is `_verticalPad` below the top
-    // and above the bottom of the canvas.
-    final ampY = (cy - _verticalPad).clamp(0.0, cy);
+    // Peak amplitude of 1.0 reaches the canvas edges directly — the
+    // wave fills the strip top to bottom.
+    final ampY = cy;
 
     canvas.drawLine(
       Offset(0, cy),
@@ -429,16 +534,18 @@ class _WaveformPainter extends CustomPainter {
       }
     }
 
-    // Hover preview cursor — rendered BEFORE the playhead so the
-    // playhead always wins when they overlap.
+    // Hover preview cursor — bright neutral so it reads on top of
+    // the dark waveform background and the dim grey "future" columns
+    // alike. Drawn BEFORE the playhead so the accent playhead always
+    // wins when they overlap.
     final hx = hoverX;
     if (hx != null && hx >= 0 && hx <= size.width) {
       canvas.drawLine(
         Offset(hx, 0),
         Offset(hx, size.height),
         Paint()
-          ..color = ConsoleSkin.fgDim
-          ..strokeWidth = 1,
+          ..color = ConsoleSkin.fg
+          ..strokeWidth = 1.5,
       );
     }
 

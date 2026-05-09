@@ -1,5 +1,5 @@
-// Diagnostic — not part of the suite. Subscribes to tapPost and
-// logs timing + sample fingerprint to see exactly what flows.
+// Diagnostic — not part of the suite. Subscribes to a post-side tap
+// and logs timing + sample fingerprint to see exactly what flows.
 @TestOn('mac-os || linux || windows')
 library;
 
@@ -14,7 +14,7 @@ void main() {
   final fixture = '${Directory.current.path}/test/fixtures/sine_5s.flac';
   setUpAll(() => initLibmpvOrSkip(fixturePath: fixture));
 
-  test('diag: trace tapPost frames', () async {
+  test('diag: trace post-side tap frames', () async {
     final player = await buildPlayer();
     try {
       await player.setAudioEffects(const AudioEffects(
@@ -33,13 +33,15 @@ void main() {
       await pcmSub.cancel();
       print('[diag] global pcm tap flowing');
 
-      // Now subscribe to tapPost and log every frame.
+      // Now subscribe to the post-side tap and log every frame.
       final t0 = DateTime.now().millisecondsSinceEpoch;
       var prevTs = 0;
       var prevFp = 0.0;
       var count = 0;
       var prevFirst = 0.0;
-      final sub = player.tapPost('equalizer').listen((frame) {
+      final sub = player.stream
+          .tap(AudioEffect.equalizer, side: TapSide.post)
+          .listen((frame) {
         final tWall = DateTime.now().millisecondsSinceEpoch - t0;
         final ts = frame.timestamp.inMilliseconds;
         final dTs = ts - prevTs;

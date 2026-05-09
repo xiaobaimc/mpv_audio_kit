@@ -16,8 +16,21 @@ class Stage extends StatelessWidget {
   /// Horizontal zoom factor for the waveform overview (1 = entire
   /// track visible; 2 = half; 4 = quarter; …). Centred on the playhead.
   final int zoomLevel;
+  /// Allowed zoom range for the wheel-zoom shortcut (Cmd / Ctrl +
+  /// wheel inside the waveform). Mirrors the toolbar buttons' bounds.
+  final int zoomMin;
+  final int zoomMax;
+  /// Fired when the wheel-zoom shortcut changes [zoomLevel] so the
+  /// owning shell can keep its state in sync.
+  final ValueChanged<int>? onZoomChanged;
 
-  const Stage({super.key, this.zoomLevel = 1});
+  const Stage({
+    super.key,
+    this.zoomLevel = 1,
+    this.zoomMin = 1,
+    this.zoomMax = 16,
+    this.onZoomChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +38,14 @@ class Stage extends StatelessWidget {
       children: [
         const _StageHeader(),
         const _Hairline(),
-        Expanded(child: WaveformView(zoomLevel: zoomLevel)),
+        Expanded(
+          child: WaveformView(
+            zoomLevel: zoomLevel,
+            zoomMin: zoomMin,
+            zoomMax: zoomMax,
+            onZoomChanged: onZoomChanged,
+          ),
+        ),
       ],
     );
   }
@@ -49,12 +69,10 @@ class _StageHeader extends StatelessWidget {
                 child: StreamBuilder<String>(
                   stream: player.stream.mediaTitle,
                   builder: (ctx, snap) => AtomLabel(
-                    snap.data?.isNotEmpty == true ? snap.data! : '— no media —',
+                    snap.data?.isNotEmpty == true ? snap.data! : '',
                     fontSize: ConsoleSkin.sizeBody,
                     weight: FontWeight.w500,
-                    color: snap.data?.isNotEmpty == true
-                        ? ConsoleSkin.fg
-                        : ConsoleSkin.fgDim,
+                    color: ConsoleSkin.fg,
                   ),
                 ),
               ),

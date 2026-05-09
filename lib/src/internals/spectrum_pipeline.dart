@@ -4,17 +4,16 @@
 
 import 'dart:async';
 import 'dart:ffi';
-import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:fftea/fftea.dart';
 import 'package:meta/meta.dart';
 
 import '../models/fft_frame.dart';
 import '../models/pcm_frame.dart';
 import '../mpv_bindings.dart';
 import '../types/settings/spectrum_settings.dart';
+import '../dsp/band_processor.dart';
 
 /// Real-time FFT + raw PCM pipeline backed by the mpv `pcm-tap-frame`
 /// property.
@@ -86,48 +85,19 @@ class SpectrumPipeline {
   bool _pcmActive = false;
   bool _disposed = false;
   Timer? _pollTimer;
-
-  // FFT state — recreated on fftSize / window changes, kept across polls.
-  FFT? _fft;
-  Float64List? _fftInput;
-  // Reusable complex buffer for inPlaceFft — avoids the per-frame
-  // `Float64x2List(fftSize)` allocation realFft would do internally.
-  Float64x2List? _fftBuffer;
-  Float32List? _window;
-  Float32List? _smoothedBands;
-  // Per-band bin range (start inclusive, end exclusive). null = recompute
-  // on next FFT (after sample-rate or band-config change).
-  Int32List? _bandStartBin;
-  Int32List? _bandEndBin;
-  int _lastBandSampleRate = 0;
+  // Shared FFT / windowing / EMA pipeline — same component the
+  // public [BandProcessor] exposes, so global and per-filter
+  // spectrum surfaces stay byte-identical when fed equivalent PCM.
+  late BandProcessor _processor = BandProcessor(_settings);
   int _lastPolledPtsNs = 0;
 
   /// Replaces the pipeline configuration. Reallocates FFT / window /
   /// EMA memory only on changes that require it; the poll timer is
   /// re-armed only when [SpectrumSettings.emitInterval] changes.
   void setSettings(SpectrumSettings next) {
-    final fftSizeChanged = next.fftSize != _settings.fftSize;
-    final windowChanged = next.window != _settings.window || fftSizeChanged;
-    final bandConfigChanged = next.bandCount != _settings.bandCount ||
-        next.bandLowHz != _settings.bandLowHz ||
-        next.bandHighHz != _settings.bandHighHz;
     final emitChanged = next.emitInterval != _settings.emitInterval;
-
     _settings = next;
-
-    if (fftSizeChanged) {
-      _fft = FFT(next.fftSize);
-      _fftInput = Float64List(next.fftSize);
-      _fftBuffer = Float64x2List(next.fftSize);
-    }
-    if (windowChanged) {
-      _window = next.window.compute(next.fftSize);
-    }
-    if (bandConfigChanged || fftSizeChanged) {
-      _smoothedBands = Float32List(next.bandCount);
-      _bandStartBin = null; // forces lazy recompute on next FFT
-      _bandEndBin = null;
-    }
+    _processor.setSettings(next);
     if (emitChanged && _pollTimer != null) {
       _pollTimer!.cancel();
       _pollTimer = Timer.periodic(_settings.emitInterval, (_) => _poll());
@@ -138,13 +108,8 @@ class SpectrumPipeline {
   void _maybeStart() {
     if (_disposed || _pollTimer != null) return;
     if (_handle == nullptr) return;
-    // Lazy first-time alloc — avoids paying the FFT setup cost when
-    // nothing ever subscribes to either stream.
-    _fft ??= FFT(_settings.fftSize);
-    _fftInput ??= Float64List(_settings.fftSize);
-    _fftBuffer ??= Float64x2List(_settings.fftSize);
-    _window ??= _settings.window.compute(_settings.fftSize);
-    _smoothedBands ??= Float32List(_settings.bandCount);
+    // [BandProcessor] allocates lazily on first [process], so we don't
+    // need to prime anything here — just arm the poll loop.
     _pollTimer = Timer.periodic(_settings.emitInterval, (_) => _poll());
   }
 
@@ -215,172 +180,25 @@ class SpectrumPipeline {
       _lastPolledPtsNs = ptsNs;
 
       final timestamp = Duration(microseconds: ptsNs ~/ 1000);
+      final pcm = PcmFrame(
+        samples: samples,
+        timestamp: timestamp,
+        sampleRate: sampleRate,
+        channels: channels,
+      );
 
       if (_pcmActive && !_pcmCtrl.isClosed) {
-        _pcmCtrl.add(PcmFrame(
-          samples: samples,
-          timestamp: timestamp,
-          sampleRate: sampleRate,
-          channels: channels,
-        ));
+        _pcmCtrl.add(pcm);
       }
 
       if (_fftActive && !_fftCtrl.isClosed) {
-        final frame = _runFft(samples, sampleRate, channels, timestamp);
+        final frame = _processor.process(pcm);
         if (frame != null) _fftCtrl.add(frame);
       }
     } finally {
       _lib.mpvFreeNodeContents(result);
       calloc.free(result);
     }
-  }
-
-  FftFrame? _runFft(
-    Float32List samples,
-    int sampleRate,
-    int channels,
-    Duration timestamp,
-  ) {
-    final fftSize = _settings.fftSize;
-    final samplesPerChannel = samples.length ~/ channels;
-    if (samplesPerChannel <= 0) return null;
-
-    final input = _fftInput!;
-
-    // Feed the LATEST `fftSize` samples per channel. If the ring isn't
-    // full yet (audio just started), front-pad with zeros.
-    final available = math.min(samplesPerChannel, fftSize);
-    final padding = fftSize - available;
-    final startSample = samplesPerChannel - available;
-    for (var i = 0; i < padding; i++) {
-      input[i] = 0.0;
-    }
-    if (channels == 1) {
-      for (var i = 0; i < available; i++) {
-        input[padding + i] = samples[startSample + i];
-      }
-    } else {
-      // Mono mixdown: arithmetic mean across all channels.
-      final inv = 1.0 / channels;
-      for (var i = 0; i < available; i++) {
-        var sum = 0.0;
-        final base = (startSample + i) * channels;
-        for (var c = 0; c < channels; c++) {
-          sum += samples[base + c];
-        }
-        input[padding + i] = sum * inv;
-      }
-    }
-
-    // Apply window AND pack into the complex buffer in one pass —
-    // avoids realFft's internal allocation by reusing _fftBuffer.
-    final window = _window!;
-    final buf = _fftBuffer!;
-    for (var i = 0; i < fftSize; i++) {
-      buf[i] = Float64x2(input[i] * window[i], 0);
-    }
-    _fft!.inPlaceFft(buf);
-
-    // Result occupies `fftSize` complex values; the first `fftSize/2`
-    // bins are the unique positive-frequency content (the upper half
-    // is the conjugate mirror).
-    final spectrum = buf;
-
-    final binCount = fftSize ~/ 2;
-    final rawBins = Float32List(binCount);
-
-    final minDb = _settings.minDb;
-    final maxDb = _settings.maxDb;
-    final dbRange = maxDb - minDb;
-    if (dbRange <= 0) return null;
-
-    // Power → log → clip → normalise [0, 1].
-    for (var i = 0; i < binCount; i++) {
-      final c = spectrum[i];
-      final power = c.x * c.x + c.y * c.y;
-      // 10·log₁₀(power + ε) — ε keeps the log finite at silence.
-      final db = 10 * (math.log(power + 1e-12) / math.ln10);
-      var n = (db - minDb) / dbRange;
-      if (n < 0) n = 0;
-      if (n > 1) n = 1;
-      rawBins[i] = n;
-    }
-
-    // Compute / refresh bin → band mapping when sample rate changes
-    // or after a setSettings reset.
-    if (_bandStartBin == null || sampleRate != _lastBandSampleRate) {
-      _computeBandMapping(sampleRate, fftSize, binCount);
-      _lastBandSampleRate = sampleRate;
-    }
-
-    // Bins → bands (mean of bins inside each band).
-    final bandCount = _settings.bandCount;
-    final smoothedBands = _smoothedBands!;
-    final attack = _settings.attackSmoothing;
-    final release = _settings.releaseSmoothing;
-    final bandStart = _bandStartBin!;
-    final bandEnd = _bandEndBin!;
-
-    for (var b = 0; b < bandCount; b++) {
-      final start = bandStart[b];
-      final end = bandEnd[b];
-      var sum = 0.0;
-      final count = end - start;
-      if (count <= 0) {
-        sum = 0;
-      } else {
-        for (var i = start; i < end; i++) {
-          sum += rawBins[i];
-        }
-        sum /= count;
-      }
-      final prev = smoothedBands[b];
-      final alpha = sum > prev ? attack : release;
-      smoothedBands[b] = prev + alpha * (sum - prev);
-    }
-
-    // Copy the smoothed bands so subscribers see a stable snapshot
-    // (we keep mutating `_smoothedBands` on every frame).
-    final bandsOut = Float32List(bandCount)..setAll(0, smoothedBands);
-
-    return FftFrame(
-      bins: rawBins,
-      bands: bandsOut,
-      timestamp: timestamp,
-      sampleRate: sampleRate,
-      bandLowHz: _settings.bandLowHz,
-      bandHighHz: math.min(_settings.bandHighHz, sampleRate / 2.0),
-    );
-  }
-
-  void _computeBandMapping(int sampleRate, int fftSize, int binCount) {
-    final bandCount = _settings.bandCount;
-    final bandLow = math.max(_settings.bandLowHz, 1.0);
-    final nyquist = sampleRate / 2.0;
-    final bandHigh = math.min(_settings.bandHighHz, nyquist);
-    final start = Int32List(bandCount);
-    final end = Int32List(bandCount);
-    if (bandHigh <= bandLow || binCount <= 0) {
-      _bandStartBin = start;
-      _bandEndBin = end;
-      return;
-    }
-    final binHz = sampleRate / fftSize;
-    final ratio = math.pow(bandHigh / bandLow, 1 / bandCount).toDouble();
-    for (var b = 0; b < bandCount; b++) {
-      final lowHz = bandLow * math.pow(ratio, b);
-      final highHz = bandLow * math.pow(ratio, b + 1);
-      var s = (lowHz / binHz).floor();
-      var e = (highHz / binHz).ceil();
-      if (s < 0) s = 0;
-      if (s >= binCount) s = binCount - 1;
-      if (e <= s) e = s + 1;
-      if (e > binCount) e = binCount;
-      start[b] = s;
-      end[b] = e;
-    }
-    _bandStartBin = start;
-    _bandEndBin = end;
   }
 
   Future<void> dispose() async {

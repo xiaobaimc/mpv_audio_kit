@@ -9,10 +9,10 @@ import 'dart:typed_data';
 ///
 /// Windows trade off main-lobe width vs side-lobe leakage. For music
 /// visualizers the default is [hann] — smooth taper, decent leakage,
-/// matches every mainstream visualizer (Foobar, Winamp, Audacity).
-/// [blackmanHarris] suppresses side-lobes harder for cleaner-looking
-/// peaks at the cost of a wider main lobe. [rectangular] is the
-/// no-window debug option (DC ripple, prominent leakage between bins).
+/// the canonical music-visualizer window. [blackmanHarris] suppresses
+/// side-lobes harder for cleaner-looking peaks at the cost of a wider
+/// main lobe. [rectangular] is the no-window debug option (DC ripple,
+/// prominent leakage between bins).
 ///
 /// Set via [SpectrumSettings.window].
 enum WindowFunction {
