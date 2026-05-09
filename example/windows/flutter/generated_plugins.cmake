@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  audio_service_win
   desktop_drop
   screen_retriever_windows
   window_manager

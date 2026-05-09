@@ -1,3 +1,21 @@
+## [0.2.0]
+
+### Added
+- `Player.stream.waveform` — full min/max waveform envelope of the current track. The engine bulk-decodes the file the moment it loads, so the entire envelope materialises in well under a second on most tracks. Use for Reaper / Audacity-style overview strips with click-to-seek; live streams without a known duration emit `null` and never settle.
+- `Player.stream.spectrum` — reactive view of the current `SpectrumSettings`, emitted on every `setSpectrum` / `updateSpectrum` call. Matches the bundle-stream pattern of `replayGain` / `cache` / `audioEffects`.
+- `AnequalizerBand` typed model + `AnequalizerBandsX` extension on `AnequalizerSettings` so bands are read and written as a typed list instead of a raw CSV.
+- The 10 biquad family `*Settings` (`equalizer`, `bass` / `lowshelf`, `treble` / `highshelf`, `bandpass`, `bandreject`, `highpass`, `lowpass`, `allpass`, `biquad`) now expose every parameter ffmpeg's biquad chain accepts: `width` / `width_type`, `mix`, `channels`, `normalize`, `transform`, `precision`, `blocksize`, plus their short aliases.
+- Symbol-based enum defaults are now non-nullable with the documented ffmpeg default (e.g. `EqualizerSettings.width_type` defaults to `EqualizerWidthType.q`, `transform` to `EqualizerTransformType.di`).
+
+### Fixed
+- Filters whose value contains `:` `=` `,` or `|` (e.g. `anequalizer.params`, `pan.args`, `aeval.exprs`) are now accepted by mpv. Previously they were rejected at chain build time.
+
+### Example
+- Redesigned entirely like professional audio software.
+
+### Build
+- Updated libmpv to `libmpv-r7` across all platforms.
+
 ## [0.1.3] - 9-05-2026
 
 ### Fixed

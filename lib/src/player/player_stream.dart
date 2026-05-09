@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import 'package:mpv_audio_kit/src/models/cover_art.dart';
 import 'package:mpv_audio_kit/src/models/fft_frame.dart';
 import 'package:mpv_audio_kit/src/models/pcm_frame.dart';
+import 'package:mpv_audio_kit/src/models/waveform_data.dart';
 import 'package:mpv_audio_kit/src/types/enums/loop.dart';
 import 'package:mpv_audio_kit/src/models/playlist.dart';
 import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
@@ -21,6 +22,7 @@ import 'package:mpv_audio_kit/src/types/enums/cover.dart';
 import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
 import 'package:mpv_audio_kit/src/types/settings/audio_effects_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
+import 'package:mpv_audio_kit/src/types/settings/spectrum_settings.dart';
 import 'package:mpv_audio_kit/src/models/chapter.dart';
 import 'package:mpv_audio_kit/src/types/state/mpv_playback_state.dart';
 import 'package:mpv_audio_kit/src/models/mpv_track.dart';
@@ -67,8 +69,10 @@ class PlayerStream {
     required this.hook,
     required this.seekCompleted,
     required this.coverArt,
-    required this.spectrum,
+    required this.fft,
     required this.pcm,
+    required this.spectrum,
+    required this.waveform,
   })  : playing = reactives.playing.stream,
         position = reactives.position.stream,
         duration = reactives.duration.stream,
@@ -582,7 +586,7 @@ class PlayerStream {
   ///
   /// **Lazy** — the FFT pipeline allocates and the FFI poll loop
   /// starts on the first listener, and tears down on the last cancel.
-  /// Both [spectrum] and [pcm] share the same upstream tap, so
+  /// Both [fft] and [pcm] share the same upstream tap, so
   /// subscribing to both costs only the FFT computation, not a second
   /// tap.
   ///
@@ -590,7 +594,7 @@ class PlayerStream {
   /// receiving samples). The last [FftFrame] is "frozen" in the sense
   /// that no further events fire — hold the last value as the
   /// displayed state until playback resumes.
-  final Stream<FftFrame> spectrum;
+  final Stream<FftFrame> fft;
 
   /// Real-time raw PCM samples of the audio currently playing through
   /// the player's output, captured post-DSP. Use for time-domain
@@ -598,10 +602,44 @@ class PlayerStream {
   /// meters, oscilloscopes, custom feature extractors.
   ///
   /// For frequency-domain visualisations (spectrum bars, glow
-  /// effects), prefer [spectrum] which is computed from the same tap.
+  /// effects), prefer [fft] which is computed from the same tap.
   ///
-  /// Same lazy / pause semantics as [spectrum]. Configured by the
+  /// Same lazy / pause semantics as [fft]. Configured by the
   /// emit rate of [Player.setSpectrum] (the FFT-side knobs are
   /// ignored for this stream).
   final Stream<PcmFrame> pcm;
+
+  /// Reactive view of the current [SpectrumSettings] — the configuration
+  /// of the FFT pipeline (size, bands, window, emit rate, smoothing, dB
+  /// clip). Emits a fresh snapshot on every [Player.setSpectrum] /
+  /// [Player.updateSpectrum] call so reactive UI can bind without
+  /// polling [Player.spectrumSettings] (which remains as a synchronous
+  /// accessor for callers that don't want a subscription).
+  ///
+  /// Mirrors the bundle-stream pattern of [replayGain] / [cache] /
+  /// [audioEffects] — `setX` ↔ `stream.x` of the matching `*Settings`
+  /// type. Unlike those, this one lives entirely Dart-side: the stream
+  /// is fed from the FFT pipeline's local cache, not from an mpv
+  /// property observer (the underlying `pcm-tap-frame` patch only
+  /// supplies samples, not config).
+  final Stream<SpectrumSettings> spectrum;
+
+  /// Mono min/max waveform envelope of the current track, binned across
+  /// the track duration. Use for a Reaper / Audacity-style overview
+  /// strip with click-to-seek.
+  ///
+  /// On every `loadfile`, the engine spawns a background worker that
+  /// bulk-decodes the file via libav and bins min/max into a
+  /// 2048-entry envelope. The whole envelope materialises in well
+  /// under a second on most tracks (~20-50× the playback rate on
+  /// AAC/FLAC) — no need to play through.
+  ///
+  /// Emits `null` on every track-change boundary (so renderers can
+  /// clear stale data) and a fresh [WaveformData] once the worker
+  /// finishes. Live streams or sources without a known duration emit
+  /// `null` and never settle on a real envelope.
+  ///
+  /// **Lazy** — the polling timer runs only while a listener is
+  /// attached; the cost of an idle waveform is zero.
+  final Stream<WaveformData?> waveform;
 }

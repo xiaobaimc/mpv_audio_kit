@@ -41,13 +41,13 @@ class SpectrumPipeline {
     required Pointer<MpvHandle> handle,
   })  : _lib = lib,
         _handle = handle {
-    _spectrumCtrl = StreamController<FftFrame>.broadcast(
+    _fftCtrl = StreamController<FftFrame>.broadcast(
       onListen: () {
-        _spectrumActive = true;
+        _fftActive = true;
         _maybeStart();
       },
       onCancel: () {
-        _spectrumActive = false;
+        _fftActive = false;
         _maybeStop();
       },
     );
@@ -61,21 +61,28 @@ class SpectrumPipeline {
         _maybeStop();
       },
     );
+    // [_settingsCtrl] is NOT lazy — it carries config-change events,
+    // not data, and must always be listenable so the matching
+    // `Player.stream.spectrumSettings` can observe mutations even
+    // before the FFT poll loop is armed.
+    _settingsCtrl = StreamController<SpectrumSettings>.broadcast();
   }
 
   final MpvLibrary _lib;
   final Pointer<MpvHandle> _handle;
 
-  late final StreamController<FftFrame> _spectrumCtrl;
+  late final StreamController<FftFrame> _fftCtrl;
   late final StreamController<PcmFrame> _pcmCtrl;
+  late final StreamController<SpectrumSettings> _settingsCtrl;
 
-  Stream<FftFrame> get spectrumStream => _spectrumCtrl.stream;
+  Stream<FftFrame> get fftStream => _fftCtrl.stream;
   Stream<PcmFrame> get pcmStream => _pcmCtrl.stream;
+  Stream<SpectrumSettings> get settingsStream => _settingsCtrl.stream;
 
   SpectrumSettings _settings = SpectrumSettings.defaults;
   SpectrumSettings get settings => _settings;
 
-  bool _spectrumActive = false;
+  bool _fftActive = false;
   bool _pcmActive = false;
   bool _disposed = false;
   Timer? _pollTimer;
@@ -125,6 +132,7 @@ class SpectrumPipeline {
       _pollTimer!.cancel();
       _pollTimer = Timer.periodic(_settings.emitInterval, (_) => _poll());
     }
+    if (!_settingsCtrl.isClosed) _settingsCtrl.add(next);
   }
 
   void _maybeStart() {
@@ -141,14 +149,14 @@ class SpectrumPipeline {
   }
 
   void _maybeStop() {
-    if (_spectrumActive || _pcmActive) return;
+    if (_fftActive || _pcmActive) return;
     _pollTimer?.cancel();
     _pollTimer = null;
   }
 
   void _poll() {
     if (_disposed) return;
-    if (!_spectrumActive && !_pcmActive) return;
+    if (!_fftActive && !_pcmActive) return;
     if (_handle == nullptr) return;
 
     final result = calloc<MpvNode>();
@@ -217,9 +225,9 @@ class SpectrumPipeline {
         ));
       }
 
-      if (_spectrumActive && !_spectrumCtrl.isClosed) {
+      if (_fftActive && !_fftCtrl.isClosed) {
         final frame = _runFft(samples, sampleRate, channels, timestamp);
-        if (frame != null) _spectrumCtrl.add(frame);
+        if (frame != null) _fftCtrl.add(frame);
       }
     } finally {
       _lib.mpvFreeNodeContents(result);
@@ -380,7 +388,8 @@ class SpectrumPipeline {
     _disposed = true;
     _pollTimer?.cancel();
     _pollTimer = null;
-    if (!_spectrumCtrl.isClosed) await _spectrumCtrl.close();
+    if (!_fftCtrl.isClosed) await _fftCtrl.close();
     if (!_pcmCtrl.isClosed) await _pcmCtrl.close();
+    if (!_settingsCtrl.isClosed) await _settingsCtrl.close();
   }
 }

@@ -506,9 +506,9 @@ void main() {
 
       test('param `auto` lands in wire when set to a non-default value', () {
         final s = const AdynamicequalizerSettings(
-            enabled: true, auto: AdynamicequalizerAuto.off);
+            enabled: true, auto: AdynamicequalizerAuto.disabled);
         expect(s.toFilterString(), contains('auto='));
-        expect(s.toFilterString(), contains('auto=off'));
+        expect(s.toFilterString(), contains('auto=disabled'));
       });
 
       test('param `dfrequency` lands in wire when set to a non-default value',
@@ -790,15 +790,15 @@ void main() {
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(enabled: true, c: AfadeCurve.tri);
+        final s = const AfadeSettings(enabled: true, c: AfadeCurve.nofade);
         expect(s.toFilterString(), contains('c='));
-        expect(s.toFilterString(), contains('c=tri'));
+        expect(s.toFilterString(), contains('c=nofade'));
       });
 
       test('param `curve` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(enabled: true, curve: AfadeCurve.tri);
+        final s = const AfadeSettings(enabled: true, curve: AfadeCurve.nofade);
         expect(s.toFilterString(), contains('curve='));
-        expect(s.toFilterString(), contains('curve=tri'));
+        expect(s.toFilterString(), contains('curve=nofade'));
       });
 
       test('param `d` lands in wire when set to a non-default value', () {
@@ -934,9 +934,9 @@ void main() {
       });
 
       test('param `nl` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, nl: AfftdnLink.min);
+        final s = const AfftdnSettings(enabled: true, nl: AfftdnLink.none);
         expect(s.toFilterString(), contains('nl='));
-        expect(s.toFilterString(), contains('nl=min'));
+        expect(s.toFilterString(), contains('nl=none'));
       });
 
       test('param `noise_floor` lands in wire when set to a non-default value',
@@ -949,9 +949,9 @@ void main() {
       test('param `noise_link` lands in wire when set to a non-default value',
           () {
         final s =
-            const AfftdnSettings(enabled: true, noise_link: AfftdnLink.min);
+            const AfftdnSettings(enabled: true, noise_link: AfftdnLink.none);
         expect(s.toFilterString(), contains('noise_link='));
-        expect(s.toFilterString(), contains('noise_link=min'));
+        expect(s.toFilterString(), contains('noise_link=none'));
       });
 
       test(
@@ -982,17 +982,17 @@ void main() {
       });
 
       test('param `om` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, om: AfftdnMode.i);
+        final s = const AfftdnSettings(enabled: true, om: AfftdnMode.input);
         expect(s.toFilterString(), contains('om='));
-        expect(s.toFilterString(), contains('om=i'));
+        expect(s.toFilterString(), contains('om=input'));
       });
 
       test('param `output_mode` lands in wire when set to a non-default value',
           () {
         final s =
-            const AfftdnSettings(enabled: true, output_mode: AfftdnMode.i);
+            const AfftdnSettings(enabled: true, output_mode: AfftdnMode.input);
         expect(s.toFilterString(), contains('output_mode='));
-        expect(s.toFilterString(), contains('output_mode=i'));
+        expect(s.toFilterString(), contains('output_mode=input'));
       });
 
       test(
@@ -1174,9 +1174,9 @@ void main() {
       });
 
       test('param `wavet` lands in wire when set to a non-default value', () {
-        final s = const AfwtdnSettings(enabled: true, wavet: AfwtdnWavet.sym4);
+        final s = const AfwtdnSettings(enabled: true, wavet: AfwtdnWavet.sym2);
         expect(s.toFilterString(), contains('wavet='));
-        expect(s.toFilterString(), contains('wavet=sym4'));
+        expect(s.toFilterString(), contains('wavet=sym2'));
       });
     });
     group('AgateSettings (agate)', () {
@@ -1463,6 +1463,25 @@ void main() {
         expect(fx.toAfChain(), 'lavfi-allpass');
       });
 
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s =
+            const AllpassSettings(enabled: true, a: AllpassTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const AllpassSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const AllpassSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
+      });
+
       test('param `f` lands in wire when set to a non-default value', () {
         final s = const AllpassSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
@@ -1476,6 +1495,29 @@ void main() {
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const AllpassSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const AllpassSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const AllpassSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const AllpassSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
       test('param `o` lands in wire when set to a non-default value', () {
         final s = const AllpassSettings(enabled: true, o: 1);
         expect(s.toFilterString(), contains('o='));
@@ -1486,6 +1528,54 @@ void main() {
         final s = const AllpassSettings(enabled: true, order: 1);
         expect(s.toFilterString(), contains('order='));
         expect(s.toFilterString(), contains('order=1'));
+      });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s = const AllpassSettings(
+            enabled: true, precision: AllpassPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s = const AllpassSettings(enabled: true, r: AllpassPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s = const AllpassSettings(enabled: true, t: AllpassWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const AllpassSettings(
+            enabled: true, transform: AllpassTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const AllpassSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const AllpassSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s = const AllpassSettings(
+            enabled: true, width_type: AllpassWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
       });
     });
     group('AnequalizerSettings (anequalizer)', () {
@@ -1548,15 +1638,15 @@ void main() {
       });
 
       test('param `o` lands in wire when set to a non-default value', () {
-        final s = const AnlmdnSettings(enabled: true, o: AnlmdnMode.o);
+        final s = const AnlmdnSettings(enabled: true, o: AnlmdnMode.i);
         expect(s.toFilterString(), contains('o='));
-        expect(s.toFilterString(), contains('o=o'));
+        expect(s.toFilterString(), contains('o=i'));
       });
 
       test('param `output` lands in wire when set to a non-default value', () {
-        final s = const AnlmdnSettings(enabled: true, output: AnlmdnMode.o);
+        final s = const AnlmdnSettings(enabled: true, output: AnlmdnMode.i);
         expect(s.toFilterString(), contains('output='));
-        expect(s.toFilterString(), contains('output=o'));
+        expect(s.toFilterString(), contains('output=i'));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
@@ -2203,6 +2293,38 @@ void main() {
         expect(fx.toAfChain(), 'lavfi-bandpass');
       });
 
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s =
+            const BandpassSettings(enabled: true, a: BandpassTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const BandpassSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const BandpassSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const BandpassSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const BandpassSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
+      });
+
       test('param `csg` lands in wire when set to a non-default value', () {
         final s = const BandpassSettings(enabled: true, csg: true);
         expect(s.toFilterString(), contains('csg='));
@@ -2220,6 +2342,78 @@ void main() {
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
+
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const BandpassSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const BandpassSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const BandpassSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const BandpassSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s = const BandpassSettings(
+            enabled: true, precision: BandpassPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s =
+            const BandpassSettings(enabled: true, r: BandpassPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s = const BandpassSettings(enabled: true, t: BandpassWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const BandpassSettings(
+            enabled: true, transform: BandpassTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const BandpassSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const BandpassSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s = const BandpassSettings(
+            enabled: true, width_type: BandpassWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
+      });
     });
     group('BandrejectSettings (bandreject)', () {
       test('disabled by default → drops out of toAfChain', () {
@@ -2230,6 +2424,38 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(bandreject: BandrejectSettings(enabled: true));
         expect(fx.toAfChain(), 'lavfi-bandreject');
+      });
+
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s = const BandrejectSettings(
+            enabled: true, a: BandrejectTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const BandrejectSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const BandrejectSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const BandrejectSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const BandrejectSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
@@ -2244,6 +2470,79 @@ void main() {
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
+
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const BandrejectSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const BandrejectSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const BandrejectSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const BandrejectSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s = const BandrejectSettings(
+            enabled: true, precision: BandrejectPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s =
+            const BandrejectSettings(enabled: true, r: BandrejectPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s =
+            const BandrejectSettings(enabled: true, t: BandrejectWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const BandrejectSettings(
+            enabled: true, transform: BandrejectTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const BandrejectSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const BandrejectSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s = const BandrejectSettings(
+            enabled: true, width_type: BandrejectWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
+      });
     });
     group('BassSettings (bass)', () {
       test('disabled by default → drops out of toAfChain', () {
@@ -2254,6 +2553,36 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(bass: BassSettings(enabled: true));
         expect(fx.toAfChain(), 'lavfi-bass');
+      });
+
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s = const BassSettings(enabled: true, a: BassTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const BassSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const BassSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const BassSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s = const BassSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
@@ -2281,6 +2610,29 @@ void main() {
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const BassSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const BassSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const BassSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const BassSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
       test('param `p` lands in wire when set to a non-default value', () {
         final s = const BassSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
@@ -2292,6 +2644,54 @@ void main() {
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const BassSettings(enabled: true, precision: BassPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s = const BassSettings(enabled: true, r: BassPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s = const BassSettings(enabled: true, t: BassWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const BassSettings(enabled: true, transform: BassTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const BassSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const BassSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const BassSettings(enabled: true, width_type: BassWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
+      });
     });
     group('BiquadSettings (biquad)', () {
       test('disabled by default → drops out of toAfChain', () {
@@ -2302,6 +2702,13 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(biquad: BiquadSettings(enabled: true));
         expect(fx.toAfChain(), 'lavfi-biquad');
+      });
+
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s =
+            const BiquadSettings(enabled: true, a: BiquadTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `a0` lands in wire when set to a non-default value', () {
@@ -2322,6 +2729,12 @@ void main() {
         expect(s.toFilterString(), contains('a2=1.000'));
       });
 
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const BiquadSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
       test('param `b0` lands in wire when set to a non-default value', () {
         final s = const BiquadSettings(enabled: true, b0: 1.0);
         expect(s.toFilterString(), contains('b0='));
@@ -2338,6 +2751,70 @@ void main() {
         final s = const BiquadSettings(enabled: true, b2: 1.0);
         expect(s.toFilterString(), contains('b2='));
         expect(s.toFilterString(), contains('b2=1.000'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const BiquadSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const BiquadSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const BiquadSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
+      });
+
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const BiquadSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const BiquadSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const BiquadSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const BiquadSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const BiquadSettings(enabled: true, precision: BiquadPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s = const BiquadSettings(enabled: true, r: BiquadPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const BiquadSettings(
+            enabled: true, transform: BiquadTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
       });
     });
     group('ChannelmapSettings (channelmap)', () {
@@ -2636,9 +3113,9 @@ void main() {
       });
 
       test('param `s` lands in wire when set to a non-default value', () {
-        final s = const DeesserSettings(enabled: true, s: DeesserMode.o);
+        final s = const DeesserSettings(enabled: true, s: DeesserMode.i);
         expect(s.toFilterString(), contains('s='));
-        expect(s.toFilterString(), contains('s=o'));
+        expect(s.toFilterString(), contains('s=i'));
       });
     });
     group('DialoguenhanceSettings (dialoguenhance)', () {
@@ -2993,6 +3470,38 @@ void main() {
         expect(fx.toAfChain(), 'lavfi-equalizer');
       });
 
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s = const EqualizerSettings(
+            enabled: true, a: EqualizerTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const EqualizerSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const EqualizerSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const EqualizerSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const EqualizerSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
+      });
+
       test('param `f` lands in wire when set to a non-default value', () {
         final s = const EqualizerSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
@@ -3016,6 +3525,79 @@ void main() {
         final s = const EqualizerSettings(enabled: true, gain: 900.0);
         expect(s.toFilterString(), contains('gain='));
         expect(s.toFilterString(), contains('gain=900.000'));
+      });
+
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const EqualizerSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const EqualizerSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const EqualizerSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const EqualizerSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s = const EqualizerSettings(
+            enabled: true, precision: EqualizerPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s =
+            const EqualizerSettings(enabled: true, r: EqualizerPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s =
+            const EqualizerSettings(enabled: true, t: EqualizerWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const EqualizerSettings(
+            enabled: true, transform: EqualizerTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const EqualizerSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const EqualizerSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s = const EqualizerSettings(
+            enabled: true, width_type: EqualizerWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
       });
     });
     group('ExtrastereoSettings (extrastereo)', () {
@@ -3078,9 +3660,9 @@ void main() {
       test('param `dumpscale` lands in wire when set to a non-default value',
           () {
         final s = const FirequalizerSettings(
-            enabled: true, dumpscale: FirequalizerScale.linlog);
+            enabled: true, dumpscale: FirequalizerScale.linlin);
         expect(s.toFilterString(), contains('dumpscale='));
-        expect(s.toFilterString(), contains('dumpscale=linlog'));
+        expect(s.toFilterString(), contains('dumpscale=linlin'));
       });
 
       test('param `fft2` lands in wire when set to a non-default value', () {
@@ -3119,16 +3701,16 @@ void main() {
 
       test('param `scale` lands in wire when set to a non-default value', () {
         final s = const FirequalizerSettings(
-            enabled: true, scale: FirequalizerScale.linlog);
+            enabled: true, scale: FirequalizerScale.linlin);
         expect(s.toFilterString(), contains('scale='));
-        expect(s.toFilterString(), contains('scale=linlog'));
+        expect(s.toFilterString(), contains('scale=linlin'));
       });
 
       test('param `wfunc` lands in wire when set to a non-default value', () {
         final s = const FirequalizerSettings(
-            enabled: true, wfunc: FirequalizerWfunc.hann);
+            enabled: true, wfunc: FirequalizerWfunc.rectangular);
         expect(s.toFilterString(), contains('wfunc='));
-        expect(s.toFilterString(), contains('wfunc=hann'));
+        expect(s.toFilterString(), contains('wfunc=rectangular'));
       });
 
       test('param `zero_phase` lands in wire when set to a non-default value',
@@ -3180,9 +3762,10 @@ void main() {
       });
 
       test('param `shape` lands in wire when set to a non-default value', () {
-        final s = const FlangerSettings(enabled: true, shape: FlangerType.t);
+        final s =
+            const FlangerSettings(enabled: true, shape: FlangerType.triangular);
         expect(s.toFilterString(), contains('shape='));
-        expect(s.toFilterString(), contains('shape=t'));
+        expect(s.toFilterString(), contains('shape=triangular'));
       });
 
       test('param `speed` lands in wire when set to a non-default value', () {
@@ -3412,6 +3995,38 @@ void main() {
         expect(fx.toAfChain(), 'lavfi-highpass');
       });
 
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s =
+            const HighpassSettings(enabled: true, a: HighpassTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const HighpassSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const HighpassSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const HighpassSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const HighpassSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
+      });
+
       test('param `f` lands in wire when set to a non-default value', () {
         final s = const HighpassSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
@@ -3425,6 +4040,29 @@ void main() {
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const HighpassSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const HighpassSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const HighpassSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const HighpassSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
       test('param `p` lands in wire when set to a non-default value', () {
         final s = const HighpassSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
@@ -3436,6 +4074,55 @@ void main() {
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s = const HighpassSettings(
+            enabled: true, precision: HighpassPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s =
+            const HighpassSettings(enabled: true, r: HighpassPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s = const HighpassSettings(enabled: true, t: HighpassWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const HighpassSettings(
+            enabled: true, transform: HighpassTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const HighpassSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const HighpassSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s = const HighpassSettings(
+            enabled: true, width_type: HighpassWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
+      });
     });
     group('HighshelfSettings (highshelf)', () {
       test('disabled by default → drops out of toAfChain', () {
@@ -3446,6 +4133,38 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(highshelf: HighshelfSettings(enabled: true));
         expect(fx.toAfChain(), 'lavfi-highshelf');
+      });
+
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s = const HighshelfSettings(
+            enabled: true, a: HighshelfTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const HighshelfSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const HighshelfSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const HighshelfSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const HighshelfSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
@@ -3473,6 +4192,29 @@ void main() {
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const HighshelfSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const HighshelfSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const HighshelfSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const HighshelfSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
       test('param `p` lands in wire when set to a non-default value', () {
         final s = const HighshelfSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
@@ -3483,6 +4225,56 @@ void main() {
         final s = const HighshelfSettings(enabled: true, poles: 1);
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
+      });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s = const HighshelfSettings(
+            enabled: true, precision: HighshelfPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s =
+            const HighshelfSettings(enabled: true, r: HighshelfPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s =
+            const HighshelfSettings(enabled: true, t: HighshelfWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const HighshelfSettings(
+            enabled: true, transform: HighshelfTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const HighshelfSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const HighshelfSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s = const HighshelfSettings(
+            enabled: true, width_type: HighshelfWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
       });
     });
     group('LoudnormSettings (loudnorm)', () {
@@ -3618,6 +4410,38 @@ void main() {
         expect(fx.toAfChain(), 'lavfi-lowpass');
       });
 
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s =
+            const LowpassSettings(enabled: true, a: LowpassTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const LowpassSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const LowpassSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const LowpassSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const LowpassSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
+      });
+
       test('param `f` lands in wire when set to a non-default value', () {
         final s = const LowpassSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
@@ -3631,6 +4455,29 @@ void main() {
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const LowpassSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const LowpassSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const LowpassSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const LowpassSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
       test('param `p` lands in wire when set to a non-default value', () {
         final s = const LowpassSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
@@ -3642,6 +4489,54 @@ void main() {
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s = const LowpassSettings(
+            enabled: true, precision: LowpassPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s = const LowpassSettings(enabled: true, r: LowpassPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s = const LowpassSettings(enabled: true, t: LowpassWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const LowpassSettings(
+            enabled: true, transform: LowpassTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const LowpassSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const LowpassSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s = const LowpassSettings(
+            enabled: true, width_type: LowpassWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
+      });
     });
     group('LowshelfSettings (lowshelf)', () {
       test('disabled by default → drops out of toAfChain', () {
@@ -3652,6 +4547,38 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(lowshelf: LowshelfSettings(enabled: true));
         expect(fx.toAfChain(), 'lavfi-lowshelf');
+      });
+
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s =
+            const LowshelfSettings(enabled: true, a: LowshelfTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const LowshelfSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const LowshelfSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const LowshelfSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const LowshelfSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
@@ -3679,6 +4606,29 @@ void main() {
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const LowshelfSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const LowshelfSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const LowshelfSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const LowshelfSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
       test('param `p` lands in wire when set to a non-default value', () {
         final s = const LowshelfSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
@@ -3689,6 +4639,55 @@ void main() {
         final s = const LowshelfSettings(enabled: true, poles: 1);
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
+      });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s = const LowshelfSettings(
+            enabled: true, precision: LowshelfPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s =
+            const LowshelfSettings(enabled: true, r: LowshelfPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s = const LowshelfSettings(enabled: true, t: LowshelfWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const LowshelfSettings(
+            enabled: true, transform: LowshelfTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const LowshelfSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const LowshelfSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s = const LowshelfSettings(
+            enabled: true, width_type: LowshelfWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
       });
     });
     group('McompandSettings (mcompand)', () {
@@ -3821,9 +4820,9 @@ void main() {
       test('param `detection` lands in wire when set to a non-default value',
           () {
         final s = const SilenceremoveSettings(
-            enabled: true, detection: SilenceremoveDetection.rms);
+            enabled: true, detection: SilenceremoveDetection.avg);
         expect(s.toFilterString(), contains('detection='));
-        expect(s.toFilterString(), contains('detection=rms'));
+        expect(s.toFilterString(), contains('detection=avg'));
       });
 
       test(
@@ -3882,9 +4881,9 @@ void main() {
       test('param `stop_mode` lands in wire when set to a non-default value',
           () {
         final s = const SilenceremoveSettings(
-            enabled: true, stop_mode: SilenceremoveMode.all);
+            enabled: true, stop_mode: SilenceremoveMode.any);
         expect(s.toFilterString(), contains('stop_mode='));
-        expect(s.toFilterString(), contains('stop_mode=all'));
+        expect(s.toFilterString(), contains('stop_mode=any'));
       });
 
       test('param `stop_periods` lands in wire when set to a non-default value',
@@ -4681,6 +5680,38 @@ void main() {
         expect(fx.toAfChain(), 'lavfi-tiltshelf');
       });
 
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s = const TiltshelfSettings(
+            enabled: true, a: TiltshelfTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const TiltshelfSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const TiltshelfSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const TiltshelfSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const TiltshelfSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
+      });
+
       test('param `f` lands in wire when set to a non-default value', () {
         final s = const TiltshelfSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
@@ -4706,6 +5737,29 @@ void main() {
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const TiltshelfSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const TiltshelfSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const TiltshelfSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const TiltshelfSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
       test('param `p` lands in wire when set to a non-default value', () {
         final s = const TiltshelfSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
@@ -4717,6 +5771,56 @@ void main() {
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s = const TiltshelfSettings(
+            enabled: true, precision: TiltshelfPrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s =
+            const TiltshelfSettings(enabled: true, r: TiltshelfPrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s =
+            const TiltshelfSettings(enabled: true, t: TiltshelfWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const TiltshelfSettings(
+            enabled: true, transform: TiltshelfTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const TiltshelfSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const TiltshelfSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s = const TiltshelfSettings(
+            enabled: true, width_type: TiltshelfWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
+      });
     });
     group('TrebleSettings (treble)', () {
       test('disabled by default → drops out of toAfChain', () {
@@ -4727,6 +5831,38 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(treble: TrebleSettings(enabled: true));
         expect(fx.toAfChain(), 'lavfi-treble');
+      });
+
+      test('param `a` lands in wire when set to a non-default value', () {
+        final s =
+            const TrebleSettings(enabled: true, a: TrebleTransformType.dii);
+        expect(s.toFilterString(), contains('a='));
+        expect(s.toFilterString(), contains('a=dii'));
+      });
+
+      test('param `b` lands in wire when set to a non-default value', () {
+        final s = const TrebleSettings(enabled: true, b: 32768);
+        expect(s.toFilterString(), contains('b='));
+        expect(s.toFilterString(), contains('b=32768'));
+      });
+
+      test('param `blocksize` lands in wire when set to a non-default value',
+          () {
+        final s = const TrebleSettings(enabled: true, blocksize: 32768);
+        expect(s.toFilterString(), contains('blocksize='));
+        expect(s.toFilterString(), contains('blocksize=32768'));
+      });
+
+      test('param `c` lands in wire when set to a non-default value', () {
+        final s = const TrebleSettings(enabled: true, c: 'wire_test_alt');
+        expect(s.toFilterString(), contains('c='));
+      });
+
+      test('param `channels` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const TrebleSettings(enabled: true, channels: 'wire_test_alt');
+        expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
@@ -4754,6 +5890,29 @@ void main() {
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
+      test('param `m` lands in wire when set to a non-default value', () {
+        final s = const TrebleSettings(enabled: true, m: 0.0);
+        expect(s.toFilterString(), contains('m='));
+        expect(s.toFilterString(), contains('m=0.000'));
+      });
+
+      test('param `mix` lands in wire when set to a non-default value', () {
+        final s = const TrebleSettings(enabled: true, mix: 0.0);
+        expect(s.toFilterString(), contains('mix='));
+        expect(s.toFilterString(), contains('mix=0.000'));
+      });
+
+      test('param `n` lands in wire when set to a non-default value', () {
+        final s = const TrebleSettings(enabled: true, n: true);
+        expect(s.toFilterString(), contains('n='));
+      });
+
+      test('param `normalize` lands in wire when set to a non-default value',
+          () {
+        final s = const TrebleSettings(enabled: true, normalize: true);
+        expect(s.toFilterString(), contains('normalize='));
+      });
+
       test('param `p` lands in wire when set to a non-default value', () {
         final s = const TrebleSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
@@ -4764,6 +5923,54 @@ void main() {
         final s = const TrebleSettings(enabled: true, poles: 1);
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
+      });
+
+      test('param `precision` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const TrebleSettings(enabled: true, precision: TreblePrecision.s16);
+        expect(s.toFilterString(), contains('precision='));
+        expect(s.toFilterString(), contains('precision=s16'));
+      });
+
+      test('param `r` lands in wire when set to a non-default value', () {
+        final s = const TrebleSettings(enabled: true, r: TreblePrecision.s16);
+        expect(s.toFilterString(), contains('r='));
+        expect(s.toFilterString(), contains('r=s16'));
+      });
+
+      test('param `t` lands in wire when set to a non-default value', () {
+        final s = const TrebleSettings(enabled: true, t: TrebleWidthType.h);
+        expect(s.toFilterString(), contains('t='));
+        expect(s.toFilterString(), contains('t=h'));
+      });
+
+      test('param `transform` lands in wire when set to a non-default value',
+          () {
+        final s = const TrebleSettings(
+            enabled: true, transform: TrebleTransformType.dii);
+        expect(s.toFilterString(), contains('transform='));
+        expect(s.toFilterString(), contains('transform=dii'));
+      });
+
+      test('param `w` lands in wire when set to a non-default value', () {
+        final s = const TrebleSettings(enabled: true, w: 99999.0);
+        expect(s.toFilterString(), contains('w='));
+        expect(s.toFilterString(), contains('w=99999.000'));
+      });
+
+      test('param `width` lands in wire when set to a non-default value', () {
+        final s = const TrebleSettings(enabled: true, width: 99999.0);
+        expect(s.toFilterString(), contains('width='));
+        expect(s.toFilterString(), contains('width=99999.000'));
+      });
+
+      test('param `width_type` lands in wire when set to a non-default value',
+          () {
+        final s =
+            const TrebleSettings(enabled: true, width_type: TrebleWidthType.h);
+        expect(s.toFilterString(), contains('width_type='));
+        expect(s.toFilterString(), contains('width_type=h'));
       });
     });
     group('TremoloSettings (tremolo)', () {
@@ -5209,6 +6416,48 @@ void main() {
         expect(AiirProcess.fromMpv(null), AiirProcess.d);
       });
     });
+    group('AllpassPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in AllpassPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(AllpassPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(AllpassPrecision.fromMpv('this_will_never_match'),
+            AllpassPrecision.auto);
+        expect(AllpassPrecision.fromMpv(null), AllpassPrecision.auto);
+      });
+    });
+    group('AllpassTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in AllpassTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(AllpassTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(AllpassTransformType.fromMpv('this_will_never_match'),
+            AllpassTransformType.di);
+        expect(AllpassTransformType.fromMpv(null), AllpassTransformType.di);
+      });
+    });
+    group('AllpassWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in AllpassWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(AllpassWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(AllpassWidthType.fromMpv('this_will_never_match'),
+            AllpassWidthType.h);
+        expect(AllpassWidthType.fromMpv(null), AllpassWidthType.h);
+      });
+    });
     group('AnequalizerFscale (codegen enum)', () {
       test('every member round-trips via mpvValue / fromMpv', () {
         for (final v in AnequalizerFscale.values) {
@@ -5292,6 +6541,160 @@ void main() {
         expect(AsoftclipTypes.fromMpv(null), AsoftclipTypes.hard);
       });
     });
+    group('BandpassPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BandpassPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BandpassPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(BandpassPrecision.fromMpv('this_will_never_match'),
+            BandpassPrecision.auto);
+        expect(BandpassPrecision.fromMpv(null), BandpassPrecision.auto);
+      });
+    });
+    group('BandpassTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BandpassTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BandpassTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(BandpassTransformType.fromMpv('this_will_never_match'),
+            BandpassTransformType.di);
+        expect(BandpassTransformType.fromMpv(null), BandpassTransformType.di);
+      });
+    });
+    group('BandpassWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BandpassWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BandpassWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(BandpassWidthType.fromMpv('this_will_never_match'),
+            BandpassWidthType.h);
+        expect(BandpassWidthType.fromMpv(null), BandpassWidthType.h);
+      });
+    });
+    group('BandrejectPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BandrejectPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BandrejectPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(BandrejectPrecision.fromMpv('this_will_never_match'),
+            BandrejectPrecision.auto);
+        expect(BandrejectPrecision.fromMpv(null), BandrejectPrecision.auto);
+      });
+    });
+    group('BandrejectTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BandrejectTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BandrejectTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(BandrejectTransformType.fromMpv('this_will_never_match'),
+            BandrejectTransformType.di);
+        expect(
+            BandrejectTransformType.fromMpv(null), BandrejectTransformType.di);
+      });
+    });
+    group('BandrejectWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BandrejectWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BandrejectWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(BandrejectWidthType.fromMpv('this_will_never_match'),
+            BandrejectWidthType.h);
+        expect(BandrejectWidthType.fromMpv(null), BandrejectWidthType.h);
+      });
+    });
+    group('BassPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BassPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BassPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(
+            BassPrecision.fromMpv('this_will_never_match'), BassPrecision.auto);
+        expect(BassPrecision.fromMpv(null), BassPrecision.auto);
+      });
+    });
+    group('BassTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BassTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BassTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(BassTransformType.fromMpv('this_will_never_match'),
+            BassTransformType.di);
+        expect(BassTransformType.fromMpv(null), BassTransformType.di);
+      });
+    });
+    group('BassWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BassWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BassWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(BassWidthType.fromMpv('this_will_never_match'), BassWidthType.h);
+        expect(BassWidthType.fromMpv(null), BassWidthType.h);
+      });
+    });
+    group('BiquadPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BiquadPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BiquadPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(BiquadPrecision.fromMpv('this_will_never_match'),
+            BiquadPrecision.auto);
+        expect(BiquadPrecision.fromMpv(null), BiquadPrecision.auto);
+      });
+    });
+    group('BiquadTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in BiquadTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(BiquadTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(BiquadTransformType.fromMpv('this_will_never_match'),
+            BiquadTransformType.di);
+        expect(BiquadTransformType.fromMpv(null), BiquadTransformType.di);
+      });
+    });
     group('DeesserMode (codegen enum)', () {
       test('every member round-trips via mpvValue / fromMpv', () {
         for (final v in DeesserMode.values) {
@@ -5358,6 +6761,48 @@ void main() {
         expect(Ebur128Scaletype.fromMpv('this_will_never_match'),
             Ebur128Scaletype.absolute);
         expect(Ebur128Scaletype.fromMpv(null), Ebur128Scaletype.absolute);
+      });
+    });
+    group('EqualizerPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in EqualizerPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(EqualizerPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(EqualizerPrecision.fromMpv('this_will_never_match'),
+            EqualizerPrecision.auto);
+        expect(EqualizerPrecision.fromMpv(null), EqualizerPrecision.auto);
+      });
+    });
+    group('EqualizerTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in EqualizerTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(EqualizerTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(EqualizerTransformType.fromMpv('this_will_never_match'),
+            EqualizerTransformType.di);
+        expect(EqualizerTransformType.fromMpv(null), EqualizerTransformType.di);
+      });
+    });
+    group('EqualizerWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in EqualizerWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(EqualizerWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(EqualizerWidthType.fromMpv('this_will_never_match'),
+            EqualizerWidthType.h);
+        expect(EqualizerWidthType.fromMpv(null), EqualizerWidthType.h);
       });
     });
     group('FirequalizerScale (codegen enum)', () {
@@ -5485,6 +6930,90 @@ void main() {
         expect(HeadphoneType.fromMpv(null), HeadphoneType.time);
       });
     });
+    group('HighpassPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in HighpassPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(HighpassPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(HighpassPrecision.fromMpv('this_will_never_match'),
+            HighpassPrecision.auto);
+        expect(HighpassPrecision.fromMpv(null), HighpassPrecision.auto);
+      });
+    });
+    group('HighpassTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in HighpassTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(HighpassTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(HighpassTransformType.fromMpv('this_will_never_match'),
+            HighpassTransformType.di);
+        expect(HighpassTransformType.fromMpv(null), HighpassTransformType.di);
+      });
+    });
+    group('HighpassWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in HighpassWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(HighpassWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(HighpassWidthType.fromMpv('this_will_never_match'),
+            HighpassWidthType.h);
+        expect(HighpassWidthType.fromMpv(null), HighpassWidthType.h);
+      });
+    });
+    group('HighshelfPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in HighshelfPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(HighshelfPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(HighshelfPrecision.fromMpv('this_will_never_match'),
+            HighshelfPrecision.auto);
+        expect(HighshelfPrecision.fromMpv(null), HighshelfPrecision.auto);
+      });
+    });
+    group('HighshelfTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in HighshelfTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(HighshelfTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(HighshelfTransformType.fromMpv('this_will_never_match'),
+            HighshelfTransformType.di);
+        expect(HighshelfTransformType.fromMpv(null), HighshelfTransformType.di);
+      });
+    });
+    group('HighshelfWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in HighshelfWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(HighshelfWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(HighshelfWidthType.fromMpv('this_will_never_match'),
+            HighshelfWidthType.h);
+        expect(HighshelfWidthType.fromMpv(null), HighshelfWidthType.h);
+      });
+    });
     group('LoudnormPrintFormat (codegen enum)', () {
       test('every member round-trips via mpvValue / fromMpv', () {
         for (final v in LoudnormPrintFormat.values) {
@@ -5497,6 +7026,90 @@ void main() {
         expect(LoudnormPrintFormat.fromMpv('this_will_never_match'),
             LoudnormPrintFormat.none);
         expect(LoudnormPrintFormat.fromMpv(null), LoudnormPrintFormat.none);
+      });
+    });
+    group('LowpassPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in LowpassPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(LowpassPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(LowpassPrecision.fromMpv('this_will_never_match'),
+            LowpassPrecision.auto);
+        expect(LowpassPrecision.fromMpv(null), LowpassPrecision.auto);
+      });
+    });
+    group('LowpassTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in LowpassTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(LowpassTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(LowpassTransformType.fromMpv('this_will_never_match'),
+            LowpassTransformType.di);
+        expect(LowpassTransformType.fromMpv(null), LowpassTransformType.di);
+      });
+    });
+    group('LowpassWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in LowpassWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(LowpassWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(LowpassWidthType.fromMpv('this_will_never_match'),
+            LowpassWidthType.h);
+        expect(LowpassWidthType.fromMpv(null), LowpassWidthType.h);
+      });
+    });
+    group('LowshelfPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in LowshelfPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(LowshelfPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(LowshelfPrecision.fromMpv('this_will_never_match'),
+            LowshelfPrecision.auto);
+        expect(LowshelfPrecision.fromMpv(null), LowshelfPrecision.auto);
+      });
+    });
+    group('LowshelfTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in LowshelfTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(LowshelfTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(LowshelfTransformType.fromMpv('this_will_never_match'),
+            LowshelfTransformType.di);
+        expect(LowshelfTransformType.fromMpv(null), LowshelfTransformType.di);
+      });
+    });
+    group('LowshelfWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in LowshelfWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(LowshelfWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(LowshelfWidthType.fromMpv('this_will_never_match'),
+            LowshelfWidthType.h);
+        expect(LowshelfWidthType.fromMpv(null), LowshelfWidthType.h);
       });
     });
     group('RubberbandChannels (codegen enum)', () {
@@ -5695,6 +7308,90 @@ void main() {
         expect(SurroundLfeMode.fromMpv('this_will_never_match'),
             SurroundLfeMode.add);
         expect(SurroundLfeMode.fromMpv(null), SurroundLfeMode.add);
+      });
+    });
+    group('TiltshelfPrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in TiltshelfPrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(TiltshelfPrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(TiltshelfPrecision.fromMpv('this_will_never_match'),
+            TiltshelfPrecision.auto);
+        expect(TiltshelfPrecision.fromMpv(null), TiltshelfPrecision.auto);
+      });
+    });
+    group('TiltshelfTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in TiltshelfTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(TiltshelfTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(TiltshelfTransformType.fromMpv('this_will_never_match'),
+            TiltshelfTransformType.di);
+        expect(TiltshelfTransformType.fromMpv(null), TiltshelfTransformType.di);
+      });
+    });
+    group('TiltshelfWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in TiltshelfWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(TiltshelfWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(TiltshelfWidthType.fromMpv('this_will_never_match'),
+            TiltshelfWidthType.h);
+        expect(TiltshelfWidthType.fromMpv(null), TiltshelfWidthType.h);
+      });
+    });
+    group('TreblePrecision (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in TreblePrecision.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(TreblePrecision.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(TreblePrecision.fromMpv('this_will_never_match'),
+            TreblePrecision.auto);
+        expect(TreblePrecision.fromMpv(null), TreblePrecision.auto);
+      });
+    });
+    group('TrebleTransformType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in TrebleTransformType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(TrebleTransformType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(TrebleTransformType.fromMpv('this_will_never_match'),
+            TrebleTransformType.di);
+        expect(TrebleTransformType.fromMpv(null), TrebleTransformType.di);
+      });
+    });
+    group('TrebleWidthType (codegen enum)', () {
+      test('every member round-trips via mpvValue / fromMpv', () {
+        for (final v in TrebleWidthType.values) {
+          expect(v.mpvValue, isNotEmpty);
+          expect(TrebleWidthType.fromMpv(v.mpvValue), v);
+        }
+      });
+
+      test('fromMpv unknown / null → first member (safe fallback)', () {
+        expect(TrebleWidthType.fromMpv('this_will_never_match'),
+            TrebleWidthType.h);
+        expect(TrebleWidthType.fromMpv(null), TrebleWidthType.h);
       });
     });
   });

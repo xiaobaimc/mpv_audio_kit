@@ -10,10 +10,13 @@ import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
 import '../internals/cover_art_extractor.dart';
+import '../internals/filter_tap_pipeline.dart';
 import '../internals/player_finalizer.dart';
 import '../internals/spectrum_pipeline.dart';
+import '../internals/waveform_pipeline.dart';
 import '../models/fft_frame.dart';
 import '../models/pcm_frame.dart';
+import '../models/waveform_data.dart';
 import '../models/cover_art.dart';
 import '../internals/event_isolate.dart';
 import '../events/mpv_exception.dart';
@@ -324,6 +327,33 @@ class Player extends _PlayerBase
     }
   }
 
+  /// Pre-filter PCM tap. Subscribers receive [PcmFrame]s captured
+  /// **before** the named filter applies its DSP — useful for the
+  /// FabFilter Pro-Q-style "input signal" overlay in a per-filter
+  /// editor.
+  ///
+  /// The tap is **lazy**: the engine activates the matching hook in
+  /// the audio chain only while at least one listener is attached.
+  /// On the last cancel the hook deactivates and the engine reverts
+  /// to zero-overhead default. Multiple subscribers to the same
+  /// filter share a single underlying tap.
+  ///
+  /// [filterName] is the libavfilter type name (e.g. `'equalizer'`,
+  /// `'acompressor'`). When the same filter type appears multiple
+  /// times in the chain, every instance is captured into the same
+  /// ring; the wrapper currently does not disambiguate by index.
+  ///
+  /// Live streams without an active af chain emit no frames. The
+  /// stream is silent (no error) when the loaded libmpv does not
+  /// expose the filter-tap property.
+  Stream<PcmFrame> tapPre(String filterName) =>
+      _filterTapPipeline.tapPre(filterName);
+
+  /// Post-filter PCM tap — identical to [tapPre] but captures the
+  /// frame **after** the named filter has processed it.
+  Stream<PcmFrame> tapPost(String filterName) =>
+      _filterTapPipeline.tapPost(filterName);
+
   @override
   Future<void> dispose() async {
     _cancelHookTimers();
@@ -420,6 +450,15 @@ abstract class _PlayerBase {
   // when something subscribes to `stream.spectrum` or `stream.pcm`.
   late final SpectrumPipeline _spectrumPipeline;
 
+  // Progressive waveform accumulator, fed off the spectrum pipeline's
+  // PCM stream so a single tap drives FFT, raw PCM and waveform.
+  late final WaveformPipeline _waveformPipeline;
+
+  // Per-filter pre/post audio tap. Lazy: arms the analyzer-taps
+  // property only when at least one [tapPre] / [tapPost] stream has
+  // a listener.
+  late final FilterTapPipeline _filterTapPipeline;
+
   PlayerState get state => _state;
   late final PlayerStream stream;
 
@@ -447,8 +486,10 @@ abstract class _PlayerBase {
     // Streams that don't need _lib/_handle can be wired immediately —
     // a consumer subscribing right after `Player()` sees no events
     // until init completes, which is the correct semantics.
-    _spectrumStreamCtrl = StreamController<FftFrame>.broadcast();
+    _fftCtrl = StreamController<FftFrame>.broadcast();
     _pcmStreamCtrl = StreamController<PcmFrame>.broadcast();
+    _spectrumCtrl = StreamController<SpectrumSettings>.broadcast();
+    _waveformCtrl = StreamController<WaveformData?>.broadcast();
     stream = PlayerStream.fromInternals(
       reactives: _reactives,
       buffering: _buffering,
@@ -466,8 +507,10 @@ abstract class _PlayerBase {
       hook: _hookCtrl.stream,
       seekCompleted: _seekCompletedCtrl.stream,
       coverArt: _coverArtCtrl.stream,
-      spectrum: _spectrumStreamCtrl.stream,
+      fft: _fftCtrl.stream,
       pcm: _pcmStreamCtrl.stream,
+      spectrum: _spectrumCtrl.stream,
+      waveform: _waveformCtrl.stream,
     );
 
     // Build the recipe and hand it to the event isolate. All heavy
@@ -483,8 +526,10 @@ abstract class _PlayerBase {
 
   late final Future<void> _ready;
   bool _bringUpCompleted = false;
-  late final StreamController<FftFrame> _spectrumStreamCtrl;
+  late final StreamController<FftFrame> _fftCtrl;
   late final StreamController<PcmFrame> _pcmStreamCtrl;
+  late final StreamController<SpectrumSettings> _spectrumCtrl;
+  late final StreamController<WaveformData?> _waveformCtrl;
 
   Future<void> _bringUpInIsolate() async {
     final preOpts = _buildPreInitOptions();
@@ -512,8 +557,13 @@ abstract class _PlayerBase {
     _lib = MpvLibrary.open(MpvAudioKit.libraryPath);
     _handle = Pointer<MpvHandle>.fromAddress(handleAddress);
     _spectrumPipeline = SpectrumPipeline(lib: _lib, handle: _handle);
-    _spectrumPipeline.spectrumStream.listen(_spectrumStreamCtrl.add);
+    _spectrumPipeline.fftStream.listen(_fftCtrl.add);
     _spectrumPipeline.pcmStream.listen(_pcmStreamCtrl.add);
+    _spectrumPipeline.settingsStream.listen(_spectrumCtrl.add);
+    _waveformPipeline = WaveformPipeline(lib: _lib, handle: _handle);
+    _filterTapPipeline =
+        FilterTapPipeline(lib: _lib, handle: _handle);
+    _waveformPipeline.stream.listen(_waveformCtrl.add);
 
     OrphanHandleTracker.instance.add(_handle);
     _nativeResources = PlayerNativeResources(_lib, _handle);
@@ -630,6 +680,7 @@ abstract class _PlayerBase {
         _pollPosition();
         _pollChapterState();
         _extractEmbeddedCover();
+        if (_bringUpCompleted) _waveformPipeline.reset();
       case MpvEventPlaybackSeek():
         // No-op: mutating position here would flash 0 before the
         // post-restart poll lands.
@@ -1137,6 +1188,8 @@ abstract class _PlayerBase {
       _nativeResources.disposed = true;
       playerFinalizer.detach(this);
       OrphanHandleTracker.instance.remove(_handle);
+      await _filterTapPipeline.dispose();
+      await _waveformPipeline.dispose();
       await _spectrumPipeline.dispose();
       // Cooperative quit: mpv fires MPV_EVENT_SHUTDOWN, the isolate's
       // mpv_wait_event returns, and the loop unwinds naturally. Calling

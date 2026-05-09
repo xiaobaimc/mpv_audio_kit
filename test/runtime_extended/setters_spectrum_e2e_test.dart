@@ -77,7 +77,7 @@ void main() {
         ),
       );
       final completer = Completer<FftFrame>();
-      final sub = player.stream.spectrum.listen((f) {
+      final sub = player.stream.fft.listen((f) {
         // Wait for a frame that has signal (the very first frame can
         // arrive before audio has flowed through the AO).
         final hasEnergy = f.bands.any((b) => b > 0.01);

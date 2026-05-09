@@ -28,14 +28,16 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
   file_picker: ^10.3.10
   desktop_drop: ^0.5.0
   window_manager: ^0.5.1
   shared_preferences: ^2.5.4
-  audio_service: ^0.18.18
-  audio_service_win: ^0.0.3
   flutter_launcher_icons: ^0.14.4
+  # Used by the pro filter editors to compute the live FFT bands
+  # of `Player.tapPre` / `tapPost` (the per-filter PCM streams) for
+  # the dual input/output spectrum overlay. Same package the lib
+  # uses internally for its global spectrum pipeline.
+  fftea: ^1.5.0
 
 dev_dependencies:
   integration_test:
@@ -46,7 +48,7 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-  uses-material-design: true
+  uses-material-design: false
 
 flutter_launcher_icons:
   android: true

@@ -83,20 +83,20 @@ void main() {
       // The host libmpv binaries may be unpatched; the property may
       // return M_PROPERTY_UNAVAILABLE on every poll. We're only
       // asserting the wrapper-side plumbing doesn't blow up.
-      final spectrumSub = player.stream.spectrum.listen((_) {});
+      final spectrumSub = player.stream.fft.listen((_) {});
       final pcmSub = player.stream.pcm.listen((_) {});
       // Give the timer a few ticks.
       await Future<void>.delayed(const Duration(milliseconds: 120));
       await spectrumSub.cancel();
       await pcmSub.cancel();
       // Re-subscribe — pipeline should re-arm.
-      final reSub = player.stream.spectrum.listen((_) {});
+      final reSub = player.stream.fft.listen((_) {});
       await Future<void>.delayed(const Duration(milliseconds: 60));
       await reSub.cancel();
     }, timeout: const Timeout(Duration(seconds: 5)));
 
     test('setSpectrum mid-stream (mutability) does not throw', () async {
-      final sub = player.stream.spectrum.listen((_) {});
+      final sub = player.stream.fft.listen((_) {});
       try {
         await player.updateSpectrum(
           (c) => c.copyWith(

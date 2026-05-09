@@ -1318,6 +1318,179 @@ enum AiirProcess {
   }
 }
 
+enum AllpassPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case AllpassPrecision.auto:
+        return 'auto';
+      case AllpassPrecision.s16:
+        return 's16';
+      case AllpassPrecision.s32:
+        return 's32';
+      case AllpassPrecision.f32:
+        return 'f32';
+      case AllpassPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [AllpassPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static AllpassPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return AllpassPrecision.auto;
+      case 's16':
+        return AllpassPrecision.s16;
+      case 's32':
+        return AllpassPrecision.s32;
+      case 'f32':
+        return AllpassPrecision.f32;
+      case 'f64':
+        return AllpassPrecision.f64;
+      default:
+        return AllpassPrecision.auto;
+    }
+  }
+}
+
+enum AllpassTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case AllpassTransformType.di:
+        return 'di';
+      case AllpassTransformType.dii:
+        return 'dii';
+      case AllpassTransformType.tdi:
+        return 'tdi';
+      case AllpassTransformType.tdii:
+        return 'tdii';
+      case AllpassTransformType.latt:
+        return 'latt';
+      case AllpassTransformType.svf:
+        return 'svf';
+      case AllpassTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [AllpassTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static AllpassTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return AllpassTransformType.di;
+      case 'dii':
+        return AllpassTransformType.dii;
+      case 'tdi':
+        return AllpassTransformType.tdi;
+      case 'tdii':
+        return AllpassTransformType.tdii;
+      case 'latt':
+        return AllpassTransformType.latt;
+      case 'svf':
+        return AllpassTransformType.svf;
+      case 'zdf':
+        return AllpassTransformType.zdf;
+      default:
+        return AllpassTransformType.di;
+    }
+  }
+}
+
+enum AllpassWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case AllpassWidthType.h:
+        return 'h';
+      case AllpassWidthType.q:
+        return 'q';
+      case AllpassWidthType.o:
+        return 'o';
+      case AllpassWidthType.s:
+        return 's';
+      case AllpassWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [AllpassWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static AllpassWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return AllpassWidthType.h;
+      case 'q':
+        return AllpassWidthType.q;
+      case 'o':
+        return AllpassWidthType.o;
+      case 's':
+        return AllpassWidthType.s;
+      case 'k':
+        return AllpassWidthType.k;
+      default:
+        return AllpassWidthType.h;
+    }
+  }
+}
+
 enum AnequalizerFscale {
   /// linear
   lin,
@@ -1570,6 +1743,645 @@ enum AsoftclipTypes {
   }
 }
 
+enum BandpassPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BandpassPrecision.auto:
+        return 'auto';
+      case BandpassPrecision.s16:
+        return 's16';
+      case BandpassPrecision.s32:
+        return 's32';
+      case BandpassPrecision.f32:
+        return 'f32';
+      case BandpassPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BandpassPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static BandpassPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return BandpassPrecision.auto;
+      case 's16':
+        return BandpassPrecision.s16;
+      case 's32':
+        return BandpassPrecision.s32;
+      case 'f32':
+        return BandpassPrecision.f32;
+      case 'f64':
+        return BandpassPrecision.f64;
+      default:
+        return BandpassPrecision.auto;
+    }
+  }
+}
+
+enum BandpassTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BandpassTransformType.di:
+        return 'di';
+      case BandpassTransformType.dii:
+        return 'dii';
+      case BandpassTransformType.tdi:
+        return 'tdi';
+      case BandpassTransformType.tdii:
+        return 'tdii';
+      case BandpassTransformType.latt:
+        return 'latt';
+      case BandpassTransformType.svf:
+        return 'svf';
+      case BandpassTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BandpassTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static BandpassTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return BandpassTransformType.di;
+      case 'dii':
+        return BandpassTransformType.dii;
+      case 'tdi':
+        return BandpassTransformType.tdi;
+      case 'tdii':
+        return BandpassTransformType.tdii;
+      case 'latt':
+        return BandpassTransformType.latt;
+      case 'svf':
+        return BandpassTransformType.svf;
+      case 'zdf':
+        return BandpassTransformType.zdf;
+      default:
+        return BandpassTransformType.di;
+    }
+  }
+}
+
+enum BandpassWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BandpassWidthType.h:
+        return 'h';
+      case BandpassWidthType.q:
+        return 'q';
+      case BandpassWidthType.o:
+        return 'o';
+      case BandpassWidthType.s:
+        return 's';
+      case BandpassWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BandpassWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static BandpassWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return BandpassWidthType.h;
+      case 'q':
+        return BandpassWidthType.q;
+      case 'o':
+        return BandpassWidthType.o;
+      case 's':
+        return BandpassWidthType.s;
+      case 'k':
+        return BandpassWidthType.k;
+      default:
+        return BandpassWidthType.h;
+    }
+  }
+}
+
+enum BandrejectPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BandrejectPrecision.auto:
+        return 'auto';
+      case BandrejectPrecision.s16:
+        return 's16';
+      case BandrejectPrecision.s32:
+        return 's32';
+      case BandrejectPrecision.f32:
+        return 'f32';
+      case BandrejectPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BandrejectPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static BandrejectPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return BandrejectPrecision.auto;
+      case 's16':
+        return BandrejectPrecision.s16;
+      case 's32':
+        return BandrejectPrecision.s32;
+      case 'f32':
+        return BandrejectPrecision.f32;
+      case 'f64':
+        return BandrejectPrecision.f64;
+      default:
+        return BandrejectPrecision.auto;
+    }
+  }
+}
+
+enum BandrejectTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BandrejectTransformType.di:
+        return 'di';
+      case BandrejectTransformType.dii:
+        return 'dii';
+      case BandrejectTransformType.tdi:
+        return 'tdi';
+      case BandrejectTransformType.tdii:
+        return 'tdii';
+      case BandrejectTransformType.latt:
+        return 'latt';
+      case BandrejectTransformType.svf:
+        return 'svf';
+      case BandrejectTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BandrejectTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static BandrejectTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return BandrejectTransformType.di;
+      case 'dii':
+        return BandrejectTransformType.dii;
+      case 'tdi':
+        return BandrejectTransformType.tdi;
+      case 'tdii':
+        return BandrejectTransformType.tdii;
+      case 'latt':
+        return BandrejectTransformType.latt;
+      case 'svf':
+        return BandrejectTransformType.svf;
+      case 'zdf':
+        return BandrejectTransformType.zdf;
+      default:
+        return BandrejectTransformType.di;
+    }
+  }
+}
+
+enum BandrejectWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BandrejectWidthType.h:
+        return 'h';
+      case BandrejectWidthType.q:
+        return 'q';
+      case BandrejectWidthType.o:
+        return 'o';
+      case BandrejectWidthType.s:
+        return 's';
+      case BandrejectWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BandrejectWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static BandrejectWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return BandrejectWidthType.h;
+      case 'q':
+        return BandrejectWidthType.q;
+      case 'o':
+        return BandrejectWidthType.o;
+      case 's':
+        return BandrejectWidthType.s;
+      case 'k':
+        return BandrejectWidthType.k;
+      default:
+        return BandrejectWidthType.h;
+    }
+  }
+}
+
+enum BassPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BassPrecision.auto:
+        return 'auto';
+      case BassPrecision.s16:
+        return 's16';
+      case BassPrecision.s32:
+        return 's32';
+      case BassPrecision.f32:
+        return 'f32';
+      case BassPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BassPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static BassPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return BassPrecision.auto;
+      case 's16':
+        return BassPrecision.s16;
+      case 's32':
+        return BassPrecision.s32;
+      case 'f32':
+        return BassPrecision.f32;
+      case 'f64':
+        return BassPrecision.f64;
+      default:
+        return BassPrecision.auto;
+    }
+  }
+}
+
+enum BassTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BassTransformType.di:
+        return 'di';
+      case BassTransformType.dii:
+        return 'dii';
+      case BassTransformType.tdi:
+        return 'tdi';
+      case BassTransformType.tdii:
+        return 'tdii';
+      case BassTransformType.latt:
+        return 'latt';
+      case BassTransformType.svf:
+        return 'svf';
+      case BassTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BassTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static BassTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return BassTransformType.di;
+      case 'dii':
+        return BassTransformType.dii;
+      case 'tdi':
+        return BassTransformType.tdi;
+      case 'tdii':
+        return BassTransformType.tdii;
+      case 'latt':
+        return BassTransformType.latt;
+      case 'svf':
+        return BassTransformType.svf;
+      case 'zdf':
+        return BassTransformType.zdf;
+      default:
+        return BassTransformType.di;
+    }
+  }
+}
+
+enum BassWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BassWidthType.h:
+        return 'h';
+      case BassWidthType.q:
+        return 'q';
+      case BassWidthType.o:
+        return 'o';
+      case BassWidthType.s:
+        return 's';
+      case BassWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BassWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static BassWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return BassWidthType.h;
+      case 'q':
+        return BassWidthType.q;
+      case 'o':
+        return BassWidthType.o;
+      case 's':
+        return BassWidthType.s;
+      case 'k':
+        return BassWidthType.k;
+      default:
+        return BassWidthType.h;
+    }
+  }
+}
+
+enum BiquadPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BiquadPrecision.auto:
+        return 'auto';
+      case BiquadPrecision.s16:
+        return 's16';
+      case BiquadPrecision.s32:
+        return 's32';
+      case BiquadPrecision.f32:
+        return 'f32';
+      case BiquadPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BiquadPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static BiquadPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return BiquadPrecision.auto;
+      case 's16':
+        return BiquadPrecision.s16;
+      case 's32':
+        return BiquadPrecision.s32;
+      case 'f32':
+        return BiquadPrecision.f32;
+      case 'f64':
+        return BiquadPrecision.f64;
+      default:
+        return BiquadPrecision.auto;
+    }
+  }
+}
+
+enum BiquadTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case BiquadTransformType.di:
+        return 'di';
+      case BiquadTransformType.dii:
+        return 'dii';
+      case BiquadTransformType.tdi:
+        return 'tdi';
+      case BiquadTransformType.tdii:
+        return 'tdii';
+      case BiquadTransformType.latt:
+        return 'latt';
+      case BiquadTransformType.svf:
+        return 'svf';
+      case BiquadTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [BiquadTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static BiquadTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return BiquadTransformType.di;
+      case 'dii':
+        return BiquadTransformType.dii;
+      case 'tdi':
+        return BiquadTransformType.tdi;
+      case 'tdii':
+        return BiquadTransformType.tdii;
+      case 'latt':
+        return BiquadTransformType.latt;
+      case 'svf':
+        return BiquadTransformType.svf;
+      case 'zdf':
+        return BiquadTransformType.zdf;
+      default:
+        return BiquadTransformType.di;
+    }
+  }
+}
+
 enum DeesserMode {
   /// input
   i,
@@ -1775,6 +2587,179 @@ enum Ebur128Scaletype {
         return Ebur128Scaletype.LU;
       default:
         return Ebur128Scaletype.absolute;
+    }
+  }
+}
+
+enum EqualizerPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case EqualizerPrecision.auto:
+        return 'auto';
+      case EqualizerPrecision.s16:
+        return 's16';
+      case EqualizerPrecision.s32:
+        return 's32';
+      case EqualizerPrecision.f32:
+        return 'f32';
+      case EqualizerPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [EqualizerPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static EqualizerPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return EqualizerPrecision.auto;
+      case 's16':
+        return EqualizerPrecision.s16;
+      case 's32':
+        return EqualizerPrecision.s32;
+      case 'f32':
+        return EqualizerPrecision.f32;
+      case 'f64':
+        return EqualizerPrecision.f64;
+      default:
+        return EqualizerPrecision.auto;
+    }
+  }
+}
+
+enum EqualizerTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case EqualizerTransformType.di:
+        return 'di';
+      case EqualizerTransformType.dii:
+        return 'dii';
+      case EqualizerTransformType.tdi:
+        return 'tdi';
+      case EqualizerTransformType.tdii:
+        return 'tdii';
+      case EqualizerTransformType.latt:
+        return 'latt';
+      case EqualizerTransformType.svf:
+        return 'svf';
+      case EqualizerTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [EqualizerTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static EqualizerTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return EqualizerTransformType.di;
+      case 'dii':
+        return EqualizerTransformType.dii;
+      case 'tdi':
+        return EqualizerTransformType.tdi;
+      case 'tdii':
+        return EqualizerTransformType.tdii;
+      case 'latt':
+        return EqualizerTransformType.latt;
+      case 'svf':
+        return EqualizerTransformType.svf;
+      case 'zdf':
+        return EqualizerTransformType.zdf;
+      default:
+        return EqualizerTransformType.di;
+    }
+  }
+}
+
+enum EqualizerWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case EqualizerWidthType.h:
+        return 'h';
+      case EqualizerWidthType.q:
+        return 'q';
+      case EqualizerWidthType.o:
+        return 'o';
+      case EqualizerWidthType.s:
+        return 's';
+      case EqualizerWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [EqualizerWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static EqualizerWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return EqualizerWidthType.h;
+      case 'q':
+        return EqualizerWidthType.q;
+      case 'o':
+        return EqualizerWidthType.o;
+      case 's':
+        return EqualizerWidthType.s;
+      case 'k':
+        return EqualizerWidthType.k;
+      default:
+        return EqualizerWidthType.h;
     }
   }
 }
@@ -2171,6 +3156,352 @@ enum HeadphoneType {
   }
 }
 
+enum HighpassPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case HighpassPrecision.auto:
+        return 'auto';
+      case HighpassPrecision.s16:
+        return 's16';
+      case HighpassPrecision.s32:
+        return 's32';
+      case HighpassPrecision.f32:
+        return 'f32';
+      case HighpassPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [HighpassPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static HighpassPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return HighpassPrecision.auto;
+      case 's16':
+        return HighpassPrecision.s16;
+      case 's32':
+        return HighpassPrecision.s32;
+      case 'f32':
+        return HighpassPrecision.f32;
+      case 'f64':
+        return HighpassPrecision.f64;
+      default:
+        return HighpassPrecision.auto;
+    }
+  }
+}
+
+enum HighpassTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case HighpassTransformType.di:
+        return 'di';
+      case HighpassTransformType.dii:
+        return 'dii';
+      case HighpassTransformType.tdi:
+        return 'tdi';
+      case HighpassTransformType.tdii:
+        return 'tdii';
+      case HighpassTransformType.latt:
+        return 'latt';
+      case HighpassTransformType.svf:
+        return 'svf';
+      case HighpassTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [HighpassTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static HighpassTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return HighpassTransformType.di;
+      case 'dii':
+        return HighpassTransformType.dii;
+      case 'tdi':
+        return HighpassTransformType.tdi;
+      case 'tdii':
+        return HighpassTransformType.tdii;
+      case 'latt':
+        return HighpassTransformType.latt;
+      case 'svf':
+        return HighpassTransformType.svf;
+      case 'zdf':
+        return HighpassTransformType.zdf;
+      default:
+        return HighpassTransformType.di;
+    }
+  }
+}
+
+enum HighpassWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case HighpassWidthType.h:
+        return 'h';
+      case HighpassWidthType.q:
+        return 'q';
+      case HighpassWidthType.o:
+        return 'o';
+      case HighpassWidthType.s:
+        return 's';
+      case HighpassWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [HighpassWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static HighpassWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return HighpassWidthType.h;
+      case 'q':
+        return HighpassWidthType.q;
+      case 'o':
+        return HighpassWidthType.o;
+      case 's':
+        return HighpassWidthType.s;
+      case 'k':
+        return HighpassWidthType.k;
+      default:
+        return HighpassWidthType.h;
+    }
+  }
+}
+
+enum HighshelfPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case HighshelfPrecision.auto:
+        return 'auto';
+      case HighshelfPrecision.s16:
+        return 's16';
+      case HighshelfPrecision.s32:
+        return 's32';
+      case HighshelfPrecision.f32:
+        return 'f32';
+      case HighshelfPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [HighshelfPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static HighshelfPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return HighshelfPrecision.auto;
+      case 's16':
+        return HighshelfPrecision.s16;
+      case 's32':
+        return HighshelfPrecision.s32;
+      case 'f32':
+        return HighshelfPrecision.f32;
+      case 'f64':
+        return HighshelfPrecision.f64;
+      default:
+        return HighshelfPrecision.auto;
+    }
+  }
+}
+
+enum HighshelfTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case HighshelfTransformType.di:
+        return 'di';
+      case HighshelfTransformType.dii:
+        return 'dii';
+      case HighshelfTransformType.tdi:
+        return 'tdi';
+      case HighshelfTransformType.tdii:
+        return 'tdii';
+      case HighshelfTransformType.latt:
+        return 'latt';
+      case HighshelfTransformType.svf:
+        return 'svf';
+      case HighshelfTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [HighshelfTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static HighshelfTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return HighshelfTransformType.di;
+      case 'dii':
+        return HighshelfTransformType.dii;
+      case 'tdi':
+        return HighshelfTransformType.tdi;
+      case 'tdii':
+        return HighshelfTransformType.tdii;
+      case 'latt':
+        return HighshelfTransformType.latt;
+      case 'svf':
+        return HighshelfTransformType.svf;
+      case 'zdf':
+        return HighshelfTransformType.zdf;
+      default:
+        return HighshelfTransformType.di;
+    }
+  }
+}
+
+enum HighshelfWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case HighshelfWidthType.h:
+        return 'h';
+      case HighshelfWidthType.q:
+        return 'q';
+      case HighshelfWidthType.o:
+        return 'o';
+      case HighshelfWidthType.s:
+        return 's';
+      case HighshelfWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [HighshelfWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static HighshelfWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return HighshelfWidthType.h;
+      case 'q':
+        return HighshelfWidthType.q;
+      case 'o':
+        return HighshelfWidthType.o;
+      case 's':
+        return HighshelfWidthType.s;
+      case 'k':
+        return HighshelfWidthType.k;
+      default:
+        return HighshelfWidthType.h;
+    }
+  }
+}
+
 enum LoudnormPrintFormat {
   none,
   json,
@@ -2201,6 +3532,352 @@ enum LoudnormPrintFormat {
         return LoudnormPrintFormat.summary;
       default:
         return LoudnormPrintFormat.none;
+    }
+  }
+}
+
+enum LowpassPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case LowpassPrecision.auto:
+        return 'auto';
+      case LowpassPrecision.s16:
+        return 's16';
+      case LowpassPrecision.s32:
+        return 's32';
+      case LowpassPrecision.f32:
+        return 'f32';
+      case LowpassPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [LowpassPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static LowpassPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return LowpassPrecision.auto;
+      case 's16':
+        return LowpassPrecision.s16;
+      case 's32':
+        return LowpassPrecision.s32;
+      case 'f32':
+        return LowpassPrecision.f32;
+      case 'f64':
+        return LowpassPrecision.f64;
+      default:
+        return LowpassPrecision.auto;
+    }
+  }
+}
+
+enum LowpassTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case LowpassTransformType.di:
+        return 'di';
+      case LowpassTransformType.dii:
+        return 'dii';
+      case LowpassTransformType.tdi:
+        return 'tdi';
+      case LowpassTransformType.tdii:
+        return 'tdii';
+      case LowpassTransformType.latt:
+        return 'latt';
+      case LowpassTransformType.svf:
+        return 'svf';
+      case LowpassTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [LowpassTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static LowpassTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return LowpassTransformType.di;
+      case 'dii':
+        return LowpassTransformType.dii;
+      case 'tdi':
+        return LowpassTransformType.tdi;
+      case 'tdii':
+        return LowpassTransformType.tdii;
+      case 'latt':
+        return LowpassTransformType.latt;
+      case 'svf':
+        return LowpassTransformType.svf;
+      case 'zdf':
+        return LowpassTransformType.zdf;
+      default:
+        return LowpassTransformType.di;
+    }
+  }
+}
+
+enum LowpassWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case LowpassWidthType.h:
+        return 'h';
+      case LowpassWidthType.q:
+        return 'q';
+      case LowpassWidthType.o:
+        return 'o';
+      case LowpassWidthType.s:
+        return 's';
+      case LowpassWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [LowpassWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static LowpassWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return LowpassWidthType.h;
+      case 'q':
+        return LowpassWidthType.q;
+      case 'o':
+        return LowpassWidthType.o;
+      case 's':
+        return LowpassWidthType.s;
+      case 'k':
+        return LowpassWidthType.k;
+      default:
+        return LowpassWidthType.h;
+    }
+  }
+}
+
+enum LowshelfPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case LowshelfPrecision.auto:
+        return 'auto';
+      case LowshelfPrecision.s16:
+        return 's16';
+      case LowshelfPrecision.s32:
+        return 's32';
+      case LowshelfPrecision.f32:
+        return 'f32';
+      case LowshelfPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [LowshelfPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static LowshelfPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return LowshelfPrecision.auto;
+      case 's16':
+        return LowshelfPrecision.s16;
+      case 's32':
+        return LowshelfPrecision.s32;
+      case 'f32':
+        return LowshelfPrecision.f32;
+      case 'f64':
+        return LowshelfPrecision.f64;
+      default:
+        return LowshelfPrecision.auto;
+    }
+  }
+}
+
+enum LowshelfTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case LowshelfTransformType.di:
+        return 'di';
+      case LowshelfTransformType.dii:
+        return 'dii';
+      case LowshelfTransformType.tdi:
+        return 'tdi';
+      case LowshelfTransformType.tdii:
+        return 'tdii';
+      case LowshelfTransformType.latt:
+        return 'latt';
+      case LowshelfTransformType.svf:
+        return 'svf';
+      case LowshelfTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [LowshelfTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static LowshelfTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return LowshelfTransformType.di;
+      case 'dii':
+        return LowshelfTransformType.dii;
+      case 'tdi':
+        return LowshelfTransformType.tdi;
+      case 'tdii':
+        return LowshelfTransformType.tdii;
+      case 'latt':
+        return LowshelfTransformType.latt;
+      case 'svf':
+        return LowshelfTransformType.svf;
+      case 'zdf':
+        return LowshelfTransformType.zdf;
+      default:
+        return LowshelfTransformType.di;
+    }
+  }
+}
+
+enum LowshelfWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case LowshelfWidthType.h:
+        return 'h';
+      case LowshelfWidthType.q:
+        return 'q';
+      case LowshelfWidthType.o:
+        return 'o';
+      case LowshelfWidthType.s:
+        return 's';
+      case LowshelfWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [LowshelfWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static LowshelfWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return LowshelfWidthType.h;
+      case 'q':
+        return LowshelfWidthType.q;
+      case 'o':
+        return LowshelfWidthType.o;
+      case 's':
+        return LowshelfWidthType.s;
+      case 'k':
+        return LowshelfWidthType.k;
+      default:
+        return LowshelfWidthType.h;
     }
   }
 }
@@ -2707,6 +4384,352 @@ enum SurroundLfeMode {
         return SurroundLfeMode.sub;
       default:
         return SurroundLfeMode.add;
+    }
+  }
+}
+
+enum TiltshelfPrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case TiltshelfPrecision.auto:
+        return 'auto';
+      case TiltshelfPrecision.s16:
+        return 's16';
+      case TiltshelfPrecision.s32:
+        return 's32';
+      case TiltshelfPrecision.f32:
+        return 'f32';
+      case TiltshelfPrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [TiltshelfPrecision].
+  /// Unknown / empty input falls back to the first member.
+  static TiltshelfPrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return TiltshelfPrecision.auto;
+      case 's16':
+        return TiltshelfPrecision.s16;
+      case 's32':
+        return TiltshelfPrecision.s32;
+      case 'f32':
+        return TiltshelfPrecision.f32;
+      case 'f64':
+        return TiltshelfPrecision.f64;
+      default:
+        return TiltshelfPrecision.auto;
+    }
+  }
+}
+
+enum TiltshelfTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case TiltshelfTransformType.di:
+        return 'di';
+      case TiltshelfTransformType.dii:
+        return 'dii';
+      case TiltshelfTransformType.tdi:
+        return 'tdi';
+      case TiltshelfTransformType.tdii:
+        return 'tdii';
+      case TiltshelfTransformType.latt:
+        return 'latt';
+      case TiltshelfTransformType.svf:
+        return 'svf';
+      case TiltshelfTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [TiltshelfTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static TiltshelfTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return TiltshelfTransformType.di;
+      case 'dii':
+        return TiltshelfTransformType.dii;
+      case 'tdi':
+        return TiltshelfTransformType.tdi;
+      case 'tdii':
+        return TiltshelfTransformType.tdii;
+      case 'latt':
+        return TiltshelfTransformType.latt;
+      case 'svf':
+        return TiltshelfTransformType.svf;
+      case 'zdf':
+        return TiltshelfTransformType.zdf;
+      default:
+        return TiltshelfTransformType.di;
+    }
+  }
+}
+
+enum TiltshelfWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case TiltshelfWidthType.h:
+        return 'h';
+      case TiltshelfWidthType.q:
+        return 'q';
+      case TiltshelfWidthType.o:
+        return 'o';
+      case TiltshelfWidthType.s:
+        return 's';
+      case TiltshelfWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [TiltshelfWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static TiltshelfWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return TiltshelfWidthType.h;
+      case 'q':
+        return TiltshelfWidthType.q;
+      case 'o':
+        return TiltshelfWidthType.o;
+      case 's':
+        return TiltshelfWidthType.s;
+      case 'k':
+        return TiltshelfWidthType.k;
+      default:
+        return TiltshelfWidthType.h;
+    }
+  }
+}
+
+enum TreblePrecision {
+  /// automatic
+  auto,
+
+  /// signed 16-bit
+  s16,
+
+  /// signed 32-bit
+  s32,
+
+  /// floating-point single
+  f32,
+
+  /// floating-point double
+  f64,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case TreblePrecision.auto:
+        return 'auto';
+      case TreblePrecision.s16:
+        return 's16';
+      case TreblePrecision.s32:
+        return 's32';
+      case TreblePrecision.f32:
+        return 'f32';
+      case TreblePrecision.f64:
+        return 'f64';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [TreblePrecision].
+  /// Unknown / empty input falls back to the first member.
+  static TreblePrecision fromMpv(String? raw) {
+    switch (raw) {
+      case 'auto':
+        return TreblePrecision.auto;
+      case 's16':
+        return TreblePrecision.s16;
+      case 's32':
+        return TreblePrecision.s32;
+      case 'f32':
+        return TreblePrecision.f32;
+      case 'f64':
+        return TreblePrecision.f64;
+      default:
+        return TreblePrecision.auto;
+    }
+  }
+}
+
+enum TrebleTransformType {
+  /// direct form I
+  di,
+
+  /// direct form II
+  dii,
+
+  /// transposed direct form I
+  tdi,
+
+  /// transposed direct form II
+  tdii,
+
+  /// lattice-ladder form
+  latt,
+
+  /// state variable filter form
+  svf,
+
+  /// zero-delay filter form
+  zdf,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case TrebleTransformType.di:
+        return 'di';
+      case TrebleTransformType.dii:
+        return 'dii';
+      case TrebleTransformType.tdi:
+        return 'tdi';
+      case TrebleTransformType.tdii:
+        return 'tdii';
+      case TrebleTransformType.latt:
+        return 'latt';
+      case TrebleTransformType.svf:
+        return 'svf';
+      case TrebleTransformType.zdf:
+        return 'zdf';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [TrebleTransformType].
+  /// Unknown / empty input falls back to the first member.
+  static TrebleTransformType fromMpv(String? raw) {
+    switch (raw) {
+      case 'di':
+        return TrebleTransformType.di;
+      case 'dii':
+        return TrebleTransformType.dii;
+      case 'tdi':
+        return TrebleTransformType.tdi;
+      case 'tdii':
+        return TrebleTransformType.tdii;
+      case 'latt':
+        return TrebleTransformType.latt;
+      case 'svf':
+        return TrebleTransformType.svf;
+      case 'zdf':
+        return TrebleTransformType.zdf;
+      default:
+        return TrebleTransformType.di;
+    }
+  }
+}
+
+enum TrebleWidthType {
+  /// Hz
+  h,
+
+  /// Q-Factor
+  q,
+
+  /// octave
+  o,
+
+  /// slope
+  s,
+
+  /// kHz
+  k,
+  ;
+
+  /// Wire-side string consumed by mpv.
+  String get mpvValue {
+    switch (this) {
+      case TrebleWidthType.h:
+        return 'h';
+      case TrebleWidthType.q:
+        return 'q';
+      case TrebleWidthType.o:
+        return 'o';
+      case TrebleWidthType.s:
+        return 's';
+      case TrebleWidthType.k:
+        return 'k';
+    }
+  }
+
+  /// Parses an mpv wire string back into a [TrebleWidthType].
+  /// Unknown / empty input falls back to the first member.
+  static TrebleWidthType fromMpv(String? raw) {
+    switch (raw) {
+      case 'h':
+        return TrebleWidthType.h;
+      case 'q':
+        return TrebleWidthType.q;
+      case 'o':
+        return TrebleWidthType.o;
+      case 's':
+        return TrebleWidthType.s;
+      case 'k':
+        return TrebleWidthType.k;
+      default:
+        return TrebleWidthType.h;
     }
   }
 }

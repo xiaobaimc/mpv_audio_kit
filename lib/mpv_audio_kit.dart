@@ -28,10 +28,13 @@ export 'src/player/player_api.dart' show PlayerApi;
 export 'src/models/cover_art.dart' show CoverArt;
 export 'src/models/fft_frame.dart' show FftFrame;
 export 'src/models/pcm_frame.dart' show PcmFrame;
+export 'src/models/waveform_data.dart' show WaveformData;
 export 'src/types/settings/spectrum_settings.dart' show SpectrumSettings;
 export 'src/types/enums/window_function.dart' show WindowFunction;
 export 'src/types/enums/audio_effects.dart';
 export 'src/types/settings/audio_effects_settings.dart';
+export 'src/types/settings/extensions/anequalizer_bands.dart'
+    show AnequalizerBand, AnequalizerBandType, AnequalizerBandsX;
 export 'src/types/settings/cache_settings.dart' show CacheSettings;
 export 'src/types/enums/cache.dart' show Cache;
 export 'src/models/chapter.dart' show Chapter;

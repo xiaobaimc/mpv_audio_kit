@@ -49,8 +49,13 @@ class PcmFrame {
   /// boundaries, or background processing without copying.
   final Float32List samples;
 
-  /// Playback position of the first sample, derived from mpv's tap
-  /// timestamp.
+  /// Wall-clock timestamp at which the audio output captured this
+  /// frame. Process-monotonic — derived from libmpv's internal
+  /// `mp_time_ns()`, which counts from the moment the engine
+  /// initialised, not from the start of the track. Use it to detect
+  /// fresh frames or to align side-effects in real time; for the
+  /// playback PTS of these samples, read [PlayerStream.position] /
+  /// [PlayerStream.audioPts] instead.
   final Duration timestamp;
 
   /// Sample rate in Hz (typically 44100 or 48000).

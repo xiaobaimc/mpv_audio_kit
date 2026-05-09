@@ -22,7 +22,7 @@ import 'dart:typed_data';
 /// Example — paint a 64-bar spectrum analyzer:
 ///
 /// ```dart
-/// player.stream.spectrum.listen((frame) {
+/// player.stream.fft.listen((frame) {
 ///   for (var i = 0; i < frame.bands.length; i++) {
 ///     final h = frame.bands[i] * canvasHeight;
 ///     // draw bar i with height h …

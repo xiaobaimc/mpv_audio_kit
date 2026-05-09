@@ -784,27 +784,27 @@ final class AdecorrelateSettings {
 ///
 /// Parameters:
 /// - [all]: Use last set delay for all remaining channels. By default is disabled. This option if enabled changes how option `delays` is interpreted. (range 0..1, default 0)
-/// - [delays]: Set list of delays in milliseconds for each channel separated by '|'. Unused delays will be silently ignored. If number of given delays is smaller than number of channels all remaining channels will not be delayed. If you want to delay exact number of samples, append 'S' to number. If you want instead to delay in seconds, append 's' to number. (range 0..0)
+/// - [delays]: Set list of delays in milliseconds for each channel separated by '|'. Unused delays will be silently ignored. If number of given delays is smaller than number of channels all remaining channels will not be delayed. If you want to delay exact number of samples, append 'S' to number. If you want instead to delay in seconds, append 's' to number. (range 0..0, default NULL)
 final class AdelaySettings {
   final bool enabled;
   final bool all;
-  final String? delays;
+  final String delays;
 
   const AdelaySettings({
     this.enabled = false,
     this.all = false,
-    this.delays,
+    this.delays = 'NULL',
   });
 
   AdelaySettings copyWith({
     bool? enabled,
     bool? all,
-    Object? delays = unset,
+    String? delays,
   }) =>
       AdelaySettings(
         enabled: enabled ?? this.enabled,
         all: all ?? this.all,
-        delays: identical(delays, unset) ? this.delays : delays as String?,
+        delays: delays ?? this.delays,
       );
 
   @override
@@ -827,7 +827,7 @@ final class AdelaySettings {
   String toFilterString() {
     final parts = <String>[];
     if (all != false) parts.add('all=' + (all ? '1' : '0'));
-    if (delays != null) parts.add('delays=' + delays!);
+    if (delays != 'NULL') parts.add('delays=' + '[' + delays + ']');
     return parts.isEmpty ? 'lavfi-adelay' : 'lavfi-adelay=' + parts.join(':');
   }
 }
@@ -842,27 +842,27 @@ final class AdelaySettings {
 ///
 /// Parameters:
 /// - [level]: Set level of added noise in dB. Default is `-351`. Allowed range is from -451 to -90. (range -451..-90, default -351)
-/// - [type]: Set type of added noise.
+/// - [type]: Set type of added noise. (default DC_TYPE)
 final class AdenormSettings {
   final bool enabled;
   final double level;
-  final AdenormType? type;
+  final AdenormType type;
 
   const AdenormSettings({
     this.enabled = false,
     this.level = -351.0,
-    this.type,
+    this.type = AdenormType.dc,
   });
 
   AdenormSettings copyWith({
     bool? enabled,
     double? level,
-    Object? type = unset,
+    AdenormType? type,
   }) =>
       AdenormSettings(
         enabled: enabled ?? this.enabled,
         level: level ?? this.level,
-        type: identical(type, unset) ? this.type : type as AdenormType?,
+        type: type ?? this.type,
       );
 
   @override
@@ -887,7 +887,7 @@ final class AdenormSettings {
     assert(level <= -90, 'adenorm.level must be <= -90');
     final parts = <String>[];
     if (level != -351.0) parts.add('level=' + level.toStringAsFixed(3));
-    if (type != null) parts.add('type=' + type!.mpvValue);
+    if (type != AdenormType.dc) parts.add('type=' + type.mpvValue);
     return parts.isEmpty ? 'lavfi-adenorm' : 'lavfi-adenorm=' + parts.join(':');
   }
 }
@@ -996,9 +996,9 @@ final class AdrcSettings {
     assert(release <= 2000, 'adrc.release must be <= 2000');
     final parts = <String>[];
     if (attack != 50.0) parts.add('attack=' + attack.toStringAsFixed(3));
-    if (channels != 'all') parts.add('channels=' + channels);
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (release != 100.0) parts.add('release=' + release.toStringAsFixed(3));
-    if (transfer != 'p') parts.add('transfer=' + transfer);
+    if (transfer != 'p') parts.add('transfer=' + '[' + transfer + ']');
     return parts.isEmpty ? 'lavfi-adrc' : 'lavfi-adrc=' + parts.join(':');
   }
 }
@@ -1011,7 +1011,7 @@ final class AdrcSettings {
 ///
 /// Parameters:
 /// - [attack]: Set the amount of milliseconds the signal from detection has to rise above the detection threshold before equalization starts. Default is 20. Allowed range is between 1 and 2000. (range 0.01..2000, default 20)
-/// - [auto]: set auto threshold
+/// - [auto]: set auto threshold (default DET_OFF)
 /// - [dfrequency]: Set the detection frequency in Hz used for detection filter used to trigger equalization. Default value is 1000 Hz. Allowed range is between 2 and 1000000 Hz. (range 2..1000000, default 1000)
 /// - [dftype]: set detection filter type (range 0..3, default 0)
 /// - [dqfactor]: Set the detection resonance factor for detection filter used to trigger equalization. Default value is 1. Allowed range is from 0.001 to 1000. (range 0.001..1000, default 1)
@@ -1028,12 +1028,12 @@ final class AdrcSettings {
 final class AdynamicequalizerSettings {
   final bool enabled;
   final double attack;
-  final AdynamicequalizerAuto? auto;
+  final AdynamicequalizerAuto auto;
   final double dfrequency;
   final AdynamicequalizerDftype dftype;
   final double dqfactor;
   final double makeup;
-  final AdynamicequalizerMode mode;
+  final AdynamicequalizerMode? mode;
   final AdynamicequalizerPrecision precision;
   final double range;
   final double ratio;
@@ -1046,12 +1046,12 @@ final class AdynamicequalizerSettings {
   const AdynamicequalizerSettings({
     this.enabled = false,
     this.attack = 20.0,
-    this.auto,
+    this.auto = AdynamicequalizerAuto.off,
     this.dfrequency = 1000.0,
     this.dftype = AdynamicequalizerDftype.bandpass,
     this.dqfactor = 1.0,
     this.makeup = 0.0,
-    this.mode = AdynamicequalizerMode.listen,
+    this.mode,
     this.precision = AdynamicequalizerPrecision.auto,
     this.range = 50.0,
     this.ratio = 1.0,
@@ -1065,12 +1065,12 @@ final class AdynamicequalizerSettings {
   AdynamicequalizerSettings copyWith({
     bool? enabled,
     double? attack,
-    Object? auto = unset,
+    AdynamicequalizerAuto? auto,
     double? dfrequency,
     AdynamicequalizerDftype? dftype,
     double? dqfactor,
     double? makeup,
-    AdynamicequalizerMode? mode,
+    Object? mode = unset,
     AdynamicequalizerPrecision? precision,
     double? range,
     double? ratio,
@@ -1083,13 +1083,13 @@ final class AdynamicequalizerSettings {
       AdynamicequalizerSettings(
         enabled: enabled ?? this.enabled,
         attack: attack ?? this.attack,
-        auto:
-            identical(auto, unset) ? this.auto : auto as AdynamicequalizerAuto?,
+        auto: auto ?? this.auto,
         dfrequency: dfrequency ?? this.dfrequency,
         dftype: dftype ?? this.dftype,
         dqfactor: dqfactor ?? this.dqfactor,
         makeup: makeup ?? this.makeup,
-        mode: mode ?? this.mode,
+        mode:
+            identical(mode, unset) ? this.mode : mode as AdynamicequalizerMode?,
         precision: precision ?? this.precision,
         range: range ?? this.range,
         ratio: ratio ?? this.ratio,
@@ -1171,15 +1171,14 @@ final class AdynamicequalizerSettings {
     assert(tqfactor <= 1000, 'adynamicequalizer.tqfactor must be <= 1000');
     final parts = <String>[];
     if (attack != 20.0) parts.add('attack=' + attack.toStringAsFixed(3));
-    if (auto != null) parts.add('auto=' + auto!.mpvValue);
+    if (auto != AdynamicequalizerAuto.off) parts.add('auto=' + auto.mpvValue);
     if (dfrequency != 1000.0)
       parts.add('dfrequency=' + dfrequency.toStringAsFixed(3));
     if (dftype != AdynamicequalizerDftype.bandpass)
       parts.add('dftype=' + dftype.mpvValue);
     if (dqfactor != 1.0) parts.add('dqfactor=' + dqfactor.toStringAsFixed(3));
     if (makeup != 0.0) parts.add('makeup=' + makeup.toStringAsFixed(3));
-    if (mode != AdynamicequalizerMode.listen)
-      parts.add('mode=' + mode.mpvValue);
+    if (mode != null) parts.add('mode=' + mode!.mpvValue);
     if (precision != AdynamicequalizerPrecision.auto)
       parts.add('precision=' + precision.mpvValue);
     if (range != 50.0) parts.add('range=' + range.toStringAsFixed(3));
@@ -1337,8 +1336,8 @@ final class AechoSettings {
     assert(out_gain >= 0, 'aecho.out_gain must be >= 0');
     assert(out_gain <= 1, 'aecho.out_gain must be <= 1');
     final parts = <String>[];
-    if (decays != '0.5') parts.add('decays=' + decays);
-    if (delays != '1000') parts.add('delays=' + delays);
+    if (decays != '0.5') parts.add('decays=' + '[' + decays + ']');
+    if (delays != '1000') parts.add('delays=' + '[' + delays + ']');
     if (in_gain != 0.6) parts.add('in_gain=' + in_gain.toStringAsFixed(3));
     if (out_gain != 0.3) parts.add('out_gain=' + out_gain.toStringAsFixed(3));
     return parts.isEmpty ? 'lavfi-aecho' : 'lavfi-aecho=' + parts.join(':');
@@ -1595,8 +1594,8 @@ final class AexciterSettings {
 /// A description of the accepted parameters follows.
 ///
 /// Parameters:
-/// - [c]: set fade curve type
-/// - [curve]: Set curve for fade transition.  It accepts the following values:
+/// - [c]: set fade curve type (default TRI)
+/// - [curve]: Set curve for fade transition.  It accepts the following values: (default TRI)
 /// - [d]: Specify the duration of the fade effect. See time duration syntax for the accepted syntax. At the end of the fade-in effect the output audio will have the same volume as the input audio, at the end of the fade-out transition the output audio will be silence. By default the duration is determined by `nb_samples`. If set this option is used instead of `nb_samples`. (default 0)
 /// - [duration]: Specify the duration of the fade effect. See time duration syntax for the accepted syntax. At the end of the fade-in effect the output audio will have the same volume as the input audio, at the end of the fade-out transition the output audio will be silence. By default the duration is determined by `nb_samples`. If set this option is used instead of `nb_samples`. (default 0)
 /// - [silence]: Set the initial gain for fade-in or final gain for fade-out. Default value is `0.0`. (range 0..1, default 0)
@@ -1607,8 +1606,8 @@ final class AexciterSettings {
 /// - [unity]: Set the initial gain for fade-out or final gain for fade-in. Default value is `1.0`. (range 0..1, default 1)
 final class AfadeSettings {
   final bool enabled;
-  final AfadeCurve? c;
-  final AfadeCurve? curve;
+  final AfadeCurve c;
+  final AfadeCurve curve;
   final Duration d;
   final Duration duration;
   final double silence;
@@ -1620,8 +1619,8 @@ final class AfadeSettings {
 
   const AfadeSettings({
     this.enabled = false,
-    this.c,
-    this.curve,
+    this.c = AfadeCurve.tri,
+    this.curve = AfadeCurve.tri,
     this.d = const Duration(microseconds: 0),
     this.duration = const Duration(microseconds: 0),
     this.silence = 0.0,
@@ -1634,8 +1633,8 @@ final class AfadeSettings {
 
   AfadeSettings copyWith({
     bool? enabled,
-    Object? c = unset,
-    Object? curve = unset,
+    AfadeCurve? c,
+    AfadeCurve? curve,
     Duration? d,
     Duration? duration,
     double? silence,
@@ -1647,8 +1646,8 @@ final class AfadeSettings {
   }) =>
       AfadeSettings(
         enabled: enabled ?? this.enabled,
-        c: identical(c, unset) ? this.c : c as AfadeCurve?,
-        curve: identical(curve, unset) ? this.curve : curve as AfadeCurve?,
+        c: c ?? this.c,
+        curve: curve ?? this.curve,
         d: d ?? this.d,
         duration: duration ?? this.duration,
         silence: silence ?? this.silence,
@@ -1691,8 +1690,8 @@ final class AfadeSettings {
     assert(unity >= 0, 'afade.unity must be >= 0');
     assert(unity <= 1, 'afade.unity must be <= 1');
     final parts = <String>[];
-    if (c != null) parts.add('c=' + c!.mpvValue);
-    if (curve != null) parts.add('curve=' + curve!.mpvValue);
+    if (c != AfadeCurve.tri) parts.add('c=' + c.mpvValue);
+    if (curve != AfadeCurve.tri) parts.add('curve=' + curve.mpvValue);
     if (d != const Duration(microseconds: 0))
       parts.add('d=' + (d.inMicroseconds / 1e6).toStringAsFixed(3));
     if (duration != const Duration(microseconds: 0))
@@ -1729,19 +1728,19 @@ final class AfadeSettings {
 /// - [gain_smooth]: Set gain smooth spatial radius, used to smooth gains applied to each frequency bin. Useful to reduce random music noise artefacts. Higher values increases smoothing of gains. Allowed range is from `0` to `50`. Default value is `0`. (range 0..50, default 0)
 /// - [gs]: Set gain smooth spatial radius, used to smooth gains applied to each frequency bin. Useful to reduce random music noise artefacts. Higher values increases smoothing of gains. Allowed range is from `0` to `50`. Default value is `0`. (range 0..50, default 0)
 /// - [nf]: Set the noise floor in dB, allowed range is -80 to -20. Default value is -50 dB. (range -80..-20, default -50)
-/// - [nl]: Set the noise link used for multichannel audio.  It accepts the following values:
+/// - [nl]: Set the noise link used for multichannel audio.  It accepts the following values: (default MIN_LINK)
 /// - [noise_floor]: Set the noise floor in dB, allowed range is -80 to -20. Default value is -50 dB. (range -80..-20, default -50)
-/// - [noise_link]: Set the noise link used for multichannel audio.  It accepts the following values:
+/// - [noise_link]: Set the noise link used for multichannel audio.  It accepts the following values: (default MIN_LINK)
 /// - [noise_reduction]: Set the noise reduction in dB, allowed range is 0.01 to 97. Default value is 12 dB. (default 12)
-/// - [noise_type]: Set the noise type.  It accepts the following values:
+/// - [noise_type]: Set the noise type.  It accepts the following values: (default WHITE_NOISE)
 /// - [nr]: Set the noise reduction in dB, allowed range is 0.01 to 97. Default value is 12 dB. (default 12)
-/// - [nt]: Set the noise type.  It accepts the following values:
-/// - [om]: Set the output mode.  It accepts the following values:
-/// - [output_mode]: Set the output mode.  It accepts the following values:
+/// - [nt]: Set the noise type.  It accepts the following values: (default WHITE_NOISE)
+/// - [om]: Set the output mode.  It accepts the following values: (default OUT_MODE)
+/// - [output_mode]: Set the output mode.  It accepts the following values: (default OUT_MODE)
 /// - [residual_floor]: Set the residual floor in dB, allowed range is -80 to -20. Default value is -38 dB. (range -80..-20, default -38)
 /// - [rf]: Set the residual floor in dB, allowed range is -80 to -20. Default value is -38 dB. (range -80..-20, default -38)
-/// - [sample_noise]: Toggle capturing and measurement of noise profile from input audio.  It accepts the following values:
-/// - [sn]: Toggle capturing and measurement of noise profile from input audio.  It accepts the following values:
+/// - [sample_noise]: Toggle capturing and measurement of noise profile from input audio.  It accepts the following values: (default SAMPLE_NONE)
+/// - [sn]: Toggle capturing and measurement of noise profile from input audio.  It accepts the following values: (default SAMPLE_NONE)
 /// - [tn]: Enable noise floor tracking. By default is disabled. With this enabled, noise floor is automatically adjusted. (range 0..1, default 0)
 /// - [tr]: Enable residual tracking. By default is disabled. (range 0..1, default 0)
 /// - [track_noise]: Enable noise floor tracking. By default is disabled. With this enabled, noise floor is automatically adjusted. (range 0..1, default 0)
@@ -1759,19 +1758,19 @@ final class AfftdnSettings {
   final int gain_smooth;
   final int gs;
   final double nf;
-  final AfftdnLink? nl;
+  final AfftdnLink nl;
   final double noise_floor;
-  final AfftdnLink? noise_link;
+  final AfftdnLink noise_link;
   final double noise_reduction;
-  final AfftdnType? noise_type;
+  final AfftdnType noise_type;
   final double nr;
-  final AfftdnType? nt;
-  final AfftdnMode? om;
-  final AfftdnMode? output_mode;
+  final AfftdnType nt;
+  final AfftdnMode om;
+  final AfftdnMode output_mode;
   final double residual_floor;
   final double rf;
-  final AfftdnSample? sample_noise;
-  final AfftdnSample? sn;
+  final AfftdnSample sample_noise;
+  final AfftdnSample sn;
   final bool tn;
   final bool tr;
   final bool track_noise;
@@ -1790,19 +1789,19 @@ final class AfftdnSettings {
     this.gain_smooth = 0,
     this.gs = 0,
     this.nf = -50.0,
-    this.nl,
+    this.nl = AfftdnLink.min,
     this.noise_floor = -50.0,
-    this.noise_link,
+    this.noise_link = AfftdnLink.min,
     this.noise_reduction = 12.0,
-    this.noise_type,
+    this.noise_type = AfftdnType.white,
     this.nr = 12.0,
-    this.nt,
-    this.om,
-    this.output_mode,
+    this.nt = AfftdnType.white,
+    this.om = AfftdnMode.output,
+    this.output_mode = AfftdnMode.output,
     this.residual_floor = -38.0,
     this.rf = -38.0,
-    this.sample_noise,
-    this.sn,
+    this.sample_noise = AfftdnSample.none,
+    this.sn = AfftdnSample.none,
     this.tn = false,
     this.tr = false,
     this.track_noise = false,
@@ -1822,19 +1821,19 @@ final class AfftdnSettings {
     int? gain_smooth,
     int? gs,
     double? nf,
-    Object? nl = unset,
+    AfftdnLink? nl,
     double? noise_floor,
-    Object? noise_link = unset,
+    AfftdnLink? noise_link,
     double? noise_reduction,
-    Object? noise_type = unset,
+    AfftdnType? noise_type,
     double? nr,
-    Object? nt = unset,
-    Object? om = unset,
-    Object? output_mode = unset,
+    AfftdnType? nt,
+    AfftdnMode? om,
+    AfftdnMode? output_mode,
     double? residual_floor,
     double? rf,
-    Object? sample_noise = unset,
-    Object? sn = unset,
+    AfftdnSample? sample_noise,
+    AfftdnSample? sn,
     bool? tn,
     bool? tr,
     bool? track_noise,
@@ -1853,27 +1852,19 @@ final class AfftdnSettings {
         gain_smooth: gain_smooth ?? this.gain_smooth,
         gs: gs ?? this.gs,
         nf: nf ?? this.nf,
-        nl: identical(nl, unset) ? this.nl : nl as AfftdnLink?,
+        nl: nl ?? this.nl,
         noise_floor: noise_floor ?? this.noise_floor,
-        noise_link: identical(noise_link, unset)
-            ? this.noise_link
-            : noise_link as AfftdnLink?,
+        noise_link: noise_link ?? this.noise_link,
         noise_reduction: noise_reduction ?? this.noise_reduction,
-        noise_type: identical(noise_type, unset)
-            ? this.noise_type
-            : noise_type as AfftdnType?,
+        noise_type: noise_type ?? this.noise_type,
         nr: nr ?? this.nr,
-        nt: identical(nt, unset) ? this.nt : nt as AfftdnType?,
-        om: identical(om, unset) ? this.om : om as AfftdnMode?,
-        output_mode: identical(output_mode, unset)
-            ? this.output_mode
-            : output_mode as AfftdnMode?,
+        nt: nt ?? this.nt,
+        om: om ?? this.om,
+        output_mode: output_mode ?? this.output_mode,
         residual_floor: residual_floor ?? this.residual_floor,
         rf: rf ?? this.rf,
-        sample_noise: identical(sample_noise, unset)
-            ? this.sample_noise
-            : sample_noise as AfftdnSample?,
-        sn: identical(sn, unset) ? this.sn : sn as AfftdnSample?,
+        sample_noise: sample_noise ?? this.sample_noise,
+        sn: sn ?? this.sn,
         tn: tn ?? this.tn,
         tr: tr ?? this.tr,
         track_noise: track_noise ?? this.track_noise,
@@ -1984,32 +1975,35 @@ final class AfftdnSettings {
       parts.add('adaptivity=' + adaptivity.toStringAsFixed(3));
     if (band_multiplier != 1.25)
       parts.add('band_multiplier=' + band_multiplier.toStringAsFixed(3));
-    if (band_noise != '0') parts.add('band_noise=' + band_noise);
+    if (band_noise != '0') parts.add('band_noise=' + '[' + band_noise + ']');
     if (bm != 1.25) parts.add('bm=' + bm.toStringAsFixed(3));
-    if (bn != '0') parts.add('bn=' + bn);
+    if (bn != '0') parts.add('bn=' + '[' + bn + ']');
     if (floor_offset != 1.0)
       parts.add('floor_offset=' + floor_offset.toStringAsFixed(3));
     if (fo != 1.0) parts.add('fo=' + fo.toStringAsFixed(3));
     if (gain_smooth != 0) parts.add('gain_smooth=' + gain_smooth.toString());
     if (gs != 0) parts.add('gs=' + gs.toString());
     if (nf != -50.0) parts.add('nf=' + nf.toStringAsFixed(3));
-    if (nl != null) parts.add('nl=' + nl!.mpvValue);
+    if (nl != AfftdnLink.min) parts.add('nl=' + nl.mpvValue);
     if (noise_floor != -50.0)
       parts.add('noise_floor=' + noise_floor.toStringAsFixed(3));
-    if (noise_link != null) parts.add('noise_link=' + noise_link!.mpvValue);
+    if (noise_link != AfftdnLink.min)
+      parts.add('noise_link=' + noise_link.mpvValue);
     if (noise_reduction != 12.0)
       parts.add('noise_reduction=' + noise_reduction.toStringAsFixed(3));
-    if (noise_type != null) parts.add('noise_type=' + noise_type!.mpvValue);
+    if (noise_type != AfftdnType.white)
+      parts.add('noise_type=' + noise_type.mpvValue);
     if (nr != 12.0) parts.add('nr=' + nr.toStringAsFixed(3));
-    if (nt != null) parts.add('nt=' + nt!.mpvValue);
-    if (om != null) parts.add('om=' + om!.mpvValue);
-    if (output_mode != null) parts.add('output_mode=' + output_mode!.mpvValue);
+    if (nt != AfftdnType.white) parts.add('nt=' + nt.mpvValue);
+    if (om != AfftdnMode.output) parts.add('om=' + om.mpvValue);
+    if (output_mode != AfftdnMode.output)
+      parts.add('output_mode=' + output_mode.mpvValue);
     if (residual_floor != -38.0)
       parts.add('residual_floor=' + residual_floor.toStringAsFixed(3));
     if (rf != -38.0) parts.add('rf=' + rf.toStringAsFixed(3));
-    if (sample_noise != null)
-      parts.add('sample_noise=' + sample_noise!.mpvValue);
-    if (sn != null) parts.add('sn=' + sn!.mpvValue);
+    if (sample_noise != AfftdnSample.none)
+      parts.add('sample_noise=' + sample_noise.mpvValue);
+    if (sn != AfftdnSample.none) parts.add('sn=' + sn.mpvValue);
     if (tn != false) parts.add('tn=' + (tn ? '1' : '0'));
     if (tr != false) parts.add('tr=' + (tr ? '1' : '0'));
     if (track_noise != false)
@@ -2084,9 +2078,9 @@ final class AfftfiltSettings {
     assert(win_size >= 16, 'afftfilt.win_size must be >= 16');
     assert(win_size <= 131072, 'afftfilt.win_size must be <= 131072');
     final parts = <String>[];
-    if (imag != 'im') parts.add('imag=' + imag);
+    if (imag != 'im') parts.add('imag=' + '[' + imag + ']');
     if (overlap != 0.75) parts.add('overlap=' + overlap.toStringAsFixed(3));
-    if (real != 're') parts.add('real=' + real);
+    if (real != 're') parts.add('real=' + '[' + real + ']');
     if (win_size != 4096) parts.add('win_size=' + win_size.toString());
     return parts.isEmpty
         ? 'lavfi-afftfilt'
@@ -2214,7 +2208,7 @@ final class AfreqshiftSettings {
 /// - [samples]: set frame size in number of samples (range 512..65536, default 8192)
 /// - [sigma]: Set the noise sigma, allowed range is from 0 to 1. Default value is 0. This option controls strength of denoising applied to input samples. Most useful way to set this option is via decibels, eg. -45dB. (range 0..1, default 0)
 /// - [softness]: set thresholding softness (range 0..10, default 1)
-/// - [wavet]: Set wavelet type for decomposition of input frame. They are sorted by number of coefficients, from lowest to highest. More coefficients means worse filtering speed, but overall better quality. Available wavelets are:
+/// - [wavet]: Set wavelet type for decomposition of input frame. They are sorted by number of coefficients, from lowest to highest. More coefficients means worse filtering speed, but overall better quality. Available wavelets are: (default SYM10)
 final class AfwtdnSettings {
   final bool enabled;
   final bool adaptive;
@@ -2224,7 +2218,7 @@ final class AfwtdnSettings {
   final int samples;
   final double sigma;
   final double softness;
-  final AfwtdnWavet? wavet;
+  final AfwtdnWavet wavet;
 
   const AfwtdnSettings({
     this.enabled = false,
@@ -2235,7 +2229,7 @@ final class AfwtdnSettings {
     this.samples = 8192,
     this.sigma = 0.0,
     this.softness = 1.0,
-    this.wavet,
+    this.wavet = AfwtdnWavet.sym10,
   });
 
   AfwtdnSettings copyWith({
@@ -2247,7 +2241,7 @@ final class AfwtdnSettings {
     int? samples,
     double? sigma,
     double? softness,
-    Object? wavet = unset,
+    AfwtdnWavet? wavet,
   }) =>
       AfwtdnSettings(
         enabled: enabled ?? this.enabled,
@@ -2258,7 +2252,7 @@ final class AfwtdnSettings {
         samples: samples ?? this.samples,
         sigma: sigma ?? this.sigma,
         softness: softness ?? this.softness,
-        wavet: identical(wavet, unset) ? this.wavet : wavet as AfwtdnWavet?,
+        wavet: wavet ?? this.wavet,
       );
 
   @override
@@ -2303,7 +2297,7 @@ final class AfwtdnSettings {
     if (samples != 8192) parts.add('samples=' + samples.toString());
     if (sigma != 0.0) parts.add('sigma=' + sigma.toStringAsFixed(3));
     if (softness != 1.0) parts.add('softness=' + softness.toStringAsFixed(3));
-    if (wavet != null) parts.add('wavet=' + wavet!.mpvValue);
+    if (wavet != AfwtdnWavet.sym10) parts.add('wavet=' + wavet.mpvValue);
     return parts.isEmpty ? 'lavfi-afwtdn' : 'lavfi-afwtdn=' + parts.join(':');
   }
 }
@@ -2482,15 +2476,15 @@ final class AgateSettings {
 /// - [mix]: set mix (range 0..1, default 1)
 /// - [n]: normalize coefficients (range 0..1, default 1)
 /// - [normalize]: normalize coefficients (range 0..1, default 1)
-/// - [p]: Set A/denominator/poles/ladder coefficients. (range 0..0, default "1+0i 1-0i")
-/// - [poles]: Set A/denominator/poles/ladder coefficients. (range 0..0, default "1+0i 1-0i")
+/// - [p]: Set A/denominator/poles/ladder coefficients. (range 0..0)
+/// - [poles]: Set A/denominator/poles/ladder coefficients. (range 0..0)
 /// - [precision]: set filtering precision (range 0..3, default 0)
 /// - [process]: set kind of processing (range 0..2, default 1)
 /// - [r]: set kind of processing (range 0..2, default 1)
 /// - [response]: show IR frequency response (range 0..1, default 0)
 /// - [wet]: set wet gain (range 0..1, default 1)
-/// - [z]: Set B/numerator/zeros/reflection coefficients. (range 0..0, default "1+0i 1-0i")
-/// - [zeros]: Set B/numerator/zeros/reflection coefficients. (range 0..0, default "1+0i 1-0i")
+/// - [z]: Set B/numerator/zeros/reflection coefficients. (range 0..0)
+/// - [zeros]: Set B/numerator/zeros/reflection coefficients. (range 0..0)
 final class AiirSettings {
   final bool enabled;
   final int channel;
@@ -2503,15 +2497,15 @@ final class AiirSettings {
   final double mix;
   final bool n;
   final bool normalize;
-  final String p;
-  final String poles;
+  final String? p;
+  final String? poles;
   final AiirPrecision precision;
   final AiirProcess process;
   final AiirProcess r;
   final bool response;
   final double wet;
-  final String z;
-  final String zeros;
+  final String? z;
+  final String? zeros;
 
   const AiirSettings({
     this.enabled = false,
@@ -2525,15 +2519,15 @@ final class AiirSettings {
     this.mix = 1.0,
     this.n = true,
     this.normalize = true,
-    this.p = '1+0i 1-0i',
-    this.poles = '1+0i 1-0i',
+    this.p,
+    this.poles,
     this.precision = AiirPrecision.dbl,
     this.process = AiirProcess.s,
     this.r = AiirProcess.s,
     this.response = false,
     this.wet = 1.0,
-    this.z = '1+0i 1-0i',
-    this.zeros = '1+0i 1-0i',
+    this.z,
+    this.zeros,
   });
 
   AiirSettings copyWith({
@@ -2548,15 +2542,15 @@ final class AiirSettings {
     double? mix,
     bool? n,
     bool? normalize,
-    String? p,
-    String? poles,
+    Object? p = unset,
+    Object? poles = unset,
     AiirPrecision? precision,
     AiirProcess? process,
     AiirProcess? r,
     bool? response,
     double? wet,
-    String? z,
-    String? zeros,
+    Object? z = unset,
+    Object? zeros = unset,
   }) =>
       AiirSettings(
         enabled: enabled ?? this.enabled,
@@ -2570,15 +2564,15 @@ final class AiirSettings {
         mix: mix ?? this.mix,
         n: n ?? this.n,
         normalize: normalize ?? this.normalize,
-        p: p ?? this.p,
-        poles: poles ?? this.poles,
+        p: identical(p, unset) ? this.p : p as String?,
+        poles: identical(poles, unset) ? this.poles : poles as String?,
         precision: precision ?? this.precision,
         process: process ?? this.process,
         r: r ?? this.r,
         response: response ?? this.response,
         wet: wet ?? this.wet,
-        z: z ?? this.z,
-        zeros: zeros ?? this.zeros,
+        z: identical(z, unset) ? this.z : z as String?,
+        zeros: identical(zeros, unset) ? this.zeros : zeros as String?,
       );
 
   @override
@@ -2650,21 +2644,21 @@ final class AiirSettings {
     if (e != AiirPrecision.dbl) parts.add('e=' + e.mpvValue);
     if (f != AiirFormat.zp) parts.add('f=' + f.mpvValue);
     if (format != AiirFormat.zp) parts.add('format=' + format.mpvValue);
-    if (gains != '1|1') parts.add('gains=' + gains);
-    if (k != '1|1') parts.add('k=' + k);
+    if (gains != '1|1') parts.add('gains=' + '[' + gains + ']');
+    if (k != '1|1') parts.add('k=' + '[' + k + ']');
     if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
     if (n != true) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != true) parts.add('normalize=' + (normalize ? '1' : '0'));
-    if (p != '1+0i 1-0i') parts.add('p=' + p);
-    if (poles != '1+0i 1-0i') parts.add('poles=' + poles);
+    if (p != null) parts.add('p=' + '[' + p! + ']');
+    if (poles != null) parts.add('poles=' + '[' + poles! + ']');
     if (precision != AiirPrecision.dbl)
       parts.add('precision=' + precision.mpvValue);
     if (process != AiirProcess.s) parts.add('process=' + process.mpvValue);
     if (r != AiirProcess.s) parts.add('r=' + r.mpvValue);
     if (response != false) parts.add('response=' + (response ? '1' : '0'));
     if (wet != 1.0) parts.add('wet=' + wet.toStringAsFixed(3));
-    if (z != '1+0i 1-0i') parts.add('z=' + z);
-    if (zeros != '1+0i 1-0i') parts.add('zeros=' + zeros);
+    if (z != null) parts.add('z=' + '[' + z! + ']');
+    if (zeros != null) parts.add('zeros=' + '[' + zeros! + ']');
     return parts.isEmpty ? 'lavfi-aiir' : 'lavfi-aiir=' + parts.join(':');
   }
 }
@@ -2800,38 +2794,108 @@ final class AlimiterSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [f]: Set frequency in Hz. (range 0..999999, default 3000)
 /// - [frequency]: Set frequency in Hz. (range 0..999999, default 3000)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
 /// - [o]: octave (range 1..2, default 2)
 /// - [order]: Set the filter order, can be 1 or 2. Default is 2. (range 1..2, default 2)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.707)
+/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.707)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class AllpassSettings {
   final bool enabled;
+  final AllpassTransformType a;
+  final String c;
+  final String channels;
   final double f;
   final double frequency;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
   final int o;
   final int order;
+  final AllpassPrecision precision;
+  final AllpassPrecision r;
+  final AllpassWidthType t;
+  final AllpassTransformType transform;
+  final double w;
+  final double width;
+  final AllpassWidthType width_type;
 
   const AllpassSettings({
     this.enabled = false,
+    this.a = AllpassTransformType.di,
+    this.c = 'all',
+    this.channels = 'all',
     this.f = 3000.0,
     this.frequency = 3000.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
     this.o = 2,
     this.order = 2,
+    this.precision = AllpassPrecision.auto,
+    this.r = AllpassPrecision.auto,
+    this.t = AllpassWidthType.q,
+    this.transform = AllpassTransformType.di,
+    this.w = 0.707,
+    this.width = 0.707,
+    this.width_type = AllpassWidthType.q,
   });
 
   AllpassSettings copyWith({
     bool? enabled,
+    AllpassTransformType? a,
+    String? c,
+    String? channels,
     double? f,
     double? frequency,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
     int? o,
     int? order,
+    AllpassPrecision? precision,
+    AllpassPrecision? r,
+    AllpassWidthType? t,
+    AllpassTransformType? transform,
+    double? w,
+    double? width,
+    AllpassWidthType? width_type,
   }) =>
       AllpassSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
         o: o ?? this.o,
         order: order ?? this.order,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -2839,17 +2903,32 @@ final class AllpassSettings {
       identical(this, other) ||
       (other is AllpassSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.c == c &&
+          other.channels == channels &&
           other.f == f &&
           other.frequency == frequency &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
           other.o == o &&
-          other.order == order);
+          other.order == order &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, f, frequency, o, order);
+  int get hashCode => Object.hash(enabled, a, c, channels, f, frequency, m, mix,
+      n, normalize, o, order, precision, r, t, transform, w, width, width_type);
 
   @override
   String toString() =>
-      'AllpassSettings(enabled: $enabled, f: $f, frequency: $frequency, o: $o, order: $order)';
+      'AllpassSettings(enabled: $enabled, a: $a, c: $c, channels: $channels, f: $f, frequency: $frequency, m: $m, mix: $mix, n: $n, normalize: $normalize, o: $o, order: $order, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
@@ -2858,16 +2937,41 @@ final class AllpassSettings {
     assert(f <= 999999, 'allpass.f must be <= 999999');
     assert(frequency >= 0, 'allpass.frequency must be >= 0');
     assert(frequency <= 999999, 'allpass.frequency must be <= 999999');
+    assert(m >= 0, 'allpass.m must be >= 0');
+    assert(m <= 1, 'allpass.m must be <= 1');
+    assert(mix >= 0, 'allpass.mix must be >= 0');
+    assert(mix <= 1, 'allpass.mix must be <= 1');
     assert(o >= 1, 'allpass.o must be >= 1');
     assert(o <= 2, 'allpass.o must be <= 2');
     assert(order >= 1, 'allpass.order must be >= 1');
     assert(order <= 2, 'allpass.order must be <= 2');
+    assert(w >= 0, 'allpass.w must be >= 0');
+    assert(w <= 99999, 'allpass.w must be <= 99999');
+    assert(width >= 0, 'allpass.width must be >= 0');
+    assert(width <= 99999, 'allpass.width must be <= 99999');
     final parts = <String>[];
+    if (a != AllpassTransformType.di) parts.add('a=' + a.mpvValue);
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 3000.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (o != 2) parts.add('o=' + o.toString());
     if (order != 2) parts.add('order=' + order.toString());
+    if (precision != AllpassPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != AllpassPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != AllpassWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != AllpassTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 0.707) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 0.707) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != AllpassWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-allpass' : 'lavfi-allpass=' + parts.join(':');
   }
 }
@@ -2944,11 +3048,11 @@ final class AnequalizerSettings {
     assert(mgain <= 900, 'anequalizer.mgain must be <= 900');
     final parts = <String>[];
     if (colors != 'red|green|blue|yellow|orange|lime|pink|magenta|brown')
-      parts.add('colors=' + colors);
+      parts.add('colors=' + '[' + colors + ']');
     if (curves != false) parts.add('curves=' + (curves ? '1' : '0'));
     if (fscale != AnequalizerFscale.log) parts.add('fscale=' + fscale.mpvValue);
     if (mgain != 60.0) parts.add('mgain=' + mgain.toStringAsFixed(3));
-    if (params != '') parts.add('params=' + params);
+    if (params != '') parts.add('params=' + '[' + params + ']');
     return parts.isEmpty
         ? 'lavfi-anequalizer'
         : 'lavfi-anequalizer=' + parts.join(':');
@@ -2967,8 +3071,8 @@ final class AnequalizerSettings {
 ///
 /// Parameters:
 /// - [m]: Set smooth factor. Default value is `11`. Allowed range is from `1` to `1000`. (range 1..1000, default 11.)
-/// - [o]: Set the output mode.  It accepts the following values:
-/// - [output]: Set the output mode.  It accepts the following values:
+/// - [o]: Set the output mode.  It accepts the following values: (default OUT_MODE)
+/// - [output]: Set the output mode.  It accepts the following values: (default OUT_MODE)
 /// - [p]: Set patch radius duration. Allowed range is from 1 to 100 milliseconds. Default value is 2 milliseconds. (range 1000..100000, default 2000)
 /// - [patch]: Set patch radius duration. Allowed range is from 1 to 100 milliseconds. Default value is 2 milliseconds. (range 1000..100000, default 2000)
 /// - [r]: Set research radius duration. Allowed range is from 2 to 300 milliseconds. Default value is 6 milliseconds. (range 2000..300000, default 6000)
@@ -2979,8 +3083,8 @@ final class AnequalizerSettings {
 final class AnlmdnSettings {
   final bool enabled;
   final double m;
-  final AnlmdnMode? o;
-  final AnlmdnMode? output;
+  final AnlmdnMode o;
+  final AnlmdnMode output;
   final Duration p;
   final Duration patch;
   final Duration r;
@@ -2992,8 +3096,8 @@ final class AnlmdnSettings {
   const AnlmdnSettings({
     this.enabled = false,
     this.m = 11.0,
-    this.o,
-    this.output,
+    this.o = AnlmdnMode.o,
+    this.output = AnlmdnMode.o,
     this.p = const Duration(microseconds: 2000),
     this.patch = const Duration(microseconds: 2000),
     this.r = const Duration(microseconds: 6000),
@@ -3006,8 +3110,8 @@ final class AnlmdnSettings {
   AnlmdnSettings copyWith({
     bool? enabled,
     double? m,
-    Object? o = unset,
-    Object? output = unset,
+    AnlmdnMode? o,
+    AnlmdnMode? output,
     Duration? p,
     Duration? patch,
     Duration? r,
@@ -3019,8 +3123,8 @@ final class AnlmdnSettings {
       AnlmdnSettings(
         enabled: enabled ?? this.enabled,
         m: m ?? this.m,
-        o: identical(o, unset) ? this.o : o as AnlmdnMode?,
-        output: identical(output, unset) ? this.output : output as AnlmdnMode?,
+        o: o ?? this.o,
+        output: output ?? this.output,
         p: p ?? this.p,
         patch: patch ?? this.patch,
         r: r ?? this.r,
@@ -3067,8 +3171,8 @@ final class AnlmdnSettings {
     assert(strength <= 10000, 'anlmdn.strength must be <= 10000');
     final parts = <String>[];
     if (m != 11.0) parts.add('m=' + m.toStringAsFixed(3));
-    if (o != null) parts.add('o=' + o!.mpvValue);
-    if (output != null) parts.add('output=' + output!.mpvValue);
+    if (o != AnlmdnMode.o) parts.add('o=' + o.mpvValue);
+    if (output != AnlmdnMode.o) parts.add('output=' + output.mpvValue);
     if (p != const Duration(microseconds: 2000))
       parts.add('p=' + (p.inMicroseconds / 1e6).toStringAsFixed(3));
     if (patch != const Duration(microseconds: 2000))
@@ -3171,7 +3275,7 @@ final class ApadSettings {
 /// - [in_gain]: Set input gain. Default is 0.4. (range 0..1, default .4)
 /// - [out_gain]: Set output gain. Default is 0.74 (range 0..1e9, default .74)
 /// - [speed]: Set modulation speed in Hz. Default is 0.5. (default .5)
-/// - [type]: Set modulation type. Default is triangular.  It accepts the following values:
+/// - [type]: Set modulation type. Default is triangular.  It accepts the following values: (default WAVE_TRI)
 final class AphaserSettings {
   final bool enabled;
   final double decay;
@@ -3179,7 +3283,7 @@ final class AphaserSettings {
   final double in_gain;
   final double out_gain;
   final double speed;
-  final AphaserType? type;
+  final AphaserType type;
 
   const AphaserSettings({
     this.enabled = false,
@@ -3188,7 +3292,7 @@ final class AphaserSettings {
     this.in_gain = .4,
     this.out_gain = .74,
     this.speed = .5,
-    this.type,
+    this.type = AphaserType.triangular,
   });
 
   AphaserSettings copyWith({
@@ -3198,7 +3302,7 @@ final class AphaserSettings {
     double? in_gain,
     double? out_gain,
     double? speed,
-    Object? type = unset,
+    AphaserType? type,
   }) =>
       AphaserSettings(
         enabled: enabled ?? this.enabled,
@@ -3207,7 +3311,7 @@ final class AphaserSettings {
         in_gain: in_gain ?? this.in_gain,
         out_gain: out_gain ?? this.out_gain,
         speed: speed ?? this.speed,
-        type: identical(type, unset) ? this.type : type as AphaserType?,
+        type: type ?? this.type,
       );
 
   @override
@@ -3246,7 +3350,7 @@ final class AphaserSettings {
     if (in_gain != .4) parts.add('in_gain=' + in_gain.toStringAsFixed(3));
     if (out_gain != .74) parts.add('out_gain=' + out_gain.toStringAsFixed(3));
     if (speed != .5) parts.add('speed=' + speed.toStringAsFixed(3));
-    if (type != null) parts.add('type=' + type!.mpvValue);
+    if (type != AphaserType.triangular) parts.add('type=' + type.mpvValue);
     return parts.isEmpty ? 'lavfi-aphaser' : 'lavfi-aphaser=' + parts.join(':');
   }
 }
@@ -3445,7 +3549,7 @@ final class ApsyclipSettings {
 /// - [hz]: Set frequency in Hz. Default is 2. Allowed range is [0.01 - 100]. Only used if timing is set to hz. (range 0.01..100, default 2)
 /// - [level_in]: Set input gain. By default it is 1. Range is [0.015625 - 64]. (range 0.015625..64, default 1)
 /// - [level_out]: Set output gain. By default it is 1. Range is [0.015625 - 64]. (range 0.015625..64, default 1)
-/// - [mode]: Set waveform shape the LFO will use. Can be one of: sine, triangle, square, sawup or sawdown. Default is sine.
+/// - [mode]: Set waveform shape the LFO will use. Can be one of: sine, triangle, square, sawup or sawdown. Default is sine. (default SINE)
 /// - [ms]: Set ms. Default is 500. Allowed range is [10 - 2000]. Only used if timing is set to ms. (range 10..2000, default 500)
 /// - [offset_l]: Set left channel offset. Default is 0. Allowed range is [0 - 1]. (range 0..1, default 0)
 /// - [offset_r]: Set right channel offset. Default is 0.5. Allowed range is [0 - 1]. (range 0..1, default .5)
@@ -3458,11 +3562,11 @@ final class ApulsatorSettings {
   final double hz;
   final double level_in;
   final double level_out;
-  final ApulsatorMode? mode;
+  final ApulsatorMode mode;
   final int ms;
   final double offset_l;
   final double offset_r;
-  final ApulsatorTiming timing;
+  final ApulsatorTiming? timing;
   final double width;
 
   const ApulsatorSettings({
@@ -3472,11 +3576,11 @@ final class ApulsatorSettings {
     this.hz = 2.0,
     this.level_in = 1.0,
     this.level_out = 1.0,
-    this.mode,
+    this.mode = ApulsatorMode.sine,
     this.ms = 500,
     this.offset_l = 0.0,
     this.offset_r = .5,
-    this.timing = ApulsatorTiming.bpm,
+    this.timing,
     this.width = 1.0,
   });
 
@@ -3487,11 +3591,11 @@ final class ApulsatorSettings {
     double? hz,
     double? level_in,
     double? level_out,
-    Object? mode = unset,
+    ApulsatorMode? mode,
     int? ms,
     double? offset_l,
     double? offset_r,
-    ApulsatorTiming? timing,
+    Object? timing = unset,
     double? width,
   }) =>
       ApulsatorSettings(
@@ -3501,11 +3605,12 @@ final class ApulsatorSettings {
         hz: hz ?? this.hz,
         level_in: level_in ?? this.level_in,
         level_out: level_out ?? this.level_out,
-        mode: identical(mode, unset) ? this.mode : mode as ApulsatorMode?,
+        mode: mode ?? this.mode,
         ms: ms ?? this.ms,
         offset_l: offset_l ?? this.offset_l,
         offset_r: offset_r ?? this.offset_r,
-        timing: timing ?? this.timing,
+        timing:
+            identical(timing, unset) ? this.timing : timing as ApulsatorTiming?,
         width: width ?? this.width,
       );
 
@@ -3562,11 +3667,11 @@ final class ApulsatorSettings {
     if (level_in != 1.0) parts.add('level_in=' + level_in.toStringAsFixed(3));
     if (level_out != 1.0)
       parts.add('level_out=' + level_out.toStringAsFixed(3));
-    if (mode != null) parts.add('mode=' + mode!.mpvValue);
+    if (mode != ApulsatorMode.sine) parts.add('mode=' + mode.mpvValue);
     if (ms != 500) parts.add('ms=' + ms.toString());
     if (offset_l != 0.0) parts.add('offset_l=' + offset_l.toStringAsFixed(3));
     if (offset_r != .5) parts.add('offset_r=' + offset_r.toStringAsFixed(3));
-    if (timing != ApulsatorTiming.bpm) parts.add('timing=' + timing.mpvValue);
+    if (timing != null) parts.add('timing=' + timing!.mpvValue);
     if (width != 1.0) parts.add('width=' + width.toStringAsFixed(3));
     return parts.isEmpty
         ? 'lavfi-apulsator'
@@ -3649,33 +3754,33 @@ final class AresampleSettings {
 /// This filter accepts the following options:
 ///
 /// Parameters:
-/// - [m]: Set train model file to load. This option is always required. (range 0..0)
+/// - [m]: Set train model file to load. This option is always required. (range 0..0, default NULL)
 /// - [mix]: Set how much to mix filtered samples into final output. Allowed range is from -1 to 1. Default value is 1. Negative values are special, they set how much to keep filtered noise in the final filter output. Set this option to -1 to hear actual noise removed from input signal. (range -1..1, default 1.0)
-/// - [model]: Set train model file to load. This option is always required. (range 0..0)
+/// - [model]: Set train model file to load. This option is always required. (range 0..0, default NULL)
 final class ArnndnSettings {
   final bool enabled;
-  final String? m;
+  final String m;
   final double mix;
-  final String? model;
+  final String model;
 
   const ArnndnSettings({
     this.enabled = false,
-    this.m,
+    this.m = 'NULL',
     this.mix = 1.0,
-    this.model,
+    this.model = 'NULL',
   });
 
   ArnndnSettings copyWith({
     bool? enabled,
-    Object? m = unset,
+    String? m,
     double? mix,
-    Object? model = unset,
+    String? model,
   }) =>
       ArnndnSettings(
         enabled: enabled ?? this.enabled,
-        m: identical(m, unset) ? this.m : m as String?,
+        m: m ?? this.m,
         mix: mix ?? this.mix,
-        model: identical(model, unset) ? this.model : model as String?,
+        model: model ?? this.model,
       );
 
   @override
@@ -3700,9 +3805,9 @@ final class ArnndnSettings {
     assert(mix >= -1, 'arnndn.mix must be >= -1');
     assert(mix <= 1, 'arnndn.mix must be <= 1');
     final parts = <String>[];
-    if (m != null) parts.add('m=' + m!);
+    if (m != 'NULL') parts.add('m=' + '[' + m + ']');
     if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
-    if (model != null) parts.add('model=' + model!);
+    if (model != 'NULL') parts.add('model=' + '[' + model + ']');
     return parts.isEmpty ? 'lavfi-arnndn' : 'lavfi-arnndn=' + parts.join(':');
   }
 }
@@ -3728,7 +3833,7 @@ final class AsoftclipSettings {
   final int oversample;
   final double param;
   final double threshold;
-  final AsoftclipTypes type;
+  final AsoftclipTypes? type;
 
   const AsoftclipSettings({
     this.enabled = false,
@@ -3736,7 +3841,7 @@ final class AsoftclipSettings {
     this.oversample = 1,
     this.param = 1.0,
     this.threshold = 1.0,
-    this.type = AsoftclipTypes.hard,
+    this.type,
   });
 
   AsoftclipSettings copyWith({
@@ -3745,7 +3850,7 @@ final class AsoftclipSettings {
     int? oversample,
     double? param,
     double? threshold,
-    AsoftclipTypes? type,
+    Object? type = unset,
   }) =>
       AsoftclipSettings(
         enabled: enabled ?? this.enabled,
@@ -3753,7 +3858,7 @@ final class AsoftclipSettings {
         oversample: oversample ?? this.oversample,
         param: param ?? this.param,
         threshold: threshold ?? this.threshold,
-        type: type ?? this.type,
+        type: identical(type, unset) ? this.type : type as AsoftclipTypes?,
       );
 
   @override
@@ -3791,7 +3896,7 @@ final class AsoftclipSettings {
     if (param != 1.0) parts.add('param=' + param.toStringAsFixed(3));
     if (threshold != 1.0)
       parts.add('threshold=' + threshold.toStringAsFixed(3));
-    if (type != AsoftclipTypes.hard) parts.add('type=' + type.mpvValue);
+    if (type != null) parts.add('type=' + type!.mpvValue);
     return parts.isEmpty
         ? 'lavfi-asoftclip'
         : 'lavfi-asoftclip=' + parts.join(':');
@@ -3908,7 +4013,7 @@ final class AsubboostSettings {
     assert(wet <= 1, 'asubboost.wet must be <= 1');
     final parts = <String>[];
     if (boost != 2.0) parts.add('boost=' + boost.toStringAsFixed(3));
-    if (channels != 'all') parts.add('channels=' + channels);
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (cutoff != 100.0) parts.add('cutoff=' + cutoff.toStringAsFixed(3));
     if (decay != 0.0) parts.add('decay=' + decay.toStringAsFixed(3));
     if (delay != 20.0) parts.add('delay=' + delay.toStringAsFixed(3));
@@ -4388,33 +4493,113 @@ final class AtiltSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [csg]: Constant skirt gain if set to 1. Defaults to 0. (range 0..1, default 0)
 /// - [f]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000)
 /// - [frequency]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5)
+/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class BandpassSettings {
   final bool enabled;
+  final BandpassTransformType a;
+  final int b;
+  final int blocksize;
+  final String c;
+  final String channels;
   final bool csg;
   final double f;
   final double frequency;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
+  final BandpassPrecision precision;
+  final BandpassPrecision r;
+  final BandpassWidthType t;
+  final BandpassTransformType transform;
+  final double w;
+  final double width;
+  final BandpassWidthType width_type;
 
   const BandpassSettings({
     this.enabled = false,
+    this.a = BandpassTransformType.di,
+    this.b = 0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
     this.csg = false,
     this.f = 3000.0,
     this.frequency = 3000.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
+    this.precision = BandpassPrecision.auto,
+    this.r = BandpassPrecision.auto,
+    this.t = BandpassWidthType.q,
+    this.transform = BandpassTransformType.di,
+    this.w = 0.5,
+    this.width = 0.5,
+    this.width_type = BandpassWidthType.q,
   });
 
   BandpassSettings copyWith({
     bool? enabled,
+    BandpassTransformType? a,
+    int? b,
+    int? blocksize,
+    String? c,
+    String? channels,
     bool? csg,
     double? f,
     double? frequency,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
+    BandpassPrecision? precision,
+    BandpassPrecision? r,
+    BandpassWidthType? t,
+    BandpassTransformType? transform,
+    double? w,
+    double? width,
+    BandpassWidthType? width_type,
   }) =>
       BandpassSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        b: b ?? this.b,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         csg: csg ?? this.csg,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -4422,29 +4607,96 @@ final class BandpassSettings {
       identical(this, other) ||
       (other is BandpassSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.b == b &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
           other.csg == csg &&
           other.f == f &&
-          other.frequency == frequency);
+          other.frequency == frequency &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, csg, f, frequency);
+  int get hashCode => Object.hash(
+      enabled,
+      a,
+      b,
+      blocksize,
+      c,
+      channels,
+      csg,
+      f,
+      frequency,
+      m,
+      mix,
+      n,
+      normalize,
+      precision,
+      r,
+      t,
+      transform,
+      w,
+      width,
+      width_type);
 
   @override
   String toString() =>
-      'BandpassSettings(enabled: $enabled, csg: $csg, f: $f, frequency: $frequency)';
+      'BandpassSettings(enabled: $enabled, a: $a, b: $b, blocksize: $blocksize, c: $c, channels: $channels, csg: $csg, f: $f, frequency: $frequency, m: $m, mix: $mix, n: $n, normalize: $normalize, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'bandpass.b must be >= 0');
+    assert(b <= 32768, 'bandpass.b must be <= 32768');
+    assert(blocksize >= 0, 'bandpass.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'bandpass.blocksize must be <= 32768');
     assert(f >= 0, 'bandpass.f must be >= 0');
     assert(f <= 999999, 'bandpass.f must be <= 999999');
     assert(frequency >= 0, 'bandpass.frequency must be >= 0');
     assert(frequency <= 999999, 'bandpass.frequency must be <= 999999');
+    assert(m >= 0, 'bandpass.m must be >= 0');
+    assert(m <= 1, 'bandpass.m must be <= 1');
+    assert(mix >= 0, 'bandpass.mix must be >= 0');
+    assert(mix <= 1, 'bandpass.mix must be <= 1');
+    assert(w >= 0, 'bandpass.w must be >= 0');
+    assert(w <= 99999, 'bandpass.w must be <= 99999');
+    assert(width >= 0, 'bandpass.width must be >= 0');
+    assert(width <= 99999, 'bandpass.width must be <= 99999');
     final parts = <String>[];
+    if (a != BandpassTransformType.di) parts.add('a=' + a.mpvValue);
+    if (b != 0) parts.add('b=' + b.toString());
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (csg != false) parts.add('csg=' + (csg ? '1' : '0'));
     if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 3000.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
+    if (precision != BandpassPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != BandpassPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != BandpassWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != BandpassTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != BandpassWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
         ? 'lavfi-bandpass'
         : 'lavfi-bandpass=' + parts.join(':');
@@ -4460,28 +4712,108 @@ final class BandpassSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [f]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000)
 /// - [frequency]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5)
+/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class BandrejectSettings {
   final bool enabled;
+  final BandrejectTransformType a;
+  final int b;
+  final int blocksize;
+  final String c;
+  final String channels;
   final double f;
   final double frequency;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
+  final BandrejectPrecision precision;
+  final BandrejectPrecision r;
+  final BandrejectWidthType t;
+  final BandrejectTransformType transform;
+  final double w;
+  final double width;
+  final BandrejectWidthType width_type;
 
   const BandrejectSettings({
     this.enabled = false,
+    this.a = BandrejectTransformType.di,
+    this.b = 0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
     this.f = 3000.0,
     this.frequency = 3000.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
+    this.precision = BandrejectPrecision.auto,
+    this.r = BandrejectPrecision.auto,
+    this.t = BandrejectWidthType.q,
+    this.transform = BandrejectTransformType.di,
+    this.w = 0.5,
+    this.width = 0.5,
+    this.width_type = BandrejectWidthType.q,
   });
 
   BandrejectSettings copyWith({
     bool? enabled,
+    BandrejectTransformType? a,
+    int? b,
+    int? blocksize,
+    String? c,
+    String? channels,
     double? f,
     double? frequency,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
+    BandrejectPrecision? precision,
+    BandrejectPrecision? r,
+    BandrejectWidthType? t,
+    BandrejectTransformType? transform,
+    double? w,
+    double? width,
+    BandrejectWidthType? width_type,
   }) =>
       BandrejectSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        b: b ?? this.b,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -4489,27 +4821,93 @@ final class BandrejectSettings {
       identical(this, other) ||
       (other is BandrejectSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.b == b &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
           other.f == f &&
-          other.frequency == frequency);
+          other.frequency == frequency &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, f, frequency);
+  int get hashCode => Object.hash(
+      enabled,
+      a,
+      b,
+      blocksize,
+      c,
+      channels,
+      f,
+      frequency,
+      m,
+      mix,
+      n,
+      normalize,
+      precision,
+      r,
+      t,
+      transform,
+      w,
+      width,
+      width_type);
 
   @override
   String toString() =>
-      'BandrejectSettings(enabled: $enabled, f: $f, frequency: $frequency)';
+      'BandrejectSettings(enabled: $enabled, a: $a, b: $b, blocksize: $blocksize, c: $c, channels: $channels, f: $f, frequency: $frequency, m: $m, mix: $mix, n: $n, normalize: $normalize, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'bandreject.b must be >= 0');
+    assert(b <= 32768, 'bandreject.b must be <= 32768');
+    assert(blocksize >= 0, 'bandreject.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'bandreject.blocksize must be <= 32768');
     assert(f >= 0, 'bandreject.f must be >= 0');
     assert(f <= 999999, 'bandreject.f must be <= 999999');
     assert(frequency >= 0, 'bandreject.frequency must be >= 0');
     assert(frequency <= 999999, 'bandreject.frequency must be <= 999999');
+    assert(m >= 0, 'bandreject.m must be >= 0');
+    assert(m <= 1, 'bandreject.m must be <= 1');
+    assert(mix >= 0, 'bandreject.mix must be >= 0');
+    assert(mix <= 1, 'bandreject.mix must be <= 1');
+    assert(w >= 0, 'bandreject.w must be >= 0');
+    assert(w <= 99999, 'bandreject.w must be <= 99999');
+    assert(width >= 0, 'bandreject.width must be >= 0');
+    assert(width <= 99999, 'bandreject.width must be <= 99999');
     final parts = <String>[];
+    if (a != BandrejectTransformType.di) parts.add('a=' + a.mpvValue);
+    if (b != 0) parts.add('b=' + b.toString());
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 3000.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
+    if (precision != BandrejectPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != BandrejectPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != BandrejectWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != BandrejectTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != BandrejectWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
         ? 'lavfi-bandreject'
         : 'lavfi-bandreject=' + parts.join(':');
@@ -4525,48 +4923,128 @@ final class BandrejectSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100)
 /// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100)
 /// - [g]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
 /// - [gain]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
+/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class BassSettings {
   final bool enabled;
+  final BassTransformType a;
+  final int b;
+  final int blocksize;
+  final String c;
+  final String channels;
   final double f;
   final double frequency;
   final double g;
   final double gain;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
   final int p;
   final int poles;
+  final BassPrecision precision;
+  final BassPrecision r;
+  final BassWidthType t;
+  final BassTransformType transform;
+  final double w;
+  final double width;
+  final BassWidthType width_type;
 
   const BassSettings({
     this.enabled = false,
+    this.a = BassTransformType.di,
+    this.b = 0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
     this.f = 100.0,
     this.frequency = 100.0,
     this.g = 0.0,
     this.gain = 0.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
     this.p = 2,
     this.poles = 2,
+    this.precision = BassPrecision.auto,
+    this.r = BassPrecision.auto,
+    this.t = BassWidthType.q,
+    this.transform = BassTransformType.di,
+    this.w = 0.5,
+    this.width = 0.5,
+    this.width_type = BassWidthType.q,
   });
 
   BassSettings copyWith({
     bool? enabled,
+    BassTransformType? a,
+    int? b,
+    int? blocksize,
+    String? c,
+    String? channels,
     double? f,
     double? frequency,
     double? g,
     double? gain,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
     int? p,
     int? poles,
+    BassPrecision? precision,
+    BassPrecision? r,
+    BassWidthType? t,
+    BassTransformType? transform,
+    double? w,
+    double? width,
+    BassWidthType? width_type,
   }) =>
       BassSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        b: b ?? this.b,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
         g: g ?? this.g,
         gain: gain ?? this.gain,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
         p: p ?? this.p,
         poles: poles ?? this.poles,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -4574,23 +5052,67 @@ final class BassSettings {
       identical(this, other) ||
       (other is BassSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.b == b &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
           other.f == f &&
           other.frequency == frequency &&
           other.g == g &&
           other.gain == gain &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
           other.p == p &&
-          other.poles == poles);
+          other.poles == poles &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, f, frequency, g, gain, p, poles);
+  int get hashCode => Object.hashAll([
+        enabled,
+        a,
+        b,
+        blocksize,
+        c,
+        channels,
+        f,
+        frequency,
+        g,
+        gain,
+        m,
+        mix,
+        n,
+        normalize,
+        p,
+        poles,
+        precision,
+        r,
+        t,
+        transform,
+        w,
+        width,
+        width_type
+      ]);
 
   @override
   String toString() =>
-      'BassSettings(enabled: $enabled, f: $f, frequency: $frequency, g: $g, gain: $gain, p: $p, poles: $poles)';
+      'BassSettings(enabled: $enabled, a: $a, b: $b, blocksize: $blocksize, c: $c, channels: $channels, f: $f, frequency: $frequency, g: $g, gain: $gain, m: $m, mix: $mix, n: $n, normalize: $normalize, p: $p, poles: $poles, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'bass.b must be >= 0');
+    assert(b <= 32768, 'bass.b must be <= 32768');
+    assert(blocksize >= 0, 'bass.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'bass.blocksize must be <= 32768');
     assert(f >= 0, 'bass.f must be >= 0');
     assert(f <= 999999, 'bass.f must be <= 999999');
     assert(frequency >= 0, 'bass.frequency must be >= 0');
@@ -4599,18 +5121,45 @@ final class BassSettings {
     assert(g <= 900, 'bass.g must be <= 900');
     assert(gain >= -900, 'bass.gain must be >= -900');
     assert(gain <= 900, 'bass.gain must be <= 900');
+    assert(m >= 0, 'bass.m must be >= 0');
+    assert(m <= 1, 'bass.m must be <= 1');
+    assert(mix >= 0, 'bass.mix must be >= 0');
+    assert(mix <= 1, 'bass.mix must be <= 1');
     assert(p >= 1, 'bass.p must be >= 1');
     assert(p <= 2, 'bass.p must be <= 2');
     assert(poles >= 1, 'bass.poles must be >= 1');
     assert(poles <= 2, 'bass.poles must be <= 2');
+    assert(w >= 0, 'bass.w must be >= 0');
+    assert(w <= 99999, 'bass.w must be <= 99999');
+    assert(width >= 0, 'bass.width must be >= 0');
+    assert(width <= 99999, 'bass.width must be <= 99999');
     final parts = <String>[];
+    if (a != BassTransformType.di) parts.add('a=' + a.mpvValue);
+    if (b != 0) parts.add('b=' + b.toString());
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (f != 100.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 100.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
     if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
     if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
     if (poles != 2) parts.add('poles=' + poles.toString());
+    if (precision != BassPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != BassPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != BassWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != BassTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != BassWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-bass' : 'lavfi-bass=' + parts.join(':');
   }
 }
@@ -4626,48 +5175,108 @@ final class BassSettings {
 /// This filter supports the following commands:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
 /// - [a0]:  (default 1)
 /// - [a1]:  (default 0)
 /// - [a2]:  (default 0)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [b0]:  (default 0)
 /// - [b1]:  (default 0)
 /// - [b2]: Change biquad parameter. Syntax for the command is : "`value`" (default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [transform]: Set transform type of IIR filter. (default DI)
 final class BiquadSettings {
   final bool enabled;
+  final BiquadTransformType a;
   final double a0;
   final double a1;
   final double a2;
+  final int b;
   final double b0;
   final double b1;
   final double b2;
+  final int blocksize;
+  final String c;
+  final String channels;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
+  final BiquadPrecision precision;
+  final BiquadPrecision r;
+  final BiquadTransformType transform;
 
   const BiquadSettings({
     this.enabled = false,
+    this.a = BiquadTransformType.di,
     this.a0 = 1.0,
     this.a1 = 0.0,
     this.a2 = 0.0,
+    this.b = 0,
     this.b0 = 0.0,
     this.b1 = 0.0,
     this.b2 = 0.0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
+    this.precision = BiquadPrecision.auto,
+    this.r = BiquadPrecision.auto,
+    this.transform = BiquadTransformType.di,
   });
 
   BiquadSettings copyWith({
     bool? enabled,
+    BiquadTransformType? a,
     double? a0,
     double? a1,
     double? a2,
+    int? b,
     double? b0,
     double? b1,
     double? b2,
+    int? blocksize,
+    String? c,
+    String? channels,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
+    BiquadPrecision? precision,
+    BiquadPrecision? r,
+    BiquadTransformType? transform,
   }) =>
       BiquadSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
         a0: a0 ?? this.a0,
         a1: a1 ?? this.a1,
         a2: a2 ?? this.a2,
+        b: b ?? this.b,
         b0: b0 ?? this.b0,
         b1: b1 ?? this.b1,
         b2: b2 ?? this.b2,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        transform: transform ?? this.transform,
       );
 
   @override
@@ -4675,30 +5284,65 @@ final class BiquadSettings {
       identical(this, other) ||
       (other is BiquadSettings &&
           other.enabled == enabled &&
+          other.a == a &&
           other.a0 == a0 &&
           other.a1 == a1 &&
           other.a2 == a2 &&
+          other.b == b &&
           other.b0 == b0 &&
           other.b1 == b1 &&
-          other.b2 == b2);
+          other.b2 == b2 &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
+          other.precision == precision &&
+          other.r == r &&
+          other.transform == transform);
 
   @override
-  int get hashCode => Object.hash(enabled, a0, a1, a2, b0, b1, b2);
+  int get hashCode => Object.hash(enabled, a, a0, a1, a2, b, b0, b1, b2,
+      blocksize, c, channels, m, mix, n, normalize, precision, r, transform);
 
   @override
   String toString() =>
-      'BiquadSettings(enabled: $enabled, a0: $a0, a1: $a1, a2: $a2, b0: $b0, b1: $b1, b2: $b2)';
+      'BiquadSettings(enabled: $enabled, a: $a, a0: $a0, a1: $a1, a2: $a2, b: $b, b0: $b0, b1: $b1, b2: $b2, blocksize: $blocksize, c: $c, channels: $channels, m: $m, mix: $mix, n: $n, normalize: $normalize, precision: $precision, r: $r, transform: $transform)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'biquad.b must be >= 0');
+    assert(b <= 32768, 'biquad.b must be <= 32768');
+    assert(blocksize >= 0, 'biquad.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'biquad.blocksize must be <= 32768');
+    assert(m >= 0, 'biquad.m must be >= 0');
+    assert(m <= 1, 'biquad.m must be <= 1');
+    assert(mix >= 0, 'biquad.mix must be >= 0');
+    assert(mix <= 1, 'biquad.mix must be <= 1');
     final parts = <String>[];
+    if (a != BiquadTransformType.di) parts.add('a=' + a.mpvValue);
     if (a0 != 1.0) parts.add('a0=' + a0.toStringAsFixed(3));
     if (a1 != 0.0) parts.add('a1=' + a1.toStringAsFixed(3));
     if (a2 != 0.0) parts.add('a2=' + a2.toStringAsFixed(3));
+    if (b != 0) parts.add('b=' + b.toString());
     if (b0 != 0.0) parts.add('b0=' + b0.toStringAsFixed(3));
     if (b1 != 0.0) parts.add('b1=' + b1.toStringAsFixed(3));
     if (b2 != 0.0) parts.add('b2=' + b2.toStringAsFixed(3));
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
+    if (precision != BiquadPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != BiquadPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (transform != BiquadTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
     return parts.isEmpty ? 'lavfi-biquad' : 'lavfi-biquad=' + parts.join(':');
   }
 }
@@ -4755,8 +5399,9 @@ final class ChannelmapSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     final parts = <String>[];
-    if (channel_layout != null) parts.add('channel_layout=' + channel_layout!);
-    if (map != null) parts.add('map=' + map!);
+    if (channel_layout != null)
+      parts.add('channel_layout=' + '[' + channel_layout! + ']');
+    if (map != null) parts.add('map=' + '[' + map! + ']');
     return parts.isEmpty
         ? 'lavfi-channelmap'
         : 'lavfi-channelmap=' + parts.join(':');
@@ -4779,48 +5424,48 @@ final class ChannelmapSettings {
 /// It accepts the following parameters:
 ///
 /// Parameters:
-/// - [decays]: Set decays. (range 0..0)
-/// - [delays]: Set delays. A typical delay is around 40ms to 60ms. (range 0..0)
-/// - [depths]: Set depths. (range 0..0)
+/// - [decays]: Set decays. (range 0..0, default NULL)
+/// - [delays]: Set delays. A typical delay is around 40ms to 60ms. (range 0..0, default NULL)
+/// - [depths]: Set depths. (range 0..0, default NULL)
 /// - [in_gain]: Set input gain. Default is 0.4. (range 0..1, default .4)
 /// - [out_gain]: Set output gain. Default is 0.4. (range 0..1, default .4)
-/// - [speeds]: Set speeds. (range 0..0)
+/// - [speeds]: Set speeds. (range 0..0, default NULL)
 final class ChorusSettings {
   final bool enabled;
-  final String? decays;
-  final String? delays;
-  final String? depths;
+  final String decays;
+  final String delays;
+  final String depths;
   final double in_gain;
   final double out_gain;
-  final String? speeds;
+  final String speeds;
 
   const ChorusSettings({
     this.enabled = false,
-    this.decays,
-    this.delays,
-    this.depths,
+    this.decays = 'NULL',
+    this.delays = 'NULL',
+    this.depths = 'NULL',
     this.in_gain = .4,
     this.out_gain = .4,
-    this.speeds,
+    this.speeds = 'NULL',
   });
 
   ChorusSettings copyWith({
     bool? enabled,
-    Object? decays = unset,
-    Object? delays = unset,
-    Object? depths = unset,
+    String? decays,
+    String? delays,
+    String? depths,
     double? in_gain,
     double? out_gain,
-    Object? speeds = unset,
+    String? speeds,
   }) =>
       ChorusSettings(
         enabled: enabled ?? this.enabled,
-        decays: identical(decays, unset) ? this.decays : decays as String?,
-        delays: identical(delays, unset) ? this.delays : delays as String?,
-        depths: identical(depths, unset) ? this.depths : depths as String?,
+        decays: decays ?? this.decays,
+        delays: delays ?? this.delays,
+        depths: depths ?? this.depths,
         in_gain: in_gain ?? this.in_gain,
         out_gain: out_gain ?? this.out_gain,
-        speeds: identical(speeds, unset) ? this.speeds : speeds as String?,
+        speeds: speeds ?? this.speeds,
       );
 
   @override
@@ -4851,12 +5496,12 @@ final class ChorusSettings {
     assert(out_gain >= 0, 'chorus.out_gain must be >= 0');
     assert(out_gain <= 1, 'chorus.out_gain must be <= 1');
     final parts = <String>[];
-    if (decays != null) parts.add('decays=' + decays!);
-    if (delays != null) parts.add('delays=' + delays!);
-    if (depths != null) parts.add('depths=' + depths!);
+    if (decays != 'NULL') parts.add('decays=' + '[' + decays + ']');
+    if (delays != 'NULL') parts.add('delays=' + '[' + delays + ']');
+    if (depths != 'NULL') parts.add('depths=' + '[' + depths + ']');
     if (in_gain != .4) parts.add('in_gain=' + in_gain.toStringAsFixed(3));
     if (out_gain != .4) parts.add('out_gain=' + out_gain.toStringAsFixed(3));
-    if (speeds != null) parts.add('speeds=' + speeds!);
+    if (speeds != 'NULL') parts.add('speeds=' + '[' + speeds + ']');
     return parts.isEmpty ? 'lavfi-chorus' : 'lavfi-chorus=' + parts.join(':');
   }
 }
@@ -4872,7 +5517,7 @@ final class ChorusSettings {
 /// - [decays]: A list of times in seconds for each channel over which the instantaneous level of the input signal is averaged to determine its volume. `attacks` refers to increase of volume and `decays` refers to decrease of volume. For most situations, the attack time (response to the audio getting louder) should be shorter than the decay time, because the human ear is more sensitive to sudden loud audio than sudden soft audio. A typical value for attack is 0.3 seconds and a typical value for decay is 0.8 seconds. If specified number of attacks & decays is lower than number of channels, the last set attack/decay will be used for all remaining channels. (range 0..0, default "0.8")
 /// - [delay]: Set a delay, in seconds. The input audio is analyzed immediately, but audio is delayed before being fed to the volume adjuster. Specifying a delay approximately equal to the attack/decay times allows the filter to effectively operate in predictive rather than reactive mode. It defaults to 0. (range 0..20, default 0)
 /// - [gain]: Set the additional gain in dB to be applied at all points on the transfer function. This allows for easy adjustment of the overall gain. It defaults to 0. (range -900..900, default 0)
-/// - [points]: A list of points for the transfer function, specified in dB relative to the maximum possible signal amplitude. Each key points list must be defined using the following syntax: `x0/y0|x1/y1|x2/y2|....` or `x0/y0 x1/y1 x2/y2 ....`  The input values must be in strictly increasing order but the transfer function does not have to be monotonically rising. The point `0/0` is assumed but may be overridden (by `0/out-dBn`). Typical values for the transfer function are `-70/-70|-60/-20|1/0`. (range 0..0, default "-70/-70|-60/-20|1/0")
+/// - [points]: A list of points for the transfer function, specified in dB relative to the maximum possible signal amplitude. Each key points list must be defined using the following syntax: `x0/y0|x1/y1|x2/y2|....` or `x0/y0 x1/y1 x2/y2 ....`  The input values must be in strictly increasing order but the transfer function does not have to be monotonically rising. The point `0/0` is assumed but may be overridden (by `0/out-dBn`). Typical values for the transfer function are `-70/-70|-60/-20|1/0`. (range 0..0)
 /// - [volume]: Set an initial volume, in dB, to be assumed for each channel when filtering starts. This permits the user to supply a nominal level initially, so that, for example, a very large gain is not applied to initial signal levels before the companding has begun to operate. A typical value for audio which is initially quiet is -90 dB. It defaults to 0. (range -900..0, default 0)
 ///
 /// Parameters whose names start with a digit, addressed by
@@ -4884,7 +5529,7 @@ final class CompandSettings {
   final String decays;
   final double delay;
   final double gain;
-  final String points;
+  final String? points;
   final double volume;
   final Map<String, double> params;
 
@@ -4894,7 +5539,7 @@ final class CompandSettings {
     this.decays = '0.8',
     this.delay = 0.0,
     this.gain = 0.0,
-    this.points = '-70/-70|-60/-20|1/0',
+    this.points,
     this.volume = 0.0,
     this.params = const <String, double>{},
   });
@@ -4905,7 +5550,7 @@ final class CompandSettings {
     String? decays,
     double? delay,
     double? gain,
-    String? points,
+    Object? points = unset,
     double? volume,
     Map<String, double>? params,
   }) =>
@@ -4915,7 +5560,7 @@ final class CompandSettings {
         decays: decays ?? this.decays,
         delay: delay ?? this.delay,
         gain: gain ?? this.gain,
-        points: points ?? this.points,
+        points: identical(points, unset) ? this.points : points as String?,
         volume: volume ?? this.volume,
         params: params ?? this.params,
       );
@@ -4959,11 +5604,11 @@ final class CompandSettings {
     assert(volume >= -900, 'compand.volume must be >= -900');
     assert(volume <= 0, 'compand.volume must be <= 0');
     final parts = <String>[];
-    if (attacks != '0') parts.add('attacks=' + attacks);
-    if (decays != '0.8') parts.add('decays=' + decays);
+    if (attacks != '0') parts.add('attacks=' + '[' + attacks + ']');
+    if (decays != '0.8') parts.add('decays=' + '[' + decays + ']');
     if (delay != 0.0) parts.add('delay=' + delay.toStringAsFixed(3));
     if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
-    if (points != '-70/-70|-60/-20|1/0') parts.add('points=' + points);
+    if (points != null) parts.add('points=' + '[' + points! + ']');
     if (volume != 0.0) parts.add('volume=' + volume.toStringAsFixed(3));
     params.forEach((k, v) => parts.add('$k=' + v.toStringAsFixed(3)));
     return parts.isEmpty ? 'lavfi-compand' : 'lavfi-compand=' + parts.join(':');
@@ -5321,20 +5966,20 @@ final class DcshiftSettings {
 /// - [f]: How much of original frequency content to keep when de-essing. Allowed range is from 0 to 1. Default is 0.5. (range 0.0..1.0, default 0.5)
 /// - [i]: Set intensity for triggering de-essing. Allowed range is from 0 to 1. Default is 0. (range 0.0..1.0, default 0.0)
 /// - [m]: Set amount of ducking on treble part of sound. Allowed range is from 0 to 1. Default is 0.5. (range 0.0..1.0, default 0.5)
-/// - [s]: Set the output mode.  It accepts the following values:
+/// - [s]: Set the output mode.  It accepts the following values: (default OUT_MODE)
 final class DeesserSettings {
   final bool enabled;
   final double f;
   final double i;
   final double m;
-  final DeesserMode? s;
+  final DeesserMode s;
 
   const DeesserSettings({
     this.enabled = false,
     this.f = 0.5,
     this.i = 0.0,
     this.m = 0.5,
-    this.s,
+    this.s = DeesserMode.o,
   });
 
   DeesserSettings copyWith({
@@ -5342,14 +5987,14 @@ final class DeesserSettings {
     double? f,
     double? i,
     double? m,
-    Object? s = unset,
+    DeesserMode? s,
   }) =>
       DeesserSettings(
         enabled: enabled ?? this.enabled,
         f: f ?? this.f,
         i: i ?? this.i,
         m: m ?? this.m,
-        s: identical(s, unset) ? this.s : s as DeesserMode?,
+        s: s ?? this.s,
       );
 
   @override
@@ -5382,7 +6027,7 @@ final class DeesserSettings {
     if (f != 0.5) parts.add('f=' + f.toStringAsFixed(3));
     if (i != 0.0) parts.add('i=' + i.toStringAsFixed(3));
     if (m != 0.5) parts.add('m=' + m.toStringAsFixed(3));
-    if (s != null) parts.add('s=' + s!.mpvValue);
+    if (s != DeesserMode.o) parts.add('s=' + s.mpvValue);
     return parts.isEmpty ? 'lavfi-deesser' : 'lavfi-deesser=' + parts.join(':');
   }
 }
@@ -5539,7 +6184,7 @@ final class DrmeterSettings {
 /// - [compress]: Set the compress factor. In range from 0.0 to 30.0. Default is 0.0. By default, the Dynamic Audio Normalizer does not apply "traditional" compression. This means that signal peaks will not be pruned and thus the full dynamic range will be retained within each local neighbourhood. However, in some cases it may be desirable to combine the Dynamic Audio Normalizer's normalization algorithm with a more "traditional" compression. For this purpose, the Dynamic Audio Normalizer provides an optional compression (thresholding) function. If (and only if) the compression feature is enabled, all input frames will be processed by a soft knee thresholding function prior to the actual normalization process. Put simply, the thresholding function is going to prune all samples whose magnitude exceeds a certain threshold value. However, the Dynamic Audio Normalizer does not simply apply a fixed threshold value. Instead, the threshold value will be adjusted for each individual frame. In general, smaller parameters result in stronger compression, and vice versa. Values below 3.0 are not recommended, because audible distortion may appear. (range 0.0..30.0, default 0.0)
 /// - [correctdc]: Enable DC bias correction. By default is disabled. An audio signal (in the time domain) is a sequence of sample values. In the Dynamic Audio Normalizer these sample values are represented in the -1.0 to 1.0 range, regardless of the original input format. Normally, the audio signal, or "waveform", should be centered around the zero point. That means if we calculate the mean value of all samples in a file, or in a single frame, then the result should be 0.0 or at least very close to that value. If, however, there is a significant deviation of the mean value from 0.0, in either positive or negative direction, this is referred to as a DC bias or DC offset. Since a DC bias is clearly undesirable, the Dynamic Audio Normalizer provides optional DC bias correction. With DC bias correction enabled, the Dynamic Audio Normalizer will determine the mean value, or "DC correction" offset, of each input frame and subtract that value from all of the frame's sample values which ensures those samples are centered around 0.0 again. Also, in order to avoid "gaps" at the frame boundaries, the DC correction offset values will be interpolated smoothly between neighbouring frames. (range 0..1, default 0)
 /// - [coupling]: Enable channels coupling. By default is enabled. By default, the Dynamic Audio Normalizer will amplify all channels by the same amount. This means the same gain factor will be applied to all channels, i.e. the maximum possible gain factor is determined by the "loudest" channel. However, in some recordings, it may happen that the volume of the different channels is uneven, e.g. one channel may be "quieter" than the other one(s). In this case, this option can be used to disable the channel coupling. This way, the gain factor will be determined independently for each channel, depending only on the individual channel's highest magnitude sample. This allows for harmonizing the volume of the different channels. (range 0..1, default 1)
-/// - [curve]: Specify the peak mapping curve expression which is going to be used when calculating gain applied to frames. The max output frame gain will still be limited by other options mentioned previously for this filter.  The expression can contain the following constants:
+/// - [curve]: Specify the peak mapping curve expression which is going to be used when calculating gain applied to frames. The max output frame gain will still be limited by other options mentioned previously for this filter.  The expression can contain the following constants: (default NULL)
 /// - [f]: Set the frame length in milliseconds. In range from 10 to 8000 milliseconds. Default is 500 milliseconds. The Dynamic Audio Normalizer processes the input audio in small chunks, referred to as frames. This is required, because a peak magnitude has no meaning for just a single sample value. Instead, we need to determine the peak magnitude for a contiguous sequence of sample values. While a "standard" normalizer would simply use the peak magnitude of the complete file, the Dynamic Audio Normalizer determines the peak magnitude individually for each frame. The length of a frame is specified in milliseconds. By default, the Dynamic Audio Normalizer uses a frame length of 500 milliseconds, which has been found to give good results with most files. Note that the exact frame length, in number of samples, will be determined automatically, based on the sampling rate of the individual input audio file. (range 10..8000, default 500)
 /// - [framelen]: Set the frame length in milliseconds. In range from 10 to 8000 milliseconds. Default is 500 milliseconds. The Dynamic Audio Normalizer processes the input audio in small chunks, referred to as frames. This is required, because a peak magnitude has no meaning for just a single sample value. Instead, we need to determine the peak magnitude for a contiguous sequence of sample values. While a "standard" normalizer would simply use the peak magnitude of the complete file, the Dynamic Audio Normalizer determines the peak magnitude individually for each frame. The length of a frame is specified in milliseconds. By default, the Dynamic Audio Normalizer uses a frame length of 500 milliseconds, which has been found to give good results with most files. Note that the exact frame length, in number of samples, will be determined automatically, based on the sampling rate of the individual input audio file. (range 10..8000, default 500)
 /// - [g]: Set the Gaussian filter window size. In range from 3 to 301, must be odd number. Default is 31. Probably the most important parameter of the Dynamic Audio Normalizer is the `window size` of the Gaussian smoothing filter. The filter's window size is specified in frames, centered around the current frame. For the sake of simplicity, this must be an odd number. Consequently, the default value of 31 takes into account the current frame, as well as the 15 preceding frames and the 15 subsequent frames. Using a larger window results in a stronger smoothing effect and thus in less gain variation, i.e. slower gain adaptation. Conversely, using a smaller window results in a weaker smoothing effect and thus in more gain variation, i.e. faster gain adaptation. In other words, the more you increase this value, the more the Dynamic Audio Normalizer will behave like a "traditional" normalization filter. On the contrary, the more you decrease this value, the more the Dynamic Audio Normalizer will behave like a dynamic range compressor. (range 3..301, default 31)
@@ -5557,7 +6202,7 @@ final class DrmeterSettings {
 /// - [t]: Set the target threshold value. This specifies the lowest permissible magnitude level for the audio input which will be normalized. If input frame volume is above this value frame will be normalized. Otherwise frame may not be normalized at all. The default value is set to 0, which means all input frames will be normalized. This option is mostly useful if digital noise is not wanted to be amplified. (range 0.0..1.0, default 0.0)
 /// - [targetrms]: Set the target RMS. In range from 0.0 to 1.0. Default is 0.0 - disabled. By default, the Dynamic Audio Normalizer performs "peak" normalization. This means that the maximum local gain factor for each frame is defined (only) by the frame's highest magnitude sample. This way, the samples can be amplified as much as possible without exceeding the maximum signal level, i.e. without clipping. Optionally, however, the Dynamic Audio Normalizer can also take into account the frame's root mean square, abbreviated RMS. In electrical engineering, the RMS is commonly used to determine the power of a time-varying signal. It is therefore considered that the RMS is a better approximation of the "perceived loudness" than just looking at the signal's peak magnitude. Consequently, by adjusting all frames to a constant RMS value, a uniform "perceived loudness" can be established. If a target RMS value has been specified, a frame's local gain factor is defined as the factor that would result in exactly that RMS value. Note, however, that the maximum local gain factor is still restricted by the frame's highest magnitude sample, in order to prevent clipping. (range 0.0..1.0, default 0.0)
 /// - [threshold]: Set the target threshold value. This specifies the lowest permissible magnitude level for the audio input which will be normalized. If input frame volume is above this value frame will be normalized. Otherwise frame may not be normalized at all. The default value is set to 0, which means all input frames will be normalized. This option is mostly useful if digital noise is not wanted to be amplified. (range 0.0..1.0, default 0.0)
-/// - [v]: Specify the peak mapping curve expression which is going to be used when calculating gain applied to frames. The max output frame gain will still be limited by other options mentioned previously for this filter.  The expression can contain the following constants:
+/// - [v]: Specify the peak mapping curve expression which is going to be used when calculating gain applied to frames. The max output frame gain will still be limited by other options mentioned previously for this filter.  The expression can contain the following constants: (default NULL)
 final class DynaudnormSettings {
   final bool enabled;
   final bool altboundary;
@@ -5567,7 +6212,7 @@ final class DynaudnormSettings {
   final double compress;
   final bool correctdc;
   final bool coupling;
-  final String? curve;
+  final String curve;
   final int f;
   final int framelen;
   final int g;
@@ -5585,7 +6230,7 @@ final class DynaudnormSettings {
   final double t;
   final double targetrms;
   final double threshold;
-  final String? v;
+  final String v;
 
   const DynaudnormSettings({
     this.enabled = false,
@@ -5596,7 +6241,7 @@ final class DynaudnormSettings {
     this.compress = 0.0,
     this.correctdc = false,
     this.coupling = true,
-    this.curve,
+    this.curve = 'NULL',
     this.f = 500,
     this.framelen = 500,
     this.g = 31,
@@ -5614,7 +6259,7 @@ final class DynaudnormSettings {
     this.t = 0.0,
     this.targetrms = 0.0,
     this.threshold = 0.0,
-    this.v,
+    this.v = 'NULL',
   });
 
   DynaudnormSettings copyWith({
@@ -5626,7 +6271,7 @@ final class DynaudnormSettings {
     double? compress,
     bool? correctdc,
     bool? coupling,
-    Object? curve = unset,
+    String? curve,
     int? f,
     int? framelen,
     int? g,
@@ -5644,7 +6289,7 @@ final class DynaudnormSettings {
     double? t,
     double? targetrms,
     double? threshold,
-    Object? v = unset,
+    String? v,
   }) =>
       DynaudnormSettings(
         enabled: enabled ?? this.enabled,
@@ -5655,7 +6300,7 @@ final class DynaudnormSettings {
         compress: compress ?? this.compress,
         correctdc: correctdc ?? this.correctdc,
         coupling: coupling ?? this.coupling,
-        curve: identical(curve, unset) ? this.curve : curve as String?,
+        curve: curve ?? this.curve,
         f: f ?? this.f,
         framelen: framelen ?? this.framelen,
         g: g ?? this.g,
@@ -5673,7 +6318,7 @@ final class DynaudnormSettings {
         t: t ?? this.t,
         targetrms: targetrms ?? this.targetrms,
         threshold: threshold ?? this.threshold,
-        v: identical(v, unset) ? this.v : v as String?,
+        v: v ?? this.v,
       );
 
   @override
@@ -5783,16 +6428,16 @@ final class DynaudnormSettings {
       parts.add('altboundary=' + (altboundary ? '1' : '0'));
     if (b != false) parts.add('b=' + (b ? '1' : '0'));
     if (c != false) parts.add('c=' + (c ? '1' : '0'));
-    if (channels != 'all') parts.add('channels=' + channels);
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (compress != 0.0) parts.add('compress=' + compress.toStringAsFixed(3));
     if (correctdc != false) parts.add('correctdc=' + (correctdc ? '1' : '0'));
     if (coupling != true) parts.add('coupling=' + (coupling ? '1' : '0'));
-    if (curve != null) parts.add('curve=' + curve!);
+    if (curve != 'NULL') parts.add('curve=' + '[' + curve + ']');
     if (f != 500) parts.add('f=' + f.toString());
     if (framelen != 500) parts.add('framelen=' + framelen.toString());
     if (g != 31) parts.add('g=' + g.toString());
     if (gausssize != 31) parts.add('gausssize=' + gausssize.toString());
-    if (h != 'all') parts.add('h=' + h);
+    if (h != 'all') parts.add('h=' + '[' + h + ']');
     if (m != 10.0) parts.add('m=' + m.toStringAsFixed(3));
     if (maxgain != 10.0) parts.add('maxgain=' + maxgain.toStringAsFixed(3));
     if (n != true) parts.add('n=' + (n ? '1' : '0'));
@@ -5807,7 +6452,7 @@ final class DynaudnormSettings {
       parts.add('targetrms=' + targetrms.toStringAsFixed(3));
     if (threshold != 0.0)
       parts.add('threshold=' + threshold.toStringAsFixed(3));
-    if (v != null) parts.add('v=' + v!);
+    if (v != 'NULL') parts.add('v=' + '[' + v + ']');
     return parts.isEmpty
         ? 'lavfi-dynaudnorm'
         : 'lavfi-dynaudnorm=' + parts.join(':');
@@ -5894,7 +6539,7 @@ final class EarwaxSettings {
 /// - [metadata]: Set metadata injection. If set to `1`, the audio input will be segmented into 100ms output frames, each of them containing various loudness information in metadata.  All the metadata keys are prefixed with `lavfi.r128.`.  Default is `0`. (range 0..1, default 0)
 /// - [meter]: Set the EBU scale meter. Default is `9`. Common values are `9` and `18`, respectively for EBU scale meter +9 and EBU scale meter +18. Any other integer value between this range is allowed. (range 9..18, default 9)
 /// - [panlaw]: set a specific pan law for dual-mono files (range -10.0..0.0, default -3.01029995663978)
-/// - [peak]: set peak mode
+/// - [peak]: set peak mode (default PEAK_MODE_NONE)
 /// - [range]: loudness range (LU) (default 0)
 /// - [sample_peak]: sample peak (dBFS) (default 0)
 /// - [scale]: sets display method for the stats (default 0)
@@ -5904,8 +6549,8 @@ final class EarwaxSettings {
 final class Ebur128Settings {
   final bool enabled;
   final bool dualmono;
-  final Ebur128Level framelog;
-  final Ebur128Gaugetype gauge;
+  final Ebur128Level? framelog;
+  final Ebur128Gaugetype? gauge;
   final double integrated;
   final double lra_high;
   final double lra_low;
@@ -5915,7 +6560,7 @@ final class Ebur128Settings {
   final Set<Ebur128Mode> peak;
   final double range;
   final double sample_peak;
-  final Ebur128Scaletype scale;
+  final Ebur128Scaletype? scale;
   final int target;
   final double true_peak;
   final bool video;
@@ -5923,8 +6568,8 @@ final class Ebur128Settings {
   const Ebur128Settings({
     this.enabled = false,
     this.dualmono = false,
-    this.framelog = Ebur128Level.quiet,
-    this.gauge = Ebur128Gaugetype.momentary,
+    this.framelog,
+    this.gauge,
     this.integrated = 0.0,
     this.lra_high = 0.0,
     this.lra_low = 0.0,
@@ -5934,7 +6579,7 @@ final class Ebur128Settings {
     this.peak = const <Ebur128Mode>{},
     this.range = 0.0,
     this.sample_peak = 0.0,
-    this.scale = Ebur128Scaletype.absolute,
+    this.scale,
     this.target = -23,
     this.true_peak = 0.0,
     this.video = false,
@@ -5943,8 +6588,8 @@ final class Ebur128Settings {
   Ebur128Settings copyWith({
     bool? enabled,
     bool? dualmono,
-    Ebur128Level? framelog,
-    Ebur128Gaugetype? gauge,
+    Object? framelog = unset,
+    Object? gauge = unset,
     double? integrated,
     double? lra_high,
     double? lra_low,
@@ -5954,7 +6599,7 @@ final class Ebur128Settings {
     Set<Ebur128Mode>? peak,
     double? range,
     double? sample_peak,
-    Ebur128Scaletype? scale,
+    Object? scale = unset,
     int? target,
     double? true_peak,
     bool? video,
@@ -5962,8 +6607,11 @@ final class Ebur128Settings {
       Ebur128Settings(
         enabled: enabled ?? this.enabled,
         dualmono: dualmono ?? this.dualmono,
-        framelog: framelog ?? this.framelog,
-        gauge: gauge ?? this.gauge,
+        framelog: identical(framelog, unset)
+            ? this.framelog
+            : framelog as Ebur128Level?,
+        gauge:
+            identical(gauge, unset) ? this.gauge : gauge as Ebur128Gaugetype?,
         integrated: integrated ?? this.integrated,
         lra_high: lra_high ?? this.lra_high,
         lra_low: lra_low ?? this.lra_low,
@@ -5973,7 +6621,8 @@ final class Ebur128Settings {
         peak: peak ?? this.peak,
         range: range ?? this.range,
         sample_peak: sample_peak ?? this.sample_peak,
-        scale: scale ?? this.scale,
+        scale:
+            identical(scale, unset) ? this.scale : scale as Ebur128Scaletype?,
         target: target ?? this.target,
         true_peak: true_peak ?? this.true_peak,
         video: video ?? this.video,
@@ -6036,10 +6685,8 @@ final class Ebur128Settings {
     assert(target <= 0, 'ebur128.target must be <= 0');
     final parts = <String>[];
     if (dualmono != false) parts.add('dualmono=' + (dualmono ? '1' : '0'));
-    if (framelog != Ebur128Level.quiet)
-      parts.add('framelog=' + framelog.mpvValue);
-    if (gauge != Ebur128Gaugetype.momentary)
-      parts.add('gauge=' + gauge.mpvValue);
+    if (framelog != null) parts.add('framelog=' + framelog!.mpvValue);
+    if (gauge != null) parts.add('gauge=' + gauge!.mpvValue);
     if (integrated != 0.0)
       parts.add('integrated=' + integrated.toStringAsFixed(3));
     if (lra_high != 0.0) parts.add('lra_high=' + lra_high.toStringAsFixed(3));
@@ -6053,8 +6700,7 @@ final class Ebur128Settings {
     if (range != 0.0) parts.add('range=' + range.toStringAsFixed(3));
     if (sample_peak != 0.0)
       parts.add('sample_peak=' + sample_peak.toStringAsFixed(3));
-    if (scale != Ebur128Scaletype.absolute)
-      parts.add('scale=' + scale.mpvValue);
+    if (scale != null) parts.add('scale=' + scale!.mpvValue);
     if (target != -23) parts.add('target=' + target.toString());
     if (true_peak != 0.0)
       parts.add('true_peak=' + true_peak.toStringAsFixed(3));
@@ -6076,38 +6722,118 @@ final class Ebur128Settings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [f]: Set the filter's central frequency in Hz. (range 0..999999, default 0)
 /// - [frequency]: Set the filter's central frequency in Hz. (range 0..999999, default 0)
 /// - [g]: Set the required gain or attenuation in dB. Beware of clipping when using a positive gain. (range -900..900, default 0)
 /// - [gain]: Set the required gain or attenuation in dB. Beware of clipping when using a positive gain. (range -900..900, default 0)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 1.0)
+/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 1.0)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class EqualizerSettings {
   final bool enabled;
+  final EqualizerTransformType a;
+  final int b;
+  final int blocksize;
+  final String c;
+  final String channels;
   final double f;
   final double frequency;
   final double g;
   final double gain;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
+  final EqualizerPrecision precision;
+  final EqualizerPrecision r;
+  final EqualizerWidthType t;
+  final EqualizerTransformType transform;
+  final double w;
+  final double width;
+  final EqualizerWidthType width_type;
 
   const EqualizerSettings({
     this.enabled = false,
+    this.a = EqualizerTransformType.di,
+    this.b = 0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
     this.f = 0.0,
     this.frequency = 0.0,
     this.g = 0.0,
     this.gain = 0.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
+    this.precision = EqualizerPrecision.auto,
+    this.r = EqualizerPrecision.auto,
+    this.t = EqualizerWidthType.q,
+    this.transform = EqualizerTransformType.di,
+    this.w = 1.0,
+    this.width = 1.0,
+    this.width_type = EqualizerWidthType.q,
   });
 
   EqualizerSettings copyWith({
     bool? enabled,
+    EqualizerTransformType? a,
+    int? b,
+    int? blocksize,
+    String? c,
+    String? channels,
     double? f,
     double? frequency,
     double? g,
     double? gain,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
+    EqualizerPrecision? precision,
+    EqualizerPrecision? r,
+    EqualizerWidthType? t,
+    EqualizerTransformType? transform,
+    double? w,
+    double? width,
+    EqualizerWidthType? width_type,
   }) =>
       EqualizerSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        b: b ?? this.b,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
         g: g ?? this.g,
         gain: gain ?? this.gain,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -6115,21 +6841,63 @@ final class EqualizerSettings {
       identical(this, other) ||
       (other is EqualizerSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.b == b &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
           other.f == f &&
           other.frequency == frequency &&
           other.g == g &&
-          other.gain == gain);
+          other.gain == gain &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, f, frequency, g, gain);
+  int get hashCode => Object.hashAll([
+        enabled,
+        a,
+        b,
+        blocksize,
+        c,
+        channels,
+        f,
+        frequency,
+        g,
+        gain,
+        m,
+        mix,
+        n,
+        normalize,
+        precision,
+        r,
+        t,
+        transform,
+        w,
+        width,
+        width_type
+      ]);
 
   @override
   String toString() =>
-      'EqualizerSettings(enabled: $enabled, f: $f, frequency: $frequency, g: $g, gain: $gain)';
+      'EqualizerSettings(enabled: $enabled, a: $a, b: $b, blocksize: $blocksize, c: $c, channels: $channels, f: $f, frequency: $frequency, g: $g, gain: $gain, m: $m, mix: $mix, n: $n, normalize: $normalize, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'equalizer.b must be >= 0');
+    assert(b <= 32768, 'equalizer.b must be <= 32768');
+    assert(blocksize >= 0, 'equalizer.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'equalizer.blocksize must be <= 32768');
     assert(f >= 0, 'equalizer.f must be >= 0');
     assert(f <= 999999, 'equalizer.f must be <= 999999');
     assert(frequency >= 0, 'equalizer.frequency must be >= 0');
@@ -6138,12 +6906,39 @@ final class EqualizerSettings {
     assert(g <= 900, 'equalizer.g must be <= 900');
     assert(gain >= -900, 'equalizer.gain must be >= -900');
     assert(gain <= 900, 'equalizer.gain must be <= 900');
+    assert(m >= 0, 'equalizer.m must be >= 0');
+    assert(m <= 1, 'equalizer.m must be <= 1');
+    assert(mix >= 0, 'equalizer.mix must be >= 0');
+    assert(mix <= 1, 'equalizer.mix must be <= 1');
+    assert(w >= 0, 'equalizer.w must be >= 0');
+    assert(w <= 99999, 'equalizer.w must be <= 99999');
+    assert(width >= 0, 'equalizer.width must be >= 0');
+    assert(width <= 99999, 'equalizer.width must be <= 99999');
     final parts = <String>[];
+    if (a != EqualizerTransformType.di) parts.add('a=' + a.mpvValue);
+    if (b != 0) parts.add('b=' + b.toString());
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (f != 0.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 0.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
     if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
     if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
+    if (precision != EqualizerPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != EqualizerPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != EqualizerWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != EqualizerTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 1.0) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 1.0) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != EqualizerWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
         ? 'lavfi-equalizer'
         : 'lavfi-equalizer=' + parts.join(':');
@@ -6219,47 +7014,47 @@ final class ExtrastereoSettings {
 /// Parameters:
 /// - [accuracy]: Set filter accuracy in Hz. Lower value means more accurate. Default is `5`. (range 0.0..1e10, default 5.0)
 /// - [delay]: Set filter delay in seconds. Higher value means more accurate. Default is `0.01`. (range 0.0..1e10, default 0.01)
-/// - [dumpfile]: Set file for dumping, suitable for gnuplot. (range 0..0)
-/// - [dumpscale]: Set scale for dumpfile. Acceptable values are same with scale option. Default is linlog.
+/// - [dumpfile]: Set file for dumping, suitable for gnuplot. (range 0..0, default NULL)
+/// - [dumpscale]: Set scale for dumpfile. Acceptable values are same with scale option. Default is linlog. (default SCALE_LINLOG)
 /// - [fft2]: Enable 2-channel convolution using complex FFT. This improves speed significantly. Default is disabled. (range 0..1, default 0)
 /// - [fixed]: If enabled, use fixed number of audio samples. This improves speed when filtering with large delay. Default is disabled. (range 0..1, default 0)
 /// - [gain]: Set gain curve equation (in dB). The expression can contain variables: (range 0..0, default "gain_interpolate(f)")
-/// - [gain_entry]: Set gain entry for gain_interpolate function. The expression can contain functions: (range 0..0)
+/// - [gain_entry]: Set gain entry for gain_interpolate function. The expression can contain functions: (range 0..0, default NULL)
 /// - [min_phase]: Enable minimum phase impulse response. Default is disabled. (range 0..1, default 0)
 /// - [multi]: Enable multichannels evaluation on gain. Default is disabled. (range 0..1, default 0)
-/// - [scale]: Set scale used by gain. Acceptable values are:
-/// - [wfunc]: Set window function. Acceptable values are:
+/// - [scale]: Set scale used by gain. Acceptable values are: (default SCALE_LINLOG)
+/// - [wfunc]: Set window function. Acceptable values are: (default WFUNC_HANN)
 /// - [zero_phase]: Enable zero phase mode by subtracting timestamp to compensate delay. Default is disabled. (range 0..1, default 0)
 final class FirequalizerSettings {
   final bool enabled;
   final double accuracy;
   final double delay;
-  final String? dumpfile;
-  final FirequalizerScale? dumpscale;
+  final String dumpfile;
+  final FirequalizerScale dumpscale;
   final bool fft2;
   final bool fixed;
   final String gain;
-  final String? gain_entry;
+  final String gain_entry;
   final bool min_phase;
   final bool multi;
-  final FirequalizerScale? scale;
-  final FirequalizerWfunc? wfunc;
+  final FirequalizerScale scale;
+  final FirequalizerWfunc wfunc;
   final bool zero_phase;
 
   const FirequalizerSettings({
     this.enabled = false,
     this.accuracy = 5.0,
     this.delay = 0.01,
-    this.dumpfile,
-    this.dumpscale,
+    this.dumpfile = 'NULL',
+    this.dumpscale = FirequalizerScale.linlog,
     this.fft2 = false,
     this.fixed = false,
     this.gain = 'gain_interpolate(f)',
-    this.gain_entry,
+    this.gain_entry = 'NULL',
     this.min_phase = false,
     this.multi = false,
-    this.scale,
-    this.wfunc,
+    this.scale = FirequalizerScale.linlog,
+    this.wfunc = FirequalizerWfunc.hann,
     this.zero_phase = false,
   });
 
@@ -6267,39 +7062,32 @@ final class FirequalizerSettings {
     bool? enabled,
     double? accuracy,
     double? delay,
-    Object? dumpfile = unset,
-    Object? dumpscale = unset,
+    String? dumpfile,
+    FirequalizerScale? dumpscale,
     bool? fft2,
     bool? fixed,
     String? gain,
-    Object? gain_entry = unset,
+    String? gain_entry,
     bool? min_phase,
     bool? multi,
-    Object? scale = unset,
-    Object? wfunc = unset,
+    FirequalizerScale? scale,
+    FirequalizerWfunc? wfunc,
     bool? zero_phase,
   }) =>
       FirequalizerSettings(
         enabled: enabled ?? this.enabled,
         accuracy: accuracy ?? this.accuracy,
         delay: delay ?? this.delay,
-        dumpfile:
-            identical(dumpfile, unset) ? this.dumpfile : dumpfile as String?,
-        dumpscale: identical(dumpscale, unset)
-            ? this.dumpscale
-            : dumpscale as FirequalizerScale?,
+        dumpfile: dumpfile ?? this.dumpfile,
+        dumpscale: dumpscale ?? this.dumpscale,
         fft2: fft2 ?? this.fft2,
         fixed: fixed ?? this.fixed,
         gain: gain ?? this.gain,
-        gain_entry: identical(gain_entry, unset)
-            ? this.gain_entry
-            : gain_entry as String?,
+        gain_entry: gain_entry ?? this.gain_entry,
         min_phase: min_phase ?? this.min_phase,
         multi: multi ?? this.multi,
-        scale:
-            identical(scale, unset) ? this.scale : scale as FirequalizerScale?,
-        wfunc:
-            identical(wfunc, unset) ? this.wfunc : wfunc as FirequalizerWfunc?,
+        scale: scale ?? this.scale,
+        wfunc: wfunc ?? this.wfunc,
         zero_phase: zero_phase ?? this.zero_phase,
       );
 
@@ -6353,16 +7141,17 @@ final class FirequalizerSettings {
     final parts = <String>[];
     if (accuracy != 5.0) parts.add('accuracy=' + accuracy.toStringAsFixed(3));
     if (delay != 0.01) parts.add('delay=' + delay.toStringAsFixed(3));
-    if (dumpfile != null) parts.add('dumpfile=' + dumpfile!);
-    if (dumpscale != null) parts.add('dumpscale=' + dumpscale!.mpvValue);
+    if (dumpfile != 'NULL') parts.add('dumpfile=' + '[' + dumpfile + ']');
+    if (dumpscale != FirequalizerScale.linlog)
+      parts.add('dumpscale=' + dumpscale.mpvValue);
     if (fft2 != false) parts.add('fft2=' + (fft2 ? '1' : '0'));
     if (fixed != false) parts.add('fixed=' + (fixed ? '1' : '0'));
-    if (gain != 'gain_interpolate(f)') parts.add('gain=' + gain);
-    if (gain_entry != null) parts.add('gain_entry=' + gain_entry!);
+    if (gain != 'gain_interpolate(f)') parts.add('gain=' + '[' + gain + ']');
+    if (gain_entry != 'NULL') parts.add('gain_entry=' + '[' + gain_entry + ']');
     if (min_phase != false) parts.add('min_phase=' + (min_phase ? '1' : '0'));
     if (multi != false) parts.add('multi=' + (multi ? '1' : '0'));
-    if (scale != null) parts.add('scale=' + scale!.mpvValue);
-    if (wfunc != null) parts.add('wfunc=' + wfunc!.mpvValue);
+    if (scale != FirequalizerScale.linlog) parts.add('scale=' + scale.mpvValue);
+    if (wfunc != FirequalizerWfunc.hann) parts.add('wfunc=' + wfunc.mpvValue);
     if (zero_phase != false)
       parts.add('zero_phase=' + (zero_phase ? '1' : '0'));
     return parts.isEmpty
@@ -6383,17 +7172,17 @@ final class FirequalizerSettings {
 /// - [interp]: Set delay-line interpolation, `linear` or `quadratic`. Default is `linear`. (range 0..1, default 0)
 /// - [phase]: Set swept wave percentage-shift for multi channel. Range from 0 to 100. Default value is 25. (range 0..100, default 25)
 /// - [regen]: Set percentage regeneration (delayed signal feedback). Range from -95 to 95. Default value is 0. (range -95..95, default 0)
-/// - [shape]: Set swept wave shape, can be `triangular` or `sinusoidal`. Default value is `sinusoidal`.
+/// - [shape]: Set swept wave shape, can be `triangular` or `sinusoidal`. Default value is `sinusoidal`. (default WAVE_SIN)
 /// - [speed]: Set sweeps per second (Hz). Range from 0.1 to 10. Default value is 0.5. (range 0.1..10, default 0.5)
 /// - [width]: Set percentage of delayed signal mixed with original. Range from 0 to 100. Default value is 71. (range 0..100, default 71)
 final class FlangerSettings {
   final bool enabled;
   final double delay;
   final double depth;
-  final FlangerItype interp;
+  final FlangerItype? interp;
   final double phase;
   final double regen;
-  final FlangerType? shape;
+  final FlangerType shape;
   final double speed;
   final double width;
 
@@ -6401,10 +7190,10 @@ final class FlangerSettings {
     this.enabled = false,
     this.delay = 0.0,
     this.depth = 2.0,
-    this.interp = FlangerItype.linear,
+    this.interp,
     this.phase = 25.0,
     this.regen = 0.0,
-    this.shape,
+    this.shape = FlangerType.sinusoidal,
     this.speed = 0.5,
     this.width = 71.0,
   });
@@ -6413,10 +7202,10 @@ final class FlangerSettings {
     bool? enabled,
     double? delay,
     double? depth,
-    FlangerItype? interp,
+    Object? interp = unset,
     double? phase,
     double? regen,
-    Object? shape = unset,
+    FlangerType? shape,
     double? speed,
     double? width,
   }) =>
@@ -6424,10 +7213,11 @@ final class FlangerSettings {
         enabled: enabled ?? this.enabled,
         delay: delay ?? this.delay,
         depth: depth ?? this.depth,
-        interp: interp ?? this.interp,
+        interp:
+            identical(interp, unset) ? this.interp : interp as FlangerItype?,
         phase: phase ?? this.phase,
         regen: regen ?? this.regen,
-        shape: identical(shape, unset) ? this.shape : shape as FlangerType?,
+        shape: shape ?? this.shape,
         speed: speed ?? this.speed,
         width: width ?? this.width,
       );
@@ -6472,10 +7262,10 @@ final class FlangerSettings {
     final parts = <String>[];
     if (delay != 0.0) parts.add('delay=' + delay.toStringAsFixed(3));
     if (depth != 2.0) parts.add('depth=' + depth.toStringAsFixed(3));
-    if (interp != FlangerItype.linear) parts.add('interp=' + interp.mpvValue);
+    if (interp != null) parts.add('interp=' + interp!.mpvValue);
     if (phase != 25.0) parts.add('phase=' + phase.toStringAsFixed(3));
     if (regen != 0.0) parts.add('regen=' + regen.toStringAsFixed(3));
-    if (shape != null) parts.add('shape=' + shape!.mpvValue);
+    if (shape != FlangerType.sinusoidal) parts.add('shape=' + shape.mpvValue);
     if (speed != 0.5) parts.add('speed=' + speed.toStringAsFixed(3));
     if (width != 71.0) parts.add('width=' + width.toStringAsFixed(3));
     return parts.isEmpty ? 'lavfi-flanger' : 'lavfi-flanger=' + parts.join(':');
@@ -6678,52 +7468,48 @@ final class HaasSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [analyze_mode]: Replace audio with a solid tone and adjust the amplitude to signal some specific aspect of the decoding process. The output file can be loaded in an audio editor alongside the original to aid analysis.  `analyze_mode=pe:force_pe=true` can be used to see all samples above the PE level.  Modes are:
+/// - [analyze_mode]: Replace audio with a solid tone and adjust the amplitude to signal some specific aspect of the decoding process. The output file can be loaded in an audio editor alongside the original to aid analysis.  `analyze_mode=pe:force_pe=true` can be used to see all samples above the PE level.  Modes are: (default HDCD_ANA_OFF)
 /// - [bits_per_sample]: Valid bits per sample (location of the true LSB). (range 16..24, default 16)
 /// - [cdt_ms]: Set the code detect timer period in ms. (range 100..60000, default 2000)
 /// - [disable_autoconvert]: Disable any automatic format conversion or resampling in the filter graph. (range 0..1, default 1)
 /// - [force_pe]: Always extend peaks above -3dBFS even if PE isn't signaled. (range 0..1, default 0)
-/// - [process_stereo]: Process the stereo channels together. If target_gain does not match between channels, consider it invalid and use the last valid target_gain. (range 0..1)
+/// - [process_stereo]: Process the stereo channels together. If target_gain does not match between channels, consider it invalid and use the last valid target_gain. (range 0..1, default HDCD_PROCESS_STEREO_DEFAULT)
 final class HdcdSettings {
   final bool enabled;
-  final HdcdAnalyzeMode? analyze_mode;
+  final HdcdAnalyzeMode analyze_mode;
   final HdcdBitsPerSample bits_per_sample;
   final int cdt_ms;
   final bool disable_autoconvert;
   final bool force_pe;
-  final bool? process_stereo;
+  final bool process_stereo;
 
   const HdcdSettings({
     this.enabled = false,
-    this.analyze_mode,
+    this.analyze_mode = HdcdAnalyzeMode.off,
     this.bits_per_sample = HdcdBitsPerSample.n16,
     this.cdt_ms = 2000,
     this.disable_autoconvert = true,
     this.force_pe = false,
-    this.process_stereo,
+    this.process_stereo = false,
   });
 
   HdcdSettings copyWith({
     bool? enabled,
-    Object? analyze_mode = unset,
+    HdcdAnalyzeMode? analyze_mode,
     HdcdBitsPerSample? bits_per_sample,
     int? cdt_ms,
     bool? disable_autoconvert,
     bool? force_pe,
-    Object? process_stereo = unset,
+    bool? process_stereo,
   }) =>
       HdcdSettings(
         enabled: enabled ?? this.enabled,
-        analyze_mode: identical(analyze_mode, unset)
-            ? this.analyze_mode
-            : analyze_mode as HdcdAnalyzeMode?,
+        analyze_mode: analyze_mode ?? this.analyze_mode,
         bits_per_sample: bits_per_sample ?? this.bits_per_sample,
         cdt_ms: cdt_ms ?? this.cdt_ms,
         disable_autoconvert: disable_autoconvert ?? this.disable_autoconvert,
         force_pe: force_pe ?? this.force_pe,
-        process_stereo: identical(process_stereo, unset)
-            ? this.process_stereo
-            : process_stereo as bool?,
+        process_stereo: process_stereo ?? this.process_stereo,
       );
 
   @override
@@ -6752,16 +7538,16 @@ final class HdcdSettings {
     assert(cdt_ms >= 100, 'hdcd.cdt_ms must be >= 100');
     assert(cdt_ms <= 60000, 'hdcd.cdt_ms must be <= 60000');
     final parts = <String>[];
-    if (analyze_mode != null)
-      parts.add('analyze_mode=' + analyze_mode!.mpvValue);
+    if (analyze_mode != HdcdAnalyzeMode.off)
+      parts.add('analyze_mode=' + analyze_mode.mpvValue);
     if (bits_per_sample != HdcdBitsPerSample.n16)
       parts.add('bits_per_sample=' + bits_per_sample.mpvValue);
     if (cdt_ms != 2000) parts.add('cdt_ms=' + cdt_ms.toString());
     if (disable_autoconvert != true)
       parts.add('disable_autoconvert=' + (disable_autoconvert ? '1' : '0'));
     if (force_pe != false) parts.add('force_pe=' + (force_pe ? '1' : '0'));
-    if (process_stereo != null)
-      parts.add('process_stereo=' + (process_stereo! ? '1' : '0'));
+    if (process_stereo != false)
+      parts.add('process_stereo=' + (process_stereo ? '1' : '0'));
     return parts.isEmpty ? 'lavfi-hdcd' : 'lavfi-hdcd=' + parts.join(':');
   }
 }
@@ -6777,26 +7563,26 @@ final class HdcdSettings {
 ///
 /// Parameters:
 /// - [gain]: Set gain applied to audio. Value is in dB. Default is 0. (range -20..40, default 0)
-/// - [hrir]: Set format of hrir stream. Default value is `stereo`. Alternative value is `multich`. If value is set to `stereo`, number of additional streams should be greater or equal to number of input channels in first input stream. Also each additional stream should have stereo number of channels. If value is set to `multich`, number of additional streams should be exactly one. Also number of input channels of additional stream should be equal or greater than twice number of channels of first input stream. (range 0..1)
+/// - [hrir]: Set format of hrir stream. Default value is `stereo`. Alternative value is `multich`. If value is set to `stereo`, number of additional streams should be greater or equal to number of input channels in first input stream. Also each additional stream should have stereo number of channels. If value is set to `multich`, number of additional streams should be exactly one. Also number of input channels of additional stream should be equal or greater than twice number of channels of first input stream. (range 0..1, default HRIR_STEREO)
 /// - [lfe]: Set custom gain for LFE channels. Value is in dB. Default is 0. (range -20..40, default 0)
-/// - [map]: Set mapping of input streams for convolution. The argument is a '|'-separated list of channel names in order as they are given as additional stream inputs for filter. This also specify number of input streams. Number of input streams must be not less than number of channels in first stream plus one.
+/// - [map]: Set mapping of input streams for convolution. The argument is a '|'-separated list of channel names in order as they are given as additional stream inputs for filter. This also specify number of input streams. Number of input streams must be not less than number of channels in first stream plus one. (default NULL)
 /// - [size]: Set size of frame in number of samples which will be processed at once. Default value is `1024`. Allowed range is from 1024 to 96000. (range 1024..96000, default 1024)
 /// - [type]: Set processing type. Can be `time` or `freq`. `time` is processing audio in time domain which is slow. `freq` is processing audio in frequency domain which is fast. Default is `freq`. (range 0..1, default 1)
 final class HeadphoneSettings {
   final bool enabled;
   final double gain;
-  final HeadphoneHrir? hrir;
+  final HeadphoneHrir hrir;
   final double lfe;
-  final String? map;
+  final String map;
   final int size;
   final HeadphoneType type;
 
   const HeadphoneSettings({
     this.enabled = false,
     this.gain = 0.0,
-    this.hrir,
+    this.hrir = HeadphoneHrir.stereo,
     this.lfe = 0.0,
-    this.map,
+    this.map = 'NULL',
     this.size = 1024,
     this.type = HeadphoneType.freq,
   });
@@ -6804,18 +7590,18 @@ final class HeadphoneSettings {
   HeadphoneSettings copyWith({
     bool? enabled,
     double? gain,
-    Object? hrir = unset,
+    HeadphoneHrir? hrir,
     double? lfe,
-    Object? map = unset,
+    String? map,
     int? size,
     HeadphoneType? type,
   }) =>
       HeadphoneSettings(
         enabled: enabled ?? this.enabled,
         gain: gain ?? this.gain,
-        hrir: identical(hrir, unset) ? this.hrir : hrir as HeadphoneHrir?,
+        hrir: hrir ?? this.hrir,
         lfe: lfe ?? this.lfe,
-        map: identical(map, unset) ? this.map : map as String?,
+        map: map ?? this.map,
         size: size ?? this.size,
         type: type ?? this.type,
       );
@@ -6850,9 +7636,9 @@ final class HeadphoneSettings {
     assert(size <= 96000, 'headphone.size must be <= 96000');
     final parts = <String>[];
     if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
-    if (hrir != null) parts.add('hrir=' + hrir!.mpvValue);
+    if (hrir != HeadphoneHrir.stereo) parts.add('hrir=' + hrir.mpvValue);
     if (lfe != 0.0) parts.add('lfe=' + lfe.toStringAsFixed(3));
-    if (map != null) parts.add('map=' + map!);
+    if (map != 'NULL') parts.add('map=' + '[' + map + ']');
     if (size != 1024) parts.add('size=' + size.toString());
     if (type != HeadphoneType.freq) parts.add('type=' + type.mpvValue);
     return parts.isEmpty
@@ -6870,38 +7656,118 @@ final class HeadphoneSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [f]: Set frequency in Hz. Default is 3000. (range 0..999999, default 3000)
 /// - [frequency]: Set frequency in Hz. Default is 3000. (range 0..999999, default 3000)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707)
+/// - [width]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class HighpassSettings {
   final bool enabled;
+  final HighpassTransformType a;
+  final int b;
+  final int blocksize;
+  final String c;
+  final String channels;
   final double f;
   final double frequency;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
   final int p;
   final int poles;
+  final HighpassPrecision precision;
+  final HighpassPrecision r;
+  final HighpassWidthType t;
+  final HighpassTransformType transform;
+  final double w;
+  final double width;
+  final HighpassWidthType width_type;
 
   const HighpassSettings({
     this.enabled = false,
+    this.a = HighpassTransformType.di,
+    this.b = 0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
     this.f = 3000.0,
     this.frequency = 3000.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
     this.p = 2,
     this.poles = 2,
+    this.precision = HighpassPrecision.auto,
+    this.r = HighpassPrecision.auto,
+    this.t = HighpassWidthType.q,
+    this.transform = HighpassTransformType.di,
+    this.w = 0.707,
+    this.width = 0.707,
+    this.width_type = HighpassWidthType.q,
   });
 
   HighpassSettings copyWith({
     bool? enabled,
+    HighpassTransformType? a,
+    int? b,
+    int? blocksize,
+    String? c,
+    String? channels,
     double? f,
     double? frequency,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
     int? p,
     int? poles,
+    HighpassPrecision? precision,
+    HighpassPrecision? r,
+    HighpassWidthType? t,
+    HighpassTransformType? transform,
+    double? w,
+    double? width,
+    HighpassWidthType? width_type,
   }) =>
       HighpassSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        b: b ?? this.b,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
         p: p ?? this.p,
         poles: poles ?? this.poles,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -6909,35 +7775,104 @@ final class HighpassSettings {
       identical(this, other) ||
       (other is HighpassSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.b == b &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
           other.f == f &&
           other.frequency == frequency &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
           other.p == p &&
-          other.poles == poles);
+          other.poles == poles &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, f, frequency, p, poles);
+  int get hashCode => Object.hashAll([
+        enabled,
+        a,
+        b,
+        blocksize,
+        c,
+        channels,
+        f,
+        frequency,
+        m,
+        mix,
+        n,
+        normalize,
+        p,
+        poles,
+        precision,
+        r,
+        t,
+        transform,
+        w,
+        width,
+        width_type
+      ]);
 
   @override
   String toString() =>
-      'HighpassSettings(enabled: $enabled, f: $f, frequency: $frequency, p: $p, poles: $poles)';
+      'HighpassSettings(enabled: $enabled, a: $a, b: $b, blocksize: $blocksize, c: $c, channels: $channels, f: $f, frequency: $frequency, m: $m, mix: $mix, n: $n, normalize: $normalize, p: $p, poles: $poles, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'highpass.b must be >= 0');
+    assert(b <= 32768, 'highpass.b must be <= 32768');
+    assert(blocksize >= 0, 'highpass.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'highpass.blocksize must be <= 32768');
     assert(f >= 0, 'highpass.f must be >= 0');
     assert(f <= 999999, 'highpass.f must be <= 999999');
     assert(frequency >= 0, 'highpass.frequency must be >= 0');
     assert(frequency <= 999999, 'highpass.frequency must be <= 999999');
+    assert(m >= 0, 'highpass.m must be >= 0');
+    assert(m <= 1, 'highpass.m must be <= 1');
+    assert(mix >= 0, 'highpass.mix must be >= 0');
+    assert(mix <= 1, 'highpass.mix must be <= 1');
     assert(p >= 1, 'highpass.p must be >= 1');
     assert(p <= 2, 'highpass.p must be <= 2');
     assert(poles >= 1, 'highpass.poles must be >= 1');
     assert(poles <= 2, 'highpass.poles must be <= 2');
+    assert(w >= 0, 'highpass.w must be >= 0');
+    assert(w <= 99999, 'highpass.w must be <= 99999');
+    assert(width >= 0, 'highpass.width must be >= 0');
+    assert(width <= 99999, 'highpass.width must be <= 99999');
     final parts = <String>[];
+    if (a != HighpassTransformType.di) parts.add('a=' + a.mpvValue);
+    if (b != 0) parts.add('b=' + b.toString());
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 3000.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
     if (poles != 2) parts.add('poles=' + poles.toString());
+    if (precision != HighpassPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != HighpassPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != HighpassWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != HighpassTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 0.707) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 0.707) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != HighpassWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
         ? 'lavfi-highpass'
         : 'lavfi-highpass=' + parts.join(':');
@@ -6953,48 +7888,128 @@ final class HighpassSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
 /// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
 /// - [g]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
 /// - [gain]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
+/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class HighshelfSettings {
   final bool enabled;
+  final HighshelfTransformType a;
+  final int b;
+  final int blocksize;
+  final String c;
+  final String channels;
   final double f;
   final double frequency;
   final double g;
   final double gain;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
   final int p;
   final int poles;
+  final HighshelfPrecision precision;
+  final HighshelfPrecision r;
+  final HighshelfWidthType t;
+  final HighshelfTransformType transform;
+  final double w;
+  final double width;
+  final HighshelfWidthType width_type;
 
   const HighshelfSettings({
     this.enabled = false,
+    this.a = HighshelfTransformType.di,
+    this.b = 0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
     this.f = 3000.0,
     this.frequency = 3000.0,
     this.g = 0.0,
     this.gain = 0.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
     this.p = 2,
     this.poles = 2,
+    this.precision = HighshelfPrecision.auto,
+    this.r = HighshelfPrecision.auto,
+    this.t = HighshelfWidthType.q,
+    this.transform = HighshelfTransformType.di,
+    this.w = 0.5,
+    this.width = 0.5,
+    this.width_type = HighshelfWidthType.q,
   });
 
   HighshelfSettings copyWith({
     bool? enabled,
+    HighshelfTransformType? a,
+    int? b,
+    int? blocksize,
+    String? c,
+    String? channels,
     double? f,
     double? frequency,
     double? g,
     double? gain,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
     int? p,
     int? poles,
+    HighshelfPrecision? precision,
+    HighshelfPrecision? r,
+    HighshelfWidthType? t,
+    HighshelfTransformType? transform,
+    double? w,
+    double? width,
+    HighshelfWidthType? width_type,
   }) =>
       HighshelfSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        b: b ?? this.b,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
         g: g ?? this.g,
         gain: gain ?? this.gain,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
         p: p ?? this.p,
         poles: poles ?? this.poles,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -7002,23 +8017,67 @@ final class HighshelfSettings {
       identical(this, other) ||
       (other is HighshelfSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.b == b &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
           other.f == f &&
           other.frequency == frequency &&
           other.g == g &&
           other.gain == gain &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
           other.p == p &&
-          other.poles == poles);
+          other.poles == poles &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, f, frequency, g, gain, p, poles);
+  int get hashCode => Object.hashAll([
+        enabled,
+        a,
+        b,
+        blocksize,
+        c,
+        channels,
+        f,
+        frequency,
+        g,
+        gain,
+        m,
+        mix,
+        n,
+        normalize,
+        p,
+        poles,
+        precision,
+        r,
+        t,
+        transform,
+        w,
+        width,
+        width_type
+      ]);
 
   @override
   String toString() =>
-      'HighshelfSettings(enabled: $enabled, f: $f, frequency: $frequency, g: $g, gain: $gain, p: $p, poles: $poles)';
+      'HighshelfSettings(enabled: $enabled, a: $a, b: $b, blocksize: $blocksize, c: $c, channels: $channels, f: $f, frequency: $frequency, g: $g, gain: $gain, m: $m, mix: $mix, n: $n, normalize: $normalize, p: $p, poles: $poles, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'highshelf.b must be >= 0');
+    assert(b <= 32768, 'highshelf.b must be <= 32768');
+    assert(blocksize >= 0, 'highshelf.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'highshelf.blocksize must be <= 32768');
     assert(f >= 0, 'highshelf.f must be >= 0');
     assert(f <= 999999, 'highshelf.f must be <= 999999');
     assert(frequency >= 0, 'highshelf.frequency must be >= 0');
@@ -7027,18 +8086,45 @@ final class HighshelfSettings {
     assert(g <= 900, 'highshelf.g must be <= 900');
     assert(gain >= -900, 'highshelf.gain must be >= -900');
     assert(gain <= 900, 'highshelf.gain must be <= 900');
+    assert(m >= 0, 'highshelf.m must be >= 0');
+    assert(m <= 1, 'highshelf.m must be <= 1');
+    assert(mix >= 0, 'highshelf.mix must be >= 0');
+    assert(mix <= 1, 'highshelf.mix must be <= 1');
     assert(p >= 1, 'highshelf.p must be >= 1');
     assert(p <= 2, 'highshelf.p must be <= 2');
     assert(poles >= 1, 'highshelf.poles must be >= 1');
     assert(poles <= 2, 'highshelf.poles must be <= 2');
+    assert(w >= 0, 'highshelf.w must be >= 0');
+    assert(w <= 99999, 'highshelf.w must be <= 99999');
+    assert(width >= 0, 'highshelf.width must be >= 0');
+    assert(width <= 99999, 'highshelf.width must be <= 99999');
     final parts = <String>[];
+    if (a != HighshelfTransformType.di) parts.add('a=' + a.mpvValue);
+    if (b != 0) parts.add('b=' + b.toString());
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 3000.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
     if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
     if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
     if (poles != 2) parts.add('poles=' + poles.toString());
+    if (precision != HighshelfPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != HighshelfPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != HighshelfWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != HighshelfTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != HighshelfWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
         ? 'lavfi-highshelf'
         : 'lavfi-highshelf=' + parts.join(':');
@@ -7071,7 +8157,7 @@ final class HighshelfSettings {
 /// - [measured_thresh]: Measured threshold of input file. Range is -99.0 - +0.0. (range -99.0..0.0, default -70.)
 /// - [measured_tp]: Measured true peak of input file. Range is  -99.0 - +99.0. (range -99.0..99.0, default 99.)
 /// - [offset]: Set offset gain. Gain is applied before the true-peak limiter. Range is  -99.0 - +99.0. Default is +0.0. (range -99.0..99.0, default 0.)
-/// - [print_format]: Set print format for stats. Options are summary, json, or none. Default value is none.
+/// - [print_format]: Set print format for stats. Options are summary, json, or none. Default value is none. (default NONE)
 /// - [tp]: Set maximum true peak. Range is -9.0 - +0.0. Default value is -2.0. (range -9.0..0.0, default -2.)
 final class LoudnormSettings {
   final bool enabled;
@@ -7090,7 +8176,7 @@ final class LoudnormSettings {
   final double measured_thresh;
   final double measured_tp;
   final double offset;
-  final LoudnormPrintFormat? print_format;
+  final LoudnormPrintFormat print_format;
   final double tp;
 
   const LoudnormSettings({
@@ -7110,7 +8196,7 @@ final class LoudnormSettings {
     this.measured_thresh = -70.0,
     this.measured_tp = 99.0,
     this.offset = 0.0,
-    this.print_format,
+    this.print_format = LoudnormPrintFormat.none,
     this.tp = -2.0,
   });
 
@@ -7131,7 +8217,7 @@ final class LoudnormSettings {
     double? measured_thresh,
     double? measured_tp,
     double? offset,
-    Object? print_format = unset,
+    LoudnormPrintFormat? print_format,
     double? tp,
   }) =>
       LoudnormSettings(
@@ -7151,9 +8237,7 @@ final class LoudnormSettings {
         measured_thresh: measured_thresh ?? this.measured_thresh,
         measured_tp: measured_tp ?? this.measured_tp,
         offset: offset ?? this.offset,
-        print_format: identical(print_format, unset)
-            ? this.print_format
-            : print_format as LoudnormPrintFormat?,
+        print_format: print_format ?? this.print_format,
         tp: tp ?? this.tp,
       );
 
@@ -7260,8 +8344,8 @@ final class LoudnormSettings {
     if (measured_tp != 99.0)
       parts.add('measured_tp=' + measured_tp.toStringAsFixed(3));
     if (offset != 0.0) parts.add('offset=' + offset.toStringAsFixed(3));
-    if (print_format != null)
-      parts.add('print_format=' + print_format!.mpvValue);
+    if (print_format != LoudnormPrintFormat.none)
+      parts.add('print_format=' + print_format.mpvValue);
     if (tp != -2.0) parts.add('tp=' + tp.toStringAsFixed(3));
     return parts.isEmpty
         ? 'lavfi-loudnorm'
@@ -7278,38 +8362,118 @@ final class LoudnormSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [f]: Set frequency in Hz. Default is 500. (range 0..999999, default 500)
 /// - [frequency]: Set frequency in Hz. Default is 500. (range 0..999999, default 500)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707)
+/// - [width]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class LowpassSettings {
   final bool enabled;
+  final LowpassTransformType a;
+  final int b;
+  final int blocksize;
+  final String c;
+  final String channels;
   final double f;
   final double frequency;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
   final int p;
   final int poles;
+  final LowpassPrecision precision;
+  final LowpassPrecision r;
+  final LowpassWidthType t;
+  final LowpassTransformType transform;
+  final double w;
+  final double width;
+  final LowpassWidthType width_type;
 
   const LowpassSettings({
     this.enabled = false,
+    this.a = LowpassTransformType.di,
+    this.b = 0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
     this.f = 500.0,
     this.frequency = 500.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
     this.p = 2,
     this.poles = 2,
+    this.precision = LowpassPrecision.auto,
+    this.r = LowpassPrecision.auto,
+    this.t = LowpassWidthType.q,
+    this.transform = LowpassTransformType.di,
+    this.w = 0.707,
+    this.width = 0.707,
+    this.width_type = LowpassWidthType.q,
   });
 
   LowpassSettings copyWith({
     bool? enabled,
+    LowpassTransformType? a,
+    int? b,
+    int? blocksize,
+    String? c,
+    String? channels,
     double? f,
     double? frequency,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
     int? p,
     int? poles,
+    LowpassPrecision? precision,
+    LowpassPrecision? r,
+    LowpassWidthType? t,
+    LowpassTransformType? transform,
+    double? w,
+    double? width,
+    LowpassWidthType? width_type,
   }) =>
       LowpassSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        b: b ?? this.b,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
         p: p ?? this.p,
         poles: poles ?? this.poles,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -7317,35 +8481,104 @@ final class LowpassSettings {
       identical(this, other) ||
       (other is LowpassSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.b == b &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
           other.f == f &&
           other.frequency == frequency &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
           other.p == p &&
-          other.poles == poles);
+          other.poles == poles &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, f, frequency, p, poles);
+  int get hashCode => Object.hashAll([
+        enabled,
+        a,
+        b,
+        blocksize,
+        c,
+        channels,
+        f,
+        frequency,
+        m,
+        mix,
+        n,
+        normalize,
+        p,
+        poles,
+        precision,
+        r,
+        t,
+        transform,
+        w,
+        width,
+        width_type
+      ]);
 
   @override
   String toString() =>
-      'LowpassSettings(enabled: $enabled, f: $f, frequency: $frequency, p: $p, poles: $poles)';
+      'LowpassSettings(enabled: $enabled, a: $a, b: $b, blocksize: $blocksize, c: $c, channels: $channels, f: $f, frequency: $frequency, m: $m, mix: $mix, n: $n, normalize: $normalize, p: $p, poles: $poles, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'lowpass.b must be >= 0');
+    assert(b <= 32768, 'lowpass.b must be <= 32768');
+    assert(blocksize >= 0, 'lowpass.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'lowpass.blocksize must be <= 32768');
     assert(f >= 0, 'lowpass.f must be >= 0');
     assert(f <= 999999, 'lowpass.f must be <= 999999');
     assert(frequency >= 0, 'lowpass.frequency must be >= 0');
     assert(frequency <= 999999, 'lowpass.frequency must be <= 999999');
+    assert(m >= 0, 'lowpass.m must be >= 0');
+    assert(m <= 1, 'lowpass.m must be <= 1');
+    assert(mix >= 0, 'lowpass.mix must be >= 0');
+    assert(mix <= 1, 'lowpass.mix must be <= 1');
     assert(p >= 1, 'lowpass.p must be >= 1');
     assert(p <= 2, 'lowpass.p must be <= 2');
     assert(poles >= 1, 'lowpass.poles must be >= 1');
     assert(poles <= 2, 'lowpass.poles must be <= 2');
+    assert(w >= 0, 'lowpass.w must be >= 0');
+    assert(w <= 99999, 'lowpass.w must be <= 99999');
+    assert(width >= 0, 'lowpass.width must be >= 0');
+    assert(width <= 99999, 'lowpass.width must be <= 99999');
     final parts = <String>[];
+    if (a != LowpassTransformType.di) parts.add('a=' + a.mpvValue);
+    if (b != 0) parts.add('b=' + b.toString());
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (f != 500.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 500.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
     if (poles != 2) parts.add('poles=' + poles.toString());
+    if (precision != LowpassPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != LowpassPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != LowpassWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != LowpassTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 0.707) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 0.707) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != LowpassWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-lowpass' : 'lavfi-lowpass=' + parts.join(':');
   }
 }
@@ -7359,48 +8592,128 @@ final class LowpassSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100)
 /// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100)
 /// - [g]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
 /// - [gain]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
+/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class LowshelfSettings {
   final bool enabled;
+  final LowshelfTransformType a;
+  final int b;
+  final int blocksize;
+  final String c;
+  final String channels;
   final double f;
   final double frequency;
   final double g;
   final double gain;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
   final int p;
   final int poles;
+  final LowshelfPrecision precision;
+  final LowshelfPrecision r;
+  final LowshelfWidthType t;
+  final LowshelfTransformType transform;
+  final double w;
+  final double width;
+  final LowshelfWidthType width_type;
 
   const LowshelfSettings({
     this.enabled = false,
+    this.a = LowshelfTransformType.di,
+    this.b = 0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
     this.f = 100.0,
     this.frequency = 100.0,
     this.g = 0.0,
     this.gain = 0.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
     this.p = 2,
     this.poles = 2,
+    this.precision = LowshelfPrecision.auto,
+    this.r = LowshelfPrecision.auto,
+    this.t = LowshelfWidthType.q,
+    this.transform = LowshelfTransformType.di,
+    this.w = 0.5,
+    this.width = 0.5,
+    this.width_type = LowshelfWidthType.q,
   });
 
   LowshelfSettings copyWith({
     bool? enabled,
+    LowshelfTransformType? a,
+    int? b,
+    int? blocksize,
+    String? c,
+    String? channels,
     double? f,
     double? frequency,
     double? g,
     double? gain,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
     int? p,
     int? poles,
+    LowshelfPrecision? precision,
+    LowshelfPrecision? r,
+    LowshelfWidthType? t,
+    LowshelfTransformType? transform,
+    double? w,
+    double? width,
+    LowshelfWidthType? width_type,
   }) =>
       LowshelfSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        b: b ?? this.b,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
         g: g ?? this.g,
         gain: gain ?? this.gain,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
         p: p ?? this.p,
         poles: poles ?? this.poles,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -7408,23 +8721,67 @@ final class LowshelfSettings {
       identical(this, other) ||
       (other is LowshelfSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.b == b &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
           other.f == f &&
           other.frequency == frequency &&
           other.g == g &&
           other.gain == gain &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
           other.p == p &&
-          other.poles == poles);
+          other.poles == poles &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, f, frequency, g, gain, p, poles);
+  int get hashCode => Object.hashAll([
+        enabled,
+        a,
+        b,
+        blocksize,
+        c,
+        channels,
+        f,
+        frequency,
+        g,
+        gain,
+        m,
+        mix,
+        n,
+        normalize,
+        p,
+        poles,
+        precision,
+        r,
+        t,
+        transform,
+        w,
+        width,
+        width_type
+      ]);
 
   @override
   String toString() =>
-      'LowshelfSettings(enabled: $enabled, f: $f, frequency: $frequency, g: $g, gain: $gain, p: $p, poles: $poles)';
+      'LowshelfSettings(enabled: $enabled, a: $a, b: $b, blocksize: $blocksize, c: $c, channels: $channels, f: $f, frequency: $frequency, g: $g, gain: $gain, m: $m, mix: $mix, n: $n, normalize: $normalize, p: $p, poles: $poles, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'lowshelf.b must be >= 0');
+    assert(b <= 32768, 'lowshelf.b must be <= 32768');
+    assert(blocksize >= 0, 'lowshelf.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'lowshelf.blocksize must be <= 32768');
     assert(f >= 0, 'lowshelf.f must be >= 0');
     assert(f <= 999999, 'lowshelf.f must be <= 999999');
     assert(frequency >= 0, 'lowshelf.frequency must be >= 0');
@@ -7433,18 +8790,45 @@ final class LowshelfSettings {
     assert(g <= 900, 'lowshelf.g must be <= 900');
     assert(gain >= -900, 'lowshelf.gain must be >= -900');
     assert(gain <= 900, 'lowshelf.gain must be <= 900');
+    assert(m >= 0, 'lowshelf.m must be >= 0');
+    assert(m <= 1, 'lowshelf.m must be <= 1');
+    assert(mix >= 0, 'lowshelf.mix must be >= 0');
+    assert(mix <= 1, 'lowshelf.mix must be <= 1');
     assert(p >= 1, 'lowshelf.p must be >= 1');
     assert(p <= 2, 'lowshelf.p must be <= 2');
     assert(poles >= 1, 'lowshelf.poles must be >= 1');
     assert(poles <= 2, 'lowshelf.poles must be <= 2');
+    assert(w >= 0, 'lowshelf.w must be >= 0');
+    assert(w <= 99999, 'lowshelf.w must be <= 99999');
+    assert(width >= 0, 'lowshelf.width must be >= 0');
+    assert(width <= 99999, 'lowshelf.width must be <= 99999');
     final parts = <String>[];
+    if (a != LowshelfTransformType.di) parts.add('a=' + a.mpvValue);
+    if (b != 0) parts.add('b=' + b.toString());
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (f != 100.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 100.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
     if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
     if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
     if (poles != 2) parts.add('poles=' + poles.toString());
+    if (precision != LowshelfPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != LowshelfPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != LowshelfWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != LowshelfTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != LowshelfWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
         ? 'lavfi-lowshelf'
         : 'lavfi-lowshelf=' + parts.join(':');
@@ -7462,24 +8846,23 @@ final class LowshelfSettings {
 /// It accepts the following parameters:
 ///
 /// Parameters:
-/// - [args]: This option syntax is: attack,decay,[attack,decay..] soft-knee points crossover_frequency [delay [initial_volume [gain]]] | attack,decay ... For explanation of each item refer to compand filter documentation. (range 0..0, default "0.005,0.1 6 -47/-40,-34/-34,-17/-33 100 | 0.003,0.05 6 -47/-40,-34/-34,-17/-33 400 | 0.000625,0.0125 6 -47/-40,-34/-34,-15/-33 1600 | 0.0001,0.025 6 -47/-40,-34/-34,-31/-31,-0/-30 6400 | 0,0.025 6 -38/-31,-28/-28,-0/-25 22000")
+/// - [args]: This option syntax is: attack,decay,[attack,decay..] soft-knee points crossover_frequency [delay [initial_volume [gain]]] | attack,decay ... For explanation of each item refer to compand filter documentation. (range 0..0)
 final class McompandSettings {
   final bool enabled;
-  final String args;
+  final String? args;
 
   const McompandSettings({
     this.enabled = false,
-    this.args =
-        '0.005,0.1 6 -47/-40,-34/-34,-17/-33 100 | 0.003,0.05 6 -47/-40,-34/-34,-17/-33 400 | 0.000625,0.0125 6 -47/-40,-34/-34,-15/-33 1600 | 0.0001,0.025 6 -47/-40,-34/-34,-31/-31,-0/-30 6400 | 0,0.025 6 -38/-31,-28/-28,-0/-25 22000',
+    this.args,
   });
 
   McompandSettings copyWith({
     bool? enabled,
-    String? args,
+    Object? args = unset,
   }) =>
       McompandSettings(
         enabled: enabled ?? this.enabled,
-        args: args ?? this.args,
+        args: identical(args, unset) ? this.args : args as String?,
       );
 
   @override
@@ -7499,9 +8882,7 @@ final class McompandSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     final parts = <String>[];
-    if (args !=
-        '0.005,0.1 6 -47/-40,-34/-34,-17/-33 100 | 0.003,0.05 6 -47/-40,-34/-34,-17/-33 400 | 0.000625,0.0125 6 -47/-40,-34/-34,-15/-33 1600 | 0.0001,0.025 6 -47/-40,-34/-34,-31/-31,-0/-30 6400 | 0,0.025 6 -38/-31,-28/-28,-0/-25 22000')
-      parts.add('args=' + args);
+    if (args != null) parts.add('args=' + '[' + args! + ']');
     return parts.isEmpty
         ? 'lavfi-mcompand'
         : 'lavfi-mcompand=' + parts.join(':');
@@ -7520,23 +8901,23 @@ final class McompandSettings {
 /// "`l`|`outdef`|`outdef`|..."
 ///
 /// Parameters:
-/// - [args]:  (range 0..0)
+/// - [args]:  (range 0..0, default NULL)
 final class PanSettings {
   final bool enabled;
-  final String? args;
+  final String args;
 
   const PanSettings({
     this.enabled = false,
-    this.args,
+    this.args = 'NULL',
   });
 
   PanSettings copyWith({
     bool? enabled,
-    Object? args = unset,
+    String? args,
   }) =>
       PanSettings(
         enabled: enabled ?? this.enabled,
-        args: identical(args, unset) ? this.args : args as String?,
+        args: args ?? this.args,
       );
 
   @override
@@ -7554,7 +8935,7 @@ final class PanSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     final parts = <String>[];
-    if (args != null) parts.add('args=' + args!);
+    if (args != 'NULL') parts.add('args=' + '[' + args + ']');
     return parts.isEmpty ? 'lavfi-pan' : 'lavfi-pan=' + parts.join(':');
   }
 }
@@ -7581,56 +8962,69 @@ final class PanSettings {
 /// - [window]: set window (default 0)
 final class RubberbandSettings {
   final bool enabled;
-  final RubberbandChannels channels;
-  final RubberbandDetector detector;
-  final RubberbandFormant formant;
-  final RubberbandPhase phase;
+  final RubberbandChannels? channels;
+  final RubberbandDetector? detector;
+  final RubberbandFormant? formant;
+  final RubberbandPhase? phase;
   final double pitch;
-  final RubberbandPitch pitchq;
-  final RubberbandSmoothing smoothing;
+  final RubberbandPitch? pitchq;
+  final RubberbandSmoothing? smoothing;
   final double tempo;
-  final RubberbandTransients transients;
-  final RubberbandWindow window;
+  final RubberbandTransients? transients;
+  final RubberbandWindow? window;
 
   const RubberbandSettings({
     this.enabled = false,
-    this.channels = RubberbandChannels.apart,
-    this.detector = RubberbandDetector.compound,
-    this.formant = RubberbandFormant.shifted,
-    this.phase = RubberbandPhase.laminar,
+    this.channels,
+    this.detector,
+    this.formant,
+    this.phase,
     this.pitch = 1.0,
-    this.pitchq = RubberbandPitch.quality,
-    this.smoothing = RubberbandSmoothing.off,
+    this.pitchq,
+    this.smoothing,
     this.tempo = 1.0,
-    this.transients = RubberbandTransients.crisp,
-    this.window = RubberbandWindow.standard,
+    this.transients,
+    this.window,
   });
 
   RubberbandSettings copyWith({
     bool? enabled,
-    RubberbandChannels? channels,
-    RubberbandDetector? detector,
-    RubberbandFormant? formant,
-    RubberbandPhase? phase,
+    Object? channels = unset,
+    Object? detector = unset,
+    Object? formant = unset,
+    Object? phase = unset,
     double? pitch,
-    RubberbandPitch? pitchq,
-    RubberbandSmoothing? smoothing,
+    Object? pitchq = unset,
+    Object? smoothing = unset,
     double? tempo,
-    RubberbandTransients? transients,
-    RubberbandWindow? window,
+    Object? transients = unset,
+    Object? window = unset,
   }) =>
       RubberbandSettings(
         enabled: enabled ?? this.enabled,
-        channels: channels ?? this.channels,
-        detector: detector ?? this.detector,
-        formant: formant ?? this.formant,
-        phase: phase ?? this.phase,
+        channels: identical(channels, unset)
+            ? this.channels
+            : channels as RubberbandChannels?,
+        detector: identical(detector, unset)
+            ? this.detector
+            : detector as RubberbandDetector?,
+        formant: identical(formant, unset)
+            ? this.formant
+            : formant as RubberbandFormant?,
+        phase: identical(phase, unset) ? this.phase : phase as RubberbandPhase?,
         pitch: pitch ?? this.pitch,
-        pitchq: pitchq ?? this.pitchq,
-        smoothing: smoothing ?? this.smoothing,
+        pitchq:
+            identical(pitchq, unset) ? this.pitchq : pitchq as RubberbandPitch?,
+        smoothing: identical(smoothing, unset)
+            ? this.smoothing
+            : smoothing as RubberbandSmoothing?,
         tempo: tempo ?? this.tempo,
-        transients: transients ?? this.transients,
-        window: window ?? this.window,
+        transients: identical(transients, unset)
+            ? this.transients
+            : transients as RubberbandTransients?,
+        window: identical(window, unset)
+            ? this.window
+            : window as RubberbandWindow?,
       );
 
   @override
@@ -7665,23 +9059,16 @@ final class RubberbandSettings {
     assert(tempo >= 0.01, 'rubberband.tempo must be >= 0.01');
     assert(tempo <= 100, 'rubberband.tempo must be <= 100');
     final parts = <String>[];
-    if (channels != RubberbandChannels.apart)
-      parts.add('channels=' + channels.mpvValue);
-    if (detector != RubberbandDetector.compound)
-      parts.add('detector=' + detector.mpvValue);
-    if (formant != RubberbandFormant.shifted)
-      parts.add('formant=' + formant.mpvValue);
-    if (phase != RubberbandPhase.laminar) parts.add('phase=' + phase.mpvValue);
+    if (channels != null) parts.add('channels=' + channels!.mpvValue);
+    if (detector != null) parts.add('detector=' + detector!.mpvValue);
+    if (formant != null) parts.add('formant=' + formant!.mpvValue);
+    if (phase != null) parts.add('phase=' + phase!.mpvValue);
     if (pitch != 1.0) parts.add('pitch=' + pitch.toStringAsFixed(3));
-    if (pitchq != RubberbandPitch.quality)
-      parts.add('pitchq=' + pitchq.mpvValue);
-    if (smoothing != RubberbandSmoothing.off)
-      parts.add('smoothing=' + smoothing.mpvValue);
+    if (pitchq != null) parts.add('pitchq=' + pitchq!.mpvValue);
+    if (smoothing != null) parts.add('smoothing=' + smoothing!.mpvValue);
     if (tempo != 1.0) parts.add('tempo=' + tempo.toStringAsFixed(3));
-    if (transients != RubberbandTransients.crisp)
-      parts.add('transients=' + transients.mpvValue);
-    if (window != RubberbandWindow.standard)
-      parts.add('window=' + window.mpvValue);
+    if (transients != null) parts.add('transients=' + transients!.mpvValue);
+    if (window != null) parts.add('window=' + window!.mpvValue);
     return parts.isEmpty
         ? 'lavfi-rubberband'
         : 'lavfi-rubberband=' + parts.join(':');
@@ -7695,29 +9082,29 @@ final class RubberbandSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [detection]: Set how is silence detected.
+/// - [detection]: Set how is silence detected. (default D_RMS)
 /// - [start_duration]: Specify the amount of time that non-silence must be detected before it stops trimming audio. By increasing the duration, bursts of noises can be treated as silence and trimmed off. Default value is `0`. (default 0)
-/// - [start_mode]: Specify mode of detection of silence end at start of multi-channel audio. Can be `any` or `all`. Default is `any`. With `any`, any sample from any channel that is detected as non-silence will trigger end of silence trimming at start of audio stream. With `all`, only if every sample from every channel is detected as non-silence will trigger end of silence trimming at start of audio stream, limited usage.
+/// - [start_mode]: Specify mode of detection of silence end at start of multi-channel audio. Can be `any` or `all`. Default is `any`. With `any`, any sample from any channel that is detected as non-silence will trigger end of silence trimming at start of audio stream. With `all`, only if every sample from every channel is detected as non-silence will trigger end of silence trimming at start of audio stream, limited usage. (default T_ANY)
 /// - [start_periods]: This value is used to indicate if audio should be trimmed at beginning of the audio. A value of zero indicates no silence should be trimmed from the beginning. When specifying a non-zero value, it trims audio up until it finds non-silence. Normally, when trimming silence from beginning of audio the `start_periods` will be `1` but it can be increased to higher values to trim all audio up to specific count of non-silence periods. Default value is `0`. (range 0..9000, default 0)
 /// - [start_silence]: Specify max duration of silence at beginning that will be kept after trimming. Default is 0, which is equal to trimming all samples detected as silence. (default 0)
 /// - [start_threshold]: This indicates what sample value should be treated as silence. For digital audio, a value of `0` may be fine but for audio recorded from analog, you may wish to increase the value to account for background noise. Can be specified in dB (in case "dB" is appended to the specified value) or amplitude ratio. Default value is `0`. (default 0)
 /// - [stop_duration]: Specify a duration of silence that must exist before audio is not copied any more. By specifying a higher duration, silence that is wanted can be left in the audio. Default value is `0`. (default 0)
-/// - [stop_mode]: Specify mode of detection of silence start after start of multi-channel audio. Can be `any` or `all`. Default is `all`. With `any`, any sample from any channel that is detected as silence will trigger start of silence trimming after start of audio stream, limited usage. With `all`, only if every sample from every channel is detected as silence will trigger start of silence trimming after start of audio stream.
+/// - [stop_mode]: Specify mode of detection of silence start after start of multi-channel audio. Can be `any` or `all`. Default is `all`. With `any`, any sample from any channel that is detected as silence will trigger start of silence trimming after start of audio stream, limited usage. With `all`, only if every sample from every channel is detected as silence will trigger start of silence trimming after start of audio stream. (default T_ALL)
 /// - [stop_periods]: Set the count for trimming silence from the end of audio. When specifying a positive value, it trims audio after it finds specified silence period. To remove silence from the middle of a file, specify a `stop_periods` that is negative. This value is then treated as a positive value and is used to indicate the effect should restart processing as specified by `stop_periods`, making it suitable for removing periods of silence in the middle of the audio. Default value is `0`. (range -9000..9000, default 0)
 /// - [stop_silence]: Specify max duration of silence at end that will be kept after trimming. Default is 0, which is equal to trimming all samples detected as silence. (default 0)
 /// - [stop_threshold]: This is the same as @option{start_threshold} but for trimming silence from the end of audio. Can be specified in dB (in case "dB" is appended to the specified value) or amplitude ratio. Default value is `0`. (default 0)
-/// - [timestamp]: Set processing mode of every audio frame output timestamp.
+/// - [timestamp]: Set processing mode of every audio frame output timestamp. (default TS_WRITE)
 /// - [window]: Set duration in number of seconds used to calculate size of window in number of samples for detecting silence. Using `0` will effectively disable any windowing and use only single sample per channel for silence detection. In that case it may be needed to also set @option{start_silence} and/or @option{stop_silence} to nonzero values with also @option{start_duration} and/or @option{stop_duration} to nonzero values. Default value is `0.02`. Allowed range is from `0` to `10`. (range 0..100000000, default 20000)
 final class SilenceremoveSettings {
   final bool enabled;
-  final SilenceremoveDetection? detection;
+  final SilenceremoveDetection detection;
   final Duration start_duration;
-  final SilenceremoveMode? start_mode;
+  final SilenceremoveMode start_mode;
   final int start_periods;
   final Duration start_silence;
   final double start_threshold;
   final Duration stop_duration;
-  final SilenceremoveMode? stop_mode;
+  final SilenceremoveMode stop_mode;
   final int stop_periods;
   final Duration stop_silence;
   final double stop_threshold;
@@ -7726,14 +9113,14 @@ final class SilenceremoveSettings {
 
   const SilenceremoveSettings({
     this.enabled = false,
-    this.detection,
+    this.detection = SilenceremoveDetection.rms,
     this.start_duration = const Duration(microseconds: 0),
-    this.start_mode,
+    this.start_mode = SilenceremoveMode.any,
     this.start_periods = 0,
     this.start_silence = const Duration(microseconds: 0),
     this.start_threshold = 0.0,
     this.stop_duration = const Duration(microseconds: 0),
-    this.stop_mode,
+    this.stop_mode = SilenceremoveMode.all,
     this.stop_periods = 0,
     this.stop_silence = const Duration(microseconds: 0),
     this.stop_threshold = 0.0,
@@ -7743,14 +9130,14 @@ final class SilenceremoveSettings {
 
   SilenceremoveSettings copyWith({
     bool? enabled,
-    Object? detection = unset,
+    SilenceremoveDetection? detection,
     Duration? start_duration,
-    Object? start_mode = unset,
+    SilenceremoveMode? start_mode,
     int? start_periods,
     Duration? start_silence,
     double? start_threshold,
     Duration? stop_duration,
-    Object? stop_mode = unset,
+    SilenceremoveMode? stop_mode,
     int? stop_periods,
     Duration? stop_silence,
     double? stop_threshold,
@@ -7759,20 +9146,14 @@ final class SilenceremoveSettings {
   }) =>
       SilenceremoveSettings(
         enabled: enabled ?? this.enabled,
-        detection: identical(detection, unset)
-            ? this.detection
-            : detection as SilenceremoveDetection?,
+        detection: detection ?? this.detection,
         start_duration: start_duration ?? this.start_duration,
-        start_mode: identical(start_mode, unset)
-            ? this.start_mode
-            : start_mode as SilenceremoveMode?,
+        start_mode: start_mode ?? this.start_mode,
         start_periods: start_periods ?? this.start_periods,
         start_silence: start_silence ?? this.start_silence,
         start_threshold: start_threshold ?? this.start_threshold,
         stop_duration: stop_duration ?? this.stop_duration,
-        stop_mode: identical(stop_mode, unset)
-            ? this.stop_mode
-            : stop_mode as SilenceremoveMode?,
+        stop_mode: stop_mode ?? this.stop_mode,
         stop_periods: stop_periods ?? this.stop_periods,
         stop_silence: stop_silence ?? this.stop_silence,
         stop_threshold: stop_threshold ?? this.stop_threshold,
@@ -7834,11 +9215,13 @@ final class SilenceremoveSettings {
     assert(stop_periods <= 9000, 'silenceremove.stop_periods must be <= 9000');
     assert(stop_threshold >= 0, 'silenceremove.stop_threshold must be >= 0');
     final parts = <String>[];
-    if (detection != null) parts.add('detection=' + detection!.mpvValue);
+    if (detection != SilenceremoveDetection.rms)
+      parts.add('detection=' + detection.mpvValue);
     if (start_duration != const Duration(microseconds: 0))
       parts.add('start_duration=' +
           (start_duration.inMicroseconds / 1e6).toStringAsFixed(3));
-    if (start_mode != null) parts.add('start_mode=' + start_mode!.mpvValue);
+    if (start_mode != SilenceremoveMode.any)
+      parts.add('start_mode=' + start_mode.mpvValue);
     if (start_periods != 0)
       parts.add('start_periods=' + start_periods.toString());
     if (start_silence != const Duration(microseconds: 0))
@@ -7849,7 +9232,8 @@ final class SilenceremoveSettings {
     if (stop_duration != const Duration(microseconds: 0))
       parts.add('stop_duration=' +
           (stop_duration.inMicroseconds / 1e6).toStringAsFixed(3));
-    if (stop_mode != null) parts.add('stop_mode=' + stop_mode!.mpvValue);
+    if (stop_mode != SilenceremoveMode.all)
+      parts.add('stop_mode=' + stop_mode.mpvValue);
     if (stop_periods != 0) parts.add('stop_periods=' + stop_periods.toString());
     if (stop_silence != const Duration(microseconds: 0))
       parts.add('stop_silence=' +
@@ -8078,7 +9462,7 @@ final class SpeechnormSettings {
     assert(threshold <= 1.0, 'speechnorm.threshold must be <= 1.0');
     final parts = <String>[];
     if (c != 2.0) parts.add('c=' + c.toStringAsFixed(3));
-    if (channels != 'all') parts.add('channels=' + channels);
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (compression != 2.0)
       parts.add('compression=' + compression.toStringAsFixed(3));
     if (e != 2.0) parts.add('e=' + e.toStringAsFixed(3));
@@ -8086,7 +9470,7 @@ final class SpeechnormSettings {
       parts.add('expansion=' + expansion.toStringAsFixed(3));
     if (f != 0.001) parts.add('f=' + f.toStringAsFixed(3));
     if (fall != 0.001) parts.add('fall=' + fall.toStringAsFixed(3));
-    if (h != 'all') parts.add('h=' + h);
+    if (h != 'all') parts.add('h=' + '[' + h + ']');
     if (i != false) parts.add('i=' + (i ? '1' : '0'));
     if (invert != false) parts.add('invert=' + (invert ? '1' : '0'));
     if (l != false) parts.add('l=' + (l ? '1' : '0'));
@@ -8955,8 +10339,8 @@ final class SurroundSettings {
     if (br_out != 1.0) parts.add('br_out=' + br_out.toStringAsFixed(3));
     if (brx != 0.5) parts.add('brx=' + brx.toStringAsFixed(3));
     if (bry != 0.5) parts.add('bry=' + bry.toStringAsFixed(3));
-    if (chl_in != "stereo") parts.add('chl_in=' + chl_in);
-    if (chl_out != "5.1") parts.add('chl_out=' + chl_out);
+    if (chl_in != "stereo") parts.add('chl_in=' + '[' + chl_in + ']');
+    if (chl_out != "5.1") parts.add('chl_out=' + '[' + chl_out + ']');
     if (fc_in != 1.0) parts.add('fc_in=' + fc_in.toStringAsFixed(3));
     if (fc_out != 1.0) parts.add('fc_out=' + fc_out.toStringAsFixed(3));
     if (fcx != 0.5) parts.add('fcx=' + fcx.toStringAsFixed(3));
@@ -9007,48 +10391,128 @@ final class SurroundSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
 /// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
 /// - [g]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
 /// - [gain]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
+/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class TiltshelfSettings {
   final bool enabled;
+  final TiltshelfTransformType a;
+  final int b;
+  final int blocksize;
+  final String c;
+  final String channels;
   final double f;
   final double frequency;
   final double g;
   final double gain;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
   final int p;
   final int poles;
+  final TiltshelfPrecision precision;
+  final TiltshelfPrecision r;
+  final TiltshelfWidthType t;
+  final TiltshelfTransformType transform;
+  final double w;
+  final double width;
+  final TiltshelfWidthType width_type;
 
   const TiltshelfSettings({
     this.enabled = false,
+    this.a = TiltshelfTransformType.di,
+    this.b = 0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
     this.f = 3000.0,
     this.frequency = 3000.0,
     this.g = 0.0,
     this.gain = 0.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
     this.p = 2,
     this.poles = 2,
+    this.precision = TiltshelfPrecision.auto,
+    this.r = TiltshelfPrecision.auto,
+    this.t = TiltshelfWidthType.q,
+    this.transform = TiltshelfTransformType.di,
+    this.w = 0.5,
+    this.width = 0.5,
+    this.width_type = TiltshelfWidthType.q,
   });
 
   TiltshelfSettings copyWith({
     bool? enabled,
+    TiltshelfTransformType? a,
+    int? b,
+    int? blocksize,
+    String? c,
+    String? channels,
     double? f,
     double? frequency,
     double? g,
     double? gain,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
     int? p,
     int? poles,
+    TiltshelfPrecision? precision,
+    TiltshelfPrecision? r,
+    TiltshelfWidthType? t,
+    TiltshelfTransformType? transform,
+    double? w,
+    double? width,
+    TiltshelfWidthType? width_type,
   }) =>
       TiltshelfSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        b: b ?? this.b,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
         g: g ?? this.g,
         gain: gain ?? this.gain,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
         p: p ?? this.p,
         poles: poles ?? this.poles,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -9056,23 +10520,67 @@ final class TiltshelfSettings {
       identical(this, other) ||
       (other is TiltshelfSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.b == b &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
           other.f == f &&
           other.frequency == frequency &&
           other.g == g &&
           other.gain == gain &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
           other.p == p &&
-          other.poles == poles);
+          other.poles == poles &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, f, frequency, g, gain, p, poles);
+  int get hashCode => Object.hashAll([
+        enabled,
+        a,
+        b,
+        blocksize,
+        c,
+        channels,
+        f,
+        frequency,
+        g,
+        gain,
+        m,
+        mix,
+        n,
+        normalize,
+        p,
+        poles,
+        precision,
+        r,
+        t,
+        transform,
+        w,
+        width,
+        width_type
+      ]);
 
   @override
   String toString() =>
-      'TiltshelfSettings(enabled: $enabled, f: $f, frequency: $frequency, g: $g, gain: $gain, p: $p, poles: $poles)';
+      'TiltshelfSettings(enabled: $enabled, a: $a, b: $b, blocksize: $blocksize, c: $c, channels: $channels, f: $f, frequency: $frequency, g: $g, gain: $gain, m: $m, mix: $mix, n: $n, normalize: $normalize, p: $p, poles: $poles, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'tiltshelf.b must be >= 0');
+    assert(b <= 32768, 'tiltshelf.b must be <= 32768');
+    assert(blocksize >= 0, 'tiltshelf.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'tiltshelf.blocksize must be <= 32768');
     assert(f >= 0, 'tiltshelf.f must be >= 0');
     assert(f <= 999999, 'tiltshelf.f must be <= 999999');
     assert(frequency >= 0, 'tiltshelf.frequency must be >= 0');
@@ -9081,18 +10589,45 @@ final class TiltshelfSettings {
     assert(g <= 900, 'tiltshelf.g must be <= 900');
     assert(gain >= -900, 'tiltshelf.gain must be >= -900');
     assert(gain <= 900, 'tiltshelf.gain must be <= 900');
+    assert(m >= 0, 'tiltshelf.m must be >= 0');
+    assert(m <= 1, 'tiltshelf.m must be <= 1');
+    assert(mix >= 0, 'tiltshelf.mix must be >= 0');
+    assert(mix <= 1, 'tiltshelf.mix must be <= 1');
     assert(p >= 1, 'tiltshelf.p must be >= 1');
     assert(p <= 2, 'tiltshelf.p must be <= 2');
     assert(poles >= 1, 'tiltshelf.poles must be >= 1');
     assert(poles <= 2, 'tiltshelf.poles must be <= 2');
+    assert(w >= 0, 'tiltshelf.w must be >= 0');
+    assert(w <= 99999, 'tiltshelf.w must be <= 99999');
+    assert(width >= 0, 'tiltshelf.width must be >= 0');
+    assert(width <= 99999, 'tiltshelf.width must be <= 99999');
     final parts = <String>[];
+    if (a != TiltshelfTransformType.di) parts.add('a=' + a.mpvValue);
+    if (b != 0) parts.add('b=' + b.toString());
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 3000.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
     if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
     if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
     if (poles != 2) parts.add('poles=' + poles.toString());
+    if (precision != TiltshelfPrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != TiltshelfPrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != TiltshelfWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != TiltshelfTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != TiltshelfWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty
         ? 'lavfi-tiltshelf'
         : 'lavfi-tiltshelf=' + parts.join(':');
@@ -9108,48 +10643,128 @@ final class TiltshelfSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
+/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
+/// - [blocksize]: set the block size (range 0..32768, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
 /// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
 /// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
 /// - [g]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
 /// - [gain]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
+/// - [precision]: Set precision of filtering. (range -1..3, default -1)
+/// - [r]: Set precision of filtering. (range -1..3, default -1)
+/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
+/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
+/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
 final class TrebleSettings {
   final bool enabled;
+  final TrebleTransformType a;
+  final int b;
+  final int blocksize;
+  final String c;
+  final String channels;
   final double f;
   final double frequency;
   final double g;
   final double gain;
+  final double m;
+  final double mix;
+  final bool n;
+  final bool normalize;
   final int p;
   final int poles;
+  final TreblePrecision precision;
+  final TreblePrecision r;
+  final TrebleWidthType t;
+  final TrebleTransformType transform;
+  final double w;
+  final double width;
+  final TrebleWidthType width_type;
 
   const TrebleSettings({
     this.enabled = false,
+    this.a = TrebleTransformType.di,
+    this.b = 0,
+    this.blocksize = 0,
+    this.c = 'all',
+    this.channels = 'all',
     this.f = 3000.0,
     this.frequency = 3000.0,
     this.g = 0.0,
     this.gain = 0.0,
+    this.m = 1.0,
+    this.mix = 1.0,
+    this.n = false,
+    this.normalize = false,
     this.p = 2,
     this.poles = 2,
+    this.precision = TreblePrecision.auto,
+    this.r = TreblePrecision.auto,
+    this.t = TrebleWidthType.q,
+    this.transform = TrebleTransformType.di,
+    this.w = 0.5,
+    this.width = 0.5,
+    this.width_type = TrebleWidthType.q,
   });
 
   TrebleSettings copyWith({
     bool? enabled,
+    TrebleTransformType? a,
+    int? b,
+    int? blocksize,
+    String? c,
+    String? channels,
     double? f,
     double? frequency,
     double? g,
     double? gain,
+    double? m,
+    double? mix,
+    bool? n,
+    bool? normalize,
     int? p,
     int? poles,
+    TreblePrecision? precision,
+    TreblePrecision? r,
+    TrebleWidthType? t,
+    TrebleTransformType? transform,
+    double? w,
+    double? width,
+    TrebleWidthType? width_type,
   }) =>
       TrebleSettings(
         enabled: enabled ?? this.enabled,
+        a: a ?? this.a,
+        b: b ?? this.b,
+        blocksize: blocksize ?? this.blocksize,
+        c: c ?? this.c,
+        channels: channels ?? this.channels,
         f: f ?? this.f,
         frequency: frequency ?? this.frequency,
         g: g ?? this.g,
         gain: gain ?? this.gain,
+        m: m ?? this.m,
+        mix: mix ?? this.mix,
+        n: n ?? this.n,
+        normalize: normalize ?? this.normalize,
         p: p ?? this.p,
         poles: poles ?? this.poles,
+        precision: precision ?? this.precision,
+        r: r ?? this.r,
+        t: t ?? this.t,
+        transform: transform ?? this.transform,
+        w: w ?? this.w,
+        width: width ?? this.width,
+        width_type: width_type ?? this.width_type,
       );
 
   @override
@@ -9157,23 +10772,67 @@ final class TrebleSettings {
       identical(this, other) ||
       (other is TrebleSettings &&
           other.enabled == enabled &&
+          other.a == a &&
+          other.b == b &&
+          other.blocksize == blocksize &&
+          other.c == c &&
+          other.channels == channels &&
           other.f == f &&
           other.frequency == frequency &&
           other.g == g &&
           other.gain == gain &&
+          other.m == m &&
+          other.mix == mix &&
+          other.n == n &&
+          other.normalize == normalize &&
           other.p == p &&
-          other.poles == poles);
+          other.poles == poles &&
+          other.precision == precision &&
+          other.r == r &&
+          other.t == t &&
+          other.transform == transform &&
+          other.w == w &&
+          other.width == width &&
+          other.width_type == width_type);
 
   @override
-  int get hashCode => Object.hash(enabled, f, frequency, g, gain, p, poles);
+  int get hashCode => Object.hashAll([
+        enabled,
+        a,
+        b,
+        blocksize,
+        c,
+        channels,
+        f,
+        frequency,
+        g,
+        gain,
+        m,
+        mix,
+        n,
+        normalize,
+        p,
+        poles,
+        precision,
+        r,
+        t,
+        transform,
+        w,
+        width,
+        width_type
+      ]);
 
   @override
   String toString() =>
-      'TrebleSettings(enabled: $enabled, f: $f, frequency: $frequency, g: $g, gain: $gain, p: $p, poles: $poles)';
+      'TrebleSettings(enabled: $enabled, a: $a, b: $b, blocksize: $blocksize, c: $c, channels: $channels, f: $f, frequency: $frequency, g: $g, gain: $gain, m: $m, mix: $mix, n: $n, normalize: $normalize, p: $p, poles: $poles, precision: $precision, r: $r, t: $t, transform: $transform, w: $w, width: $width, width_type: $width_type)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(b >= 0, 'treble.b must be >= 0');
+    assert(b <= 32768, 'treble.b must be <= 32768');
+    assert(blocksize >= 0, 'treble.blocksize must be >= 0');
+    assert(blocksize <= 32768, 'treble.blocksize must be <= 32768');
     assert(f >= 0, 'treble.f must be >= 0');
     assert(f <= 999999, 'treble.f must be <= 999999');
     assert(frequency >= 0, 'treble.frequency must be >= 0');
@@ -9182,18 +10841,45 @@ final class TrebleSettings {
     assert(g <= 900, 'treble.g must be <= 900');
     assert(gain >= -900, 'treble.gain must be >= -900');
     assert(gain <= 900, 'treble.gain must be <= 900');
+    assert(m >= 0, 'treble.m must be >= 0');
+    assert(m <= 1, 'treble.m must be <= 1');
+    assert(mix >= 0, 'treble.mix must be >= 0');
+    assert(mix <= 1, 'treble.mix must be <= 1');
     assert(p >= 1, 'treble.p must be >= 1');
     assert(p <= 2, 'treble.p must be <= 2');
     assert(poles >= 1, 'treble.poles must be >= 1');
     assert(poles <= 2, 'treble.poles must be <= 2');
+    assert(w >= 0, 'treble.w must be >= 0');
+    assert(w <= 99999, 'treble.w must be <= 99999');
+    assert(width >= 0, 'treble.width must be >= 0');
+    assert(width <= 99999, 'treble.width must be <= 99999');
     final parts = <String>[];
+    if (a != TrebleTransformType.di) parts.add('a=' + a.mpvValue);
+    if (b != 0) parts.add('b=' + b.toString());
+    if (blocksize != 0) parts.add('blocksize=' + blocksize.toString());
+    if (c != 'all') parts.add('c=' + '[' + c + ']');
+    if (channels != 'all') parts.add('channels=' + '[' + channels + ']');
     if (f != 3000.0) parts.add('f=' + f.toStringAsFixed(3));
     if (frequency != 3000.0)
       parts.add('frequency=' + frequency.toStringAsFixed(3));
     if (g != 0.0) parts.add('g=' + g.toStringAsFixed(3));
     if (gain != 0.0) parts.add('gain=' + gain.toStringAsFixed(3));
+    if (m != 1.0) parts.add('m=' + m.toStringAsFixed(3));
+    if (mix != 1.0) parts.add('mix=' + mix.toStringAsFixed(3));
+    if (n != false) parts.add('n=' + (n ? '1' : '0'));
+    if (normalize != false) parts.add('normalize=' + (normalize ? '1' : '0'));
     if (p != 2) parts.add('p=' + p.toString());
     if (poles != 2) parts.add('poles=' + poles.toString());
+    if (precision != TreblePrecision.auto)
+      parts.add('precision=' + precision.mpvValue);
+    if (r != TreblePrecision.auto) parts.add('r=' + r.mpvValue);
+    if (t != TrebleWidthType.q) parts.add('t=' + t.mpvValue);
+    if (transform != TrebleTransformType.di)
+      parts.add('transform=' + transform.mpvValue);
+    if (w != 0.5) parts.add('w=' + w.toStringAsFixed(3));
+    if (width != 0.5) parts.add('width=' + width.toStringAsFixed(3));
+    if (width_type != TrebleWidthType.q)
+      parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-treble' : 'lavfi-treble=' + parts.join(':');
   }
 }
