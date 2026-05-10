@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = mpv_audio_kit_example
+PRODUCT_NAME = example
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.alesdrnz.mpvAudioKitExample
+PRODUCT_BUNDLE_IDENTIFIER = com.alesdrnz.example
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 Alessandro Di Ronza. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.alesdrnz. All rights reserved.

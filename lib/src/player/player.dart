@@ -14,9 +14,11 @@ import '../internals/filter_tap_pipeline.dart';
 import '../internals/player_finalizer.dart';
 import '../internals/spectrum_pipeline.dart';
 import '../internals/waveform_pipeline.dart';
+import '../internals/waveform_region_pipeline.dart';
 import '../models/fft_frame.dart';
 import '../models/pcm_frame.dart';
 import '../models/waveform_data.dart';
+import '../models/waveform_region.dart';
 import '../models/cover_art.dart';
 import '../internals/event_isolate.dart';
 import '../events/mpv_exception.dart';
@@ -49,6 +51,7 @@ import '../types/enums/log_level.dart';
 import '../types/settings/audio_effects_settings.dart';
 import '../types/settings/cache_settings.dart';
 import '../types/settings/spectrum_settings.dart';
+import '../types/settings/waveform_settings.dart';
 import '../events/mpv_log_entry.dart';
 import '../events/mpv_hook_event.dart';
 import '../events/mpv_player_error.dart';
@@ -424,9 +427,11 @@ abstract class _PlayerBase {
   // when something subscribes to `stream.spectrum` or `stream.pcm`.
   late final SpectrumPipeline _spectrumPipeline;
 
-  // Progressive waveform accumulator, fed off the spectrum pipeline's
-  // PCM stream so a single tap drives FFT, raw PCM and waveform.
+  // Bulk waveform analyzer (multi-level mipmap) and on-demand region
+  // decode pipeline for sample-level zoom. Both wrap the C-side
+  // worker threads exposed by the libmpv patches.
   late final WaveformPipeline _waveformPipeline;
+  late final WaveformRegionPipeline _waveformRegionPipeline;
 
   // Per-filter pre/post audio tap. Lazy: arms the analyzer-taps
   // property only when at least one [PlayerStream.tap] stream has a
@@ -538,7 +543,13 @@ abstract class _PlayerBase {
     _spectrumPipeline.fftStream.listen(_fftCtrl.add);
     _spectrumPipeline.pcmStream.listen(_pcmStreamCtrl.add);
     _spectrumPipeline.settingsStream.listen(_spectrumCtrl.add);
-    _waveformPipeline = WaveformPipeline(lib: _lib, handle: _handle);
+    _waveformPipeline = WaveformPipeline(
+      lib: _lib,
+      handle: _handle,
+      settings: configuration.waveform,
+    );
+    _waveformRegionPipeline =
+        WaveformRegionPipeline(lib: _lib, handle: _handle);
     _filterTapPipeline =
         FilterTapPipeline(lib: _lib, handle: _handle);
     _waveformPipeline.stream.listen(_waveformCtrl.add);
@@ -1167,6 +1178,7 @@ abstract class _PlayerBase {
       playerFinalizer.detach(this);
       OrphanHandleTracker.instance.remove(_handle);
       await _filterTapPipeline.dispose();
+      await _waveformRegionPipeline.dispose();
       await _waveformPipeline.dispose();
       await _spectrumPipeline.dispose();
       // Cooperative quit: mpv fires MPV_EVENT_SHUTDOWN, the isolate's

@@ -1,6 +1,6 @@
-# mpv_audio_kit_example
+# example
 
-Demonstrates how to use the mpv_audio_kit plugin.
+Minimal example for mpv_audio_kit.
 
 ## Getting Started
 

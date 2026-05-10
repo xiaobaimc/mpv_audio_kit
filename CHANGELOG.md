@@ -1,7 +1,9 @@
 ## [0.2.0]
 
 ### Added
-- `Player.stream.waveform` — full min/max waveform envelope of the current track. The engine bulk-decodes the file the moment it loads, so the entire envelope materialises in well under a second on most tracks. Use for full-track overview strips with click-to-seek; live streams without a known duration emit `null` and never settle.
+- `Player.stream.waveform` — full min/max waveform envelope of the current track, delivered as a 3-level mipmap pyramid (coarse / medium / fine — ~1, ~10, ~400 peaks per second). The engine bulk-decodes the file the moment it loads on a parallel worker pool, so a 5-minute track materialises in tens of milliseconds. Use the appropriate level via `WaveformData.bestLevelForPeaksPerSecond(target)` to drive any zoom level smoothly; live streams without a known duration emit `null` and never settle.
+- `WaveformSettings` — opt-in configuration for the waveform analyzer. Default is off. When `cacheDirectory` is set, the computed envelope is persisted as a sidecar file (keyed by file path + mtime + size) so the next load of the same track emits the envelope synchronously. `maxCacheBytes` enables LRU eviction. Apply at construction via `PlayerConfiguration.waveform` or at runtime via `Player.setWaveform`.
+- `Player.readWaveformRegion(start, end)` — on-demand decode of a contiguous time range to mono Float32 PCM samples for sample-level zoom rendering past the deepest mipmap level. Each call serialises after any in-flight request and is capped at ~100 seconds at 48 kHz; for wider ranges, use a mipmap level instead.
 - `Player.stream.spectrum` — reactive view of the current `SpectrumSettings`, emitted on every `setSpectrum` / `updateSpectrum` call. Matches the bundle-stream pattern of `replayGain` / `cache` / `audioEffects`.
 - `Player.stream.tap(AudioEffect, side: TapSide)` — typed per-filter PCM tap. Picks a slot in the `af` chain via the new `AudioEffect` enum (one value per typed filter, mirroring every `*Settings` field on `AudioEffects`) and a side via `TapSide.pre` / `TapSide.post`. Lazy: the engine hook arms on first listener and tears down on the last cancel; multiple subscribers to the same `(filter, side)` share a single tap.
 - `BandProcessor` — public PCM-to-bands processor. Runs the same FFT / windowing / overlap-add / asymmetric-EMA the library uses for `Player.stream.fft`, so per-filter spectrum curves built from a typed tap pulse with the exact same ballistic as the global visualizer.
@@ -18,7 +20,7 @@
 - Spectrum band values now align with the Web Audio API `AnalyserNode` convention: bin magnitudes are normalised by `fftSize / 2` before the dB conversion, so the same `minDb` / `maxDb` numbers familiar from any Web Audio tutorial produce equivalent visual output. Previously the unnormalised power scale shifted the dB output up by ~60 dB and modern loudness-war masters saturated the visualizer at full scale. New `SpectrumSettings` defaults: `minDb: -100`, `maxDb: -30` (was `-70`, `-10`).
 
 ### Example
-- Redesigned entirely like professional audio software.
+- The full DAW-style consumer app has graduated to its own repository, [Falcus](https://github.com/ales-drnz/falcus). The bundled `example/` is now a ~100-line reference (in the spirit of `just_audio`'s example): open a remote URL, play/pause, scrub. Demonstrates the core API surface and runs out of the box on every desktop platform without extra setup.
 
 ### Build
 - Updated libmpv to `libmpv-r7` across all platforms.

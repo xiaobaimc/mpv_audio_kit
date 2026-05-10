@@ -387,4 +387,59 @@ mixin _AudioModule on _PlayerBase {
   /// [setSpectrum] / [updateSpectrum] call (or [SpectrumSettings.defaults]
   /// when never set).
   SpectrumSettings get spectrumSettings => _spectrumPipeline.settings;
+
+  /// Reconfigures the bulk waveform analyzer.
+  ///
+  /// The new policy applies from the next track-load onward; the
+  /// current track's envelope (if any) is retained until the next
+  /// reset. Setting [WaveformSettings.enabled] to `false` cancels
+  /// any in-flight cache lookup, drops the current envelope, and
+  /// emits `null` on [PlayerStream.waveform] so renderers clear.
+  ///
+  /// When [WaveformSettings.cacheDirectory] is provided, computed
+  /// envelopes are persisted there (keyed by file path + mtime +
+  /// size) and re-emitted instantly on subsequent loads.
+  Future<void> setWaveform(WaveformSettings settings) async {
+    _checkNotDisposed();
+    await _ready;
+    _waveformPipeline.setSettings(settings);
+  }
+
+  /// Decodes a contiguous range of the currently-loaded track to mono
+  /// Float32 PCM samples — used for sample-level zoom rendering past
+  /// the density of the deepest mipmap level on
+  /// [PlayerStream.waveform].
+  ///
+  /// Each call serialises after any in-flight request from this
+  /// [Player]. Returns `null` if the request fails (live stream,
+  /// unsupported codec, range exceeds the per-request sample cap)
+  /// or times out.
+  ///
+  /// Example — render an oscilloscope-style zoom of the last
+  /// 100 ms of the track:
+  ///
+  /// ```dart
+  /// final region = await player.readWaveformRegion(
+  ///   start: state.duration - const Duration(milliseconds: 100),
+  ///   end: state.duration,
+  /// );
+  /// if (region == null) return;
+  /// for (var i = 0; i < region.sampleCount; i++) {
+  ///   final t = i / region.sampleRate;
+  ///   // draw dot at (t, region.samples[i]) …
+  /// }
+  /// ```
+  Future<WaveformRegion?> readWaveformRegion({
+    required Duration start,
+    required Duration end,
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    _checkNotDisposed();
+    await _ready;
+    return _waveformRegionPipeline.read(
+      start: start,
+      end: end,
+      timeout: timeout,
+    );
+  }
 }

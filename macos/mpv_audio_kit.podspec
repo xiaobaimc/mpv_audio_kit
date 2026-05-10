@@ -30,7 +30,7 @@ Pod::Spec.new do |s|
   # Run `scripts/generate_checksums.sh` to get the SHA-256 for your new release.
   s.prepare_command = <<-CMD
     MPV_RELEASE_VERSION="libmpv-r7"
-    EXPECTED_SHA256="abc0472b290c7dc1c55a7048541d9464dbcb710b243ba6efe49ec09b210f23e0"
+    EXPECTED_SHA256="23a04841517beffef1caa041f7517466d85e23381f855cf28434a050ccab2153"
     URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_macos-arm64.dylib"
     FILE_DEST="libs/libmpv.dylib"
     
