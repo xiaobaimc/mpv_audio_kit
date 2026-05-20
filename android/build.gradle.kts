@@ -62,7 +62,7 @@ android {
         // The shared libraries are automatically downloaded from GitHub 
         // Releases and placed into src/main/jniLibs during the build.
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
         }
 
         // Link CMakeLists for the JNI/NDK wrapper
@@ -111,11 +111,15 @@ val downloadMpvTask = tasks.register("downloadMpvLibraries") {
     val abis = mapOf(
         "arm64-v8a" to mapOf(
             "file" to "libmpv_android-arm64-v8a.so",
-            "sha256" to "f7e980dd7b3616219301e90b3ddc4750e595f1a49d75bae6d632fd8327672ff6"
+            "sha256" to "9573d0d75b77b56f0bc25737ce03e2b4013ccd3c99bb4eb5c9688e56837f7c26"
+        ),
+        "armeabi-v7a" to mapOf(
+            "file" to "libmpv_android-armeabi-v7a.so",
+            "sha256" to "8727856376ed3bc86e7ccd4e0207c0f1bbde4945b398de4ef27affdfa52a5233"
         ),
         "x86_64" to mapOf(
             "file" to "libmpv_android-x86_64.so",
-            "sha256" to "5b01f08f2c5a48df956944f48b8eba58f26781d58a21c7fa2ee0b4b920ff72e5"
+            "sha256" to "a218796a0ee93f6968cfd6dc3ef67fb6b8b11cb69bfbe997a325c387b843619b"
         )
     )
     

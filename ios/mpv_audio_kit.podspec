@@ -1,14 +1,12 @@
 #
 # mpv_audio_kit iOS podspec
 #
-# libmpv on iOS is distributed as a static XCFramework downloaded from GitHub
-# Releases. Each slice ships as a `libmpv.framework/` static-library wrapper
-# (the layout CocoaPods needs for `vendored_frameworks` linking to work).
-# The xcframework includes:
-#   ios-arm64           – device (arm64)
-#   ios-arm64-simulator – simulator (arm64 only, Apple Silicon Macs)
-# Apple removed Rosetta for the iOS 26 simulator, so x86_64 sim is no longer
-# supported. EXCLUDED_ARCHS below propagates this constraint to the consumer.
+# libmpv on iOS is distributed as a dynamic xcframework downloaded from
+# GitHub Releases. Each slice wraps a Mach-O dylib (install_name
+# `@rpath/libmpv.framework/libmpv`); the Dart side loads it via
+# `DynamicLibrary.open('libmpv.framework/libmpv')`. The xcframework includes:
+#   ios-arm64                    – device (arm64)
+#   ios-arm64_x86_64-simulator   – simulator (arm64 + x86_64 lipo'd)
 #
 Pod::Spec.new do |s|
   s.name             = 'mpv_audio_kit'
@@ -28,13 +26,14 @@ Pod::Spec.new do |s|
   # Required frameworks for Audio Session and Core functions
   s.frameworks = 'AVFoundation', 'AudioToolbox', 'Security', 'CoreFoundation'
 
-  # ── Static libmpv XCFramework ─────────────────────────────────────────────
+  # ── Dynamic libmpv XCFramework ────────────────────────────────────────────
   # Automatically downloaded from GitHub Releases if missing or invalid.
-  # Run `scripts/generate_checksums.sh` to get the SHA-256 for your new release.
+  # Run `make checksums` to refresh the SHA-256 after a libmpv rebuild —
+  # the helper script updates both this file and Package.swift.
   s.prepare_command = <<-CMD
     MPV_RELEASE_VERSION="libmpv-r7"
-    EXPECTED_SHA256="95140b9efdd4b1f6dc156b4ede7a982cd991a7c001ee67136e883c6f53abe394"
-    URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_ios-arm64.xcframework.zip"
+    EXPECTED_SHA256="f4f04d9699bfc92b0c39884831fbbf83e93f46579a0faef8a56c356ca442e036"
+    URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_ios.xcframework.zip"
 
     mkdir -p Frameworks
     ZIP_FILE="Frameworks/libmpv_xcframework.zip"
@@ -54,7 +53,7 @@ Pod::Spec.new do |s|
     fi
 
     if [ $DOWNLOAD_NEEDED -eq 1 ]; then
-      echo "Downloading libmpv_ios-arm64.xcframework.zip from $URL..."
+      echo "Downloading libmpv_ios.xcframework.zip from $URL..."
       curl -L -o "$ZIP_FILE" "$URL"
 
       ACTUAL_SHA256=$(shasum -a 256 "$ZIP_FILE" | awk '{ print $1 }')
@@ -72,19 +71,8 @@ Pod::Spec.new do |s|
   s.vendored_frameworks = 'Frameworks/libmpv.xcframework'
 
   s.pod_target_xcconfig = {
-    'DEFINES_MODULE'                      => 'YES',
-    # The XCFramework ships only ios-arm64-simulator (no x86_64). Exclude
-    # x86_64 from simulator builds so CocoaPods' slice picker matches.
-    # Apple removed Rosetta for the iOS 26 simulator; on Apple Silicon
-    # x86_64 sim is no longer reachable anyway.
-    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386 x86_64',
-    'ENABLE_BITCODE'                      => 'NO',
-    'OTHER_LDFLAGS'                       => '-liconv',
-  }
-  # Propagate the architecture exclusion to the consuming app target so the
-  # Flutter Runner doesn't ask for a x86_64-simulator slice we don't ship.
-  s.user_target_xcconfig = {
-    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386 x86_64',
+    'DEFINES_MODULE'  => 'YES',
+    'ENABLE_BITCODE'  => 'NO',
   }
   s.swift_version = '5.0'
 end

@@ -3,7 +3,6 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import '../types/enums/log_level.dart';
-import '../types/settings/waveform_settings.dart';
 
 /// Initial configuration for a [Player] instance.
 ///
@@ -24,18 +23,9 @@ class PlayerConfiguration {
   /// Default: [LogLevel.warn] — surfaces warnings, errors, fatals.
   final LogLevel logLevel;
 
-  /// Initial bulk waveform analyzer policy. Default:
-  /// [WaveformSettings.disabled] — opt in by passing a settings
-  /// bundle with `enabled: true` (and optionally a `cacheDirectory`
-  /// to make subsequent loads of the same file instant).
-  ///
-  /// Can be reconfigured at runtime via [Player.setWaveform].
-  final WaveformSettings waveform;
-
   const PlayerConfiguration({
     this.autoPlay = false,
     this.initialVolume = 100.0,
     this.logLevel = LogLevel.warn,
-    this.waveform = WaveformSettings.disabled,
   });
 }

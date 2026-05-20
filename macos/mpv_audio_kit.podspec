@@ -1,8 +1,10 @@
 #
 # mpv_audio_kit macOS podspec
 #
-# libmpv is bundled as a .dylib and copied into the app's Frameworks folder
-# during the build phase. This ensures a portable zero-install experience.
+# libmpv on macOS is distributed as a dynamic xcframework downloaded from
+# GitHub Releases (same shape as iOS). The single slice wraps a Universal
+# (arm64 + x86_64) Mach-O dylib (install_name `@rpath/libmpv.framework/libmpv`);
+# the Dart side loads it via `DynamicLibrary.open('libmpv.framework/libmpv')`.
 #
 
 Pod::Spec.new do |s|
@@ -23,76 +25,52 @@ Pod::Spec.new do |s|
 
   s.platform    = :osx, '12.0'
   s.swift_version = '5.0'
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
 
-  # ── Download libmpv.dylib from github releases ────────────────────────────
-  # Automatically downloaded if missing or invalid.
-  # Run `scripts/generate_checksums.sh` to get the SHA-256 for your new release.
+  # ── Dynamic libmpv XCFramework ────────────────────────────────────────────
+  # Automatically downloaded from GitHub Releases if missing or invalid.
+  # Run `make checksums` to refresh the SHA-256 after a libmpv rebuild —
+  # the helper script updates both this file and Package.swift.
   s.prepare_command = <<-CMD
     MPV_RELEASE_VERSION="libmpv-r7"
-    EXPECTED_SHA256="23a04841517beffef1caa041f7517466d85e23381f855cf28434a050ccab2153"
-    URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_macos-arm64.dylib"
-    FILE_DEST="libs/libmpv.dylib"
-    
-    mkdir -p libs
+    EXPECTED_SHA256="67fae1f39876102ad19a4bf24b316b1ade489f0ac1e9eef85fa39a170858c76d"
+    URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_macos.xcframework.zip"
+
+    mkdir -p Frameworks
+    ZIP_FILE="Frameworks/libmpv_xcframework.zip"
     DOWNLOAD_NEEDED=1
-    
-    if [ -f "$FILE_DEST" ]; then
-      ACTUAL_SHA256=$(shasum -a 256 "$FILE_DEST" | awk '{ print $1 }')
+
+    if [ -f "Frameworks/libmpv.xcframework/Info.plist" ] && [ -f "$ZIP_FILE" ]; then
+      ACTUAL_SHA256=$(shasum -a 256 "$ZIP_FILE" | awk '{ print $1 }')
       if [ "$ACTUAL_SHA256" = "$EXPECTED_SHA256" ]; then
         DOWNLOAD_NEEDED=0
       else
         echo "SHA-256 mismatch! Expected $EXPECTED_SHA256 but got $ACTUAL_SHA256. Redownloading..."
-        rm -f "$FILE_DEST"
+        rm -rf "Frameworks/libmpv.xcframework"
+        rm -f "$ZIP_FILE"
       fi
+    elif [ -d "Frameworks/libmpv.xcframework" ] && [ ! -f "$ZIP_FILE" ]; then
+      DOWNLOAD_NEEDED=0
     fi
 
     if [ $DOWNLOAD_NEEDED -eq 1 ]; then
-      echo "Downloading libmpv_macos-arm64.dylib from $URL..."
-      curl -L -o "$FILE_DEST" "$URL"
-      
-      ACTUAL_SHA256=$(shasum -a 256 "$FILE_DEST" | awk '{ print $1 }')
+      echo "Downloading libmpv_macos.xcframework.zip from $URL..."
+      curl -L -o "$ZIP_FILE" "$URL"
+
+      ACTUAL_SHA256=$(shasum -a 256 "$ZIP_FILE" | awk '{ print $1 }')
       if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
         echo "ERROR: SHA-256 verification failed for downloaded file!"
-        rm -f "$FILE_DEST"
+        rm -f "$ZIP_FILE"
         exit 1
       fi
+
+      unzip -o "$ZIP_FILE" -d Frameworks/
+      rm -f "$ZIP_FILE"
     fi
   CMD
 
-  # ── Copy libmpv.dylib into App Bundle ─────────────────────────────────────
-  # The dylib is copied to Runner.app/Contents/Frameworks/ and found by
-  # DynamicLibrary.open('libmpv.dylib') via the app's rpath.
-  s.script_phases = [
-    {
-      :name               => 'Copy libmpv into Frameworks',
-      :execution_position => :after_compile,
-      # Declare output file so Xcode can skip the script if already up to date.
-      :output_files       => [
-        '${TARGET_BUILD_DIR}/${WRAPPER_NAME}/Versions/A/libmpv.dylib',
-      ],
-      :script             => <<~SHELL,
-        set -e
-        DEST="${TARGET_BUILD_DIR}/${WRAPPER_NAME}/Versions/A"
-        mkdir -p "$DEST"
+  s.vendored_frameworks = 'Frameworks/libmpv.xcframework'
 
-        # Official bundled libmpv.dylib
-        SRC="${PODS_TARGET_SRCROOT}/libs/libmpv.dylib"
-
-        if [ ! -f "$SRC" ]; then
-          echo "error: libmpv.dylib not found. Download it from GitHub or place it in macos/libs/libmpv.dylib"
-          exit 1
-        fi
-
-        cp "$SRC" "$DEST/libmpv.dylib"
-        chmod +w "$DEST/libmpv.dylib"
-        
-        # Update install name and sign the library
-        install_name_tool -id "@rpath/libmpv.dylib" "$DEST/libmpv.dylib" 2>/dev/null
-        codesign --force --sign "${EXPANDED_CODE_SIGN_IDENTITY:-}" \
-          "$DEST/libmpv.dylib" 2>/dev/null || \
-        codesign --force --sign - "$DEST/libmpv.dylib"
-      SHELL
-    }
-  ]
+  s.pod_target_xcconfig = {
+    'DEFINES_MODULE'  => 'YES',
+  }
 end

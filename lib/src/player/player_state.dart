@@ -13,7 +13,7 @@ import 'package:mpv_audio_kit/src/types/enums/spdif.dart';
 import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
 import 'package:mpv_audio_kit/src/types/enums/cover.dart';
 import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
-import 'package:mpv_audio_kit/src/types/settings/audio_effects_settings.dart';
+import 'package:mpv_audio_kit/src/generated/audio_effects_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
 import 'package:mpv_audio_kit/src/models/chapter.dart';
 import 'package:mpv_audio_kit/src/models/mpv_track.dart';

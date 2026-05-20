@@ -20,9 +20,9 @@ import 'package:mpv_audio_kit/src/types/enums/spdif.dart';
 import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
 import 'package:mpv_audio_kit/src/types/enums/cover.dart';
 import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
-import 'package:mpv_audio_kit/src/types/settings/audio_effects_settings.dart';
+import 'package:mpv_audio_kit/src/generated/audio_effects_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
-import 'package:mpv_audio_kit/src/types/enums/audio_effects.dart';
+import 'package:mpv_audio_kit/src/generated/audio_effects.dart';
 import 'package:mpv_audio_kit/src/types/enums/tap_side.dart';
 import 'package:mpv_audio_kit/src/types/settings/spectrum_settings.dart';
 import 'package:mpv_audio_kit/src/models/chapter.dart';
@@ -648,22 +648,17 @@ class PlayerStream {
   /// supplies samples, not config).
   final Stream<SpectrumSettings> spectrum;
 
-  /// Mono min/max waveform envelope of the current track, binned across
-  /// the track duration. Use for a full-track overview strip with
-  /// click-to-seek.
-  ///
-  /// On every `loadfile`, the engine spawns a background worker that
-  /// bulk-decodes the file via libav and bins min/max into a
-  /// 2048-entry envelope. The whole envelope materialises in well
-  /// under a second on most tracks (~20-50× the playback rate on
-  /// AAC/FLAC) — no need to play through.
+  /// Mono min/max amplitude envelope of the current track, binned
+  /// across the full track duration. Use for a static full-track
+  /// overview strip with click-to-seek.
   ///
   /// Emits `null` on every track-change boundary (so renderers can
-  /// clear stale data) and a fresh [WaveformData] once the worker
-  /// finishes. Live streams or sources without a known duration emit
-  /// `null` and never settle on a real envelope.
+  /// clear stale data) and a single [WaveformData] once the engine
+  /// finishes decoding the file in the background. Live streams or
+  /// sources without a known duration emit `null` and never settle.
   ///
-  /// **Lazy** — the polling timer runs only while a listener is
-  /// attached; the cost of an idle waveform is zero.
+  /// **Listener-gated** — the native analyzer runs and the pipeline
+  /// polls only while a listener is attached; the cost of a waveform
+  /// nobody is listening to is zero.
   final Stream<WaveformData?> waveform;
 }

@@ -14,7 +14,7 @@ import '../types/enums/gapless.dart';
 import '../types/settings/cache_settings.dart';
 import '../types/enums/cache.dart';
 import '../models/chapter.dart';
-import '../types/settings/audio_effects_settings.dart';
+import '../generated/audio_effects_settings.dart';
 import '../types/state/mpv_prefetch_state.dart';
 import '../models/mpv_track.dart';
 import '../player/player_state.dart';

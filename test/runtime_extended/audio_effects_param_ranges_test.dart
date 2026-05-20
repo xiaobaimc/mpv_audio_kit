@@ -31,7 +31,7 @@ import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 
 import '../_helpers/libmpv_resolver.dart';
 import '../_helpers/mpv_error_capture.dart';
-import '_audio_effects_param_corners.dart';
+import '../generated/_audio_effects_param_corners.dart';
 
 void main() {
   final fixturePath =

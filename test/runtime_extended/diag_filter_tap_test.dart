@@ -36,7 +36,6 @@ void main() {
       // Now subscribe to the post-side tap and log every frame.
       final t0 = DateTime.now().millisecondsSinceEpoch;
       var prevTs = 0;
-      var prevFp = 0.0;
       var count = 0;
       var prevFirst = 0.0;
       final sub = player.stream
@@ -56,7 +55,6 @@ void main() {
             'last=${last.toStringAsFixed(6).padLeft(10)}');
         prevTs = ts;
         prevFirst = first;
-        prevFp = 0;  // unused
         count++;
       });
 

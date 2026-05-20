@@ -12,7 +12,7 @@ import '../types/enums/loop.dart';
 import '../types/enums/spdif.dart';
 import '../types/sealed/channels.dart';
 import '../types/sealed/track.dart';
-import '../types/settings/audio_effects_settings.dart';
+import '../generated/audio_effects_settings.dart';
 import '../types/settings/cache_settings.dart';
 import '../types/settings/replay_gain_settings.dart';
 import '../types/settings/spectrum_settings.dart';

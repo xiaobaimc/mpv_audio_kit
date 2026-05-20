@@ -421,11 +421,6 @@ class MpvLibrary {
   /// Opens libmpv from the platform-specific path or a custom [path].
   /// Throws [MpvLibraryException] if the library cannot be found.
   factory MpvLibrary.open([String? path]) {
-    if (Platform.isIOS) {
-      // On iOS libmpv is statically linked via xcframework.
-      // DynamicLibrary.process() exposes all symbols from the current process.
-      return MpvLibrary._(DynamicLibrary.process());
-    }
     final resolvedPath = path ?? _resolvePath();
     try {
       return MpvLibrary._(DynamicLibrary.open(resolvedPath));
@@ -437,24 +432,11 @@ class MpvLibrary {
   }
 
   static String _resolvePath() {
-    if (Platform.isMacOS) {
-      final exeDir = File(Platform.resolvedExecutable).parent.path;
-      final inPlugin =
-          '$exeDir/../Frameworks/mpv_audio_kit.framework/Versions/A/libmpv.dylib';
-      final inApp = '$exeDir/../Frameworks/libmpv.dylib';
-
-      final candidates = [
-        inPlugin, // inside the plugin framework (standard for pods)
-        inApp, // top-level Frameworks (manual deploy)
-      ];
-      for (final c in candidates) {
-        if (File(c).existsSync()) {
-          return c;
-        }
-      }
-      throw const MpvLibraryException(
-          'libmpv.dylib not found in the app bundle.\n'
-          'Ensure libmpv.dylib is present in the Frameworks/ folder.');
+    if (Platform.isMacOS || Platform.isIOS) {
+      // Embedded as <App>/Frameworks/libmpv.framework/libmpv via the
+      // plugin's xcframework. dyld resolves the leaf path through the
+      // host app's LC_RPATH (@executable_path/Frameworks).
+      return 'libmpv.framework/libmpv';
     } else if (Platform.isLinux) {
       // Check local folder first (common for portable builds/AppImage)
       final exeDir = File(Platform.resolvedExecutable).parent.path;

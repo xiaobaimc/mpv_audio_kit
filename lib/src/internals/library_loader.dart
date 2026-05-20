@@ -32,8 +32,9 @@ abstract final class MpvAudioKit {
   /// [libmpv] (optional) — explicit path or filename for the native
   /// `libmpv` library to load via `DynamicLibrary.open`. When `null`
   /// (the default), the platform's standard lookup is used:
-  /// `libmpv.so` on Linux, `libmpv.dylib` on macOS/iOS, `libmpv.dll`
-  /// on Windows, and the bundled JNI library on Android.
+  /// `libmpv.so` on Linux/Android, `libmpv.dll` on Windows, and
+  /// `libmpv.framework/libmpv` on macOS/iOS (resolved via the consumer
+  /// app's @rpath).
   /// Pass an explicit path only when shipping a custom libmpv build
   /// alongside your app.
   ///

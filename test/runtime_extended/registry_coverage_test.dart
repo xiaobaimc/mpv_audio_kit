@@ -28,7 +28,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 
-import '../_helpers/audio_filter_names.dart';
+import '../generated/audio_filter_names.dart';
 import '../_helpers/setter_test_helpers.dart';
 
 /// Audio decoders the package contractually supports on every shipped

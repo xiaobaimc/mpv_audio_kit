@@ -224,14 +224,7 @@ bundle, and the escape hatches are now async. See the
 
     </details>
 
-    <details>
-    <summary><a href="#14-waveform"><b>14. Waveform</b></a></summary>
-
-    * [14.1 Configuration](#141-configuration)
-    * [14.2 Mipmap density](#142-mipmap-density)
-    * [14.3 Sample-level zoom](#143-sample-level-zoom)
-
-    </details>
+    <a href="#14-waveform"><b>14. Waveform</b></a>
 *   [Migration](#migration)
 *   [Permissions](#permissions)
 *   [Troubleshooting](#troubleshooting)
@@ -241,7 +234,7 @@ bundle, and the escape hatches are now async. See the
 
 ## Visuals
 
-The package ships a minimal `example/` (open file, play/pause, seek, draw the waveform overview — ~150 lines, zero chrome). For a full DAW-style consumer with rack, FX windows, sample-zoom waveform and console, see **[Falcus](https://github.com/ales-drnz/falcus)** — the showcase desktop application built on top of this library.
+The package ships a full `example/` app — player, queue, streaming catalogue, log console, and a settings tree covering every mpv subsystem (filters, ReplayGain, cache, prefetch, spectrum, …). The player's seekbar renders the track's waveform when the envelope is available. For a full DAW-style consumer with rack, FX windows, sample-zoom waveform and console, see **[Falcus](https://github.com/ales-drnz/falcus)** — the showcase desktop application built on top of this library.
 
 #### Desktop
 
@@ -2145,84 +2138,27 @@ attached and tears down on the last cancel.
 
 ### 14. Waveform
 
-A whole-file min/max envelope of the loaded track is exposed via
-[PlayerStream.waveform], computed in the background by libmpv on a
-worker thread the moment the file finishes loading. The envelope is
-delivered as a 3-level mipmap pyramid suitable for everything from a
-thumbnail seekbar to a moderate-zoom DAW-style view. For deeper zoom
-(showing individual PCM samples), [Player.readWaveformRegion]
-decodes a specific time range to raw mono Float32 PCM on demand.
+A whole-file mono min/max envelope of the loaded track is exposed
+via [PlayerStream.waveform], computed in the background by libmpv on
+a worker thread when the file loads. It's a single static envelope
+(~2000 min/max bins) — enough to paint a waveform overview or a
+waveform-style seekbar.
+
+The stream is **listener-gated**: the analyzer runs only while
+something is subscribed to `player.stream.waveform`, and costs
+nothing when nobody listens. No configuration, no opt-in setter —
+just listen.
 
 ```dart
-final cacheDir = await getApplicationCacheDirectory();
-final player = Player(configuration: PlayerConfiguration(
-  waveform: WaveformSettings(enabled: true, cacheDirectory: cacheDir),
-));
 player.stream.waveform.listen((wave) {
-  if (wave == null) return; // track-change reset
-  // wave.coarse  → ~1 peak/sec   (full-track overview)
-  // wave.medium  → ~10 peaks/sec (default player view)
-  // wave.fine    → ~400 peaks/sec (moderate zoom)
+  if (wave == null) return; // null on track change, until ready
+  // wave.min / wave.max — Float32List, range [-1, +1], wave.bins long.
+  // Bin i spans [i / wave.bins * wave.duration, (i + 1) / … ).
+  for (var i = 0; i < wave.bins; i++) {
+    // draw a vertical bar from wave.min[i] to wave.max[i]
+  }
 });
 ```
-
-#### 14.1 Configuration
-
-```dart
-WaveformSettings(
-  enabled: true,                  // off by default — opt in
-  cacheDirectory: cacheDir,       // optional persistent sidecar
-  maxCacheBytes: 100 * 1024 * 1024, // optional LRU cap
-)
-```
-
-When `cacheDirectory` is set, the analyzer's output is persisted as
-a sidecar file there (keyed by file path + mtime + size). Subsequent
-loads of the same file emit the envelope synchronously, skipping the
-decoder. With `maxCacheBytes`, the cache evicts oldest entries when
-a new write would push past the cap.
-
-`Player.setWaveform(settings)` reconfigures at runtime. Disabling
-drops the current envelope and emits `null` so renderers clear.
-
-#### 14.2 Mipmap density
-
-Bin count per level is `duration_seconds × peaks_per_second`. The
-levels are bounded — a 5-minute stereo track materialises in
-~990 KB total (coarse 2.4 KB + medium 24 KB + fine 960 KB), a
-3-hour audiobook in ~35 MB. For pathological inputs (corrupted
-metadata declaring centuries of duration) each level caps at a safe
-upper bound and reports its effective density via
-[WaveformLevel.peaksPerSecond].
-
-`bestLevelForPeaksPerSecond(target)` picks the lowest-density level
-that still meets a requested density target — useful for picking a
-mipmap level to render at a given zoom:
-
-```dart
-final desiredPps = wave.sampleRate / samplesPerPixel;
-final level = wave.bestLevelForPeaksPerSecond(desiredPps);
-```
-
-#### 14.3 Sample-level zoom
-
-When the consumer is zoomed in past the density of the deepest
-mipmap level (i.e. wants 1 sample per pixel), the precomputed
-envelope no longer has the resolution to draw individual sample
-values. [Player.readWaveformRegion] decodes a specific time range
-to raw mono Float32 PCM on demand:
-
-```dart
-final region = await player.readWaveformRegion(
-  start: const Duration(milliseconds: 500),
-  end:   const Duration(milliseconds: 700),
-);
-// region.samples is Float32List, length ≈ 200ms × sampleRate
-```
-
-Each call serialises after any in-flight request. Range size is
-capped at ~100 seconds at 48 kHz (≈ 5M samples) — for wider ranges
-the consumer should fall back to a mipmap level.
 
 ---
 

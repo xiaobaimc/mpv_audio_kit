@@ -14,11 +14,9 @@ import '../internals/filter_tap_pipeline.dart';
 import '../internals/player_finalizer.dart';
 import '../internals/spectrum_pipeline.dart';
 import '../internals/waveform_pipeline.dart';
-import '../internals/waveform_region_pipeline.dart';
 import '../models/fft_frame.dart';
 import '../models/pcm_frame.dart';
 import '../models/waveform_data.dart';
-import '../models/waveform_region.dart';
 import '../models/cover_art.dart';
 import '../internals/event_isolate.dart';
 import '../events/mpv_exception.dart';
@@ -48,10 +46,9 @@ import '../types/enums/gapless.dart';
 import '../types/enums/tap_side.dart';
 import '../types/enums/hook.dart';
 import '../types/enums/log_level.dart';
-import '../types/settings/audio_effects_settings.dart';
+import '../generated/audio_effects_settings.dart';
 import '../types/settings/cache_settings.dart';
 import '../types/settings/spectrum_settings.dart';
-import '../types/settings/waveform_settings.dart';
 import '../events/mpv_log_entry.dart';
 import '../events/mpv_hook_event.dart';
 import '../events/mpv_player_error.dart';
@@ -71,8 +68,8 @@ export '../models/device.dart';
 export '../types/enums/format.dart';
 export '../models/audio_params.dart';
 export '../types/sealed/track.dart';
-export '../types/enums/audio_effects.dart';
-export '../types/settings/audio_effects_settings.dart';
+export '../generated/audio_effects.dart';
+export '../generated/audio_effects_settings.dart';
 export '../events/mpv_log_entry.dart';
 export '../events/mpv_hook_event.dart';
 export '../types/settings/spectrum_settings.dart';
@@ -427,11 +424,9 @@ abstract class _PlayerBase {
   // when something subscribes to `stream.spectrum` or `stream.pcm`.
   late final SpectrumPipeline _spectrumPipeline;
 
-  // Bulk waveform analyzer (multi-level mipmap) and on-demand region
-  // decode pipeline for sample-level zoom. Both wrap the C-side
-  // worker threads exposed by the libmpv patches.
+  // Static waveform analyzer. Listener-gated: arms the native
+  // analyzer and polls only while `stream.waveform` has a listener.
   late final WaveformPipeline _waveformPipeline;
-  late final WaveformRegionPipeline _waveformRegionPipeline;
 
   // Per-filter pre/post audio tap. Lazy: arms the analyzer-taps
   // property only when at least one [PlayerStream.tap] stream has a
@@ -468,7 +463,18 @@ abstract class _PlayerBase {
     _fftCtrl = StreamController<FftFrame>.broadcast();
     _pcmStreamCtrl = StreamController<PcmFrame>.broadcast();
     _spectrumCtrl = StreamController<SpectrumSettings>.broadcast();
-    _waveformCtrl = StreamController<WaveformData?>.broadcast();
+    // Listener-gated: the native waveform analyzer arms only while a
+    // consumer is subscribed. The pipeline is built during isolate
+    // bring-up; a subscriber that lands before then is reconciled
+    // once bring-up finishes (see `_bringUpInIsolate`).
+    _waveformCtrl = StreamController<WaveformData?>.broadcast(
+      onListen: () {
+        if (_bringUpCompleted) _waveformPipeline.setEnabled(true);
+      },
+      onCancel: () {
+        if (_bringUpCompleted) _waveformPipeline.setEnabled(false);
+      },
+    );
     stream = PlayerStream.fromInternals(
       reactives: _reactives,
       buffering: _buffering,
@@ -543,13 +549,7 @@ abstract class _PlayerBase {
     _spectrumPipeline.fftStream.listen(_fftCtrl.add);
     _spectrumPipeline.pcmStream.listen(_pcmStreamCtrl.add);
     _spectrumPipeline.settingsStream.listen(_spectrumCtrl.add);
-    _waveformPipeline = WaveformPipeline(
-      lib: _lib,
-      handle: _handle,
-      settings: configuration.waveform,
-    );
-    _waveformRegionPipeline =
-        WaveformRegionPipeline(lib: _lib, handle: _handle);
+    _waveformPipeline = WaveformPipeline(lib: _lib, handle: _handle);
     _filterTapPipeline =
         FilterTapPipeline(lib: _lib, handle: _handle);
     _waveformPipeline.stream.listen(_waveformCtrl.add);
@@ -563,6 +563,10 @@ abstract class _PlayerBase {
     // cannot read.
     _tlsBundleReady = _autoConfigureTlsCaBundle();
     _bringUpCompleted = true;
+
+    // A waveform subscriber that landed before bring-up finished
+    // missed the `onListen` enable — reconcile it now.
+    if (_waveformCtrl.hasListener) _waveformPipeline.setEnabled(true);
   }
 
   late final Future<void> _tlsBundleReady;
@@ -1178,7 +1182,6 @@ abstract class _PlayerBase {
       playerFinalizer.detach(this);
       OrphanHandleTracker.instance.remove(_handle);
       await _filterTapPipeline.dispose();
-      await _waveformRegionPipeline.dispose();
       await _waveformPipeline.dispose();
       await _spectrumPipeline.dispose();
       // Cooperative quit: mpv fires MPV_EVENT_SHUTDOWN, the isolate's

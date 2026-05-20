@@ -20,7 +20,7 @@ import 'dart:io';
 import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 
-import '../_helpers/audio_filter_names.dart';
+import '../generated/audio_filter_names.dart';
 import '../_helpers/libmpv_resolver.dart';
 import '../_helpers/mpv_error_capture.dart';
 

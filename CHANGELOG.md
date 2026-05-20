@@ -1,29 +1,25 @@
 ## [0.2.0]
 
 ### Added
-- `Player.stream.waveform` — full min/max waveform envelope of the current track, delivered as a 3-level mipmap pyramid (coarse / medium / fine — ~1, ~10, ~400 peaks per second). The engine bulk-decodes the file the moment it loads on a parallel worker pool, so a 5-minute track materialises in tens of milliseconds. Use the appropriate level via `WaveformData.bestLevelForPeaksPerSecond(target)` to drive any zoom level smoothly; live streams without a known duration emit `null` and never settle.
-- `WaveformSettings` — opt-in configuration for the waveform analyzer. Default is off. When `cacheDirectory` is set, the computed envelope is persisted as a sidecar file (keyed by file path + mtime + size) so the next load of the same track emits the envelope synchronously. `maxCacheBytes` enables LRU eviction. Apply at construction via `PlayerConfiguration.waveform` or at runtime via `Player.setWaveform`.
-- `Player.readWaveformRegion(start, end)` — on-demand decode of a contiguous time range to mono Float32 PCM samples for sample-level zoom rendering past the deepest mipmap level. Each call serialises after any in-flight request and is capped at ~100 seconds at 48 kHz; for wider ranges, use a mipmap level instead.
-- `Player.stream.spectrum` — reactive view of the current `SpectrumSettings`, emitted on every `setSpectrum` / `updateSpectrum` call. Matches the bundle-stream pattern of `replayGain` / `cache` / `audioEffects`.
-- `Player.stream.tap(AudioEffect, side: TapSide)` — typed per-filter PCM tap. Picks a slot in the `af` chain via the new `AudioEffect` enum (one value per typed filter, mirroring every `*Settings` field on `AudioEffects`) and a side via `TapSide.pre` / `TapSide.post`. Lazy: the engine hook arms on first listener and tears down on the last cancel; multiple subscribers to the same `(filter, side)` share a single tap.
-- `BandProcessor` — public PCM-to-bands processor. Runs the same FFT / windowing / overlap-add / asymmetric-EMA the library uses for `Player.stream.fft`, so per-filter spectrum curves built from a typed tap pulse with the exact same ballistic as the global visualizer.
-- `AudioEffectsX.active` — extension on the `AudioEffects` bundle that yields the `AudioEffect` for every slot flagged `enabled: true`, so a consumer can iterate the live rack without enumerating each typed field by hand.
-- Public `static const` bound + default fields on every typed `*Settings` class — for each numeric parameter the codegen now emits `<name>Min`, `<name>Max`, `<name>Default` alongside the existing instance field. UI builders (sliders, knobs, validators) can read engine constraints directly (`AcompressorSettings.thresholdMin`, `Ebur128Settings.targetMax`, …) without parsing source or guessing — the runtime asserts in `toFilterString()` reference the same constants, so display range and engine bound can never drift.
-- Typed extensions over every filter whose lavfi grammar packs structured data into opaque strings or hyphen-named AVOptions: `McompandSettings.bands` / `withBands` (multi-band compander), `SuperequalizerSettings.bands` / `withBands` (18-band graphic EQ), `AechoSettings.taps` / `withTaps` (multi-tap echo), `ChorusSettings.voices` / `withVoices` (chorus voices), `AdelaySettings.channelDelaysMs` / `withChannelDelaysMs` (per-channel delay), `CompandSettings.transferPoints` / `withTransferPoints` (transfer-function points), `CompandSettings.envelopes` / `withEnvelopes` (per-channel attack/decay envelopes), `CompandSettings.softKnee` / `withSoftKnee` (the hyphen-named `soft-knee` AVOption that the codegen routes through `params: Map<String, double>`), `AiirSettings.channels` / `withChannels` (per-channel IIR transfer functions with typed `AiirChannel` carrying gain + zeros / poles polynomials), `FirequalizerSettings.gainEntries` / `withGainEntries` (FIR curve points), `AfftdnSettings.bandNoiseLevels` / `withBandNoiseLevels` (15-band custom noise profile). Each extension exposes a typed model (`McompandBand`, `AechoTap`, `ChorusVoice`, `CompandPoint`, `CompandEnvelope`, `AiirChannel`, `FirequalizerEntry`) and round-trips losslessly to the underlying lavfi string. Mirrors the existing `AnequalizerBandsX.bands` pattern. Together these reach 100% typed-API coverage for every filter parameter on the bundle that isn't an inherently free-form math expression.
-- `SpectrumSettings.overlapFactor` — overlap-add factor for smoother visualizer motion. `1` = single FFT per emit; `4` (new default) = 75 % overlap, four FFTs per emit at no extra latency.
-- `AnequalizerBand` typed model + `AnequalizerBandsX` extension on `AnequalizerSettings` so bands are read and written as a typed list instead of a raw CSV.
-- The 10 biquad family `*Settings` (`equalizer`, `bass` / `lowshelf`, `treble` / `highshelf`, `bandpass`, `bandreject`, `highpass`, `lowpass`, `allpass`, `biquad`) now expose every parameter ffmpeg's biquad chain accepts: `width` / `width_type`, `mix`, `channels`, `normalize`, `transform`, `precision`, `blocksize`, plus their short aliases.
-- Symbol-based enum defaults are now non-nullable with the documented ffmpeg default (e.g. `EqualizerSettings.width_type` defaults to `EqualizerWidthType.q`, `transform` to `EqualizerTransformType.di`).
+- `Player.stream.waveform` — a min/max amplitude envelope of the whole track (`WaveformData`) for a static overview strip. Listener-gated: the background analyzer runs only while a consumer is subscribed.
+- `Player.stream.tap(AudioEffect, side: TapSide)` — typed per-filter PCM tap that picks a slot in the effect chain and a `pre` / `post` side. Lazy: it arms on the first listener and tears down on the last cancel.
+- `Player.stream.spectrum` — reactive view of the current `SpectrumSettings`, emitted on every `setSpectrum` / `updateSpectrum`.
+- `BandProcessor` — public PCM-to-bands processor running the same FFT pipeline as `Player.stream.fft`, for per-filter spectrum curves built from a tap.
+- `AudioEffectsX.active` — yields the `AudioEffect` for every enabled slot, so the live effect rack can be iterated without enumerating each typed field.
+- Typed extensions for every filter whose lavfi grammar packs structured data into an opaque string — `compand`, `aecho`, `chorus`, `adelay`, `aiir`, `firequalizer`, `afftdn`, `mcompand`, `superequalizer`, `anequalizer`. Each exposes a typed model (`CompandPoint`, `AechoTap`, `AnequalizerBand`, …) and round-trips losslessly.
+- `<name>Min` / `<name>Max` / `<name>Default` constants on every typed `*Settings` class, so UI builders can read each parameter's engine range and default directly.
+- The biquad-family `*Settings` (`equalizer`, `bass`, `treble`, `bandpass`, `highpass`, `lowpass`, …) now expose every parameter ffmpeg's biquad chain accepts (`width`, `mix`, `channels`, `normalize`, `transform`, …).
+- `SpectrumSettings.overlapFactor` — overlap-add factor for smoother visualizer motion (default `4`, i.e. 75 % overlap).
+- Enum-typed parameters with a symbolic ffmpeg default are now non-nullable, carrying that documented default.
 
 ### Fixed
-- Filters whose value contains `:` `=` `,` or `|` (e.g. `anequalizer.params`, `pan.args`, `aeval.exprs`) are now accepted by mpv. Previously they were rejected at chain build time.
-- Spectrum band values now align with the Web Audio API `AnalyserNode` convention: bin magnitudes are normalised by `fftSize / 2` before the dB conversion, so the same `minDb` / `maxDb` numbers familiar from any Web Audio tutorial produce equivalent visual output. Previously the unnormalised power scale shifted the dB output up by ~60 dB and modern loudness-war masters saturated the visualizer at full scale. New `SpectrumSettings` defaults: `minDb: -100`, `maxDb: -30` (was `-70`, `-10`).
-
-### Example
-- The full DAW-style consumer app has graduated to its own repository, [Falcus](https://github.com/ales-drnz/falcus). The bundled `example/` is now a ~100-line reference (in the spirit of `just_audio`'s example): open a remote URL, play/pause, scrub. Demonstrates the core API surface and runs out of the box on every desktop platform without extra setup.
+- Filter values containing `:` `=` `,` or `|` (e.g. `anequalizer.params`, `pan.args`) are now accepted instead of being rejected at chain build.
+- Spectrum band magnitudes follow the Web Audio `AnalyserNode` convention (normalised by `fftSize / 2` before the dB conversion). New `SpectrumSettings` defaults: `minDb: -100`, `maxDb: -30`.
 
 ### Build
-- Updated libmpv to `libmpv-r7` across all platforms.
+- Bundled libmpv refreshed (`libmpv-r7`) on every platform.
+- Restored 32-bit ARM Android, Intel macOS, and the Intel iOS Simulator to the bundled binaries.
+- iOS and macOS libmpv now ships as a dynamic xcframework — Swift Package Manager builds no longer fail.
 
 ## [0.1.3] - 9-05-2026
 

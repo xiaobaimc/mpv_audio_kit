@@ -61,8 +61,8 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
 # subdirectories: windows/libs/<arch>/libmpv.dll. The CMake config detects
 # the build's target arch and picks the matching subdir.
 set(MPV_RELEASE_VERSION "libmpv-r7")
-set(EXPECTED_SHA256_X86_64  "14e0eeaa3d29d6ba11969443de5a6a31c25bc9d4db04e66b5b4cad58188e7368")
-set(EXPECTED_SHA256_ARM64  "140a3fc6ebed13e83cbcad5d4abfeac23ec8d688604ebcdb63abcf62e18234a7")
+set(EXPECTED_SHA256_X86_64  "2cbd6c7ca1a4d9079abed5ebe771666a3f88c2077716eae28c5e69266c4a2a2f")
+set(EXPECTED_SHA256_ARM64  "0508d303636b723400eedfb571bc24d85082b02e94ed6da276ce40c331dda7ac")
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|arm64|aarch64)$")
   set(_MPV_ARCH "arm64")

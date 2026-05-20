@@ -53,8 +53,7 @@ bool initLibmpvOrSkip({String? fixturePath}) {
 /// Builds a [Player] wired for tests: no audio device, no auto-play,
 /// no logs. Use when the test wants to drive `open()` itself (e.g.
 /// dispose-during-load races, multi-fixture suites). Pass a custom
-/// [configuration] to opt into features (waveform analyzer, etc.);
-/// the helper's defaults are otherwise preserved.
+/// [configuration] to override the helper's defaults.
 Future<Player> buildPlayer({PlayerConfiguration? configuration}) async {
   final player = Player(
     configuration: configuration ??

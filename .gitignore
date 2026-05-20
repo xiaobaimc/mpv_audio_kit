@@ -39,7 +39,8 @@ CLAUDE.md
 /scripts/
 /windows/libs/
 /linux/libs/
-/macos/libs/
+/macos/Frameworks/libmpv.xcframework/
+/macos/Frameworks/libmpv_xcframework.zip
 /ios/Frameworks/libmpv.xcframework/
 /ios/Frameworks/libmpv_xcframework.zip
 /android/src/main/jniLibs/
