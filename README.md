@@ -46,7 +46,7 @@ Add `mpv_audio_kit` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mpv_audio_kit: ^0.2.0
+  mpv_audio_kit: ^0.2.1
 ```
 
 ### ⚠️ 0.1.x is a big release!
@@ -233,7 +233,7 @@ bundle, and the escape hatches are now async. See the
 
 ## Visuals
 
-The package ships a full `example/` app — player, queue, streaming catalogue, log console, and a settings tree covering every mpv subsystem (filters, ReplayGain, cache, prefetch, spectrum, …). The player's seekbar renders the track's waveform when the envelope is available. For a full DAW-style consumer with rack, FX windows, sample-zoom waveform and console, see **[Falcus](https://github.com/ales-drnz/falcus)** — the showcase desktop application built on top of this library.
+The following images demonstrate the example app included in the `example/` directory. This application serves as a reference client for testing the various features and capabilities of mpv_audio_kit.
 
 #### Desktop
 

@@ -1,3 +1,8 @@
+## [0.2.1] - 21-05-2026
+
+### Fixed
+- Incorrect README mentions.
+
 ## [0.2.0] - 21-05-2026
 
 ### Added

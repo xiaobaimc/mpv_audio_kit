@@ -3,7 +3,7 @@ import java.net.URL
 import java.security.MessageDigest
 
 group = "com.alesdrnz.mpv_audio_kit"
-version = "0.2.0"
+version = "0.2.1"
 
 buildscript {
     val kotlinVersion = "2.0.21"
