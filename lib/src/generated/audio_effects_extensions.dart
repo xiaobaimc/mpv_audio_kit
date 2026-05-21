@@ -560,10 +560,9 @@ const int _anequalizerDefaultChannels = 2;
 
 /// Typed access over the raw `params` CSV held by [AnequalizerSettings].
 extension AnequalizerBandsX on AnequalizerSettings {
-  /// Decoded list of bands. Reads the underlying [params] string —
-  /// per-channel duplication is collapsed (we treat distinct bands as
-  /// distinct only when their frequency / bandwidth / gain / type
-  /// tuple differs).
+  /// Decoded list of bands in declaration order. Reads the underlying
+  /// [params] string; the per-channel repeats `withBands` emits are
+  /// collapsed back to one entry per logical band.
   List<AnequalizerBand> get bands => _parseAnequalizerBands(params);
 
   /// Returns a copy whose [params] reflects [bands]. Each band is
@@ -589,28 +588,33 @@ List<AnequalizerBand> _parseAnequalizerBands(String params) {
   if (raw.startsWith('[') && raw.endsWith(']')) {
     raw = raw.substring(1, raw.length - 1);
   }
-  // Deduplicate by (f, w, g, t): the same logical band emitted on
-  // multiple channels should collapse to a single typed entry.
-  final seen = <String, AnequalizerBand>{};
+  // anequalizer repeats each logical band once per channel
+  // (`c0 … | c1 … `). Group entries by channel index and keep the
+  // lowest channel's list in declaration order: higher-channel repeats
+  // are dropped, and two bands with identical parameters stay distinct
+  // (a value-based dedup would collapse them).
+  final byChannel = <int, List<AnequalizerBand>>{};
   for (final entry in raw.split('|')) {
     final s = entry.trim();
     if (s.isEmpty) continue;
     final m = _anequalizerBandRe.firstMatch(s);
     if (m == null) continue;
+    final ch = int.tryParse(m.group(1)!) ?? 0;
     final f = double.tryParse(m.group(2)!);
     final w = double.tryParse(m.group(3)!);
     final g = double.tryParse(m.group(4)!);
     final t = int.tryParse(m.group(5) ?? '0') ?? 0;
     if (f == null || w == null || g == null) continue;
-    final key = '$f|$w|$g|$t';
-    seen[key] = AnequalizerBand(
+    (byChannel[ch] ??= <AnequalizerBand>[]).add(AnequalizerBand(
       frequency: f,
       bandwidth: w,
       gain: g,
       type: AnequalizerBandType.fromWire(t),
-    );
+    ));
   }
-  return seen.values.toList(growable: false);
+  if (byChannel.isEmpty) return const [];
+  final lowest = byChannel.keys.reduce((a, b) => a < b ? a : b);
+  return List.unmodifiable(byChannel[lowest]!);
 }
 
 String _serializeAnequalizerBands(

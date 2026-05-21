@@ -59,17 +59,17 @@ bundle, and the escape hatches are now async. See the
 
 ## Platforms requirements
 
-| Platform  | Minimum | Architecture | Device | Emulator | mpv version |
-| :--- | :--- | :--- | :---: | :---: | :---: |
-| **Android** | 7.0 (SDK 24) | arm64-v8a, x86_64 | ✅ | ✅ | v0.41.0 |
-| **iOS** | 15.0 | arm64 | ✅ | ✅ | v0.41.0 |
-| **macOS** | 12.0 | arm64 (Apple Silicon) | ✅ | – | v0.41.0 |
-| **Windows**| 10 | arm64, x86_64 | ✅ | – | v0.41.0 |
-| **Linux** | Ubuntu 24.04 | aarch64, x86_64 | ✅ | – | v0.41.0 |
+| Platform  | Minimum | Architecture | Device | Emulator |
+| :--- | :--- | :--- | :---: | :---:
+| **Android** | 7.0 (SDK 24) | arm64-v8a, armeabi-v7a, x86_64 | ✅ | ✅ |
+| **iOS** | 15.0 | arm64, x86_64 | ✅ | ✅ |
+| **macOS** | 12.0 | arm64, x86_64 | ✅ | – |
+| **Windows**| 10 | arm64, x86_64 | ✅ | – |
+| **Linux** | Ubuntu 24.04 | aarch64, x86_64 | ✅ | – |
 
 ---
 
-## Reference
+## Contents
 
 *   [Visuals](#visuals)
 *   [Features](#features)
@@ -215,16 +215,15 @@ bundle, and the escape hatches are now async. See the
     </details>
 
     <details>
-    <summary><a href="#13-visualizer-and-spectrum-analyzer"><b>13. Visualizer and spectrum analyzer</b></a></summary>
+    <summary><a href="#13-visualizer-waveform-and-spectrum"><b>13. Visualizer, Waveform and Spectrum</b></a></summary>
 
     * [13.1 Subscribing to the spectrum stream](#131-subscribing-to-the-spectrum-stream)
     * [13.2 Configuring the pipeline](#132-configuring-the-pipeline)
     * [13.3 Raw PCM stream](#133-raw-pcm-stream)
     * [13.4 Per-filter PCM taps](#134-per-filter-pcm-taps)
+    * [13.5 Waveform](#135-waveform)
 
     </details>
-
-    <a href="#14-waveform"><b>14. Waveform</b></a>
 *   [Migration](#migration)
 *   [Permissions](#permissions)
 *   [Troubleshooting](#troubleshooting)
@@ -276,7 +275,7 @@ The package ships a full `example/` app — player, queue, streaming catalogue, 
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/sliders-horizontal.png" width="32"></td>
 <td valign="middle"><b>DSP pipeline</b><br>one <a href="#5-audio-quality-and-dsp"><code>AudioEffects</code></a> bundle covering 18-band graphic EQ, compressor, loudness, pitch and tempo, bass and treble, stereo width, headphone crossfeed, silence trim, plus any custom <code>--af</code> filter.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/audio-lines.png" width="32"></td>
-<td valign="middle"><b>Visualizer</b><br>real-time <a href="#13-visualizer-and-spectrum-analyzer">FFT spectrum + raw PCM streams</a> with log-spaced bands and asymmetric smoothing.</td>
+<td valign="middle"><b>Visualizer</b><br>real-time <a href="#13-visualizer-waveform-and-spectrum">FFT spectrum + raw PCM streams</a> with log-spaced bands and asymmetric smoothing.</td>
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/scale.png" width="32"></td>
@@ -398,11 +397,16 @@ final player = Player(
 
 All `PlayerConfiguration` fields are optional. Their defaults:
 
+<details>
+<summary><b>3 configuration fields</b> (click to expand)</summary>
+
 | Field | Default | Description |
 | :--- | :--- | :--- |
 | `autoPlay` | `false` | Whether `open()` starts playback immediately |
 | `initialVolume` | `100.0` | Volume at startup |
 | `logLevel` | `LogLevel.warn` | Threshold forwarded to `player.stream.log`. Typed enum: `LogLevel.off`, `.fatal`, `.error`, `.warn`, `.info`, `.v`, `.debug`, `.trace` |
+
+</details>
 
 The audio client name is set after construction:
 
@@ -817,9 +821,10 @@ IDE autocomplete and compile-time safety.
 The bundle ships with 86 audio effects covering compression, EQ,
 denoising, spatialisation, modulation, and more. Each row below maps to a
 `<Name>Settings` field on `AudioEffects` (e.g. `acompressor` →
-`AudioEffects.acompressor` of type `AcompressorSettings`). For
-filters without a typed wrapper (`pan`, `aeval`, …) use `AudioEffects.custom: List<String>` to push raw
-`lavfi-*` strings through the chain.
+`AudioEffects.acompressor` of type `AcompressorSettings`). For raw
+`lavfi-*` filters outside this typed set, or for quick experimentation,
+use `AudioEffects.custom: List<String>` to push entries through the head
+of the chain.
 
 <details>
 <summary><b>Browse the full catalogue</b> (click to expand)</summary>
@@ -1321,6 +1326,9 @@ player.stream.coverArt.listen((art) {
 
 The [`CoverArt`] type carries the bytes plus a few helpers:
 
+<details>
+<summary><b>5 members</b> (click to expand)</summary>
+
 | Member | Kind | Description |
 | :--- | :--- | :--- |
 | `bytes` | `final Uint8List` | Raw codec bytes |
@@ -1328,6 +1336,8 @@ The [`CoverArt`] type carries the bytes plus a few helpers:
 | `image` | getter `ImageProvider` | Ready to drop into Flutter `Image(image: …)` |
 | `extension` | getter `String` | `'png'`, `'jpg'`, `'webp'`, `'bmp'`, `'gif'` |
 | `isPng`, `isJpeg`, `isWebp`, `isBmp`, `isGif` | getter `bool` | MIME-type predicates |
+
+</details>
 
 ##### In a Flutter widget
 
@@ -1469,11 +1479,16 @@ local-file player that wants disk-side artwork.
 
 #### 9.4 DSP and filter streams
 
+<details>
+<summary><b>3 streams</b> (click to expand)</summary>
+
 | Stream | Type | Setter |
 | :--- | :--- | :--- |
 | `audioEffects` | `AudioEffects` | `setAudioEffects`, `updateAudioEffects` |
 | `replayGain` | `ReplayGainSettings` | `setReplayGain` |
 | `gapless` | `Gapless` | `setGapless` |
+
+</details>
 
 #### 9.5 Network and cache streams
 
@@ -1518,13 +1533,21 @@ local-file player that wants disk-side artwork.
 
 #### 9.7 Playback timing streams
 
+<details>
+<summary><b>3 streams</b> (click to expand)</summary>
+
 | Stream | Type | Notes |
 | :--- | :--- | :--- |
 | `audioPts` | `Duration` | mpv's `audio-pts`; per-frame timestamp including AO latency. More granular than [`position`](#91-core-streams). |
 | `timeRemaining` | `Duration` | Wall-clock time to EOF, **ignoring** playback rate. |
 | `playtimeRemaining` | `Duration` | Time to EOF **adjusted** for playback rate. |
 
+</details>
+
 #### 9.8 A-B loop streams
+
+<details>
+<summary><b>4 streams</b> (click to expand)</summary>
 
 | Stream | Type | Setter |
 | :--- | :--- | :--- |
@@ -1533,12 +1556,19 @@ local-file player that wants disk-side artwork.
 | `abLoopCount` | `int?` (`null` = infinite) | `setAbLoopCount` |
 | `remainingAbLoops` | `int?` (`null` when no loop or infinite) | _(observed; counts down)_ |
 
+</details>
+
 #### 9.9 Cover art streams
+
+<details>
+<summary><b>2 streams</b> (click to expand)</summary>
 
 | Stream | Type | Setter |
 | :--- | :--- | :--- |
 | `coverArt` | `CoverArt?` (one emit per file load) | _(observed; from embedded picture)_ |
 | `coverArtAuto` | `Cover` | `setCoverArtAuto` |
+
+</details>
 
 #### 9.10 Runtime diagnostics
 
@@ -1592,6 +1622,9 @@ player.stream.prefetchState.listen((state) {
 });
 ```
 
+<details>
+<summary><b>5 prefetch states</b> (click to expand)</summary>
+
 | State | When it fires | Notes |
 | :--- | :--- | :--- |
 | `idle` | Default; after every cancel or drop | Also fires right after `used` and `failed` so they read as one-shot transients |
@@ -1599,6 +1632,8 @@ player.stream.prefetchState.listen((state) {
 | `ready` | Secondary demuxer open + reader idle | Gapless is armed |
 | `used` | Track transitioned via the prefetched stream | Edge-triggered; pairs with the subsequent `idle` |
 | `failed` | Opener thread error | Edge-triggered; pairs with the subsequent `idle` |
+
+</details>
 
 #### 9.12 Aggregate lifecycle
 
@@ -1642,27 +1677,32 @@ print(s.tracks.where((t) => t.type == 'audio')); // Iterable<MpvTrack>
 print(s.chapters);                               // List<Chapter>
 print(s.audioOutputState);                       // AudioOutputState
 print(s.mpvVersion);                             // e.g. '0.41.0'
-print(s.ffmpegVersion);                          // e.g. '7.1.1'
+print(s.ffmpegVersion);                          // e.g. '8.1.1'
 ```
 
 #### 9.14 Spectrum and PCM streams
 
 Two real-time streams expose the audio currently flowing through the
-output. See [§13](#13-visualizer-and-spectrum-analyzer) for the full
+output. See [§13](#13-visualizer-waveform-and-spectrum) for the full
 configuration surface, the math behind the pipeline, and a reference
 visualizer.
 
+<details>
+<summary><b>2 streams</b> (click to expand)</summary>
+
 | Stream                | Type                | What it carries |
 |-----------------------|---------------------|-----------------|
-| `stream.spectrum`     | `Stream<FftFrame>`  | Smoothed FFT bands plus raw bins, ready for a bar visualizer. |
+| `stream.fft`          | `Stream<FftFrame>`  | Smoothed FFT bands plus raw bins, ready for a bar visualizer. |
 | `stream.pcm`          | `Stream<PcmFrame>`  | Raw post-DSP samples, ready for a waveform and VU. |
+
+</details>
 
 Both streams are lazy (poll loop runs only while subscribed) and
 share the same upstream tap, so subscribing to both costs only the
 duplicate FFT computation.
 
 ```dart
-player.stream.spectrum.listen((frame) {
+player.stream.fft.listen((frame) {
   // 64 bands, each in [0, 1]. Paint directly:
   for (var i = 0; i < frame.bands.length; i++) {
     paintBar(i, frame.bands[i]);
@@ -1967,7 +2007,7 @@ await player.openAll(medias);
 
 ---
 
-### 13. Visualizer and spectrum analyzer
+### 13. Visualizer, Waveform and Spectrum
 
 A real-time FFT spectrum and a raw PCM stream are exposed straight
 off the audio output, captured *post-DSP* (after volume, EQ,
@@ -1978,13 +2018,13 @@ custom feature extraction on top:
 <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/diagrams/spectrum_pipeline.png" width="100%">
 
 The pipeline is lazy: the FFT runs only while
-`Player.stream.spectrum` (or `Player.stream.pcm`) has at least one
+`Player.stream.fft` (or `Player.stream.pcm`) has at least one
 listener. On the last cancel the timer stops and the FFT memory is
 freed.
 
 #### 13.1 Subscribing to the spectrum stream
 
-`Player.stream.spectrum` emits an [FftFrame] on a fixed interval
+`Player.stream.fft` emits an [FftFrame] on a fixed interval
 (default 30 fps).
 
 <details>
@@ -2002,7 +2042,7 @@ freed.
 </details>
 
 ```dart
-player.stream.spectrum.listen((frame) {
+player.stream.fft.listen((frame) {
   // 64 bands ready to paint:
   for (var i = 0; i < frame.bands.length; i++) {
     final h = frame.bands[i] * canvasHeight;
@@ -2066,7 +2106,7 @@ animate the held frame client-side.
 #### 13.3 Raw PCM stream
 
 `Player.stream.pcm` emits [PcmFrame]s on the same cadence as
-`spectrum`, carrying the raw post-DSP samples instead of the
+`fft`, carrying the raw post-DSP samples instead of the
 frequency-domain transform. Use it for time-domain visualisations:
 oscilloscope-style waveforms, accurate VU/peak meters, custom feature
 extractors that need amplitude.
@@ -2136,7 +2176,7 @@ The taps are lazy in the same way the global pipeline is — the
 matching engine hook activates only while at least one listener is
 attached and tears down on the last cancel.
 
-### 14. Waveform
+#### 13.5 Waveform
 
 A whole-file mono min/max envelope of the loaded track is exposed
 via [PlayerStream.waveform], computed in the background by libmpv on
@@ -2362,11 +2402,16 @@ the bundle. Filters without a typed shape (expression-based ones like
 
 ### Time-based setters now take `Duration`
 
+<details>
+<summary><b>3 setters</b> (click to expand)</summary>
+
 | 0.0.9 (seconds, double) | 0.1.0 (`Duration`) |
 | :--- | :--- |
 | `setAudioDelay(0.05)` | `setAudioDelay(const Duration(milliseconds: 50))` |
 | `setNetworkTimeout(60)` | `setNetworkTimeout(const Duration(seconds: 60))` |
 | `setAudioBuffer(0.2)` | `setAudioBuffer(const Duration(milliseconds: 200))` |
+
+</details>
 
 ### Cover art
 

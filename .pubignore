@@ -36,7 +36,15 @@ analysis_options.yaml
 /coverage/
 
 # Others
-/imgs/
+# Exclude imgs/ except the screenshot files referenced by pubspec.yaml.
+/imgs/*
+!/imgs/mpv_audio_kit.png
+!/imgs/desktop_player_console.gif
+!/imgs/desktop_settings_grid.png
+!/imgs/mobile_player.png
+!/imgs/mobile_queue.png
+!/imgs/mobile_filters.png
+!/imgs/mobile_audio_hardware.png
 /docs/
 /scripts/
 /test/

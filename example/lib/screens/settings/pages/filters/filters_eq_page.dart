@@ -12,6 +12,7 @@ import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 import '../../../../shared/property_cards.dart';
 
 import '../../widgets/superequalizer_widget.dart';
+import '../../widgets/extension_editors.dart';
 
 /// Filters in the **Equalization & tone** category. Each card maps to a typed
 /// `*Settings` field on the [AudioEffects] bundle.
@@ -90,14 +91,7 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(anequalizer: s.copyWith(mgain: v)),
                   ),
                 ),
-                FilterParamTextField(
-                  label: 'params',
-                  value: s.params,
-                  defaultValue: '""',
-                  onChanged: (v) => player.updateAudioEffects(
-                    (e) => e.copyWith(anequalizer: s.copyWith(params: v)),
-                  ),
-                ),
+                AnequalizerBandsEditor(player: player, settings: s),
               ],
             );
           },

@@ -23,20 +23,11 @@ const int _kTimePosThrottleMs = 33;
 
 /// `mpv_wait_event` timeout.
 ///
-/// **Release / profile**: `-1` blocks until the next mpv event (the
-/// documented pattern in `mpv/client.h`); `MPV_EVENT_SHUTDOWN` from
-/// `dispose()`'s `quit` command unblocks the call naturally, so no
-/// `mpv_wakeup` plumbing is needed. Preserves the 0.1.2 idle-CPU
-/// invariant: zero wake-ups during idle playback.
-///
-/// **Debug**: `0.1` (100 ms). The Dart VM cannot interrupt an
-/// isolate stuck in a blocking FFI call (dart-lang/sdk#46680),
-/// so `Isolate.kill(priority: immediate)` from Flutter's Hot
-/// Restart is silently queued and never processed under `-1`.
-/// Without the kill-checkpoint VS Code stays on "Hot restarting…"
-/// indefinitely whenever a `Player` is alive. 100 ms means at most
-/// 10 wake-ups/s during dev — well below the pre-0.1.2 50 ms
-/// busy-poll (~20/s) and invisible to CPU profilers.
+/// Release / profile: `-1` blocks until the next mpv event, so there
+/// are zero wake-ups during idle playback. Debug: `0.1` (100 ms) — the
+/// Dart VM cannot interrupt an isolate stuck in a blocking FFI call
+/// (dart-lang/sdk#46680), so Hot Restart would hang under `-1` while a
+/// `Player` is alive; the timeout gives the kill request a checkpoint.
 const double _kWaitEventTimeoutSeconds =
     bool.fromEnvironment('dart.vm.product') ? -1.0 : 0.1;
 

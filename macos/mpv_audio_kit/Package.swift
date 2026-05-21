@@ -25,7 +25,7 @@ let package = Package(
         .binaryTarget(
             name: "libmpv",
             url: "https://github.com/ales-drnz/mpv_audio_kit/releases/download/libmpv-r7/libmpv_macos.xcframework.zip",
-            checksum: "67fae1f39876102ad19a4bf24b316b1ade489f0ac1e9eef85fa39a170858c76d"
+            checksum: "20ef47b0fe5ff67ee1d86fdb0e8d6dfdb8acf50f43dd3edf9ff9f491ce7830a7"
         )
     ]
 )

@@ -412,9 +412,8 @@ final class PlayerState {
   /// [Player]. Mirrors mpv's `mpv-version`.
   final String mpvVersion;
 
-  /// Version of FFmpeg linked into the current mpv build (e.g.
-  /// `7.1.1`). Read once at first observe. Mirrors mpv's
-  /// `ffmpeg-version`.
+  /// Version of FFmpeg linked into the current mpv build. 
+  /// Read once at first observe. Mirrors mpv's `ffmpeg-version`.
   final String ffmpegVersion;
 
   const PlayerState({

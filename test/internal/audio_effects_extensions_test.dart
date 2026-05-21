@@ -55,14 +55,21 @@ void main() {
       ];
       final round = s.withBands(src).bands;
       expect(round.length, src.length);
-      // Order may not be preserved (dedup uses a Map). Compare as set.
-      final expected = {
-        for (final b in src) (b.frequency, b.bandwidth, b.gain, b.type),
-      };
-      final actual = {
-        for (final b in round) (b.frequency, b.bandwidth, b.gain, b.type),
-      };
-      expect(actual, expected);
+      for (var i = 0; i < src.length; i++) {
+        expect(round[i].frequency, src[i].frequency);
+        expect(round[i].bandwidth, src[i].bandwidth);
+        expect(round[i].gain, src[i].gain);
+        expect(round[i].type, src[i].type);
+      }
+    });
+
+    test('two bands with identical parameters stay distinct', () {
+      const s = AnequalizerSettings();
+      const band = AnequalizerBand(frequency: 1000, bandwidth: 200, gain: 0);
+      final round = s.withBands([band, band]).bands;
+      expect(round.length, 2,
+          reason: 'identical bands must not collapse — a value-based '
+              'dedup would drop the second');
     });
 
     test('every band-type round-trips', () {

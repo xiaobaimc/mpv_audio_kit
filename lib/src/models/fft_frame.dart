@@ -7,7 +7,7 @@ import 'dart:typed_data';
 /// One FFT frame — a frequency-domain snapshot of the audio currently
 /// playing through the player's output.
 ///
-/// Emitted on [PlayerStream.spectrum] at the rate configured in
+/// Emitted on [PlayerStream.fft] at the rate configured in
 /// [SpectrumSettings.emitInterval] (default ~30 Hz). Each frame carries
 /// both the **raw FFT bins** (linear frequency axis, post-window
 /// magnitude, normalised to `[0, 1]`) and the **perceptual bands**

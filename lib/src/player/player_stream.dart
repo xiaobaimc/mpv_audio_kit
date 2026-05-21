@@ -644,7 +644,7 @@ class PlayerStream {
   /// [audioEffects] — `setX` ↔ `stream.x` of the matching `*Settings`
   /// type. Unlike those, this one lives entirely Dart-side: the stream
   /// is fed from the FFT pipeline's local cache, not from an mpv
-  /// property observer (the underlying `pcm-tap-frame` patch only
+  /// property observer (the underlying `pcm-tap-frame` property only
   /// supplies samples, not config).
   final Stream<SpectrumSettings> spectrum;
 

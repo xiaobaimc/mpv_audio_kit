@@ -14,7 +14,7 @@ import 'dart:typed_data';
 /// vectorscopes, custom feature extractors that need raw amplitude.
 ///
 /// For a frequency-domain visualizer (spectrum bars, glow effects),
-/// prefer [FftFrame] from [PlayerStream.spectrum]. The two streams
+/// prefer [FftFrame] from [PlayerStream.fft]. The two streams
 /// share the same upstream tap, so subscribing to both costs only
 /// the duplicate FFT computation, not a second tap.
 ///

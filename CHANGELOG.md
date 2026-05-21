@@ -1,25 +1,29 @@
-## [0.2.0]
+## [0.2.0] - 21-05-2026
 
 ### Added
-- `Player.stream.waveform` — a min/max amplitude envelope of the whole track (`WaveformData`) for a static overview strip. Listener-gated: the background analyzer runs only while a consumer is subscribed.
-- `Player.stream.tap(AudioEffect, side: TapSide)` — typed per-filter PCM tap that picks a slot in the effect chain and a `pre` / `post` side. Lazy: it arms on the first listener and tears down on the last cancel.
-- `Player.stream.spectrum` — reactive view of the current `SpectrumSettings`, emitted on every `setSpectrum` / `updateSpectrum`.
-- `BandProcessor` — public PCM-to-bands processor running the same FFT pipeline as `Player.stream.fft`, for per-filter spectrum curves built from a tap.
-- `AudioEffectsX.active` — yields the `AudioEffect` for every enabled slot, so the live effect rack can be iterated without enumerating each typed field.
-- Typed extensions for every filter whose lavfi grammar packs structured data into an opaque string — `compand`, `aecho`, `chorus`, `adelay`, `aiir`, `firequalizer`, `afftdn`, `mcompand`, `superequalizer`, `anequalizer`. Each exposes a typed model (`CompandPoint`, `AechoTap`, `AnequalizerBand`, …) and round-trips losslessly.
-- `<name>Min` / `<name>Max` / `<name>Default` constants on every typed `*Settings` class, so UI builders can read each parameter's engine range and default directly.
+- `Player.stream.waveform`: a min-max amplitude envelope of the whole track (`WaveformData`) for a static overview strip. Listener-gated, so the background analyzer runs only while a consumer is subscribed.
+- `Player.stream.tap(AudioEffect, side: TapSide)`: typed per-filter PCM tap that picks a slot in the effect chain and a `pre` or `post` side. Lazy, arming on the first listener and tearing down on the last cancel.
+- `BandProcessor`: public PCM-to-bands processor running the same FFT pipeline as `Player.stream.fft`, for per-filter spectrum curves built from a tap.
+- `AudioEffectsX.active`: yields the `AudioEffect` for every enabled slot, so the live effect rack can be iterated without enumerating each typed field.
+- Typed extensions for every filter whose lavfi grammar packs structured data into an opaque string: `compand`, `aecho`, `chorus`, `adelay`, `aiir`, `firequalizer`, `afftdn`, `mcompand`, `superequalizer`, `anequalizer`. Each exposes a typed model (`CompandPoint`, `AechoTap`, `AnequalizerBand`, …) and round-trips losslessly.
+- `<name>Min`, `<name>Max`, and `<name>Default` constants on every typed `*Settings` class, so UI builders can read each parameter's engine range and default directly.
 - The biquad-family `*Settings` (`equalizer`, `bass`, `treble`, `bandpass`, `highpass`, `lowpass`, …) now expose every parameter ffmpeg's biquad chain accepts (`width`, `mix`, `channels`, `normalize`, `transform`, …).
-- `SpectrumSettings.overlapFactor` — overlap-add factor for smoother visualizer motion (default `4`, i.e. 75 % overlap).
+- `SpectrumSettings.overlapFactor`: overlap-add factor for smoother visualizer motion (default `4`, i.e. 75% overlap).
 - Enum-typed parameters with a symbolic ffmpeg default are now non-nullable, carrying that documented default.
+
+### Changed
+- The real-time FFT frame stream moved from `Player.stream.spectrum` to the new `Player.stream.fft`. `Player.stream.spectrum` is now a reactive view of the current `SpectrumSettings`, emitted on every `setSpectrum` or `updateSpectrum` call.
 
 ### Fixed
 - Filter values containing `:` `=` `,` or `|` (e.g. `anequalizer.params`, `pan.args`) are now accepted instead of being rejected at chain build.
-- Spectrum band magnitudes follow the Web Audio `AnalyserNode` convention (normalised by `fftSize / 2` before the dB conversion). New `SpectrumSettings` defaults: `minDb: -100`, `maxDb: -30`.
+- Spectrum band magnitudes follow the Web Audio `AnalyserNode` convention (normalised by half the FFT size before the dB conversion). New `SpectrumSettings` defaults: `minDb: -100`, `maxDb: -30`.
 
 ### Build
-- Bundled libmpv refreshed (`libmpv-r7`) on every platform.
+- Switched to OpenSSL for TLS.
+- Ffmpeg updated to `8.1.1` and bumped all its dependencies.
 - Restored 32-bit ARM Android, Intel macOS, and the Intel iOS Simulator to the bundled binaries.
-- iOS and macOS libmpv now ships as a dynamic xcframework — Swift Package Manager builds no longer fail.
+- iOS and macOS libmpv now ships as a dynamic xcframework (Swift Package Manager builds no longer fail).
+- Updated libmpv to `libmpv-r7` across all platforms.
 
 ## [0.1.3] - 9-05-2026
 
