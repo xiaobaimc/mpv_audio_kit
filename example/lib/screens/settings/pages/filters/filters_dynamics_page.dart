@@ -3,8 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be
 // found in the LICENSE file.
 //
-// AUTO-GENERATED — do not edit by hand. Regenerate with
-// `python3 scripts/lavfi_codegen/generate_example.py`.
+// AUTO-GENERATED — do not edit by hand.
 
 import 'package:flutter/material.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
@@ -300,6 +299,21 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                     (e) => e.copyWith(adynamicequalizer: s.copyWith(attack: v)),
                   ),
                 ),
+                FilterParamDropdown<AdynamicequalizerAuto>(
+                  label: 'auto',
+                  value: s.auto,
+                  defaultValue: AdynamicequalizerAuto.off,
+                  options: const [
+                    AdynamicequalizerAuto.disabled,
+                    AdynamicequalizerAuto.off,
+                    AdynamicequalizerAuto.on_,
+                    AdynamicequalizerAuto.adaptive,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(adynamicequalizer: s.copyWith(auto: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'dfrequency',
                   value: s.dfrequency,
@@ -349,6 +363,22 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(adynamicequalizer: s.copyWith(makeup: v)),
+                  ),
+                ),
+                FilterParamDropdown<AdynamicequalizerMode>(
+                  label: 'mode',
+                  value: s.mode,
+                  defaultValue: AdynamicequalizerMode.listen,
+                  options: const [
+                    AdynamicequalizerMode.listen,
+                    AdynamicequalizerMode.cutbelow,
+                    AdynamicequalizerMode.cutabove,
+                    AdynamicequalizerMode.boostbelow,
+                    AdynamicequalizerMode.boostabove,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(adynamicequalizer: s.copyWith(mode: v)),
                   ),
                 ),
                 FilterParamDropdown<AdynamicequalizerPrecision>(
@@ -867,6 +897,19 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                   ),
                 ),
                 FilterParamSlider(
+                  label: 'oversample',
+                  value: s.oversample.toDouble(),
+                  min: 1.0,
+                  max: 64.0,
+                  defaultValue: 1.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(
+                      asoftclip: s.copyWith(oversample: v.round()),
+                    ),
+                  ),
+                ),
+                FilterParamSlider(
                   label: 'param',
                   value: s.param,
                   min: 0.01,
@@ -886,6 +929,26 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(asoftclip: s.copyWith(threshold: v)),
+                  ),
+                ),
+                FilterParamDropdown<AsoftclipTypes>(
+                  label: 'type',
+                  value: s.type,
+                  defaultValue: AsoftclipTypes.hard,
+                  options: const [
+                    AsoftclipTypes.hard,
+                    AsoftclipTypes.tanh,
+                    AsoftclipTypes.atan,
+                    AsoftclipTypes.cubic,
+                    AsoftclipTypes.exp,
+                    AsoftclipTypes.alg,
+                    AsoftclipTypes.quintic,
+                    AsoftclipTypes.sin,
+                    AsoftclipTypes.erf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(asoftclip: s.copyWith(type: v)),
                   ),
                 ),
               ],
@@ -947,7 +1010,7 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                 FilterParamTextField(
                   label: 'points',
                   value: s.points,
-                  defaultValue: '',
+                  defaultValue: '"-70/-70|-60/-20|1/0"',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(compand: s.copyWith(points: v)),
                   ),
@@ -1012,6 +1075,16 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(deesser: s.copyWith(m: v)),
+                  ),
+                ),
+                FilterParamDropdown<DeesserMode>(
+                  label: 's',
+                  value: s.s,
+                  defaultValue: DeesserMode.o,
+                  options: const [DeesserMode.i, DeesserMode.o, DeesserMode.e],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(deesser: s.copyWith(s: v)),
                   ),
                 ),
               ],
@@ -1123,7 +1196,7 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                 FilterParamTextField(
                   label: 'curve',
                   value: s.curve,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(dynaudnorm: s.copyWith(curve: v)),
                   ),
@@ -1315,7 +1388,7 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                 FilterParamTextField(
                   label: 'v',
                   value: s.v,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(dynaudnorm: s.copyWith(v: v)),
                   ),
@@ -1346,6 +1419,21 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                     (e) => e.copyWith(ebur128: s.copyWith(dualmono: v)),
                   ),
                 ),
+                FilterParamDropdown<Ebur128Gaugetype>(
+                  label: 'gauge',
+                  value: s.gauge,
+                  defaultValue: Ebur128Gaugetype.momentary,
+                  options: const [
+                    Ebur128Gaugetype.momentary,
+                    Ebur128Gaugetype.m,
+                    Ebur128Gaugetype.shortterm,
+                    Ebur128Gaugetype.s,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(ebur128: s.copyWith(gauge: v)),
+                  ),
+                ),
                 FilterParamSwitch(
                   label: 'metadata',
                   value: s.metadata,
@@ -1374,6 +1462,29 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(ebur128: s.copyWith(panlaw: v)),
+                  ),
+                ),
+                FilterParamDropdown<Ebur128Scaletype>(
+                  label: 'scale',
+                  value: s.scale,
+                  defaultValue: Ebur128Scaletype.absolute,
+                  options: const [
+                    Ebur128Scaletype.absolute,
+                    Ebur128Scaletype.LUFS,
+                    Ebur128Scaletype.relative,
+                    Ebur128Scaletype.LU,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(ebur128: s.copyWith(scale: v)),
+                  ),
+                ),
+                FilterParamTextField(
+                  label: 'size',
+                  value: s.size,
+                  defaultValue: '"640x480"',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(ebur128: s.copyWith(size: v)),
                   ),
                 ),
                 FilterParamSlider(
@@ -1572,10 +1683,24 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                     (e) => e.copyWith(loudnorm: s.copyWith(offset: v)),
                   ),
                 ),
+                FilterParamDropdown<LoudnormPrintFormat>(
+                  label: 'print_format',
+                  value: s.print_format,
+                  defaultValue: LoudnormPrintFormat.none,
+                  options: const [
+                    LoudnormPrintFormat.none,
+                    LoudnormPrintFormat.json,
+                    LoudnormPrintFormat.summary,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(loudnorm: s.copyWith(print_format: v)),
+                  ),
+                ),
                 FilterParamTextField(
                   label: 'stats_file',
                   value: s.stats_file,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(loudnorm: s.copyWith(stats_file: v)),
                   ),
@@ -1612,7 +1737,8 @@ class _FiltersDynamicsPageState extends State<FiltersDynamicsPage> {
                 FilterParamTextField(
                   label: 'args',
                   value: s.args,
-                  defaultValue: '',
+                  defaultValue:
+                      '"0.005,0.1 6 -47/-40,-34/-34,-17/-33 100 | 0.003,0.05 6 -47/-40,-34/-34,-17/-33 400 | 0.000625,0.0125 6 -47/-40,-34/-34,-15/-33 1600 | 0.0001,0.025 6 -47/-40,-34/-34,-31/-31,-0/-30 6400 | 0,0.025 6 -38/-31,-28/-28,-0/-25 22000"',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(mcompand: s.copyWith(args: v)),
                   ),

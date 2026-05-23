@@ -9,7 +9,7 @@ import 'dart:io';
 /// test files don't need to repeat the platform branching.
 ///
 /// The bundled binary lives under the repo root at:
-///   - macOS  → `macos/Frameworks/libmpv.xcframework/macos-arm64_x86_64/libmpv.framework/libmpv`
+///   - macOS  → `macos/mpv_audio_kit/Frameworks/libmpv.xcframework/macos-arm64_x86_64/libmpv.framework/libmpv`
 ///   - Linux  → `linux/libs/<arch>/libmpv.so`        (`<arch>`: `x86_64` | `aarch64`)
 ///   - Windows → `windows/libs/<arch>/libmpv.dll`    (`<arch>`: `x86_64` | `arm64`)
 ///
@@ -20,9 +20,19 @@ import 'dart:io';
 String? resolveLibmpv() {
   final root = Directory.current.path;
   if (Platform.isMacOS) {
-    final p = '$root/macos/Frameworks/libmpv.xcframework/'
-        'macos-arm64_x86_64/libmpv.framework/libmpv';
-    return File(p).existsSync() ? p : null;
+    // SwiftPM moved the xcframework one level deeper into the plugin
+    // module directory (`macos/mpv_audio_kit/Frameworks/…`). Keep the
+    // pre-SwiftPM path as a fallback so older test checkouts still
+    // resolve.
+    const tail = 'libmpv.xcframework/macos-arm64_x86_64/'
+        'libmpv.framework/libmpv';
+    for (final p in [
+      '$root/macos/mpv_audio_kit/Frameworks/$tail',
+      '$root/macos/Frameworks/$tail',
+    ]) {
+      if (File(p).existsSync()) return p;
+    }
+    return null;
   }
   if (Platform.isLinux) {
     final arch = switch (Abi.current()) {

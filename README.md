@@ -13,7 +13,7 @@
 <table>
 <tr>
 <td valign="middle" width="90"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/mpv_audio_kit.png" width="70" alt="logo"></td>
-<td valign="middle"><code>mpv_audio_kit</code> is an audio library built on <code>libmpv</code> v0.41.0, the engine behind the mpv media player. It provides a dedicated background event loop, a complete DSP pipeline, and direct access to every property, making it the most capable audio library available for Flutter.</td>
+<td valign="middle"><code>mpv_audio_kit</code> is an audio library built on mpv <code>v0.41.0</code>. It provides a dedicated background event loop, a complete DSP pipeline, and direct access to every property, making it the most capable audio library available for Flutter.</td>
 </tr>
 </table>
 
@@ -46,7 +46,7 @@ Add `mpv_audio_kit` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mpv_audio_kit: ^0.2.1
+  mpv_audio_kit: ^0.2.2
 ```
 
 ### ⚠️ 0.1.x is a big release!

@@ -8,9 +8,14 @@
 #   ios-arm64                    – device (arm64)
 #   ios-arm64_x86_64-simulator   – simulator (arm64 + x86_64 lipo'd)
 #
+# A Flutter plugin ships both dependency-manager manifests — this podspec
+# (CocoaPods) and Package.swift (Swift Package Manager) — and the consuming
+# app's setup decides which one Flutter uses. Both describe the same
+# libmpv.xcframework and share its SHA-256.
+#
 Pod::Spec.new do |s|
   s.name             = 'mpv_audio_kit'
-  s.version          = '0.2.1'
+  s.version          = '0.2.2'
   s.summary          = 'Flutter audio player powered by libmpv.'
   s.description      = <<-DESC
     Supports audio filters, pitch control, equalizer, and all mpv audio features.
@@ -35,20 +40,20 @@ Pod::Spec.new do |s|
     EXPECTED_SHA256="8500923392ee5ae5d4e3263e12a68e29aa805596b85d56a9a26f2239c91173e0"
     URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_ios.xcframework.zip"
 
-    mkdir -p Frameworks
-    ZIP_FILE="Frameworks/libmpv_xcframework.zip"
+    mkdir -p mpv_audio_kit/Frameworks
+    ZIP_FILE="mpv_audio_kit/Frameworks/libmpv_xcframework.zip"
     DOWNLOAD_NEEDED=1
 
-    if [ -f "Frameworks/libmpv.xcframework/Info.plist" ] && [ -f "$ZIP_FILE" ]; then
+    if [ -f "mpv_audio_kit/Frameworks/libmpv.xcframework/Info.plist" ] && [ -f "$ZIP_FILE" ]; then
       ACTUAL_SHA256=$(shasum -a 256 "$ZIP_FILE" | awk '{ print $1 }')
       if [ "$ACTUAL_SHA256" = "$EXPECTED_SHA256" ]; then
         DOWNLOAD_NEEDED=0
       else
         echo "SHA-256 mismatch! Expected $EXPECTED_SHA256 but got $ACTUAL_SHA256. Redownloading..."
-        rm -rf "Frameworks/libmpv.xcframework"
+        rm -rf "mpv_audio_kit/Frameworks/libmpv.xcframework"
         rm -f "$ZIP_FILE"
       fi
-    elif [ -d "Frameworks/libmpv.xcframework" ] && [ ! -f "$ZIP_FILE" ]; then
+    elif [ -d "mpv_audio_kit/Frameworks/libmpv.xcframework" ] && [ ! -f "$ZIP_FILE" ]; then
       DOWNLOAD_NEEDED=0
     fi
 
@@ -63,12 +68,12 @@ Pod::Spec.new do |s|
         exit 1
       fi
 
-      unzip -o "$ZIP_FILE" -d Frameworks/
+      unzip -o "$ZIP_FILE" -d mpv_audio_kit/Frameworks/
       rm -f "$ZIP_FILE"
     fi
   CMD
 
-  s.vendored_frameworks = 'Frameworks/libmpv.xcframework'
+  s.vendored_frameworks = 'mpv_audio_kit/Frameworks/libmpv.xcframework'
 
   s.pod_target_xcconfig = {
     'DEFINES_MODULE'  => 'YES',

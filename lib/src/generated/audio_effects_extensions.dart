@@ -207,7 +207,7 @@ extension CompandPointsX on CompandSettings {
   /// Decoded transfer-function points, sorted by ascending input.
   List<CompandPoint> get transferPoints {
     final src = points;
-    if (src == null || src.trim().isEmpty) return const [];
+    if (src.trim().isEmpty) return const [];
     final out = <CompandPoint>[];
     for (final pair in src.trim().split(RegExp(r'\s+'))) {
       final xy = pair.split('/');

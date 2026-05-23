@@ -1,3 +1,21 @@
+## [0.2.2] - 23-05-2026
+
+### Added
+- `AevalSettings` and `AformatSettings` now expose their typed parameters (previously toggle-only).
+- Correct numeric bounds on ~116 more parameters that were `null` before — including the whole biquad family's `width_type`, `transform` and `precision`, `atempo.tempo`, and many others. The matching `<param>Min` / `<param>Max` constants now reflect the real ffmpeg ranges.
+- New typed enums for the biquad family's `width_type` and `transform`, plus `SurroundWinFunc`.
+- Param doc comments now flag which AVOptions ffmpeg marks as runtime-tunable, deprecated, or array-typed. Deprecated parameters also carry a Dart `@Deprecated` annotation.
+
+### Changed
+- The six `EBU R128` stat fields (`integrated`, `range`, `lra_low`, `lra_high`, `sample_peak`, `true_peak`) are no longer setter fields on `Ebur128Settings` — ffmpeg flags them as read-only outputs and rejected any attempt to set them. Read them via `af-metadata/<label>` instead.
+
+### Fixed
+- `compand.points`, `mcompand.args`, `aiir.{p,z,k,gains,…}`, `firequalizer.gain`, `anequalizer.colors` and other string-grammar parameters now carry their ffmpeg default value instead of an empty default. The hand-written list-typed extensions (`CompandSettings.transferPoints`, `AiirSettings.channels`, `McompandSettings.bands`, …) consequently decode the real ffmpeg default state when the filter is constructed without overrides.
+
+### Build
+- Improvements to Swift Package Manager on both iOS and macOS.
+
+
 ## [0.2.1] - 21-05-2026
 
 ### Fixed

@@ -84,9 +84,13 @@ void main() {
   });
 
   group('McompandBandsX', () {
-    test('empty settings → no bands', () {
+    test('default settings → ffmpeg default 5-band split', () {
+      // The lavfi `mcompand` filter's AVOption default is a built-in
+      // five-band split, parsed here into typed bands. Decoding what
+      // ffmpeg actually runs (rather than reporting an empty list)
+      // makes UI builders show the real starting state.
       const s = McompandSettings();
-      expect(s.bands, isEmpty);
+      expect(s.bands.length, 5);
     });
 
     test('single band round-trips losslessly', () {
@@ -148,8 +152,8 @@ void main() {
           releaseSeconds: 0.1, kneeDb: 6, makeupDb: 0, crossoverHz: 1000,
         ),
       ]);
-      expect(next.args, isNotNull);
-      expect(next.args!.split(' ').length, 4,
+      expect(next.args, isNotEmpty);
+      expect(next.args.split(' ').length, 4,
           reason: 'compact form: attack,decay knee points crossover');
     });
   });
@@ -394,9 +398,14 @@ void main() {
   });
 
   group('AiirChannelsX', () {
-    test('empty settings → no channels', () {
+    test('default settings → ffmpeg default 1-channel pass-through', () {
+      // The lavfi `aiir` filter's AVOption defaults are a single
+      // gain=1, zeros="1+0i 1-0i", poles="1+0i 1-0i" channel — a
+      // unity pass-through. Decoding what ffmpeg actually runs
+      // (rather than reporting an empty list) mirrors the runtime.
       const s = AiirSettings();
-      expect(s.channels, isEmpty);
+      expect(s.channels.length, 1);
+      expect(s.channels.first.gain, 1.0);
     });
 
     test('multiple channels round-trip', () {

@@ -3,8 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be
 // found in the LICENSE file.
 //
-// AUTO-GENERATED — do not edit by hand. Regenerate with
-// `python3 scripts/lavfi_codegen/generate_example.py`.
+// AUTO-GENERATED — do not edit by hand.
 
 import 'package:flutter/material.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
@@ -89,6 +88,14 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(anequalizer: s.copyWith(mgain: v)),
+                  ),
+                ),
+                FilterParamTextField(
+                  label: 'size',
+                  value: s.size,
+                  defaultValue: '"hd720"',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(anequalizer: s.copyWith(size: v)),
                   ),
                 ),
                 AnequalizerBandsEditor(player: player, settings: s),
@@ -247,6 +254,17 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                   ),
                 ),
                 FilterParamSlider(
+                  label: 'order',
+                  value: s.order.toDouble(),
+                  min: 2.0,
+                  max: 30.0,
+                  defaultValue: 5.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(atilt: s.copyWith(order: v.round())),
+                  ),
+                ),
+                FilterParamSlider(
                   label: 'slope',
                   value: s.slope,
                   min: -1.0,
@@ -286,6 +304,24 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                 (e) => e.copyWith(bass: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<BassTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: BassTransformType.di,
+                  options: const [
+                    BassTransformType.di,
+                    BassTransformType.dii,
+                    BassTransformType.tdi,
+                    BassTransformType.tdii,
+                    BassTransformType.latt,
+                    BassTransformType.svf,
+                    BassTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bass: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -460,6 +496,40 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(bass: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<BassWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: BassWidthType.q,
+                  options: const [
+                    BassWidthType.h,
+                    BassWidthType.q,
+                    BassWidthType.o,
+                    BassWidthType.s,
+                    BassWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bass: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<BassTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: BassTransformType.di,
+                  options: const [
+                    BassTransformType.di,
+                    BassTransformType.dii,
+                    BassTransformType.tdi,
+                    BassTransformType.tdii,
+                    BassTransformType.latt,
+                    BassTransformType.svf,
+                    BassTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bass: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -482,6 +552,22 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(bass: s.copyWith(width: v)),
                   ),
                 ),
+                FilterParamDropdown<BassWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: BassWidthType.q,
+                  options: const [
+                    BassWidthType.h,
+                    BassWidthType.q,
+                    BassWidthType.o,
+                    BassWidthType.s,
+                    BassWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bass: s.copyWith(width_type: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -500,6 +586,57 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                 (e) => e.copyWith(biquad: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<BiquadTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: BiquadTransformType.di,
+                  options: const [
+                    BiquadTransformType.di,
+                    BiquadTransformType.dii,
+                    BiquadTransformType.tdi,
+                    BiquadTransformType.tdii,
+                    BiquadTransformType.latt,
+                    BiquadTransformType.svf,
+                    BiquadTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(biquad: s.copyWith(a: v)),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'a0',
+                  value: s.a0,
+                  min: -2147483648.0,
+                  max: 2147483647.0,
+                  defaultValue: 1.0,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(biquad: s.copyWith(a0: v)),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'a1',
+                  value: s.a1,
+                  min: -2147483648.0,
+                  max: 2147483647.0,
+                  defaultValue: 0.0,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(biquad: s.copyWith(a1: v)),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'a2',
+                  value: s.a2,
+                  min: -2147483648.0,
+                  max: 2147483647.0,
+                  defaultValue: 0.0,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(biquad: s.copyWith(a2: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -509,6 +646,39 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                   labelBuilder: (v) => v.toStringAsFixed(0),
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(biquad: s.copyWith(b: v.round())),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'b0',
+                  value: s.b0,
+                  min: -2147483648.0,
+                  max: 2147483647.0,
+                  defaultValue: 0.0,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(biquad: s.copyWith(b0: v)),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'b1',
+                  value: s.b1,
+                  min: -2147483648.0,
+                  max: 2147483647.0,
+                  defaultValue: 0.0,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(biquad: s.copyWith(b1: v)),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'b2',
+                  value: s.b2,
+                  min: -2147483648.0,
+                  max: 2147483647.0,
+                  defaultValue: 0.0,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(biquad: s.copyWith(b2: v)),
                   ),
                 ),
                 FilterParamSlider(
@@ -608,6 +778,24 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(biquad: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<BiquadTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: BiquadTransformType.di,
+                  options: const [
+                    BiquadTransformType.di,
+                    BiquadTransformType.dii,
+                    BiquadTransformType.tdi,
+                    BiquadTransformType.tdii,
+                    BiquadTransformType.latt,
+                    BiquadTransformType.svf,
+                    BiquadTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(biquad: s.copyWith(transform: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -626,6 +814,24 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                 (e) => e.copyWith(equalizer: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<EqualizerTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: EqualizerTransformType.di,
+                  options: const [
+                    EqualizerTransformType.di,
+                    EqualizerTransformType.dii,
+                    EqualizerTransformType.tdi,
+                    EqualizerTransformType.tdii,
+                    EqualizerTransformType.latt,
+                    EqualizerTransformType.svf,
+                    EqualizerTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(equalizer: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -779,6 +985,40 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(equalizer: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<EqualizerWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: EqualizerWidthType.q,
+                  options: const [
+                    EqualizerWidthType.h,
+                    EqualizerWidthType.q,
+                    EqualizerWidthType.o,
+                    EqualizerWidthType.s,
+                    EqualizerWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(equalizer: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<EqualizerTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: EqualizerTransformType.di,
+                  options: const [
+                    EqualizerTransformType.di,
+                    EqualizerTransformType.dii,
+                    EqualizerTransformType.tdi,
+                    EqualizerTransformType.tdii,
+                    EqualizerTransformType.latt,
+                    EqualizerTransformType.svf,
+                    EqualizerTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(equalizer: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -799,6 +1039,22 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(equalizer: s.copyWith(width: v)),
+                  ),
+                ),
+                FilterParamDropdown<EqualizerWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: EqualizerWidthType.q,
+                  options: const [
+                    EqualizerWidthType.h,
+                    EqualizerWidthType.q,
+                    EqualizerWidthType.o,
+                    EqualizerWidthType.s,
+                    EqualizerWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(equalizer: s.copyWith(width_type: v)),
                   ),
                 ),
               ],
@@ -844,9 +1100,24 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                 FilterParamTextField(
                   label: 'dumpfile',
                   value: s.dumpfile,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(firequalizer: s.copyWith(dumpfile: v)),
+                  ),
+                ),
+                FilterParamDropdown<FirequalizerScale>(
+                  label: 'dumpscale',
+                  value: s.dumpscale,
+                  defaultValue: FirequalizerScale.linlog,
+                  options: const [
+                    FirequalizerScale.linlin,
+                    FirequalizerScale.linlog,
+                    FirequalizerScale.loglin,
+                    FirequalizerScale.loglog,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(firequalizer: s.copyWith(dumpscale: v)),
                   ),
                 ),
                 FilterParamSwitch(
@@ -876,7 +1147,7 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                 FilterParamTextField(
                   label: 'gain_entry',
                   value: s.gain_entry,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(firequalizer: s.copyWith(gain_entry: v)),
                   ),
@@ -895,6 +1166,42 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                   defaultValue: false,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(firequalizer: s.copyWith(multi: v)),
+                  ),
+                ),
+                FilterParamDropdown<FirequalizerScale>(
+                  label: 'scale',
+                  value: s.scale,
+                  defaultValue: FirequalizerScale.linlog,
+                  options: const [
+                    FirequalizerScale.linlin,
+                    FirequalizerScale.linlog,
+                    FirequalizerScale.loglin,
+                    FirequalizerScale.loglog,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(firequalizer: s.copyWith(scale: v)),
+                  ),
+                ),
+                FilterParamDropdown<FirequalizerWfunc>(
+                  label: 'wfunc',
+                  value: s.wfunc,
+                  defaultValue: FirequalizerWfunc.hann,
+                  options: const [
+                    FirequalizerWfunc.rectangular,
+                    FirequalizerWfunc.hann,
+                    FirequalizerWfunc.hamming,
+                    FirequalizerWfunc.blackman,
+                    FirequalizerWfunc.nuttall3,
+                    FirequalizerWfunc.mnuttall3,
+                    FirequalizerWfunc.nuttall,
+                    FirequalizerWfunc.bnuttall,
+                    FirequalizerWfunc.bharris,
+                    FirequalizerWfunc.tukey,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(firequalizer: s.copyWith(wfunc: v)),
                   ),
                 ),
                 FilterParamSwitch(
@@ -923,6 +1230,24 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                 (e) => e.copyWith(highshelf: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<HighshelfTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: HighshelfTransformType.di,
+                  options: const [
+                    HighshelfTransformType.di,
+                    HighshelfTransformType.dii,
+                    HighshelfTransformType.tdi,
+                    HighshelfTransformType.tdii,
+                    HighshelfTransformType.latt,
+                    HighshelfTransformType.svf,
+                    HighshelfTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(highshelf: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -1098,6 +1423,40 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(highshelf: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<HighshelfWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: HighshelfWidthType.q,
+                  options: const [
+                    HighshelfWidthType.h,
+                    HighshelfWidthType.q,
+                    HighshelfWidthType.o,
+                    HighshelfWidthType.s,
+                    HighshelfWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(highshelf: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<HighshelfTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: HighshelfTransformType.di,
+                  options: const [
+                    HighshelfTransformType.di,
+                    HighshelfTransformType.dii,
+                    HighshelfTransformType.tdi,
+                    HighshelfTransformType.tdii,
+                    HighshelfTransformType.latt,
+                    HighshelfTransformType.svf,
+                    HighshelfTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(highshelf: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -1120,6 +1479,22 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(highshelf: s.copyWith(width: v)),
                   ),
                 ),
+                FilterParamDropdown<HighshelfWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: HighshelfWidthType.q,
+                  options: const [
+                    HighshelfWidthType.h,
+                    HighshelfWidthType.q,
+                    HighshelfWidthType.o,
+                    HighshelfWidthType.s,
+                    HighshelfWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(highshelf: s.copyWith(width_type: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -1138,6 +1513,24 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                 (e) => e.copyWith(lowshelf: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<LowshelfTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: LowshelfTransformType.di,
+                  options: const [
+                    LowshelfTransformType.di,
+                    LowshelfTransformType.dii,
+                    LowshelfTransformType.tdi,
+                    LowshelfTransformType.tdii,
+                    LowshelfTransformType.latt,
+                    LowshelfTransformType.svf,
+                    LowshelfTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(lowshelf: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -1313,6 +1706,40 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(lowshelf: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<LowshelfWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: LowshelfWidthType.q,
+                  options: const [
+                    LowshelfWidthType.h,
+                    LowshelfWidthType.q,
+                    LowshelfWidthType.o,
+                    LowshelfWidthType.s,
+                    LowshelfWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(lowshelf: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<LowshelfTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: LowshelfTransformType.di,
+                  options: const [
+                    LowshelfTransformType.di,
+                    LowshelfTransformType.dii,
+                    LowshelfTransformType.tdi,
+                    LowshelfTransformType.tdii,
+                    LowshelfTransformType.latt,
+                    LowshelfTransformType.svf,
+                    LowshelfTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(lowshelf: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -1335,6 +1762,22 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(lowshelf: s.copyWith(width: v)),
                   ),
                 ),
+                FilterParamDropdown<LowshelfWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: LowshelfWidthType.q,
+                  options: const [
+                    LowshelfWidthType.h,
+                    LowshelfWidthType.q,
+                    LowshelfWidthType.o,
+                    LowshelfWidthType.s,
+                    LowshelfWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(lowshelf: s.copyWith(width_type: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -1353,6 +1796,24 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                 (e) => e.copyWith(tiltshelf: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<TiltshelfTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: TiltshelfTransformType.di,
+                  options: const [
+                    TiltshelfTransformType.di,
+                    TiltshelfTransformType.dii,
+                    TiltshelfTransformType.tdi,
+                    TiltshelfTransformType.tdii,
+                    TiltshelfTransformType.latt,
+                    TiltshelfTransformType.svf,
+                    TiltshelfTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(tiltshelf: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -1528,6 +1989,40 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(tiltshelf: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<TiltshelfWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: TiltshelfWidthType.q,
+                  options: const [
+                    TiltshelfWidthType.h,
+                    TiltshelfWidthType.q,
+                    TiltshelfWidthType.o,
+                    TiltshelfWidthType.s,
+                    TiltshelfWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(tiltshelf: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<TiltshelfTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: TiltshelfTransformType.di,
+                  options: const [
+                    TiltshelfTransformType.di,
+                    TiltshelfTransformType.dii,
+                    TiltshelfTransformType.tdi,
+                    TiltshelfTransformType.tdii,
+                    TiltshelfTransformType.latt,
+                    TiltshelfTransformType.svf,
+                    TiltshelfTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(tiltshelf: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -1550,6 +2045,22 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(tiltshelf: s.copyWith(width: v)),
                   ),
                 ),
+                FilterParamDropdown<TiltshelfWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: TiltshelfWidthType.q,
+                  options: const [
+                    TiltshelfWidthType.h,
+                    TiltshelfWidthType.q,
+                    TiltshelfWidthType.o,
+                    TiltshelfWidthType.s,
+                    TiltshelfWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(tiltshelf: s.copyWith(width_type: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -1568,6 +2079,24 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                 (e) => e.copyWith(treble: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<TrebleTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: TrebleTransformType.di,
+                  options: const [
+                    TrebleTransformType.di,
+                    TrebleTransformType.dii,
+                    TrebleTransformType.tdi,
+                    TrebleTransformType.tdii,
+                    TrebleTransformType.latt,
+                    TrebleTransformType.svf,
+                    TrebleTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(treble: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -1742,6 +2271,40 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                     (e) => e.copyWith(treble: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<TrebleWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: TrebleWidthType.q,
+                  options: const [
+                    TrebleWidthType.h,
+                    TrebleWidthType.q,
+                    TrebleWidthType.o,
+                    TrebleWidthType.s,
+                    TrebleWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(treble: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<TrebleTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: TrebleTransformType.di,
+                  options: const [
+                    TrebleTransformType.di,
+                    TrebleTransformType.dii,
+                    TrebleTransformType.tdi,
+                    TrebleTransformType.tdii,
+                    TrebleTransformType.latt,
+                    TrebleTransformType.svf,
+                    TrebleTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(treble: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -1762,6 +2325,22 @@ class _FiltersEqualizationPageState extends State<FiltersEqualizationPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(treble: s.copyWith(width: v)),
+                  ),
+                ),
+                FilterParamDropdown<TrebleWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: TrebleWidthType.q,
+                  options: const [
+                    TrebleWidthType.h,
+                    TrebleWidthType.q,
+                    TrebleWidthType.o,
+                    TrebleWidthType.s,
+                    TrebleWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(treble: s.copyWith(width_type: v)),
                   ),
                 ),
               ],

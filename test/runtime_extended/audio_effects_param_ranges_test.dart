@@ -68,6 +68,12 @@ void main() {
     //   * `lfe_low=lfe_lowMax (256)` >= default lfe_high (256) → reject
     'surround.lfe_high=lfe_highMin',
     'surround.lfe_low=lfe_lowMax',
+    // afade: AVOption declares `start_sample` / `ss` max as I64_MAX,
+    // but the filter rejects it at init time — `start_sample +
+    // nb_samples` would overflow internally. Min / Default are
+    // accepted; only the I64_MAX extreme blows up.
+    'afade.start_sample=start_sampleMax',
+    'afade.ss=ssMax',
   };
 
   late Player player;

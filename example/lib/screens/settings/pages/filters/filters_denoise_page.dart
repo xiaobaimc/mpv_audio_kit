@@ -3,8 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be
 // found in the LICENSE file.
 //
-// AUTO-GENERATED — do not edit by hand. Regenerate with
-// `python3 scripts/lavfi_codegen/generate_example.py`.
+// AUTO-GENERATED — do not edit by hand.
 
 import 'package:flutter/material.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
@@ -363,7 +362,32 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
               onToggle: (v) => player.updateAudioEffects(
                 (e) => e.copyWith(adecorrelate: s.copyWith(enabled: v)),
               ),
-              params: [],
+              params: [
+                FilterParamSlider(
+                  label: 'seed',
+                  value: s.seed.toDouble(),
+                  min: -1.0,
+                  max: 4294967295.0,
+                  defaultValue: -1.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) =>
+                        e.copyWith(adecorrelate: s.copyWith(seed: v.round())),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'stages',
+                  value: s.stages.toDouble(),
+                  min: 1.0,
+                  max: 16.0,
+                  defaultValue: 6.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) =>
+                        e.copyWith(adecorrelate: s.copyWith(stages: v.round())),
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -392,7 +416,7 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                 FilterParamTextField(
                   label: 'delays',
                   value: s.delays,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(adelay: s.copyWith(delays: v)),
                   ),
@@ -424,6 +448,21 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(adenorm: s.copyWith(level: v)),
+                  ),
+                ),
+                FilterParamDropdown<AdenormType>(
+                  label: 'type',
+                  value: s.type,
+                  defaultValue: AdenormType.dc,
+                  options: const [
+                    AdenormType.dc,
+                    AdenormType.ac,
+                    AdenormType.square,
+                    AdenormType.pulse,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(adenorm: s.copyWith(type: v)),
                   ),
                 ),
               ],
@@ -497,7 +536,7 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                 FilterParamTextField(
                   label: 'band_noise',
                   value: s.band_noise,
-                  defaultValue: '0',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(afftdn: s.copyWith(band_noise: v)),
                   ),
@@ -516,7 +555,7 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                 FilterParamTextField(
                   label: 'bn',
                   value: s.bn,
-                  defaultValue: '0',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(afftdn: s.copyWith(bn: v)),
                   ),
@@ -577,6 +616,21 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                     (e) => e.copyWith(afftdn: s.copyWith(nf: v)),
                   ),
                 ),
+                FilterParamDropdown<AfftdnLink>(
+                  label: 'nl',
+                  value: s.nl,
+                  defaultValue: AfftdnLink.min,
+                  options: const [
+                    AfftdnLink.none,
+                    AfftdnLink.min,
+                    AfftdnLink.max,
+                    AfftdnLink.average,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afftdn: s.copyWith(nl: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'noise_floor',
                   value: s.noise_floor,
@@ -586,6 +640,21 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(afftdn: s.copyWith(noise_floor: v)),
+                  ),
+                ),
+                FilterParamDropdown<AfftdnLink>(
+                  label: 'noise_link',
+                  value: s.noise_link,
+                  defaultValue: AfftdnLink.min,
+                  options: const [
+                    AfftdnLink.none,
+                    AfftdnLink.min,
+                    AfftdnLink.max,
+                    AfftdnLink.average,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afftdn: s.copyWith(noise_link: v)),
                   ),
                 ),
                 FilterParamSlider(
@@ -599,6 +668,25 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                     (e) => e.copyWith(afftdn: s.copyWith(noise_reduction: v)),
                   ),
                 ),
+                FilterParamDropdown<AfftdnType>(
+                  label: 'noise_type',
+                  value: s.noise_type,
+                  defaultValue: AfftdnType.white,
+                  options: const [
+                    AfftdnType.white,
+                    AfftdnType.w,
+                    AfftdnType.vinyl,
+                    AfftdnType.v,
+                    AfftdnType.shellac,
+                    AfftdnType.s,
+                    AfftdnType.custom,
+                    AfftdnType.c,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afftdn: s.copyWith(noise_type: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'nr',
                   value: s.nr,
@@ -608,6 +696,59 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(afftdn: s.copyWith(nr: v)),
+                  ),
+                ),
+                FilterParamDropdown<AfftdnType>(
+                  label: 'nt',
+                  value: s.nt,
+                  defaultValue: AfftdnType.white,
+                  options: const [
+                    AfftdnType.white,
+                    AfftdnType.w,
+                    AfftdnType.vinyl,
+                    AfftdnType.v,
+                    AfftdnType.shellac,
+                    AfftdnType.s,
+                    AfftdnType.custom,
+                    AfftdnType.c,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afftdn: s.copyWith(nt: v)),
+                  ),
+                ),
+                FilterParamDropdown<AfftdnMode>(
+                  label: 'om',
+                  value: s.om,
+                  defaultValue: AfftdnMode.output,
+                  options: const [
+                    AfftdnMode.input,
+                    AfftdnMode.i,
+                    AfftdnMode.output,
+                    AfftdnMode.o,
+                    AfftdnMode.noise,
+                    AfftdnMode.n,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afftdn: s.copyWith(om: v)),
+                  ),
+                ),
+                FilterParamDropdown<AfftdnMode>(
+                  label: 'output_mode',
+                  value: s.output_mode,
+                  defaultValue: AfftdnMode.output,
+                  options: const [
+                    AfftdnMode.input,
+                    AfftdnMode.i,
+                    AfftdnMode.output,
+                    AfftdnMode.o,
+                    AfftdnMode.noise,
+                    AfftdnMode.n,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afftdn: s.copyWith(output_mode: v)),
                   ),
                 ),
                 FilterParamSlider(
@@ -630,6 +771,38 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(afftdn: s.copyWith(rf: v)),
+                  ),
+                ),
+                FilterParamDropdown<AfftdnSample>(
+                  label: 'sample_noise',
+                  value: s.sample_noise,
+                  defaultValue: AfftdnSample.none,
+                  options: const [
+                    AfftdnSample.none,
+                    AfftdnSample.start,
+                    AfftdnSample.begin,
+                    AfftdnSample.stop,
+                    AfftdnSample.end,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afftdn: s.copyWith(sample_noise: v)),
+                  ),
+                ),
+                FilterParamDropdown<AfftdnSample>(
+                  label: 'sn',
+                  value: s.sn,
+                  defaultValue: AfftdnSample.none,
+                  options: const [
+                    AfftdnSample.none,
+                    AfftdnSample.start,
+                    AfftdnSample.begin,
+                    AfftdnSample.stop,
+                    AfftdnSample.end,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afftdn: s.copyWith(sn: v)),
                   ),
                 ),
                 FilterParamSwitch(
@@ -691,6 +864,17 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                   ),
                 ),
                 FilterParamSlider(
+                  label: 'levels',
+                  value: s.levels.toDouble(),
+                  min: 1.0,
+                  max: 12.0,
+                  defaultValue: 10.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afwtdn: s.copyWith(levels: v.round())),
+                  ),
+                ),
+                FilterParamSlider(
                   label: 'percent',
                   value: s.percent,
                   min: 0.0,
@@ -742,6 +926,24 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                     (e) => e.copyWith(afwtdn: s.copyWith(softness: v)),
                   ),
                 ),
+                FilterParamDropdown<AfwtdnWavet>(
+                  label: 'wavet',
+                  value: s.wavet,
+                  defaultValue: AfwtdnWavet.sym10,
+                  options: const [
+                    AfwtdnWavet.sym2,
+                    AfwtdnWavet.sym4,
+                    AfwtdnWavet.rbior68,
+                    AfwtdnWavet.deb10,
+                    AfwtdnWavet.sym10,
+                    AfwtdnWavet.coif5,
+                    AfwtdnWavet.bl3,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afwtdn: s.copyWith(wavet: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -769,6 +971,26 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(anlmdn: s.copyWith(m: v)),
+                  ),
+                ),
+                FilterParamDropdown<AnlmdnMode>(
+                  label: 'o',
+                  value: s.o,
+                  defaultValue: AnlmdnMode.o,
+                  options: const [AnlmdnMode.i, AnlmdnMode.o, AnlmdnMode.n],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(anlmdn: s.copyWith(o: v)),
+                  ),
+                ),
+                FilterParamDropdown<AnlmdnMode>(
+                  label: 'output',
+                  value: s.output,
+                  defaultValue: AnlmdnMode.o,
+                  options: const [AnlmdnMode.i, AnlmdnMode.o, AnlmdnMode.n],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(anlmdn: s.copyWith(output: v)),
                   ),
                 ),
                 FilterParamSlider(
@@ -825,7 +1047,7 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                 FilterParamTextField(
                   label: 'm',
                   value: s.m,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(arnndn: s.copyWith(m: v)),
                   ),
@@ -844,7 +1066,7 @@ class _FiltersDenoisePageState extends State<FiltersDenoisePage> {
                 FilterParamTextField(
                   label: 'model',
                   value: s.model,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(arnndn: s.copyWith(model: v)),
                   ),

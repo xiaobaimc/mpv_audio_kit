@@ -3,8 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be
 // found in the LICENSE file.
 //
-// AUTO-GENERATED — do not edit by hand. Regenerate with
-// `python3 scripts/lavfi_codegen/generate_example.py`.
+// AUTO-GENERATED — do not edit by hand.
 
 import 'package:flutter/material.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
@@ -277,6 +276,17 @@ class _FiltersStereoPageState extends State<FiltersStereoPage> {
                   ),
                 ),
                 FilterParamSlider(
+                  label: 'left_delay',
+                  value: s.left_delay,
+                  min: 0.0,
+                  max: 40.0,
+                  defaultValue: 2.05,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(haas: s.copyWith(left_delay: v)),
+                  ),
+                ),
+                FilterParamSlider(
                   label: 'left_gain',
                   value: s.left_gain,
                   min: 0.015625,
@@ -352,6 +362,17 @@ class _FiltersStereoPageState extends State<FiltersStereoPage> {
                   ),
                 ),
                 FilterParamSlider(
+                  label: 'right_delay',
+                  value: s.right_delay,
+                  min: 0.0,
+                  max: 40.0,
+                  defaultValue: 2.12,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(haas: s.copyWith(right_delay: v)),
+                  ),
+                ),
+                FilterParamSlider(
                   label: 'right_gain',
                   value: s.right_gain,
                   min: 0.015625,
@@ -410,6 +431,16 @@ class _FiltersStereoPageState extends State<FiltersStereoPage> {
                     (e) => e.copyWith(headphone: s.copyWith(gain: v)),
                   ),
                 ),
+                FilterParamDropdown<HeadphoneHrir>(
+                  label: 'hrir',
+                  value: s.hrir,
+                  defaultValue: HeadphoneHrir.stereo,
+                  options: const [HeadphoneHrir.stereo, HeadphoneHrir.multich],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(headphone: s.copyWith(hrir: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'lfe',
                   value: s.lfe,
@@ -424,7 +455,7 @@ class _FiltersStereoPageState extends State<FiltersStereoPage> {
                 FilterParamTextField(
                   label: 'map',
                   value: s.map,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(headphone: s.copyWith(map: v)),
                   ),
@@ -471,7 +502,7 @@ class _FiltersStereoPageState extends State<FiltersStereoPage> {
                 FilterParamTextField(
                   label: 'args',
                   value: s.args,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(pan: s.copyWith(args: v)),
                   ),
@@ -1297,6 +1328,39 @@ class _FiltersStereoPageState extends State<FiltersStereoPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(surround: s.copyWith(sry: v)),
+                  ),
+                ),
+                FilterParamDropdown<SurroundWinFunc>(
+                  label: 'win_func',
+                  value: s.win_func,
+                  defaultValue: SurroundWinFunc.hann,
+                  options: const [
+                    SurroundWinFunc.rect,
+                    SurroundWinFunc.bartlett,
+                    SurroundWinFunc.hann,
+                    SurroundWinFunc.hanning,
+                    SurroundWinFunc.hamming,
+                    SurroundWinFunc.blackman,
+                    SurroundWinFunc.welch,
+                    SurroundWinFunc.flattop,
+                    SurroundWinFunc.bharris,
+                    SurroundWinFunc.bnuttall,
+                    SurroundWinFunc.bhann,
+                    SurroundWinFunc.sine,
+                    SurroundWinFunc.nuttall,
+                    SurroundWinFunc.lanczos,
+                    SurroundWinFunc.gauss,
+                    SurroundWinFunc.tukey,
+                    SurroundWinFunc.dolph,
+                    SurroundWinFunc.cauchy,
+                    SurroundWinFunc.parzen,
+                    SurroundWinFunc.poisson,
+                    SurroundWinFunc.bohman,
+                    SurroundWinFunc.kaiser,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(surround: s.copyWith(win_func: v)),
                   ),
                 ),
                 FilterParamSlider(

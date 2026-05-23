@@ -4,7 +4,7 @@
 // that can be found in the LICENSE file.
 //
 // AUTO-GENERATED — do not edit by hand.
-// ignore_for_file: non_constant_identifier_names, constant_identifier_names, camel_case_types, curly_braces_in_flow_control_structures
+// ignore_for_file: non_constant_identifier_names, constant_identifier_names, camel_case_types, curly_braces_in_flow_control_structures, prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings
 
 import '../internals/unset_sentinel.dart';
 import 'audio_effects.dart';
@@ -87,18 +87,18 @@ String _wireDouble(double v) {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [attack]: Amount of milliseconds the signal has to rise above the threshold before gain reduction starts. Default is 20. Range is between 0.01 and 2000. (range 0.01..2000, default 20)
-/// - [detection]: Should the exact signal be taken in case of `peak` or an RMS one in case of `rms`. Default is `rms` which is mostly smoother. (range 0..1, default 1)
-/// - [knee]: Curve the sharp knee around the threshold to enter gain reduction more softly. Default is 2.82843. Range is between 1 and 8. (range 1..8, default 2.82843)
-/// - [level_in]: Set input gain. Default is 1. Range is between 0.015625 and 64. (range 0.015625..64, default 1)
-/// - [level_sc]: set sidechain gain (range 0.015625..64, default 1)
-/// - [link]: Choose if the `average` level between all channels of input stream or the louder(`maximum`) channel of input stream affects the reduction. Default is `average`. (range 0..1, default 0)
-/// - [makeup]: Set the amount by how much signal will be amplified after processing. Default is 1. Range is from 1 to 64. (range 1..64, default 1)
-/// - [mix]: How much to use compressed signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mode]: Set mode of compressor operation. Can be `upward` or `downward`. Default is `downward`. (range 0..1, default 0)
-/// - [ratio]: Set a ratio by which the signal is reduced. 1:2 means that if the level rose 4dB above the threshold, it will be only 2dB above after the reduction. Default is 2. Range is between 1 and 20. (range 1..20, default 2)
-/// - [release]: Amount of milliseconds the signal has to fall below the threshold before reduction is decreased again. Default is 250. Range is between 0.01 and 9000. (range 0.01..9000, default 250)
-/// - [threshold]: If a signal of stream rises above this level it will affect the gain reduction. By default it is 0.125. Range is between 0.00097563 and 1. (range 0.000976563..1, default 0.125)
+/// - [attack]: Amount of milliseconds the signal has to rise above the threshold before gain reduction starts. Default is 20. Range is between 0.01 and 2000. (range 0.01..2000, default 20, runtime-tunable)
+/// - [detection]: Should the exact signal be taken in case of `peak` or an RMS one in case of `rms`. Default is `rms` which is mostly smoother. (range 0..1, default 1, runtime-tunable)
+/// - [knee]: Curve the sharp knee around the threshold to enter gain reduction more softly. Default is 2.82843. Range is between 1 and 8. (range 1..8, default 2.82843, runtime-tunable)
+/// - [level_in]: Set input gain. Default is 1. Range is between 0.015625 and 64. (range 0.015625..64, default 1, runtime-tunable)
+/// - [level_sc]: set sidechain gain (range 0.015625..64, default 1, runtime-tunable)
+/// - [link]: Choose if the `average` level between all channels of input stream or the louder(`maximum`) channel of input stream affects the reduction. Default is `average`. (range 0..1, default 0, runtime-tunable)
+/// - [makeup]: Set the amount by how much signal will be amplified after processing. Default is 1. Range is from 1 to 64. (range 1..64, default 1, runtime-tunable)
+/// - [mix]: How much to use compressed signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mode]: Set mode of compressor operation. Can be `upward` or `downward`. Default is `downward`. (range 0..1, default 0, runtime-tunable)
+/// - [ratio]: Set a ratio by which the signal is reduced. 1:2 means that if the level rose 4dB above the threshold, it will be only 2dB above after the reduction. Default is 2. Range is between 1 and 20. (range 1..20, default 2, runtime-tunable)
+/// - [release]: Amount of milliseconds the signal has to fall below the threshold before reduction is decreased again. Default is 250. Range is between 0.01 and 9000. (range 0.01..9000, default 250, runtime-tunable)
+/// - [threshold]: If a signal of stream rises above this level it will affect the gain reduction. By default it is 0.125. Range is between 0.00097563 and 1. (range 0.000976563..1, default 0.125, runtime-tunable)
 final class AcompressorSettings {
   static const double attackDefault = 20.0;
   static const double attackMin = 0.01;
@@ -338,17 +338,17 @@ final class AcontrastSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [aa]: Set anti-aliasing. (range 0..1, default .5)
-/// - [bits]: Set bit reduction. (range 1..64, default 8)
-/// - [dc]: Set DC. (range .25..4, default 1)
-/// - [level_in]: Set level in. (range 0.015625..64, default 1)
-/// - [level_out]: Set level out. (range 0.015625..64, default 1)
-/// - [lfo]: Enable LFO. By default disabled. (range 0..1, default 0)
-/// - [lforange]: Set LFO range. (range 1..250, default 20)
-/// - [lforate]: Set LFO rate. (range .01..200, default .3)
-/// - [mix]: Set mixing amount. (range 0..1, default .5)
-/// - [mode]: Can be linear: `lin` or logarithmic: `log`. (range 0..1, default 0)
-/// - [samples]: Set sample reduction. (range 1..250, default 1)
+/// - [aa]: Set anti-aliasing. (range 0..1, default .5, runtime-tunable)
+/// - [bits]: Set bit reduction. (range 1..64, default 8, runtime-tunable)
+/// - [dc]: Set DC. (range .25..4, default 1, runtime-tunable)
+/// - [level_in]: Set level in. (range 0.015625..64, default 1, runtime-tunable)
+/// - [level_out]: Set level out. (range 0.015625..64, default 1, runtime-tunable)
+/// - [lfo]: Enable LFO. By default disabled. (range 0..1, default 0, runtime-tunable)
+/// - [lforange]: Set LFO range. (range 1..250, default 20, runtime-tunable)
+/// - [lforate]: Set LFO rate. (range .01..200, default .3, runtime-tunable)
+/// - [mix]: Set mixing amount. (range 0..1, default .5, runtime-tunable)
+/// - [mode]: Can be linear: `lin` or logarithmic: `log`. (range 0..1, default 0, runtime-tunable)
+/// - [samples]: Set sample reduction. (range 1..250, default 1, runtime-tunable)
 final class AcrusherSettings {
   static const double aaDefault = .5;
   static const double aaMin = 0.0;
@@ -864,25 +864,34 @@ final class AdeclipSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [stages]: Set decorrelation stages of filtering. Allowed range is from 1 to 16. Default value is 6. (default 6)
+/// - [seed]: Set random seed used for setting delay in samples across channels. (range -1..4294967295, default -1)
+/// - [stages]: Set decorrelation stages of filtering. Allowed range is from 1 to 16. Default value is 6. (range 1..16, default 6)
 final class AdecorrelateSettings {
+  static const int seedDefault = -1;
+  static const int seedMin = -1;
+  static const int seedMax = 4294967295;
   static const int stagesDefault = 6;
   static const int stagesMin = 1;
+  static const int stagesMax = 16;
 
   final bool enabled;
+  final int seed;
   final int stages;
 
   const AdecorrelateSettings({
     this.enabled = false,
+    this.seed = -1,
     this.stages = 6,
   });
 
   AdecorrelateSettings copyWith({
     bool? enabled,
+    int? seed,
     int? stages,
   }) =>
       AdecorrelateSettings(
         enabled: enabled ?? this.enabled,
+        seed: seed ?? this.seed,
         stages: stages ?? this.stages,
       );
 
@@ -891,20 +900,25 @@ final class AdecorrelateSettings {
       identical(this, other) ||
       (other is AdecorrelateSettings &&
           other.enabled == enabled &&
+          other.seed == seed &&
           other.stages == stages);
 
   @override
-  int get hashCode => Object.hash(enabled, stages);
+  int get hashCode => Object.hash(enabled, seed, stages);
 
   @override
   String toString() =>
-      'AdecorrelateSettings(enabled: $enabled, stages: $stages)';
+      'AdecorrelateSettings(enabled: $enabled, seed: $seed, stages: $stages)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(seed >= seedMin, 'adecorrelate.seed must be >= -1');
+    assert(seed <= seedMax, 'adecorrelate.seed must be <= 4294967295');
     assert(stages >= stagesMin, 'adecorrelate.stages must be >= 1');
+    assert(stages <= stagesMax, 'adecorrelate.stages must be <= 16');
     final parts = <String>[];
+    if (seed != -1) parts.add('seed=' + seed.toString());
     if (stages != 6) parts.add('stages=' + stages.toString());
     return parts.isEmpty
         ? 'lavfi-adecorrelate'
@@ -922,7 +936,7 @@ final class AdecorrelateSettings {
 ///
 /// Parameters:
 /// - [all]: Use last set delay for all remaining channels. By default is disabled. This option if enabled changes how option `delays` is interpreted. (range 0..1, default 0)
-/// - [delays]: Set list of delays in milliseconds for each channel separated by '|'. Unused delays will be silently ignored. If number of given delays is smaller than number of channels all remaining channels will not be delayed. If you want to delay exact number of samples, append 'S' to number. If you want instead to delay in seconds, append 's' to number. (range 0..0, default NULL)
+/// - [delays]: Set list of delays in milliseconds for each channel separated by '|'. Unused delays will be silently ignored. If number of given delays is smaller than number of channels all remaining channels will not be delayed. If you want to delay exact number of samples, append 'S' to number. If you want instead to delay in seconds, append 's' to number. (range 0..0, default "", runtime-tunable)
 final class AdelaySettings {
   final bool enabled;
   final bool all;
@@ -931,7 +945,7 @@ final class AdelaySettings {
   const AdelaySettings({
     this.enabled = false,
     this.all = false,
-    this.delays = 'NULL',
+    this.delays = '',
   });
 
   AdelaySettings copyWith({
@@ -965,7 +979,7 @@ final class AdelaySettings {
   String toFilterString() {
     final parts = <String>[];
     if (all != false) parts.add('all=' + (all ? '1' : '0'));
-    if (delays != 'NULL') parts.add('delays=' + '[' + delays + ']');
+    if (delays != '') parts.add('delays=' + '[' + delays + ']');
     return parts.isEmpty ? 'lavfi-adelay' : 'lavfi-adelay=' + parts.join(':');
   }
 }
@@ -979,8 +993,8 @@ final class AdelaySettings {
 /// A description of the accepted parameters follows.
 ///
 /// Parameters:
-/// - [level]: Set level of added noise in dB. Default is `-351`. Allowed range is from -451 to -90. (range -451..-90, default -351)
-/// - [type]: Set type of added noise. (default DC_TYPE)
+/// - [level]: Set level of added noise in dB. Default is `-351`. Allowed range is from -451 to -90. (range -451..-90, default -351, runtime-tunable)
+/// - [type]: Set type of added noise. (range 0..3, default DC_TYPE, runtime-tunable)
 final class AdenormSettings {
   static const double levelDefault = -351.0;
   static const double levelMin = -451.0;
@@ -1078,10 +1092,10 @@ final class AderivativeSettings {
 /// A description of the accepted options follows.
 ///
 /// Parameters:
-/// - [attack]: Set the attack in milliseconds. Default is `50` milliseconds. Allowed range is from 1 to 1000 milliseconds. (range 1..1000, default 50.)
-/// - [channels]: Set which channels to filter, by default `all` channels in audio stream are filtered. (range 0..0, default "all")
-/// - [release]: Set the release in milliseconds. Default is `100` milliseconds. Allowed range is from 5 to 2000 milliseconds. (range 5..2000, default 100.)
-/// - [transfer]: Set the transfer expression.  The expression can contain the following constants: (range 0..0, default "p")
+/// - [attack]: Set the attack in milliseconds. Default is `50` milliseconds. Allowed range is from 1 to 1000 milliseconds. (range 1..1000, default 50., runtime-tunable)
+/// - [channels]: Set which channels to filter, by default `all` channels in audio stream are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [release]: Set the release in milliseconds. Default is `100` milliseconds. Allowed range is from 5 to 2000 milliseconds. (range 5..2000, default 100., runtime-tunable)
+/// - [transfer]: Set the transfer expression.  The expression can contain the following constants: (range 0..0, default "p", runtime-tunable)
 final class AdrcSettings {
   static const double attackDefault = 50.0;
   static const double attackMin = 1.0;
@@ -1159,21 +1173,21 @@ final class AdrcSettings {
 /// A description of the accepted options follows.
 ///
 /// Parameters:
-/// - [attack]: Set the amount of milliseconds the signal from detection has to rise above the detection threshold before equalization starts. Default is 20. Allowed range is between 1 and 2000. (range 0.01..2000, default 20)
-/// - [auto]: set auto threshold (default DET_OFF)
-/// - [dfrequency]: Set the detection frequency in Hz used for detection filter used to trigger equalization. Default value is 1000 Hz. Allowed range is between 2 and 1000000 Hz. (range 2..1000000, default 1000)
-/// - [dftype]: set detection filter type (range 0..3, default 0)
-/// - [dqfactor]: Set the detection resonance factor for detection filter used to trigger equalization. Default value is 1. Allowed range is from 0.001 to 1000. (range 0.001..1000, default 1)
-/// - [makeup]: Set the makeup offset by which the equalization gain is raised. Default is 0. Allowed range is between 0 and 100. (range 0..1000, default 0)
-/// - [mode]: Set the mode of filter operation, can be one of the following: (default 0)
+/// - [attack]: Set the amount of milliseconds the signal from detection has to rise above the detection threshold before equalization starts. Default is 20. Allowed range is between 1 and 2000. (range 0.01..2000, default 20, runtime-tunable)
+/// - [auto]: set auto threshold (range 1..4, default DET_OFF, runtime-tunable)
+/// - [dfrequency]: Set the detection frequency in Hz used for detection filter used to trigger equalization. Default value is 1000 Hz. Allowed range is between 2 and 1000000 Hz. (range 2..1000000, default 1000, runtime-tunable)
+/// - [dftype]: set detection filter type (range 0..3, default 0, runtime-tunable)
+/// - [dqfactor]: Set the detection resonance factor for detection filter used to trigger equalization. Default value is 1. Allowed range is from 0.001 to 1000. (range 0.001..1000, default 1, runtime-tunable)
+/// - [makeup]: Set the makeup offset by which the equalization gain is raised. Default is 0. Allowed range is between 0 and 100. (range 0..1000, default 0, runtime-tunable)
+/// - [mode]: Set the mode of filter operation, can be one of the following: (range -1..3, default 0, runtime-tunable)
 /// - [precision]: set processing precision (range 0..2, default 0)
-/// - [range]: Set the max allowed cut/boost amount. Default is 50. Allowed range is from 1 to 200. (range 1..2000, default 50)
-/// - [ratio]: Set the ratio by which the equalization gain is raised. Default is 1. Allowed range is between 0 and 30. (range 0..30, default 1)
-/// - [release]: Set the amount of milliseconds the signal from detection has to fall below the detection threshold before equalization ends. Default is 200. Allowed range is between 1 and 2000. (range 0.01..2000, default 200)
-/// - [tfrequency]: Set the target frequency of equalization filter. Default value is 1000 Hz. Allowed range is between 2 and 1000000 Hz. (range 2..1000000, default 1000)
-/// - [tftype]: set target filter type (range 0..2, default 0)
-/// - [threshold]: Set the detection threshold used to trigger equalization. Threshold detection is using detection filter. Default value is 0. Allowed range is from 0 to 100. (range 0..100, default 0)
-/// - [tqfactor]: Set the target resonance factor for target equalization filter. Default value is 1. Allowed range is from 0.001 to 1000. (range 0.001..1000, default 1)
+/// - [range]: Set the max allowed cut/boost amount. Default is 50. Allowed range is from 1 to 200. (range 1..2000, default 50, runtime-tunable)
+/// - [ratio]: Set the ratio by which the equalization gain is raised. Default is 1. Allowed range is between 0 and 30. (range 0..30, default 1, runtime-tunable)
+/// - [release]: Set the amount of milliseconds the signal from detection has to fall below the detection threshold before equalization ends. Default is 200. Allowed range is between 1 and 2000. (range 0.01..2000, default 200, runtime-tunable)
+/// - [tfrequency]: Set the target frequency of equalization filter. Default value is 1000 Hz. Allowed range is between 2 and 1000000 Hz. (range 2..1000000, default 1000, runtime-tunable)
+/// - [tftype]: set target filter type (range 0..2, default 0, runtime-tunable)
+/// - [threshold]: Set the detection threshold used to trigger equalization. Threshold detection is using detection filter. Default value is 0. Allowed range is from 0 to 100. (range 0..100, default 0, runtime-tunable)
+/// - [tqfactor]: Set the target resonance factor for target equalization filter. Default value is 1. Allowed range is from 0.001 to 1000. (range 0.001..1000, default 1, runtime-tunable)
 final class AdynamicequalizerSettings {
   static const double attackDefault = 20.0;
   static const double attackMin = 0.01;
@@ -1213,7 +1227,7 @@ final class AdynamicequalizerSettings {
   final AdynamicequalizerDftype dftype;
   final double dqfactor;
   final double makeup;
-  final AdynamicequalizerMode? mode;
+  final AdynamicequalizerMode mode;
   final AdynamicequalizerPrecision precision;
   final double range;
   final double ratio;
@@ -1231,7 +1245,7 @@ final class AdynamicequalizerSettings {
     this.dftype = AdynamicequalizerDftype.bandpass,
     this.dqfactor = 1.0,
     this.makeup = 0.0,
-    this.mode,
+    this.mode = AdynamicequalizerMode.listen,
     this.precision = AdynamicequalizerPrecision.auto,
     this.range = 50.0,
     this.ratio = 1.0,
@@ -1250,7 +1264,7 @@ final class AdynamicequalizerSettings {
     AdynamicequalizerDftype? dftype,
     double? dqfactor,
     double? makeup,
-    Object? mode = unset,
+    AdynamicequalizerMode? mode,
     AdynamicequalizerPrecision? precision,
     double? range,
     double? ratio,
@@ -1268,8 +1282,7 @@ final class AdynamicequalizerSettings {
         dftype: dftype ?? this.dftype,
         dqfactor: dqfactor ?? this.dqfactor,
         makeup: makeup ?? this.makeup,
-        mode:
-            identical(mode, unset) ? this.mode : mode as AdynamicequalizerMode?,
+        mode: mode ?? this.mode,
         precision: precision ?? this.precision,
         range: range ?? this.range,
         ratio: ratio ?? this.ratio,
@@ -1366,7 +1379,8 @@ final class AdynamicequalizerSettings {
       parts.add('dftype=' + dftype.mpvValue);
     if (dqfactor != 1.0) parts.add('dqfactor=' + _wireDouble(dqfactor));
     if (makeup != 0.0) parts.add('makeup=' + _wireDouble(makeup));
-    if (mode != null) parts.add('mode=' + mode!.mpvValue);
+    if (mode != AdynamicequalizerMode.listen)
+      parts.add('mode=' + mode.mpvValue);
     if (precision != AdynamicequalizerPrecision.auto)
       parts.add('precision=' + precision.mpvValue);
     if (range != 50.0) parts.add('range=' + _wireDouble(range));
@@ -1391,8 +1405,8 @@ final class AdynamicequalizerSettings {
 /// A description of the accepted options follows.
 ///
 /// Parameters:
-/// - [basefreq]: Set a base frequency for smoothing. Default value is 22050. Allowed range is from 2 to 1e+06. (range 2..1000000, default 22050)
-/// - [sensitivity]: Set an amount of sensitivity to frequency fluctations. Default is 2. Allowed range is from 0 to 1e+06. (range 0..1000000, default 2)
+/// - [basefreq]: Set a base frequency for smoothing. Default value is 22050. Allowed range is from 2 to 1e+06. (range 2..1000000, default 22050, runtime-tunable)
+/// - [sensitivity]: Set an amount of sensitivity to frequency fluctations. Default is 2. Allowed range is from 0 to 1e+06. (range 0..1000000, default 2, runtime-tunable)
 final class AdynamicsmoothSettings {
   static const double basefreqDefault = 22050.0;
   static const double basefreqMin = 2.0;
@@ -1558,10 +1572,10 @@ final class AechoSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [level_in]: Set input gain. (range 0..64, default 1)
-/// - [level_out]: Set output gain. (range 0..64, default 1)
-/// - [mode]: Set filter mode. For restoring material use `reproduction` mode, otherwise use `production` mode. Default is `reproduction` mode. (range 0..1, default 0)
-/// - [type]: Set filter type. Selects medium. Can be one of the following: (range 0..8, default 4)
+/// - [level_in]: Set input gain. (range 0..64, default 1, runtime-tunable)
+/// - [level_out]: Set output gain. (range 0..64, default 1, runtime-tunable)
+/// - [mode]: Set filter mode. For restoring material use `reproduction` mode, otherwise use `production` mode. Default is `reproduction` mode. (range 0..1, default 0, runtime-tunable)
+/// - [type]: Set filter type. Selects medium. Can be one of the following: (range 0..8, default 4, runtime-tunable)
 final class AemphasisSettings {
   static const double level_inDefault = 1.0;
   static const double level_inMin = 0.0;
@@ -1642,35 +1656,62 @@ final class AemphasisSettings {
 /// which are evaluated and used to modify a corresponding audio signal.
 ///
 /// It accepts the following parameters:
+///
+/// Parameters:
+/// - [c]: Set output channel layout. If not specified, the channel layout is specified by the number of expressions. If set to `same`, it will use by default the same input channel layout. (range 0..0, default "")
+/// - [channel_layout]: Set output channel layout. If not specified, the channel layout is specified by the number of expressions. If set to `same`, it will use by default the same input channel layout. (range 0..0, default "")
+/// - [exprs]: Set the '|'-separated expressions list for each separate channel. If the number of input channels is greater than the number of expressions, the last specified expression is used for the remaining output channels. (default "")
 final class AevalSettings {
   final bool enabled;
+  final String c;
+  final String channel_layout;
+  final String exprs;
 
   const AevalSettings({
     this.enabled = false,
+    this.c = '',
+    this.channel_layout = '',
+    this.exprs = '',
   });
 
   AevalSettings copyWith({
     bool? enabled,
+    String? c,
+    String? channel_layout,
+    String? exprs,
   }) =>
       AevalSettings(
         enabled: enabled ?? this.enabled,
+        c: c ?? this.c,
+        channel_layout: channel_layout ?? this.channel_layout,
+        exprs: exprs ?? this.exprs,
       );
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is AevalSettings && other.enabled == enabled);
+      (other is AevalSettings &&
+          other.enabled == enabled &&
+          other.c == c &&
+          other.channel_layout == channel_layout &&
+          other.exprs == exprs);
 
   @override
-  int get hashCode => enabled.hashCode;
+  int get hashCode => Object.hash(enabled, c, channel_layout, exprs);
 
   @override
-  String toString() => 'AevalSettings(enabled: $enabled)';
+  String toString() =>
+      'AevalSettings(enabled: $enabled, c: $c, channel_layout: $channel_layout, exprs: $exprs)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    return 'lavfi-aeval';
+    final parts = <String>[];
+    if (c != '') parts.add('c=' + '[' + c + ']');
+    if (channel_layout != '')
+      parts.add('channel_layout=' + '[' + channel_layout + ']');
+    if (exprs != '') parts.add('exprs=' + '[' + exprs + ']');
+    return parts.isEmpty ? 'lavfi-aeval' : 'lavfi-aeval=' + parts.join(':');
   }
 }
 
@@ -1686,14 +1727,14 @@ final class AevalSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [amount]: Set the amount of harmonics added to original signal. Allowed range is from 0 to 64. Default value is 1. (range 0..64, default 1)
-/// - [blend]: Set the octave of newly created harmonics. Allowed range is from -10 to 10. Default value is 0. (range -10..10, default 0)
-/// - [ceil]: Set the upper frequency limit of producing harmonics. Allowed range is from 9999 to 20000 Hz. If value is lower than 10000 Hz no limit is applied. (range 9999..20000, default 9999)
-/// - [drive]: Set the amount of newly created harmonics. Allowed range is from 0.1 to 10. Default value is 8.5. (range 0.1..10, default 8.5)
-/// - [freq]: Set the lower frequency limit of producing harmonics in Hz. Allowed range is from 2000 to 12000 Hz. Default is 7500 Hz. (range 2000..12000, default 7500)
-/// - [level_in]: Set input level prior processing of signal. Allowed range is from 0 to 64. Default value is 1. (range 0..64, default 1)
-/// - [level_out]: Set output level after processing of signal. Allowed range is from 0 to 64. Default value is 1. (range 0..64, default 1)
-/// - [listen]: Mute the original signal and output only added harmonics. By default is disabled. (range 0..1, default 0)
+/// - [amount]: Set the amount of harmonics added to original signal. Allowed range is from 0 to 64. Default value is 1. (range 0..64, default 1, runtime-tunable)
+/// - [blend]: Set the octave of newly created harmonics. Allowed range is from -10 to 10. Default value is 0. (range -10..10, default 0, runtime-tunable)
+/// - [ceil]: Set the upper frequency limit of producing harmonics. Allowed range is from 9999 to 20000 Hz. If value is lower than 10000 Hz no limit is applied. (range 9999..20000, default 9999, runtime-tunable)
+/// - [drive]: Set the amount of newly created harmonics. Allowed range is from 0.1 to 10. Default value is 8.5. (range 0.1..10, default 8.5, runtime-tunable)
+/// - [freq]: Set the lower frequency limit of producing harmonics in Hz. Allowed range is from 2000 to 12000 Hz. Default is 7500 Hz. (range 2000..12000, default 7500, runtime-tunable)
+/// - [level_in]: Set input level prior processing of signal. Allowed range is from 0 to 64. Default value is 1. (range 0..64, default 1, runtime-tunable)
+/// - [level_out]: Set output level after processing of signal. Allowed range is from 0 to 64. Default value is 1. (range 0..64, default 1, runtime-tunable)
+/// - [listen]: Mute the original signal and output only added harmonics. By default is disabled. (range 0..1, default 0, runtime-tunable)
 final class AexciterSettings {
   static const double amountDefault = 1.0;
   static const double amountMin = 0.0;
@@ -1823,20 +1864,36 @@ final class AexciterSettings {
 /// A description of the accepted parameters follows.
 ///
 /// Parameters:
-/// - [c]: set fade curve type (default TRI)
-/// - [curve]: Set curve for fade transition.  It accepts the following values: (default TRI)
-/// - [d]: Specify the duration of the fade effect. See time duration syntax for the accepted syntax. At the end of the fade-in effect the output audio will have the same volume as the input audio, at the end of the fade-out transition the output audio will be silence. By default the duration is determined by `nb_samples`. If set this option is used instead of `nb_samples`. (default 0)
-/// - [duration]: Specify the duration of the fade effect. See time duration syntax for the accepted syntax. At the end of the fade-in effect the output audio will have the same volume as the input audio, at the end of the fade-out transition the output audio will be silence. By default the duration is determined by `nb_samples`. If set this option is used instead of `nb_samples`. (default 0)
-/// - [silence]: Set the initial gain for fade-in or final gain for fade-out. Default value is `0.0`. (range 0..1, default 0)
-/// - [st]: Specify the start time of the fade effect. Default is 0. The value must be specified as a time duration; see time duration syntax for the accepted syntax. If set this option is used instead of `start_sample`. (default 0)
-/// - [start_time]: Specify the start time of the fade effect. Default is 0. The value must be specified as a time duration; see time duration syntax for the accepted syntax. If set this option is used instead of `start_sample`. (default 0)
-/// - [t]: Specify the effect type, can be either `in` for fade-in, or `out` for a fade-out effect. Default is `in`. (range 0..1, default 0)
-/// - [type]: Specify the effect type, can be either `in` for fade-in, or `out` for a fade-out effect. Default is `in`. (range 0..1, default 0)
-/// - [unity]: Set the initial gain for fade-out or final gain for fade-in. Default value is `1.0`. (range 0..1, default 1)
+/// - [c]: set fade curve type (range -1..22, default TRI, runtime-tunable)
+/// - [curve]: Set curve for fade transition.  It accepts the following values: (range -1..22, default TRI, runtime-tunable)
+/// - [d]: Specify the duration of the fade effect. See time duration syntax for the accepted syntax. At the end of the fade-in effect the output audio will have the same volume as the input audio, at the end of the fade-out transition the output audio will be silence. By default the duration is determined by `nb_samples`. If set this option is used instead of `nb_samples`. (range 0..9223372036854775807, default 0, runtime-tunable)
+/// - [duration]: Specify the duration of the fade effect. See time duration syntax for the accepted syntax. At the end of the fade-in effect the output audio will have the same volume as the input audio, at the end of the fade-out transition the output audio will be silence. By default the duration is determined by `nb_samples`. If set this option is used instead of `nb_samples`. (range 0..9223372036854775807, default 0, runtime-tunable)
+/// - [nb_samples]: Specify the number of samples for which the fade effect has to last. At the end of the fade-in effect the output audio will have the same volume as the input audio, at the end of the fade-out transition the output audio will be silence. Default is 44100. (range 1..9223372036854775807, default 44100, runtime-tunable)
+/// - [ns]: Specify the number of samples for which the fade effect has to last. At the end of the fade-in effect the output audio will have the same volume as the input audio, at the end of the fade-out transition the output audio will be silence. Default is 44100. (range 1..9223372036854775807, default 44100, runtime-tunable)
+/// - [silence]: Set the initial gain for fade-in or final gain for fade-out. Default value is `0.0`. (range 0..1, default 0, runtime-tunable)
+/// - [ss]: Specify the number of the start sample for starting to apply the fade effect. Default is 0. (range 0..9223372036854775807, default 0, runtime-tunable)
+/// - [st]: Specify the start time of the fade effect. Default is 0. The value must be specified as a time duration; see time duration syntax for the accepted syntax. If set this option is used instead of `start_sample`. (range 0..9223372036854775807, default 0, runtime-tunable)
+/// - [start_sample]: Specify the number of the start sample for starting to apply the fade effect. Default is 0. (range 0..9223372036854775807, default 0, runtime-tunable)
+/// - [start_time]: Specify the start time of the fade effect. Default is 0. The value must be specified as a time duration; see time duration syntax for the accepted syntax. If set this option is used instead of `start_sample`. (range 0..9223372036854775807, default 0, runtime-tunable)
+/// - [t]: Specify the effect type, can be either `in` for fade-in, or `out` for a fade-out effect. Default is `in`. (range 0..1, default 0, runtime-tunable)
+/// - [type]: Specify the effect type, can be either `in` for fade-in, or `out` for a fade-out effect. Default is `in`. (range 0..1, default 0, runtime-tunable)
+/// - [unity]: Set the initial gain for fade-out or final gain for fade-in. Default value is `1.0`. (range 0..1, default 1, runtime-tunable)
 final class AfadeSettings {
+  static const int nb_samplesDefault = 44100;
+  static const int nb_samplesMin = 1;
+  static const int nb_samplesMax = 9223372036854775807;
+  static const int nsDefault = 44100;
+  static const int nsMin = 1;
+  static const int nsMax = 9223372036854775807;
   static const double silenceDefault = 0.0;
   static const double silenceMin = 0.0;
   static const double silenceMax = 1.0;
+  static const int ssDefault = 0;
+  static const int ssMin = 0;
+  static const int ssMax = 9223372036854775807;
+  static const int start_sampleDefault = 0;
+  static const int start_sampleMin = 0;
+  static const int start_sampleMax = 9223372036854775807;
   static const double unityDefault = 1.0;
   static const double unityMin = 0.0;
   static const double unityMax = 1.0;
@@ -1846,8 +1903,12 @@ final class AfadeSettings {
   final AfadeCurve curve;
   final Duration d;
   final Duration duration;
+  final int nb_samples;
+  final int ns;
   final double silence;
+  final int ss;
   final Duration st;
+  final int start_sample;
   final Duration start_time;
   final AfadeType t;
   final AfadeType type;
@@ -1859,8 +1920,12 @@ final class AfadeSettings {
     this.curve = AfadeCurve.tri,
     this.d = const Duration(microseconds: 0),
     this.duration = const Duration(microseconds: 0),
+    this.nb_samples = 44100,
+    this.ns = 44100,
     this.silence = 0.0,
+    this.ss = 0,
     this.st = const Duration(microseconds: 0),
+    this.start_sample = 0,
     this.start_time = const Duration(microseconds: 0),
     this.t = AfadeType.in_,
     this.type = AfadeType.in_,
@@ -1873,8 +1938,12 @@ final class AfadeSettings {
     AfadeCurve? curve,
     Duration? d,
     Duration? duration,
+    int? nb_samples,
+    int? ns,
     double? silence,
+    int? ss,
     Duration? st,
+    int? start_sample,
     Duration? start_time,
     AfadeType? t,
     AfadeType? type,
@@ -1886,8 +1955,12 @@ final class AfadeSettings {
         curve: curve ?? this.curve,
         d: d ?? this.d,
         duration: duration ?? this.duration,
+        nb_samples: nb_samples ?? this.nb_samples,
+        ns: ns ?? this.ns,
         silence: silence ?? this.silence,
+        ss: ss ?? this.ss,
         st: st ?? this.st,
+        start_sample: start_sample ?? this.start_sample,
         start_time: start_time ?? this.start_time,
         t: t ?? this.t,
         type: type ?? this.type,
@@ -1903,26 +1976,40 @@ final class AfadeSettings {
           other.curve == curve &&
           other.d == d &&
           other.duration == duration &&
+          other.nb_samples == nb_samples &&
+          other.ns == ns &&
           other.silence == silence &&
+          other.ss == ss &&
           other.st == st &&
+          other.start_sample == start_sample &&
           other.start_time == start_time &&
           other.t == t &&
           other.type == type &&
           other.unity == unity);
 
   @override
-  int get hashCode => Object.hash(
-      enabled, c, curve, d, duration, silence, st, start_time, t, type, unity);
+  int get hashCode => Object.hash(enabled, c, curve, d, duration, nb_samples,
+      ns, silence, ss, st, start_sample, start_time, t, type, unity);
 
   @override
   String toString() =>
-      'AfadeSettings(enabled: $enabled, c: $c, curve: $curve, d: $d, duration: $duration, silence: $silence, st: $st, start_time: $start_time, t: $t, type: $type, unity: $unity)';
+      'AfadeSettings(enabled: $enabled, c: $c, curve: $curve, d: $d, duration: $duration, nb_samples: $nb_samples, ns: $ns, silence: $silence, ss: $ss, st: $st, start_sample: $start_sample, start_time: $start_time, t: $t, type: $type, unity: $unity)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(nb_samples >= nb_samplesMin, 'afade.nb_samples must be >= 1');
+    assert(nb_samples <= nb_samplesMax,
+        'afade.nb_samples must be <= 9223372036854775807');
+    assert(ns >= nsMin, 'afade.ns must be >= 1');
+    assert(ns <= nsMax, 'afade.ns must be <= 9223372036854775807');
     assert(silence >= silenceMin, 'afade.silence must be >= 0');
     assert(silence <= silenceMax, 'afade.silence must be <= 1');
+    assert(ss >= ssMin, 'afade.ss must be >= 0');
+    assert(ss <= ssMax, 'afade.ss must be <= 9223372036854775807');
+    assert(start_sample >= start_sampleMin, 'afade.start_sample must be >= 0');
+    assert(start_sample <= start_sampleMax,
+        'afade.start_sample must be <= 9223372036854775807');
     assert(unity >= unityMin, 'afade.unity must be >= 0');
     assert(unity <= unityMax, 'afade.unity must be <= 1');
     final parts = <String>[];
@@ -1932,9 +2019,13 @@ final class AfadeSettings {
       parts.add('d=' + _wireDouble(d.inMicroseconds / 1e6));
     if (duration != const Duration(microseconds: 0))
       parts.add('duration=' + _wireDouble(duration.inMicroseconds / 1e6));
+    if (nb_samples != 44100) parts.add('nb_samples=' + nb_samples.toString());
+    if (ns != 44100) parts.add('ns=' + ns.toString());
     if (silence != 0.0) parts.add('silence=' + _wireDouble(silence));
+    if (ss != 0) parts.add('ss=' + ss.toString());
     if (st != const Duration(microseconds: 0))
       parts.add('st=' + _wireDouble(st.inMicroseconds / 1e6));
+    if (start_sample != 0) parts.add('start_sample=' + start_sample.toString());
     if (start_time != const Duration(microseconds: 0))
       parts.add('start_time=' + _wireDouble(start_time.inMicroseconds / 1e6));
     if (t != AfadeType.in_) parts.add('t=' + t.mpvValue);
@@ -1951,34 +2042,34 @@ final class AfadeSettings {
 /// A description of the accepted parameters follows.
 ///
 /// Parameters:
-/// - [ad]: Set the adaptivity factor, used how fast to adapt gains adjustments per each frequency bin. Value `0` enables instant adaptation, while higher values react much slower. Allowed range is from `0` to `1`. Default value is `0.5`. (range 0..1, default 0.5)
-/// - [adaptivity]: Set the adaptivity factor, used how fast to adapt gains adjustments per each frequency bin. Value `0` enables instant adaptation, while higher values react much slower. Allowed range is from `0` to `1`. Default value is `0.5`. (range 0..1, default 0.5)
+/// - [ad]: Set the adaptivity factor, used how fast to adapt gains adjustments per each frequency bin. Value `0` enables instant adaptation, while higher values react much slower. Allowed range is from `0` to `1`. Default value is `0.5`. (range 0..1, default 0.5, runtime-tunable)
+/// - [adaptivity]: Set the adaptivity factor, used how fast to adapt gains adjustments per each frequency bin. Value `0` enables instant adaptation, while higher values react much slower. Allowed range is from `0` to `1`. Default value is `0.5`. (range 0..1, default 0.5, runtime-tunable)
 /// - [band_multiplier]: Set the band multiplier factor, used how much to spread bands across frequency bins. Allowed range is from `0.2` to `5`. Default value is `1.25`. (range 0.2..5, default 1.25)
-/// - [band_noise]: Set custom band noise profile for every one of 15 bands. Bands are separated by ' ' or '|'. (range 0..0, default 0)
+/// - [band_noise]: Set custom band noise profile for every one of 15 bands. Bands are separated by ' ' or '|'. (range 0..0, default "")
 /// - [bm]: Set the band multiplier factor, used how much to spread bands across frequency bins. Allowed range is from `0.2` to `5`. Default value is `1.25`. (range 0.2..5, default 1.25)
-/// - [bn]: Set custom band noise profile for every one of 15 bands. Bands are separated by ' ' or '|'. (range 0..0, default 0)
-/// - [floor_offset]: Set the noise floor offset factor. This option is used to adjust offset applied to measured noise floor. It is only effective when noise floor tracking is enabled. Allowed range is from `-2.0` to `2.0`. Default value is `1.0`. (range -2..2, default 1.0)
-/// - [fo]: Set the noise floor offset factor. This option is used to adjust offset applied to measured noise floor. It is only effective when noise floor tracking is enabled. Allowed range is from `-2.0` to `2.0`. Default value is `1.0`. (range -2..2, default 1.0)
-/// - [gain_smooth]: Set gain smooth spatial radius, used to smooth gains applied to each frequency bin. Useful to reduce random music noise artefacts. Higher values increases smoothing of gains. Allowed range is from `0` to `50`. Default value is `0`. (range 0..50, default 0)
-/// - [gs]: Set gain smooth spatial radius, used to smooth gains applied to each frequency bin. Useful to reduce random music noise artefacts. Higher values increases smoothing of gains. Allowed range is from `0` to `50`. Default value is `0`. (range 0..50, default 0)
-/// - [nf]: Set the noise floor in dB, allowed range is -80 to -20. Default value is -50 dB. (range -80..-20, default -50)
-/// - [nl]: Set the noise link used for multichannel audio.  It accepts the following values: (default MIN_LINK)
-/// - [noise_floor]: Set the noise floor in dB, allowed range is -80 to -20. Default value is -50 dB. (range -80..-20, default -50)
-/// - [noise_link]: Set the noise link used for multichannel audio.  It accepts the following values: (default MIN_LINK)
-/// - [noise_reduction]: Set the noise reduction in dB, allowed range is 0.01 to 97. Default value is 12 dB. (range .01..97, default 12)
-/// - [noise_type]: Set the noise type.  It accepts the following values: (default WHITE_NOISE)
-/// - [nr]: Set the noise reduction in dB, allowed range is 0.01 to 97. Default value is 12 dB. (range .01..97, default 12)
-/// - [nt]: Set the noise type.  It accepts the following values: (default WHITE_NOISE)
-/// - [om]: Set the output mode.  It accepts the following values: (default OUT_MODE)
-/// - [output_mode]: Set the output mode.  It accepts the following values: (default OUT_MODE)
-/// - [residual_floor]: Set the residual floor in dB, allowed range is -80 to -20. Default value is -38 dB. (range -80..-20, default -38)
-/// - [rf]: Set the residual floor in dB, allowed range is -80 to -20. Default value is -38 dB. (range -80..-20, default -38)
-/// - [sample_noise]: Toggle capturing and measurement of noise profile from input audio.  It accepts the following values: (default SAMPLE_NONE)
-/// - [sn]: Toggle capturing and measurement of noise profile from input audio.  It accepts the following values: (default SAMPLE_NONE)
-/// - [tn]: Enable noise floor tracking. By default is disabled. With this enabled, noise floor is automatically adjusted. (range 0..1, default 0)
-/// - [tr]: Enable residual tracking. By default is disabled. (range 0..1, default 0)
-/// - [track_noise]: Enable noise floor tracking. By default is disabled. With this enabled, noise floor is automatically adjusted. (range 0..1, default 0)
-/// - [track_residual]: Enable residual tracking. By default is disabled. (range 0..1, default 0)
+/// - [bn]: Set custom band noise profile for every one of 15 bands. Bands are separated by ' ' or '|'. (range 0..0, default "")
+/// - [floor_offset]: Set the noise floor offset factor. This option is used to adjust offset applied to measured noise floor. It is only effective when noise floor tracking is enabled. Allowed range is from `-2.0` to `2.0`. Default value is `1.0`. (range -2..2, default 1.0, runtime-tunable)
+/// - [fo]: Set the noise floor offset factor. This option is used to adjust offset applied to measured noise floor. It is only effective when noise floor tracking is enabled. Allowed range is from `-2.0` to `2.0`. Default value is `1.0`. (range -2..2, default 1.0, runtime-tunable)
+/// - [gain_smooth]: Set gain smooth spatial radius, used to smooth gains applied to each frequency bin. Useful to reduce random music noise artefacts. Higher values increases smoothing of gains. Allowed range is from `0` to `50`. Default value is `0`. (range 0..50, default 0, runtime-tunable)
+/// - [gs]: Set gain smooth spatial radius, used to smooth gains applied to each frequency bin. Useful to reduce random music noise artefacts. Higher values increases smoothing of gains. Allowed range is from `0` to `50`. Default value is `0`. (range 0..50, default 0, runtime-tunable)
+/// - [nf]: Set the noise floor in dB, allowed range is -80 to -20. Default value is -50 dB. (range -80..-20, default -50, runtime-tunable)
+/// - [nl]: Set the noise link used for multichannel audio.  It accepts the following values: (range 0..3, default MIN_LINK, runtime-tunable)
+/// - [noise_floor]: Set the noise floor in dB, allowed range is -80 to -20. Default value is -50 dB. (range -80..-20, default -50, runtime-tunable)
+/// - [noise_link]: Set the noise link used for multichannel audio.  It accepts the following values: (range 0..3, default MIN_LINK, runtime-tunable)
+/// - [noise_reduction]: Set the noise reduction in dB, allowed range is 0.01 to 97. Default value is 12 dB. (range .01..97, default 12, runtime-tunable)
+/// - [noise_type]: Set the noise type.  It accepts the following values: (range 0..3, default WHITE_NOISE)
+/// - [nr]: Set the noise reduction in dB, allowed range is 0.01 to 97. Default value is 12 dB. (range .01..97, default 12, runtime-tunable)
+/// - [nt]: Set the noise type.  It accepts the following values: (range 0..3, default WHITE_NOISE)
+/// - [om]: Set the output mode.  It accepts the following values: (range 0..2, default OUT_MODE, runtime-tunable)
+/// - [output_mode]: Set the output mode.  It accepts the following values: (range 0..2, default OUT_MODE, runtime-tunable)
+/// - [residual_floor]: Set the residual floor in dB, allowed range is -80 to -20. Default value is -38 dB. (range -80..-20, default -38, runtime-tunable)
+/// - [rf]: Set the residual floor in dB, allowed range is -80 to -20. Default value is -38 dB. (range -80..-20, default -38, runtime-tunable)
+/// - [sample_noise]: Toggle capturing and measurement of noise profile from input audio.  It accepts the following values: (range 0..2, default SAMPLE_NONE, runtime-tunable)
+/// - [sn]: Toggle capturing and measurement of noise profile from input audio.  It accepts the following values: (range 0..2, default SAMPLE_NONE, runtime-tunable)
+/// - [tn]: Enable noise floor tracking. By default is disabled. With this enabled, noise floor is automatically adjusted. (range 0..1, default 0, runtime-tunable)
+/// - [tr]: Enable residual tracking. By default is disabled. (range 0..1, default 0, runtime-tunable)
+/// - [track_noise]: Enable noise floor tracking. By default is disabled. With this enabled, noise floor is automatically adjusted. (range 0..1, default 0, runtime-tunable)
+/// - [track_residual]: Enable residual tracking. By default is disabled. (range 0..1, default 0, runtime-tunable)
 final class AfftdnSettings {
   static const double adDefault = 0.5;
   static const double adMin = 0.0;
@@ -2058,9 +2149,9 @@ final class AfftdnSettings {
     this.ad = 0.5,
     this.adaptivity = 0.5,
     this.band_multiplier = 1.25,
-    this.band_noise = '0',
+    this.band_noise = '',
     this.bm = 1.25,
-    this.bn = '0',
+    this.bn = '',
     this.floor_offset = 1.0,
     this.fo = 1.0,
     this.gain_smooth = 0,
@@ -2262,9 +2353,9 @@ final class AfftdnSettings {
     if (adaptivity != 0.5) parts.add('adaptivity=' + _wireDouble(adaptivity));
     if (band_multiplier != 1.25)
       parts.add('band_multiplier=' + _wireDouble(band_multiplier));
-    if (band_noise != '0') parts.add('band_noise=' + '[' + band_noise + ']');
+    if (band_noise != '') parts.add('band_noise=' + '[' + band_noise + ']');
     if (bm != 1.25) parts.add('bm=' + _wireDouble(bm));
-    if (bn != '0') parts.add('bn=' + '[' + bn + ']');
+    if (bn != '') parts.add('bn=' + '[' + bn + ']');
     if (floor_offset != 1.0)
       parts.add('floor_offset=' + _wireDouble(floor_offset));
     if (fo != 1.0) parts.add('fo=' + _wireDouble(fo));
@@ -2309,6 +2400,7 @@ final class AfftdnSettings {
 /// - [imag]: Set frequency domain imaginary expression for each separate channel separated by '|'. Default is "im".  Each expression in `real` and `imag` can contain the following constants and functions: (range 0..0, default "im")
 /// - [overlap]: set window overlap (range 0..1, default 0.75)
 /// - [real]: Set frequency domain real expression for each separate channel separated by '|'. Default is "re". If the number of input channels is greater than the number of expressions, the last specified expression is used for the remaining output channels. (range 0..0, default "re")
+/// - [win_func]: Set window function.  It accepts the following values: (default WFUNC_HANNING)
 /// - [win_size]: Set window size. Allowed range is from 16 to 131072. Default is `4096` (range 16..131072, default 4096)
 final class AfftfiltSettings {
   static const double overlapDefault = 0.75;
@@ -2322,6 +2414,7 @@ final class AfftfiltSettings {
   final String imag;
   final double overlap;
   final String real;
+  final AfftfiltWinFunc win_func;
   final int win_size;
 
   const AfftfiltSettings({
@@ -2329,6 +2422,7 @@ final class AfftfiltSettings {
     this.imag = 'im',
     this.overlap = 0.75,
     this.real = 're',
+    this.win_func = AfftfiltWinFunc.hann,
     this.win_size = 4096,
   });
 
@@ -2337,6 +2431,7 @@ final class AfftfiltSettings {
     String? imag,
     double? overlap,
     String? real,
+    AfftfiltWinFunc? win_func,
     int? win_size,
   }) =>
       AfftfiltSettings(
@@ -2344,6 +2439,7 @@ final class AfftfiltSettings {
         imag: imag ?? this.imag,
         overlap: overlap ?? this.overlap,
         real: real ?? this.real,
+        win_func: win_func ?? this.win_func,
         win_size: win_size ?? this.win_size,
       );
 
@@ -2355,14 +2451,16 @@ final class AfftfiltSettings {
           other.imag == imag &&
           other.overlap == overlap &&
           other.real == real &&
+          other.win_func == win_func &&
           other.win_size == win_size);
 
   @override
-  int get hashCode => Object.hash(enabled, imag, overlap, real, win_size);
+  int get hashCode =>
+      Object.hash(enabled, imag, overlap, real, win_func, win_size);
 
   @override
   String toString() =>
-      'AfftfiltSettings(enabled: $enabled, imag: $imag, overlap: $overlap, real: $real, win_size: $win_size)';
+      'AfftfiltSettings(enabled: $enabled, imag: $imag, overlap: $overlap, real: $real, win_func: $win_func, win_size: $win_size)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
@@ -2375,6 +2473,8 @@ final class AfftfiltSettings {
     if (imag != 'im') parts.add('imag=' + '[' + imag + ']');
     if (overlap != 0.75) parts.add('overlap=' + _wireDouble(overlap));
     if (real != 're') parts.add('real=' + '[' + real + ']');
+    if (win_func != AfftfiltWinFunc.hann)
+      parts.add('win_func=' + win_func.mpvValue);
     if (win_size != 4096) parts.add('win_size=' + win_size.toString());
     return parts.isEmpty
         ? 'lavfi-afftfilt'
@@ -2388,35 +2488,92 @@ final class AfftfiltSettings {
 /// negotiate the most appropriate format to minimize conversions.
 ///
 /// It accepts the following parameters:
+///
+/// Parameters:
+/// - [channel_layouts]: A '|'-separated list of requested channel layouts.  See channel layout syntax for the required syntax. (array, base=AV_OPT_TYPE_CHLAYOUT, sep='|')
+/// - [cl]: A '|'-separated list of requested channel layouts.  See channel layout syntax for the required syntax. (array, base=AV_OPT_TYPE_CHLAYOUT, sep='|')
+/// - [f]: A '|'-separated list of requested sample formats. (array, base=AV_OPT_TYPE_SAMPLE_FMT, sep='|')
+/// - [r]: A '|'-separated list of requested sample rates. (range 1..2147483647, array, base=AV_OPT_TYPE_INT, sep='|')
+/// - [sample_fmts]: A '|'-separated list of requested sample formats. (array, base=AV_OPT_TYPE_SAMPLE_FMT, sep='|')
+/// - [sample_rates]: A '|'-separated list of requested sample rates. (range 1..2147483647, array, base=AV_OPT_TYPE_INT, sep='|')
 final class AformatSettings {
   final bool enabled;
+  final String? channel_layouts;
+  final String? cl;
+  final String? f;
+  final String? r;
+  final String? sample_fmts;
+  final String? sample_rates;
 
   const AformatSettings({
     this.enabled = false,
+    this.channel_layouts,
+    this.cl,
+    this.f,
+    this.r,
+    this.sample_fmts,
+    this.sample_rates,
   });
 
   AformatSettings copyWith({
     bool? enabled,
+    Object? channel_layouts = unset,
+    Object? cl = unset,
+    Object? f = unset,
+    Object? r = unset,
+    Object? sample_fmts = unset,
+    Object? sample_rates = unset,
   }) =>
       AformatSettings(
         enabled: enabled ?? this.enabled,
+        channel_layouts: identical(channel_layouts, unset)
+            ? this.channel_layouts
+            : channel_layouts as String?,
+        cl: identical(cl, unset) ? this.cl : cl as String?,
+        f: identical(f, unset) ? this.f : f as String?,
+        r: identical(r, unset) ? this.r : r as String?,
+        sample_fmts: identical(sample_fmts, unset)
+            ? this.sample_fmts
+            : sample_fmts as String?,
+        sample_rates: identical(sample_rates, unset)
+            ? this.sample_rates
+            : sample_rates as String?,
       );
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is AformatSettings && other.enabled == enabled);
+      (other is AformatSettings &&
+          other.enabled == enabled &&
+          other.channel_layouts == channel_layouts &&
+          other.cl == cl &&
+          other.f == f &&
+          other.r == r &&
+          other.sample_fmts == sample_fmts &&
+          other.sample_rates == sample_rates);
 
   @override
-  int get hashCode => enabled.hashCode;
+  int get hashCode => Object.hash(
+      enabled, channel_layouts, cl, f, r, sample_fmts, sample_rates);
 
   @override
-  String toString() => 'AformatSettings(enabled: $enabled)';
+  String toString() =>
+      'AformatSettings(enabled: $enabled, channel_layouts: $channel_layouts, cl: $cl, f: $f, r: $r, sample_fmts: $sample_fmts, sample_rates: $sample_rates)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
-    return 'lavfi-aformat';
+    final parts = <String>[];
+    if (channel_layouts != null)
+      parts.add('channel_layouts=' + '[' + channel_layouts! + ']');
+    if (cl != null) parts.add('cl=' + '[' + cl! + ']');
+    if (f != null) parts.add('f=' + '[' + f! + ']');
+    if (r != null) parts.add('r=' + '[' + r! + ']');
+    if (sample_fmts != null)
+      parts.add('sample_fmts=' + '[' + sample_fmts! + ']');
+    if (sample_rates != null)
+      parts.add('sample_rates=' + '[' + sample_rates! + ']');
+    return parts.isEmpty ? 'lavfi-aformat' : 'lavfi-aformat=' + parts.join(':');
   }
 }
 
@@ -2427,16 +2584,19 @@ final class AformatSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [level]: Set output gain applied to final output. Allowed range is from 0.0 to 1.0. Default value is 1.0. (range 0.0..1.0, default 1)
-/// - [order]: Set filter order used for filtering. Allowed range is from 1 to 16. Default value is 8. (default 8)
-/// - [shift]: Specify frequency shift. Allowed range is -INT_MAX to INT_MAX. Default value is 0.0. (default 0)
+/// - [level]: Set output gain applied to final output. Allowed range is from 0.0 to 1.0. Default value is 1.0. (range 0.0..1.0, default 1, runtime-tunable)
+/// - [order]: Set filter order used for filtering. Allowed range is from 1 to 16. Default value is 8. (range 1..16, default 8, runtime-tunable)
+/// - [shift]: Specify frequency shift. Allowed range is -INT_MAX to INT_MAX. Default value is 0.0. (range -2147483647..2147483647, default 0, runtime-tunable)
 final class AfreqshiftSettings {
   static const double levelDefault = 1.0;
   static const double levelMin = 0.0;
   static const double levelMax = 1.0;
   static const int orderDefault = 8;
   static const int orderMin = 1;
+  static const int orderMax = 16;
   static const double shiftDefault = 0.0;
+  static const double shiftMin = -2147483647.0;
+  static const double shiftMax = 2147483647.0;
 
   final bool enabled;
   final double level;
@@ -2485,6 +2645,9 @@ final class AfreqshiftSettings {
     assert(level >= levelMin, 'afreqshift.level must be >= 0.0');
     assert(level <= levelMax, 'afreqshift.level must be <= 1.0');
     assert(order >= orderMin, 'afreqshift.order must be >= 1');
+    assert(order <= orderMax, 'afreqshift.order must be <= 16');
+    assert(shift >= shiftMin, 'afreqshift.shift must be >= -2147483647');
+    assert(shift <= shiftMax, 'afreqshift.shift must be <= 2147483647');
     final parts = <String>[];
     if (level != 1.0) parts.add('level=' + _wireDouble(level));
     if (order != 8) parts.add('order=' + order.toString());
@@ -2502,17 +2665,18 @@ final class AfreqshiftSettings {
 /// A description of the accepted options follows.
 ///
 /// Parameters:
-/// - [adaptive]: adaptive profiling of noise (range 0..1, default 0)
-/// - [levels]: Set the number of wavelet levels of decomposition. Allowed range is from 1 to 12. Default value is 10. Setting this too low make denoising performance very poor. (default 10)
-/// - [percent]: set percent of full denoising (range 0..100, default 85)
-/// - [profile]: profile noise (range 0..1, default 0)
+/// - [adaptive]: adaptive profiling of noise (range 0..1, default 0, runtime-tunable)
+/// - [levels]: Set the number of wavelet levels of decomposition. Allowed range is from 1 to 12. Default value is 10. Setting this too low make denoising performance very poor. (range 1..12, default 10)
+/// - [percent]: set percent of full denoising (range 0..100, default 85, runtime-tunable)
+/// - [profile]: profile noise (range 0..1, default 0, runtime-tunable)
 /// - [samples]: set frame size in number of samples (range 512..65536, default 8192)
-/// - [sigma]: Set the noise sigma, allowed range is from 0 to 1. Default value is 0. This option controls strength of denoising applied to input samples. Most useful way to set this option is via decibels, eg. -45dB. (range 0..1, default 0)
-/// - [softness]: set thresholding softness (range 0..10, default 1)
-/// - [wavet]: Set wavelet type for decomposition of input frame. They are sorted by number of coefficients, from lowest to highest. More coefficients means worse filtering speed, but overall better quality. Available wavelets are: (default SYM10)
+/// - [sigma]: Set the noise sigma, allowed range is from 0 to 1. Default value is 0. This option controls strength of denoising applied to input samples. Most useful way to set this option is via decibels, eg. -45dB. (range 0..1, default 0, runtime-tunable)
+/// - [softness]: set thresholding softness (range 0..10, default 1, runtime-tunable)
+/// - [wavet]: Set wavelet type for decomposition of input frame. They are sorted by number of coefficients, from lowest to highest. More coefficients means worse filtering speed, but overall better quality. Available wavelets are: (range 0..6, default SYM10)
 final class AfwtdnSettings {
   static const int levelsDefault = 10;
   static const int levelsMin = 1;
+  static const int levelsMax = 12;
   static const double percentDefault = 85.0;
   static const double percentMin = 0.0;
   static const double percentMax = 100.0;
@@ -2597,6 +2761,7 @@ final class AfwtdnSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     assert(levels >= levelsMin, 'afwtdn.levels must be >= 1');
+    assert(levels <= levelsMax, 'afwtdn.levels must be <= 12');
     assert(percent >= percentMin, 'afwtdn.percent must be >= 0');
     assert(percent <= percentMax, 'afwtdn.percent must be <= 100');
     assert(samples >= samplesMin, 'afwtdn.samples must be >= 512');
@@ -2635,18 +2800,18 @@ final class AfwtdnSettings {
 /// Shorter signals than the chosen attack time will be left untouched.
 ///
 /// Parameters:
-/// - [attack]: Amount of milliseconds the signal has to rise above the threshold before gain reduction stops. Default is 20 milliseconds. Allowed range is from 0.01 to 9000. (range 0.01..9000, default 20)
-/// - [detection]: Choose if exact signal should be taken for detection or an RMS like one. Default is `rms`. Can be `peak` or `rms`. (range 0..1, default 1)
-/// - [knee]: Curve the sharp knee around the threshold to enter gain reduction more softly. Default is 2.828427125. Allowed range is from 1 to 8. (range 1..8, default 2.828427125)
-/// - [level_in]: Set input level before filtering. Default is 1. Allowed range is from 0.015625 to 64. (range 0.015625..64, default 1)
-/// - [level_sc]: set sidechain gain (range 0.015625..64, default 1)
-/// - [link]: Choose if the average level between all channels or the louder channel affects the reduction. Default is `average`. Can be `average` or `maximum`. (range 0..1, default 0)
-/// - [makeup]: Set amount of amplification of signal after processing. Default is 1. Allowed range is from 1 to 64. (range 1..64, default 1)
-/// - [mode]: Set the mode of operation. Can be `upward` or `downward`. Default is `downward`. If set to `upward` mode, higher parts of signal will be amplified, expanding dynamic range in upward direction. Otherwise, in case of `downward` lower parts of signal will be reduced. (range 0..1, default 0)
-/// - [range]: Set the level of gain reduction when the signal is below the threshold. Default is 0.06125. Allowed range is from 0 to 1. Setting this to 0 disables reduction and then filter behaves like expander. (range 0..1, default 0.06125)
-/// - [ratio]: Set a ratio by which the signal is reduced. Default is 2. Allowed range is from 1 to 9000. (range 1..9000, default 2)
-/// - [release]: Amount of milliseconds the signal has to fall below the threshold before the reduction is increased again. Default is 250 milliseconds. Allowed range is from 0.01 to 9000. (range 0.01..9000, default 250)
-/// - [threshold]: If a signal rises above this level the gain reduction is released. Default is 0.125. Allowed range is from 0 to 1. (range 0..1, default 0.125)
+/// - [attack]: Amount of milliseconds the signal has to rise above the threshold before gain reduction stops. Default is 20 milliseconds. Allowed range is from 0.01 to 9000. (range 0.01..9000, default 20, runtime-tunable)
+/// - [detection]: Choose if exact signal should be taken for detection or an RMS like one. Default is `rms`. Can be `peak` or `rms`. (range 0..1, default 1, runtime-tunable)
+/// - [knee]: Curve the sharp knee around the threshold to enter gain reduction more softly. Default is 2.828427125. Allowed range is from 1 to 8. (range 1..8, default 2.828427125, runtime-tunable)
+/// - [level_in]: Set input level before filtering. Default is 1. Allowed range is from 0.015625 to 64. (range 0.015625..64, default 1, runtime-tunable)
+/// - [level_sc]: set sidechain gain (range 0.015625..64, default 1, runtime-tunable)
+/// - [link]: Choose if the average level between all channels or the louder channel affects the reduction. Default is `average`. Can be `average` or `maximum`. (range 0..1, default 0, runtime-tunable)
+/// - [makeup]: Set amount of amplification of signal after processing. Default is 1. Allowed range is from 1 to 64. (range 1..64, default 1, runtime-tunable)
+/// - [mode]: Set the mode of operation. Can be `upward` or `downward`. Default is `downward`. If set to `upward` mode, higher parts of signal will be amplified, expanding dynamic range in upward direction. Otherwise, in case of `downward` lower parts of signal will be reduced. (range 0..1, default 0, runtime-tunable)
+/// - [range]: Set the level of gain reduction when the signal is below the threshold. Default is 0.06125. Allowed range is from 0 to 1. Setting this to 0 disables reduction and then filter behaves like expander. (range 0..1, default 0.06125, runtime-tunable)
+/// - [ratio]: Set a ratio by which the signal is reduced. Default is 2. Allowed range is from 1 to 9000. (range 1..9000, default 2, runtime-tunable)
+/// - [release]: Amount of milliseconds the signal has to fall below the threshold before the reduction is increased again. Default is 250 milliseconds. Allowed range is from 0.01 to 9000. (range 0.01..9000, default 250, runtime-tunable)
+/// - [threshold]: If a signal rises above this level the gain reduction is released. Default is 0.125. Allowed range is from 0 to 1. (range 0..1, default 0.125, runtime-tunable)
 final class AgateSettings {
   static const double attackDefault = 20.0;
   static const double attackMin = 0.01;
@@ -2819,15 +2984,17 @@ final class AgateSettings {
 /// - [mix]: set mix (range 0..1, default 1)
 /// - [n]: normalize coefficients (range 0..1, default 1)
 /// - [normalize]: normalize coefficients (range 0..1, default 1)
-/// - [p]: Set A/denominator/poles/ladder coefficients. (range 0..0)
-/// - [poles]: Set A/denominator/poles/ladder coefficients. (range 0..0)
+/// - [p]: Set A/denominator/poles/ladder coefficients. (range 0..0, default "1+0i 1-0i")
+/// - [poles]: Set A/denominator/poles/ladder coefficients. (range 0..0, default "1+0i 1-0i")
 /// - [precision]: set filtering precision (range 0..3, default 0)
 /// - [process]: set kind of processing (range 0..2, default 1)
 /// - [r]: set kind of processing (range 0..2, default 1)
+/// - [rate]: set video rate (range 0..2147483647, default "25")
 /// - [response]: show IR frequency response (range 0..1, default 0)
+/// - [size]: set video size (range 0..0, default "hd720")
 /// - [wet]: set wet gain (range 0..1, default 1)
-/// - [z]: Set B/numerator/zeros/reflection coefficients. (range 0..0)
-/// - [zeros]: Set B/numerator/zeros/reflection coefficients. (range 0..0)
+/// - [z]: Set B/numerator/zeros/reflection coefficients. (range 0..0, default "1+0i 1-0i")
+/// - [zeros]: Set B/numerator/zeros/reflection coefficients. (range 0..0, default "1+0i 1-0i")
 final class AiirSettings {
   static const int channelDefault = 0;
   static const int channelMin = 0;
@@ -2853,15 +3020,17 @@ final class AiirSettings {
   final double mix;
   final bool n;
   final bool normalize;
-  final String? p;
-  final String? poles;
+  final String p;
+  final String poles;
   final AiirPrecision precision;
   final AiirProcess process;
   final AiirProcess r;
+  final String rate;
   final bool response;
+  final String size;
   final double wet;
-  final String? z;
-  final String? zeros;
+  final String z;
+  final String zeros;
 
   const AiirSettings({
     this.enabled = false,
@@ -2875,15 +3044,17 @@ final class AiirSettings {
     this.mix = 1.0,
     this.n = true,
     this.normalize = true,
-    this.p,
-    this.poles,
+    this.p = '1+0i 1-0i',
+    this.poles = '1+0i 1-0i',
     this.precision = AiirPrecision.dbl,
     this.process = AiirProcess.s,
     this.r = AiirProcess.s,
+    this.rate = '25',
     this.response = false,
+    this.size = 'hd720',
     this.wet = 1.0,
-    this.z,
-    this.zeros,
+    this.z = '1+0i 1-0i',
+    this.zeros = '1+0i 1-0i',
   });
 
   AiirSettings copyWith({
@@ -2898,15 +3069,17 @@ final class AiirSettings {
     double? mix,
     bool? n,
     bool? normalize,
-    Object? p = unset,
-    Object? poles = unset,
+    String? p,
+    String? poles,
     AiirPrecision? precision,
     AiirProcess? process,
     AiirProcess? r,
+    String? rate,
     bool? response,
+    String? size,
     double? wet,
-    Object? z = unset,
-    Object? zeros = unset,
+    String? z,
+    String? zeros,
   }) =>
       AiirSettings(
         enabled: enabled ?? this.enabled,
@@ -2920,15 +3093,17 @@ final class AiirSettings {
         mix: mix ?? this.mix,
         n: n ?? this.n,
         normalize: normalize ?? this.normalize,
-        p: identical(p, unset) ? this.p : p as String?,
-        poles: identical(poles, unset) ? this.poles : poles as String?,
+        p: p ?? this.p,
+        poles: poles ?? this.poles,
         precision: precision ?? this.precision,
         process: process ?? this.process,
         r: r ?? this.r,
+        rate: rate ?? this.rate,
         response: response ?? this.response,
+        size: size ?? this.size,
         wet: wet ?? this.wet,
-        z: identical(z, unset) ? this.z : z as String?,
-        zeros: identical(zeros, unset) ? this.zeros : zeros as String?,
+        z: z ?? this.z,
+        zeros: zeros ?? this.zeros,
       );
 
   @override
@@ -2951,37 +3126,42 @@ final class AiirSettings {
           other.precision == precision &&
           other.process == process &&
           other.r == r &&
+          other.rate == rate &&
           other.response == response &&
+          other.size == size &&
           other.wet == wet &&
           other.z == z &&
           other.zeros == zeros);
 
   @override
-  int get hashCode => Object.hash(
-      enabled,
-      channel,
-      dry,
-      e,
-      f,
-      format,
-      gains,
-      k,
-      mix,
-      n,
-      normalize,
-      p,
-      poles,
-      precision,
-      process,
-      r,
-      response,
-      wet,
-      z,
-      zeros);
+  int get hashCode => Object.hashAll([
+        enabled,
+        channel,
+        dry,
+        e,
+        f,
+        format,
+        gains,
+        k,
+        mix,
+        n,
+        normalize,
+        p,
+        poles,
+        precision,
+        process,
+        r,
+        rate,
+        response,
+        size,
+        wet,
+        z,
+        zeros
+      ]);
 
   @override
   String toString() =>
-      'AiirSettings(enabled: $enabled, channel: $channel, dry: $dry, e: $e, f: $f, format: $format, gains: $gains, k: $k, mix: $mix, n: $n, normalize: $normalize, p: $p, poles: $poles, precision: $precision, process: $process, r: $r, response: $response, wet: $wet, z: $z, zeros: $zeros)';
+      'AiirSettings(enabled: $enabled, channel: $channel, dry: $dry, e: $e, f: $f, format: $format, gains: $gains, k: $k, mix: $mix, n: $n, normalize: $normalize, p: $p, poles: $poles, precision: $precision, process: $process, r: $r, rate: $rate, response: $response, size: $size, wet: $wet, z: $z, zeros: $zeros)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
@@ -3005,16 +3185,18 @@ final class AiirSettings {
     if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
     if (n != true) parts.add('n=' + (n ? '1' : '0'));
     if (normalize != true) parts.add('normalize=' + (normalize ? '1' : '0'));
-    if (p != null) parts.add('p=' + '[' + p! + ']');
-    if (poles != null) parts.add('poles=' + '[' + poles! + ']');
+    if (p != '1+0i 1-0i') parts.add('p=' + '[' + p + ']');
+    if (poles != '1+0i 1-0i') parts.add('poles=' + '[' + poles + ']');
     if (precision != AiirPrecision.dbl)
       parts.add('precision=' + precision.mpvValue);
     if (process != AiirProcess.s) parts.add('process=' + process.mpvValue);
     if (r != AiirProcess.s) parts.add('r=' + r.mpvValue);
+    if (rate != '25') parts.add('rate=' + '[' + rate + ']');
     if (response != false) parts.add('response=' + (response ? '1' : '0'));
+    if (size != 'hd720') parts.add('size=' + '[' + size + ']');
     if (wet != 1.0) parts.add('wet=' + _wireDouble(wet));
-    if (z != null) parts.add('z=' + '[' + z! + ']');
-    if (zeros != null) parts.add('zeros=' + '[' + zeros! + ']');
+    if (z != '1+0i 1-0i') parts.add('z=' + '[' + z + ']');
+    if (zeros != '1+0i 1-0i') parts.add('zeros=' + '[' + zeros + ']');
     return parts.isEmpty ? 'lavfi-aiir' : 'lavfi-aiir=' + parts.join(':');
   }
 }
@@ -3029,15 +3211,15 @@ final class AiirSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [asc]: When gain reduction is always needed ASC takes care of releasing to an average reduction level rather than reaching a reduction of 0 in the release time. (range 0..1, default 0)
-/// - [asc_level]: Select how much the release time is affected by ASC, 0 means nearly no changes in release time while 1 produces higher release times. (range 0..1, default 0.5)
-/// - [attack]: The limiter will reach its attenuation level in this amount of time in milliseconds. Default is 5 milliseconds. (range 0.1..80, default 5)
-/// - [latency]: Compensate the delay introduced by using the lookahead buffer set with attack parameter. Also flush the valid audio data in the lookahead buffer when the stream hits EOF. (range 0..1, default 0)
-/// - [level]: Auto level output signal. Default is enabled. This normalizes audio back to 0dB if enabled. (range 0..1, default 1)
-/// - [level_in]: Set input gain. Default is 1. (range .015625..64, default 1)
-/// - [level_out]: Set output gain. Default is 1. (range .015625..64, default 1)
-/// - [limit]: Don't let signals above this level pass the limiter. Default is 1. (range 0.0625..1, default 1)
-/// - [release]: Come back from limiting to attenuation 1.0 in this amount of milliseconds. Default is 50 milliseconds. (range 1..8000, default 50)
+/// - [asc]: When gain reduction is always needed ASC takes care of releasing to an average reduction level rather than reaching a reduction of 0 in the release time. (range 0..1, default 0, runtime-tunable)
+/// - [asc_level]: Select how much the release time is affected by ASC, 0 means nearly no changes in release time while 1 produces higher release times. (range 0..1, default 0.5, runtime-tunable)
+/// - [attack]: The limiter will reach its attenuation level in this amount of time in milliseconds. Default is 5 milliseconds. (range 0.1..80, default 5, runtime-tunable)
+/// - [latency]: Compensate the delay introduced by using the lookahead buffer set with attack parameter. Also flush the valid audio data in the lookahead buffer when the stream hits EOF. (range 0..1, default 0, runtime-tunable)
+/// - [level]: Auto level output signal. Default is enabled. This normalizes audio back to 0dB if enabled. (range 0..1, default 1, runtime-tunable)
+/// - [level_in]: Set input gain. Default is 1. (range .015625..64, default 1, runtime-tunable)
+/// - [level_out]: Set output gain. Default is 1. (range .015625..64, default 1, runtime-tunable)
+/// - [limit]: Don't let signals above this level pass the limiter. Default is 1. (range 0.0625..1, default 1, runtime-tunable)
+/// - [release]: Come back from limiting to attenuation 1.0 in this amount of milliseconds. Default is 50 milliseconds. (range 1..8000, default 50, runtime-tunable)
 final class AlimiterSettings {
   static const double asc_levelDefault = 0.5;
   static const double asc_levelMin = 0.0;
@@ -3171,24 +3353,24 @@ final class AlimiterSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [f]: Set frequency in Hz. (range 0..999999, default 3000)
-/// - [frequency]: Set frequency in Hz. (range 0..999999, default 3000)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [o]: octave (range 1..2, default 2)
-/// - [order]: Set the filter order, can be 1 or 2. Default is 2. (range 1..2, default 2)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [f]: Set frequency in Hz. (range 0..999999, default 3000, runtime-tunable)
+/// - [frequency]: Set frequency in Hz. (range 0..999999, default 3000, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [o]: octave (range 1..2, default 2, runtime-tunable)
+/// - [order]: Set the filter order, can be 1 or 2. Default is 2. (range 1..2, default 2, runtime-tunable)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.707)
-/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.707)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.707, runtime-tunable)
+/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.707, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class AllpassSettings {
   static const double fDefault = 3000.0;
   static const double fMin = 0.0;
@@ -3389,6 +3571,7 @@ final class AllpassSettings {
 /// - [fscale]: set frequency scale (range 0..1, default 1)
 /// - [mgain]: set max gain (range -900..900, default 60)
 /// - [params]: This option string is in format: "c`chn` f=`cf` w=`w` g=`g` t=`f` | ..." Each equalizer band is separated by '|'. (range 0..0, default "")
+/// - [size]: set video size (range 0..0, default "hd720")
 final class AnequalizerSettings {
   static const double mgainDefault = 60.0;
   static const double mgainMin = -900.0;
@@ -3400,6 +3583,7 @@ final class AnequalizerSettings {
   final AnequalizerFscale fscale;
   final double mgain;
   final String params;
+  final String size;
 
   const AnequalizerSettings({
     this.enabled = false,
@@ -3408,6 +3592,7 @@ final class AnequalizerSettings {
     this.fscale = AnequalizerFscale.log,
     this.mgain = 60.0,
     this.params = '',
+    this.size = 'hd720',
   });
 
   AnequalizerSettings copyWith({
@@ -3417,6 +3602,7 @@ final class AnequalizerSettings {
     AnequalizerFscale? fscale,
     double? mgain,
     String? params,
+    String? size,
   }) =>
       AnequalizerSettings(
         enabled: enabled ?? this.enabled,
@@ -3425,6 +3611,7 @@ final class AnequalizerSettings {
         fscale: fscale ?? this.fscale,
         mgain: mgain ?? this.mgain,
         params: params ?? this.params,
+        size: size ?? this.size,
       );
 
   @override
@@ -3436,15 +3623,16 @@ final class AnequalizerSettings {
           other.curves == curves &&
           other.fscale == fscale &&
           other.mgain == mgain &&
-          other.params == params);
+          other.params == params &&
+          other.size == size);
 
   @override
   int get hashCode =>
-      Object.hash(enabled, colors, curves, fscale, mgain, params);
+      Object.hash(enabled, colors, curves, fscale, mgain, params, size);
 
   @override
   String toString() =>
-      'AnequalizerSettings(enabled: $enabled, colors: $colors, curves: $curves, fscale: $fscale, mgain: $mgain, params: $params)';
+      'AnequalizerSettings(enabled: $enabled, colors: $colors, curves: $curves, fscale: $fscale, mgain: $mgain, params: $params, size: $size)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
@@ -3458,6 +3646,7 @@ final class AnequalizerSettings {
     if (fscale != AnequalizerFscale.log) parts.add('fscale=' + fscale.mpvValue);
     if (mgain != 60.0) parts.add('mgain=' + _wireDouble(mgain));
     if (params != '') parts.add('params=' + '[' + params + ']');
+    if (size != 'hd720') parts.add('size=' + '[' + size + ']');
     return parts.isEmpty
         ? 'lavfi-anequalizer'
         : 'lavfi-anequalizer=' + parts.join(':');
@@ -3475,16 +3664,16 @@ final class AnequalizerSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [m]: Set smooth factor. Default value is `11`. Allowed range is from `1` to `1000`. (range 1..1000, default 11.)
-/// - [o]: Set the output mode.  It accepts the following values: (default OUT_MODE)
-/// - [output]: Set the output mode.  It accepts the following values: (default OUT_MODE)
-/// - [p]: Set patch radius duration. Allowed range is from 1 to 100 milliseconds. Default value is 2 milliseconds. (range 1000..100000, default 2000)
-/// - [patch]: Set patch radius duration. Allowed range is from 1 to 100 milliseconds. Default value is 2 milliseconds. (range 1000..100000, default 2000)
-/// - [r]: Set research radius duration. Allowed range is from 2 to 300 milliseconds. Default value is 6 milliseconds. (range 2000..300000, default 6000)
-/// - [research]: Set research radius duration. Allowed range is from 2 to 300 milliseconds. Default value is 6 milliseconds. (range 2000..300000, default 6000)
-/// - [s]: Set denoising strength. Allowed range is from 0.00001 to 10000. Default value is 0.00001. (range 0.00001..10000, default 0.00001)
-/// - [smooth]: Set smooth factor. Default value is `11`. Allowed range is from `1` to `1000`. (range 1..1000, default 11.)
-/// - [strength]: Set denoising strength. Allowed range is from 0.00001 to 10000. Default value is 0.00001. (range 0.00001..10000, default 0.00001)
+/// - [m]: Set smooth factor. Default value is `11`. Allowed range is from `1` to `1000`. (range 1..1000, default 11., runtime-tunable)
+/// - [o]: Set the output mode.  It accepts the following values: (range 0..2, default OUT_MODE, runtime-tunable)
+/// - [output]: Set the output mode.  It accepts the following values: (range 0..2, default OUT_MODE, runtime-tunable)
+/// - [p]: Set patch radius duration. Allowed range is from 1 to 100 milliseconds. Default value is 2 milliseconds. (range 1000..100000, default 2000, runtime-tunable)
+/// - [patch]: Set patch radius duration. Allowed range is from 1 to 100 milliseconds. Default value is 2 milliseconds. (range 1000..100000, default 2000, runtime-tunable)
+/// - [r]: Set research radius duration. Allowed range is from 2 to 300 milliseconds. Default value is 6 milliseconds. (range 2000..300000, default 6000, runtime-tunable)
+/// - [research]: Set research radius duration. Allowed range is from 2 to 300 milliseconds. Default value is 6 milliseconds. (range 2000..300000, default 6000, runtime-tunable)
+/// - [s]: Set denoising strength. Allowed range is from 0.00001 to 10000. Default value is 0.00001. (range 0.00001..10000, default 0.00001, runtime-tunable)
+/// - [smooth]: Set smooth factor. Default value is `11`. Allowed range is from `1` to `1000`. (range 1..1000, default 11., runtime-tunable)
+/// - [strength]: Set denoising strength. Allowed range is from 0.00001 to 10000. Default value is 0.00001. (range 0.00001..10000, default 0.00001, runtime-tunable)
 final class AnlmdnSettings {
   static const double mDefault = 11.0;
   static const double mMin = 1.0;
@@ -3616,36 +3805,53 @@ final class AnlmdnSettings {
 /// A description of the accepted options follows.
 ///
 /// Parameters:
-/// - [packet_size]: Set silence packet size. Default value is 4096. (default 4096)
-/// - [pad_dur]: Specify the duration of samples of silence to add. See time duration syntax for the accepted syntax. Used only if set to non-negative value. (default -1)
-/// - [whole_dur]: Specify the minimum total duration in the output audio stream. See time duration syntax for the accepted syntax. Used only if set to non-negative value. If the value is longer than the input audio length, silence is added to the end, until the value is reached. This option is mutually exclusive with @option{pad_dur} (default -1)
+/// - [packet_size]: Set silence packet size. Default value is 4096. (range 0..2147483647, default 4096)
+/// - [pad_dur]: Specify the duration of samples of silence to add. See time duration syntax for the accepted syntax. Used only if set to non-negative value. (range -1..9223372036854775807, default -1)
+/// - [pad_len]: Set the number of samples of silence to add to the end. After the value is reached, the stream is terminated. This option is mutually exclusive with @option{whole_len}. (range -1..9223372036854775807, default -1)
+/// - [whole_dur]: Specify the minimum total duration in the output audio stream. See time duration syntax for the accepted syntax. Used only if set to non-negative value. If the value is longer than the input audio length, silence is added to the end, until the value is reached. This option is mutually exclusive with @option{pad_dur} (range -1..9223372036854775807, default -1)
+/// - [whole_len]: Set the minimum total number of samples in the output audio stream. If the value is longer than the input audio length, silence is added to the end, until the value is reached. This option is mutually exclusive with @option{pad_len}. (range -1..9223372036854775807, default -1)
 final class ApadSettings {
   static const int packet_sizeDefault = 4096;
   static const int packet_sizeMin = 0;
+  static const int packet_sizeMax = 2147483647;
+  static const int pad_lenDefault = -1;
+  static const int pad_lenMin = -1;
+  static const int pad_lenMax = 9223372036854775807;
+  static const int whole_lenDefault = -1;
+  static const int whole_lenMin = -1;
+  static const int whole_lenMax = 9223372036854775807;
 
   final bool enabled;
   final int packet_size;
   final Duration pad_dur;
+  final int pad_len;
   final Duration whole_dur;
+  final int whole_len;
 
   const ApadSettings({
     this.enabled = false,
     this.packet_size = 4096,
     this.pad_dur = const Duration(microseconds: -1),
+    this.pad_len = -1,
     this.whole_dur = const Duration(microseconds: -1),
+    this.whole_len = -1,
   });
 
   ApadSettings copyWith({
     bool? enabled,
     int? packet_size,
     Duration? pad_dur,
+    int? pad_len,
     Duration? whole_dur,
+    int? whole_len,
   }) =>
       ApadSettings(
         enabled: enabled ?? this.enabled,
         packet_size: packet_size ?? this.packet_size,
         pad_dur: pad_dur ?? this.pad_dur,
+        pad_len: pad_len ?? this.pad_len,
         whole_dur: whole_dur ?? this.whole_dur,
+        whole_len: whole_len ?? this.whole_len,
       );
 
   @override
@@ -3655,25 +3861,38 @@ final class ApadSettings {
           other.enabled == enabled &&
           other.packet_size == packet_size &&
           other.pad_dur == pad_dur &&
-          other.whole_dur == whole_dur);
+          other.pad_len == pad_len &&
+          other.whole_dur == whole_dur &&
+          other.whole_len == whole_len);
 
   @override
-  int get hashCode => Object.hash(enabled, packet_size, pad_dur, whole_dur);
+  int get hashCode =>
+      Object.hash(enabled, packet_size, pad_dur, pad_len, whole_dur, whole_len);
 
   @override
   String toString() =>
-      'ApadSettings(enabled: $enabled, packet_size: $packet_size, pad_dur: $pad_dur, whole_dur: $whole_dur)';
+      'ApadSettings(enabled: $enabled, packet_size: $packet_size, pad_dur: $pad_dur, pad_len: $pad_len, whole_dur: $whole_dur, whole_len: $whole_len)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
     assert(packet_size >= packet_sizeMin, 'apad.packet_size must be >= 0');
+    assert(packet_size <= packet_sizeMax,
+        'apad.packet_size must be <= 2147483647');
+    assert(pad_len >= pad_lenMin, 'apad.pad_len must be >= -1');
+    assert(
+        pad_len <= pad_lenMax, 'apad.pad_len must be <= 9223372036854775807');
+    assert(whole_len >= whole_lenMin, 'apad.whole_len must be >= -1');
+    assert(whole_len <= whole_lenMax,
+        'apad.whole_len must be <= 9223372036854775807');
     final parts = <String>[];
     if (packet_size != 4096) parts.add('packet_size=' + packet_size.toString());
     if (pad_dur != const Duration(microseconds: -1))
       parts.add('pad_dur=' + _wireDouble(pad_dur.inMicroseconds / 1e6));
+    if (pad_len != -1) parts.add('pad_len=' + pad_len.toString());
     if (whole_dur != const Duration(microseconds: -1))
       parts.add('whole_dur=' + _wireDouble(whole_dur.inMicroseconds / 1e6));
+    if (whole_len != -1) parts.add('whole_len=' + whole_len.toString());
     return parts.isEmpty ? 'lavfi-apad' : 'lavfi-apad=' + parts.join(':');
   }
 }
@@ -3799,15 +4018,16 @@ final class AphaserSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [level]: Set output gain applied to final output. Allowed range is from 0.0 to 1.0. Default value is 1.0. (range 0.0..1.0, default 1)
-/// - [order]: Set filter order used for filtering. Allowed range is from 1 to 16. Default value is 8. (default 8)
-/// - [shift]: Specify phase shift. Allowed range is from -1.0 to 1.0. Default value is 0.0. (range -1.0..1.0, default 0)
+/// - [level]: Set output gain applied to final output. Allowed range is from 0.0 to 1.0. Default value is 1.0. (range 0.0..1.0, default 1, runtime-tunable)
+/// - [order]: Set filter order used for filtering. Allowed range is from 1 to 16. Default value is 8. (range 1..16, default 8, runtime-tunable)
+/// - [shift]: Specify phase shift. Allowed range is from -1.0 to 1.0. Default value is 0.0. (range -1.0..1.0, default 0, runtime-tunable)
 final class AphaseshiftSettings {
   static const double levelDefault = 1.0;
   static const double levelMin = 0.0;
   static const double levelMax = 1.0;
   static const int orderDefault = 8;
   static const int orderMin = 1;
+  static const int orderMax = 16;
   static const double shiftDefault = 0.0;
   static const double shiftMin = -1.0;
   static const double shiftMax = 1.0;
@@ -3859,6 +4079,7 @@ final class AphaseshiftSettings {
     assert(level >= levelMin, 'aphaseshift.level must be >= 0.0');
     assert(level <= levelMax, 'aphaseshift.level must be <= 1.0');
     assert(order >= orderMin, 'aphaseshift.order must be >= 1');
+    assert(order <= orderMax, 'aphaseshift.order must be <= 16');
     assert(shift >= shiftMin, 'aphaseshift.shift must be >= -1.0');
     assert(shift <= shiftMax, 'aphaseshift.shift must be <= 1.0');
     final parts = <String>[];
@@ -3878,13 +4099,13 @@ final class AphaseshiftSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [adaptive]: Set strength of adaptive distortion applied. Default value is 0.5. Allowed range is from 0 to 1. (range 0..1, default 0.5)
-/// - [clip]: Set the clipping start value. Default value is 0dBFS or 1. (range .015625..1, default 1)
-/// - [diff]: Output only difference samples, useful to hear introduced distortions. By default is disabled. (range 0..1, default 0)
-/// - [iterations]: Set number of iterations of psychoacoustic clipper. Allowed range is from 1 to 20. Default value is 10. (range 1..20, default 10)
-/// - [level]: Auto level output signal. Default is disabled. This normalizes audio back to 0dBFS if enabled. (range 0..1, default 0)
-/// - [level_in]: Set input gain. By default it is 1. Range is [0.015625 - 64]. (range .015625..64, default 1)
-/// - [level_out]: Set output gain. By default it is 1. Range is [0.015625 - 64]. (range .015625..64, default 1)
+/// - [adaptive]: Set strength of adaptive distortion applied. Default value is 0.5. Allowed range is from 0 to 1. (range 0..1, default 0.5, runtime-tunable)
+/// - [clip]: Set the clipping start value. Default value is 0dBFS or 1. (range .015625..1, default 1, runtime-tunable)
+/// - [diff]: Output only difference samples, useful to hear introduced distortions. By default is disabled. (range 0..1, default 0, runtime-tunable)
+/// - [iterations]: Set number of iterations of psychoacoustic clipper. Allowed range is from 1 to 20. Default value is 10. (range 1..20, default 10, runtime-tunable)
+/// - [level]: Auto level output signal. Default is disabled. This normalizes audio back to 0dBFS if enabled. (range 0..1, default 0, runtime-tunable)
+/// - [level_in]: Set input gain. By default it is 1. Range is [0.015625 - 64]. (range .015625..64, default 1, runtime-tunable)
+/// - [level_out]: Set output gain. By default it is 1. Range is [0.015625 - 64]. (range .015625..64, default 1, runtime-tunable)
 final class ApsyclipSettings {
   static const double adaptiveDefault = 0.5;
   static const double adaptiveMin = 0.0;
@@ -4015,11 +4236,11 @@ final class ApsyclipSettings {
 /// - [hz]: Set frequency in Hz. Default is 2. Allowed range is [0.01 - 100]. Only used if timing is set to hz. (range 0.01..100, default 2)
 /// - [level_in]: Set input gain. By default it is 1. Range is [0.015625 - 64]. (range 0.015625..64, default 1)
 /// - [level_out]: Set output gain. By default it is 1. Range is [0.015625 - 64]. (range 0.015625..64, default 1)
-/// - [mode]: Set waveform shape the LFO will use. Can be one of: sine, triangle, square, sawup or sawdown. Default is sine. (default SINE)
+/// - [mode]: Set waveform shape the LFO will use. Can be one of: sine, triangle, square, sawup or sawdown. Default is sine. (range 0..4, default SINE)
 /// - [ms]: Set ms. Default is 500. Allowed range is [10 - 2000]. Only used if timing is set to ms. (range 10..2000, default 500)
 /// - [offset_l]: Set left channel offset. Default is 0. Allowed range is [0 - 1]. (range 0..1, default 0)
 /// - [offset_r]: Set right channel offset. Default is 0.5. Allowed range is [0 - 1]. (range 0..1, default .5)
-/// - [timing]: Set possible timing mode. Can be one of: bpm, ms or hz. Default is hz. (default 2)
+/// - [timing]: Set possible timing mode. Can be one of: bpm, ms or hz. Default is hz. (range 0..2, default 2)
 /// - [width]: Set pulse width. Default is 1. Allowed range is [0 - 2]. (range 0..2, default 1)
 final class ApulsatorSettings {
   static const double amountDefault = 1.0;
@@ -4060,7 +4281,7 @@ final class ApulsatorSettings {
   final int ms;
   final double offset_l;
   final double offset_r;
-  final ApulsatorTiming? timing;
+  final ApulsatorTiming timing;
   final double width;
 
   const ApulsatorSettings({
@@ -4074,7 +4295,7 @@ final class ApulsatorSettings {
     this.ms = 500,
     this.offset_l = 0.0,
     this.offset_r = .5,
-    this.timing,
+    this.timing = ApulsatorTiming.hz,
     this.width = 1.0,
   });
 
@@ -4089,7 +4310,7 @@ final class ApulsatorSettings {
     int? ms,
     double? offset_l,
     double? offset_r,
-    Object? timing = unset,
+    ApulsatorTiming? timing,
     double? width,
   }) =>
       ApulsatorSettings(
@@ -4103,8 +4324,7 @@ final class ApulsatorSettings {
         ms: ms ?? this.ms,
         offset_l: offset_l ?? this.offset_l,
         offset_r: offset_r ?? this.offset_r,
-        timing:
-            identical(timing, unset) ? this.timing : timing as ApulsatorTiming?,
+        timing: timing ?? this.timing,
         width: width ?? this.width,
       );
 
@@ -4165,7 +4385,7 @@ final class ApulsatorSettings {
     if (ms != 500) parts.add('ms=' + ms.toString());
     if (offset_l != 0.0) parts.add('offset_l=' + _wireDouble(offset_l));
     if (offset_r != .5) parts.add('offset_r=' + _wireDouble(offset_r));
-    if (timing != null) parts.add('timing=' + timing!.mpvValue);
+    if (timing != ApulsatorTiming.hz) parts.add('timing=' + timing.mpvValue);
     if (width != 1.0) parts.add('width=' + _wireDouble(width));
     return parts.isEmpty
         ? 'lavfi-apulsator'
@@ -4196,10 +4416,11 @@ final class ApulsatorSettings {
 /// samples per second compensation:
 ///
 /// Parameters:
-/// - [sample_rate]:  (default 0)
+/// - [sample_rate]:  (range 0..2147483647, default 0)
 final class AresampleSettings {
   static const int sample_rateDefault = 0;
   static const int sample_rateMin = 0;
+  static const int sample_rateMax = 2147483647;
 
   final bool enabled;
   final int sample_rate;
@@ -4236,6 +4457,8 @@ final class AresampleSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     assert(sample_rate >= sample_rateMin, 'aresample.sample_rate must be >= 0');
+    assert(sample_rate <= sample_rateMax,
+        'aresample.sample_rate must be <= 2147483647');
     final parts = <String>[];
     if (sample_rate != 0) parts.add('sample_rate=' + sample_rate.toString());
     return parts.isEmpty
@@ -4251,9 +4474,9 @@ final class AresampleSettings {
 /// This filter accepts the following options:
 ///
 /// Parameters:
-/// - [m]: Set train model file to load. This option is always required. (range 0..0, default NULL)
-/// - [mix]: Set how much to mix filtered samples into final output. Allowed range is from -1 to 1. Default value is 1. Negative values are special, they set how much to keep filtered noise in the final filter output. Set this option to -1 to hear actual noise removed from input signal. (range -1..1, default 1.0)
-/// - [model]: Set train model file to load. This option is always required. (range 0..0, default NULL)
+/// - [m]: Set train model file to load. This option is always required. (range 0..0, default "", runtime-tunable)
+/// - [mix]: Set how much to mix filtered samples into final output. Allowed range is from -1 to 1. Default value is 1. Negative values are special, they set how much to keep filtered noise in the final filter output. Set this option to -1 to hear actual noise removed from input signal. (range -1..1, default 1.0, runtime-tunable)
+/// - [model]: Set train model file to load. This option is always required. (range 0..0, default "", runtime-tunable)
 final class ArnndnSettings {
   static const double mixDefault = 1.0;
   static const double mixMin = -1.0;
@@ -4266,9 +4489,9 @@ final class ArnndnSettings {
 
   const ArnndnSettings({
     this.enabled = false,
-    this.m = 'NULL',
+    this.m = '',
     this.mix = 1.0,
-    this.model = 'NULL',
+    this.model = '',
   });
 
   ArnndnSettings copyWith({
@@ -4306,9 +4529,9 @@ final class ArnndnSettings {
     assert(mix >= mixMin, 'arnndn.mix must be >= -1');
     assert(mix <= mixMax, 'arnndn.mix must be <= 1');
     final parts = <String>[];
-    if (m != 'NULL') parts.add('m=' + '[' + m + ']');
+    if (m != '') parts.add('m=' + '[' + m + ']');
     if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
-    if (model != 'NULL') parts.add('model=' + '[' + model + ']');
+    if (model != '') parts.add('model=' + '[' + model + ']');
     return parts.isEmpty ? 'lavfi-arnndn' : 'lavfi-arnndn=' + parts.join(':');
   }
 }
@@ -4323,17 +4546,18 @@ final class ArnndnSettings {
 /// This filter accepts the following options:
 ///
 /// Parameters:
-/// - [output]: Set gain applied to output. Default value is 0dB or 1. (range 0.000001..16, default 1)
-/// - [oversample]: Set oversampling factor. (default 1)
-/// - [param]: Set additional parameter which controls sigmoid function. (range 0.01..3, default 1)
-/// - [threshold]: Set threshold from where to start clipping. Default value is 0dB or 1. (range 0.000001..1, default 1)
-/// - [type]: Set type of soft-clipping.  It accepts the following values: (default 0)
+/// - [output]: Set gain applied to output. Default value is 0dB or 1. (range 0.000001..16, default 1, runtime-tunable)
+/// - [oversample]: Set oversampling factor. (range 1..64, default 1, runtime-tunable)
+/// - [param]: Set additional parameter which controls sigmoid function. (range 0.01..3, default 1, runtime-tunable)
+/// - [threshold]: Set threshold from where to start clipping. Default value is 0dB or 1. (range 0.000001..1, default 1, runtime-tunable)
+/// - [type]: Set type of soft-clipping.  It accepts the following values: (range -1..7, default 0, runtime-tunable)
 final class AsoftclipSettings {
   static const double outputDefault = 1.0;
   static const double outputMin = 0.000001;
   static const double outputMax = 16.0;
   static const int oversampleDefault = 1;
   static const int oversampleMin = 1;
+  static const int oversampleMax = 64;
   static const double paramDefault = 1.0;
   static const double paramMin = 0.01;
   static const double paramMax = 3.0;
@@ -4346,7 +4570,7 @@ final class AsoftclipSettings {
   final int oversample;
   final double param;
   final double threshold;
-  final AsoftclipTypes? type;
+  final AsoftclipTypes type;
 
   const AsoftclipSettings({
     this.enabled = false,
@@ -4354,7 +4578,7 @@ final class AsoftclipSettings {
     this.oversample = 1,
     this.param = 1.0,
     this.threshold = 1.0,
-    this.type,
+    this.type = AsoftclipTypes.hard,
   });
 
   AsoftclipSettings copyWith({
@@ -4363,7 +4587,7 @@ final class AsoftclipSettings {
     int? oversample,
     double? param,
     double? threshold,
-    Object? type = unset,
+    AsoftclipTypes? type,
   }) =>
       AsoftclipSettings(
         enabled: enabled ?? this.enabled,
@@ -4371,7 +4595,7 @@ final class AsoftclipSettings {
         oversample: oversample ?? this.oversample,
         param: param ?? this.param,
         threshold: threshold ?? this.threshold,
-        type: identical(type, unset) ? this.type : type as AsoftclipTypes?,
+        type: type ?? this.type,
       );
 
   @override
@@ -4399,6 +4623,7 @@ final class AsoftclipSettings {
     assert(output >= outputMin, 'asoftclip.output must be >= 0.000001');
     assert(output <= outputMax, 'asoftclip.output must be <= 16');
     assert(oversample >= oversampleMin, 'asoftclip.oversample must be >= 1');
+    assert(oversample <= oversampleMax, 'asoftclip.oversample must be <= 64');
     assert(param >= paramMin, 'asoftclip.param must be >= 0.01');
     assert(param <= paramMax, 'asoftclip.param must be <= 3');
     assert(
@@ -4409,7 +4634,7 @@ final class AsoftclipSettings {
     if (oversample != 1) parts.add('oversample=' + oversample.toString());
     if (param != 1.0) parts.add('param=' + _wireDouble(param));
     if (threshold != 1.0) parts.add('threshold=' + _wireDouble(threshold));
-    if (type != null) parts.add('type=' + type!.mpvValue);
+    if (type != AsoftclipTypes.hard) parts.add('type=' + type.mpvValue);
     return parts.isEmpty
         ? 'lavfi-asoftclip'
         : 'lavfi-asoftclip=' + parts.join(':');
@@ -4423,15 +4648,15 @@ final class AsoftclipSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [boost]: Set max boost factor. Allowed range is from 1 to 12. Default value is 2. (range 1..12, default 2.0)
-/// - [channels]: Set the channels to process. Default value is all available. (range 0..0, default "all")
-/// - [cutoff]: Set cutoff frequency in Hertz. Allowed range is 50 to 900. Default value is 100. (range 50..900, default 100)
-/// - [decay]: Set delay line decay gain value. Allowed range is from 0 to 1. Default value is 0.0. (range 0..1, default 0.0)
-/// - [delay]: Set delay. Allowed range is from 1 to 100. Default value is 20. (range 1..100, default 20)
-/// - [dry]: Set dry gain, how much of original signal is kept. Allowed range is from 0 to 1. Default value is 1.0. (range 0..1, default 1.0)
-/// - [feedback]: Set delay line feedback gain value. Allowed range is from 0 to 1. Default value is 0.9. (range 0..1, default 0.9)
-/// - [slope]: Set slope amount for cutoff frequency. Allowed range is 0.0001 to 1. Default value is 0.5. (range 0.0001..1, default 0.5)
-/// - [wet]: Set wet gain, how much of filtered signal is kept. Allowed range is from 0 to 1. Default value is 1.0. (range 0..1, default 1.0)
+/// - [boost]: Set max boost factor. Allowed range is from 1 to 12. Default value is 2. (range 1..12, default 2.0, runtime-tunable)
+/// - [channels]: Set the channels to process. Default value is all available. (range 0..0, default "all", runtime-tunable)
+/// - [cutoff]: Set cutoff frequency in Hertz. Allowed range is 50 to 900. Default value is 100. (range 50..900, default 100, runtime-tunable)
+/// - [decay]: Set delay line decay gain value. Allowed range is from 0 to 1. Default value is 0.0. (range 0..1, default 0.0, runtime-tunable)
+/// - [delay]: Set delay. Allowed range is from 1 to 100. Default value is 20. (range 1..100, default 20, runtime-tunable)
+/// - [dry]: Set dry gain, how much of original signal is kept. Allowed range is from 0 to 1. Default value is 1.0. (range 0..1, default 1.0, runtime-tunable)
+/// - [feedback]: Set delay line feedback gain value. Allowed range is from 0 to 1. Default value is 0.9. (range 0..1, default 0.9, runtime-tunable)
+/// - [slope]: Set slope amount for cutoff frequency. Allowed range is 0.0001 to 1. Default value is 0.5. (range 0.0001..1, default 0.5, runtime-tunable)
+/// - [wet]: Set wet gain, how much of filtered signal is kept. Allowed range is from 0 to 1. Default value is 1.0. (range 0..1, default 1.0, runtime-tunable)
 final class AsubboostSettings {
   static const double boostDefault = 2.0;
   static const double boostMin = 1.0;
@@ -4576,9 +4801,9 @@ final class AsubboostSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [cutoff]: Set cutoff frequency in Hertz. Allowed range is 2 to 200. Default value is 20. (range 2..200, default 20)
-/// - [level]: Set input gain level. Allowed range is from 0 to 1. Default value is 1. (range 0.0..1.0, default 1.)
-/// - [order]: Set filter order. Available values are from 3 to 20. Default value is 10. (range 3..20, default 10)
+/// - [cutoff]: Set cutoff frequency in Hertz. Allowed range is 2 to 200. Default value is 20. (range 2..200, default 20, runtime-tunable)
+/// - [level]: Set input gain level. Allowed range is from 0 to 1. Default value is 1. (range 0.0..1.0, default 1., runtime-tunable)
+/// - [order]: Set filter order. Available values are from 3 to 20. Default value is 10. (range 3..20, default 10, runtime-tunable)
 final class AsubcutSettings {
   static const double cutoffDefault = 20.0;
   static const double cutoffMin = 2.0;
@@ -4655,9 +4880,9 @@ final class AsubcutSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [cutoff]: Set cutoff frequency in Hertz. Allowed range is 20000 to 192000. Default value is 20000. (range 20000..192000, default 20000)
-/// - [level]: Set input gain level. Allowed range is from 0 to 1. Default value is 1. (range 0.0..1.0, default 1.)
-/// - [order]: Set filter order. Available values are from 3 to 20. Default value is 10. (range 3..20, default 10)
+/// - [cutoff]: Set cutoff frequency in Hertz. Allowed range is 20000 to 192000. Default value is 20000. (range 20000..192000, default 20000, runtime-tunable)
+/// - [level]: Set input gain level. Allowed range is from 0 to 1. Default value is 1. (range 0.0..1.0, default 1., runtime-tunable)
+/// - [order]: Set filter order. Available values are from 3 to 20. Default value is 10. (range 3..20, default 10, runtime-tunable)
 final class AsupercutSettings {
   static const double cutoffDefault = 20000.0;
   static const double cutoffMin = 20000.0;
@@ -4736,10 +4961,10 @@ final class AsupercutSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [centerf]: Set center frequency in Hertz. Allowed range is 2 to 999999. Default value is 1000. (range 2..999999, default 1000)
-/// - [level]: Set input gain level. Allowed range is from 0 to 2. Default value is 1. (range 0.0..2.0, default 1.)
-/// - [order]: Set filter order. Available values are from 4 to 20. Default value is 4. (range 4..20, default 4)
-/// - [qfactor]: Set Q-factor. Allowed range is from 0.01 to 100. Default value is 1. (range 0.01..100.0, default 1.)
+/// - [centerf]: Set center frequency in Hertz. Allowed range is 2 to 999999. Default value is 1000. (range 2..999999, default 1000, runtime-tunable)
+/// - [level]: Set input gain level. Allowed range is from 0 to 2. Default value is 1. (range 0.0..2.0, default 1., runtime-tunable)
+/// - [order]: Set filter order. Available values are from 4 to 20. Default value is 4. (range 4..20, default 4, runtime-tunable)
+/// - [qfactor]: Set Q-factor. Allowed range is from 0.01 to 100. Default value is 1. (range 0.01..100.0, default 1., runtime-tunable)
 final class AsuperpassSettings {
   static const double centerfDefault = 1000.0;
   static const double centerfMin = 2.0;
@@ -4829,10 +5054,10 @@ final class AsuperpassSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [centerf]: Set center frequency in Hertz. Allowed range is 2 to 999999. Default value is 1000. (range 2..999999, default 1000)
-/// - [level]: Set input gain level. Allowed range is from 0 to 2. Default value is 1. (range 0.0..2.0, default 1.)
-/// - [order]: Set filter order. Available values are from 4 to 20. Default value is 4. (range 4..20, default 4)
-/// - [qfactor]: Set Q-factor. Allowed range is from 0.01 to 100. Default value is 1. (range 0.01..100.0, default 1.)
+/// - [centerf]: Set center frequency in Hertz. Allowed range is 2 to 999999. Default value is 1000. (range 2..999999, default 1000, runtime-tunable)
+/// - [level]: Set input gain level. Allowed range is from 0 to 2. Default value is 1. (range 0.0..2.0, default 1., runtime-tunable)
+/// - [order]: Set filter order. Available values are from 4 to 20. Default value is 4. (range 4..20, default 4, runtime-tunable)
+/// - [qfactor]: Set Q-factor. Allowed range is from 0.01 to 100. Default value is 1. (range 0.01..100.0, default 1., runtime-tunable)
 final class AsuperstopSettings {
   static const double centerfDefault = 1000.0;
   static const double centerfMin = 2.0;
@@ -4937,9 +5162,11 @@ final class AsuperstopSettings {
 /// This filter supports the following commands:
 ///
 /// Parameters:
-/// - [tempo]: Change filter tempo scale factor. Syntax for the command is : "`tempo`" (default 1.0)
+/// - [tempo]: Change filter tempo scale factor. Syntax for the command is : "`tempo`" (range 0.5..100.0, default 1.0, runtime-tunable)
 final class AtempoSettings {
   static const double tempoDefault = 1.0;
+  static const double tempoMin = 0.5;
+  static const double tempoMax = 100.0;
 
   final bool enabled;
   final double tempo;
@@ -4974,6 +5201,8 @@ final class AtempoSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(tempo >= tempoMin, 'atempo.tempo must be >= 0.5');
+    assert(tempo <= tempoMax, 'atempo.tempo must be <= 100.0');
     final parts = <String>[];
     if (tempo != 1.0) parts.add('tempo=' + _wireDouble(tempo));
     return parts.isEmpty ? 'lavfi-atempo' : 'lavfi-atempo=' + parts.join(':');
@@ -4989,11 +5218,11 @@ final class AtempoSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [freq]: Set central frequency of tilt in Hz. Default is 10000 Hz. (range 20..192000, default 10000)
-/// - [level]: Set input volume level. Allowed range is from 0 to 4. Default is 1. (range 0.0..4.0, default 1.)
-/// - [order]: Set order of tilt filter. (default 5)
-/// - [slope]: Set slope direction of tilt. Default is 0. Allowed range is from -1 to 1. (range -1..1, default 0)
-/// - [width]: Set width of tilt. Default is 1000. Allowed range is from 100 to 10000. (range 100..10000, default 1000)
+/// - [freq]: Set central frequency of tilt in Hz. Default is 10000 Hz. (range 20..192000, default 10000, runtime-tunable)
+/// - [level]: Set input volume level. Allowed range is from 0 to 4. Default is 1. (range 0.0..4.0, default 1., runtime-tunable)
+/// - [order]: Set order of tilt filter. (range 2..30, default 5, runtime-tunable)
+/// - [slope]: Set slope direction of tilt. Default is 0. Allowed range is from -1 to 1. (range -1..1, default 0, runtime-tunable)
+/// - [width]: Set width of tilt. Default is 1000. Allowed range is from 100 to 10000. (range 100..10000, default 1000, runtime-tunable)
 final class AtiltSettings {
   static const double freqDefault = 10000.0;
   static const double freqMin = 20.0;
@@ -5003,6 +5232,7 @@ final class AtiltSettings {
   static const double levelMax = 4.0;
   static const int orderDefault = 5;
   static const int orderMin = 2;
+  static const int orderMax = 30;
   static const double slopeDefault = 0.0;
   static const double slopeMin = -1.0;
   static const double slopeMax = 1.0;
@@ -5069,6 +5299,7 @@ final class AtiltSettings {
     assert(level >= levelMin, 'atilt.level must be >= 0.0');
     assert(level <= levelMax, 'atilt.level must be <= 4.0');
     assert(order >= orderMin, 'atilt.order must be >= 2');
+    assert(order <= orderMax, 'atilt.order must be <= 30');
     assert(slope >= slopeMin, 'atilt.slope must be >= -1');
     assert(slope <= slopeMax, 'atilt.slope must be <= 1');
     assert(width >= widthMin, 'atilt.width must be >= 100');
@@ -5094,25 +5325,25 @@ final class AtiltSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [csg]: Constant skirt gain if set to 1. Defaults to 0. (range 0..1, default 0)
-/// - [f]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000)
-/// - [frequency]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [csg]: Constant skirt gain if set to 1. Defaults to 0. (range 0..1, default 0, runtime-tunable)
+/// - [f]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000, runtime-tunable)
+/// - [frequency]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5)
-/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class BandpassSettings {
   static const int bDefault = 0;
   static const int bMin = 0;
@@ -5337,24 +5568,24 @@ final class BandpassSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [f]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000)
-/// - [frequency]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [f]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000, runtime-tunable)
+/// - [frequency]: Set the filter's central frequency. Default is `3000`. (range 0..999999, default 3000, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5)
-/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class BandrejectSettings {
   static const int bDefault = 0;
   static const int bMin = 0;
@@ -5572,28 +5803,28 @@ final class BandrejectSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100)
-/// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100)
-/// - [g]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [gain]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100, runtime-tunable)
+/// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100, runtime-tunable)
+/// - [g]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [gain]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
-/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class BassSettings {
   static const int bDefault = 0;
   static const int bMin = 0;
@@ -5860,34 +6091,46 @@ final class BassSettings {
 /// This filter supports the following commands:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
-/// - [a0]:  (default 1)
-/// - [a1]:  (default 0)
-/// - [a2]:  (default 0)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [a0]:  (range -2147483648..2147483647, default 1, runtime-tunable)
+/// - [a1]:  (range -2147483648..2147483647, default 0, runtime-tunable)
+/// - [a2]:  (range -2147483648..2147483647, default 0, runtime-tunable)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
-/// - [b0]:  (default 0)
-/// - [b1]:  (default 0)
-/// - [b2]: Change biquad parameter. Syntax for the command is : "`value`" (default 0)
+/// - [b0]:  (range -2147483648..2147483647, default 0, runtime-tunable)
+/// - [b1]:  (range -2147483648..2147483647, default 0, runtime-tunable)
+/// - [b2]: Change biquad parameter. Syntax for the command is : "`value`" (range -2147483648..2147483647, default 0, runtime-tunable)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [transform]: Set transform type of IIR filter. (default DI)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
 final class BiquadSettings {
   static const double a0Default = 1.0;
+  static const double a0Min = -2147483648.0;
+  static const double a0Max = 2147483647.0;
   static const double a1Default = 0.0;
+  static const double a1Min = -2147483648.0;
+  static const double a1Max = 2147483647.0;
   static const double a2Default = 0.0;
+  static const double a2Min = -2147483648.0;
+  static const double a2Max = 2147483647.0;
   static const int bDefault = 0;
   static const int bMin = 0;
   static const int bMax = 32768;
   static const double b0Default = 0.0;
+  static const double b0Min = -2147483648.0;
+  static const double b0Max = 2147483647.0;
   static const double b1Default = 0.0;
+  static const double b1Min = -2147483648.0;
+  static const double b1Max = 2147483647.0;
   static const double b2Default = 0.0;
+  static const double b2Min = -2147483648.0;
+  static const double b2Max = 2147483647.0;
   static const int blocksizeDefault = 0;
   static const int blocksizeMin = 0;
   static const int blocksizeMax = 32768;
@@ -6018,8 +6261,20 @@ final class BiquadSettings {
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
   String toFilterString() {
+    assert(a0 >= a0Min, 'biquad.a0 must be >= -2147483648');
+    assert(a0 <= a0Max, 'biquad.a0 must be <= 2147483647');
+    assert(a1 >= a1Min, 'biquad.a1 must be >= -2147483648');
+    assert(a1 <= a1Max, 'biquad.a1 must be <= 2147483647');
+    assert(a2 >= a2Min, 'biquad.a2 must be >= -2147483648');
+    assert(a2 <= a2Max, 'biquad.a2 must be <= 2147483647');
     assert(b >= bMin, 'biquad.b must be >= 0');
     assert(b <= bMax, 'biquad.b must be <= 32768');
+    assert(b0 >= b0Min, 'biquad.b0 must be >= -2147483648');
+    assert(b0 <= b0Max, 'biquad.b0 must be <= 2147483647');
+    assert(b1 >= b1Min, 'biquad.b1 must be >= -2147483648');
+    assert(b1 <= b1Max, 'biquad.b1 must be <= 2147483647');
+    assert(b2 >= b2Min, 'biquad.b2 must be >= -2147483648');
+    assert(b2 <= b2Max, 'biquad.b2 must be <= 2147483647');
     assert(blocksize >= blocksizeMin, 'biquad.blocksize must be >= 0');
     assert(blocksize <= blocksizeMax, 'biquad.blocksize must be <= 32768');
     assert(m >= mMin, 'biquad.m must be >= 0');
@@ -6128,12 +6383,12 @@ final class ChannelmapSettings {
 /// It accepts the following parameters:
 ///
 /// Parameters:
-/// - [decays]: Set decays. (range 0..0, default NULL)
-/// - [delays]: Set delays. A typical delay is around 40ms to 60ms. (range 0..0, default NULL)
-/// - [depths]: Set depths. (range 0..0, default NULL)
+/// - [decays]: Set decays. (range 0..0, default "")
+/// - [delays]: Set delays. A typical delay is around 40ms to 60ms. (range 0..0, default "")
+/// - [depths]: Set depths. (range 0..0, default "")
 /// - [in_gain]: Set input gain. Default is 0.4. (range 0..1, default .4)
 /// - [out_gain]: Set output gain. Default is 0.4. (range 0..1, default .4)
-/// - [speeds]: Set speeds. (range 0..0, default NULL)
+/// - [speeds]: Set speeds. (range 0..0, default "")
 final class ChorusSettings {
   static const double in_gainDefault = .4;
   static const double in_gainMin = 0.0;
@@ -6152,12 +6407,12 @@ final class ChorusSettings {
 
   const ChorusSettings({
     this.enabled = false,
-    this.decays = 'NULL',
-    this.delays = 'NULL',
-    this.depths = 'NULL',
+    this.decays = '',
+    this.delays = '',
+    this.depths = '',
     this.in_gain = .4,
     this.out_gain = .4,
-    this.speeds = 'NULL',
+    this.speeds = '',
   });
 
   ChorusSettings copyWith({
@@ -6207,12 +6462,12 @@ final class ChorusSettings {
     assert(out_gain >= out_gainMin, 'chorus.out_gain must be >= 0');
     assert(out_gain <= out_gainMax, 'chorus.out_gain must be <= 1');
     final parts = <String>[];
-    if (decays != 'NULL') parts.add('decays=' + '[' + decays + ']');
-    if (delays != 'NULL') parts.add('delays=' + '[' + delays + ']');
-    if (depths != 'NULL') parts.add('depths=' + '[' + depths + ']');
+    if (decays != '') parts.add('decays=' + '[' + decays + ']');
+    if (delays != '') parts.add('delays=' + '[' + delays + ']');
+    if (depths != '') parts.add('depths=' + '[' + depths + ']');
     if (in_gain != .4) parts.add('in_gain=' + _wireDouble(in_gain));
     if (out_gain != .4) parts.add('out_gain=' + _wireDouble(out_gain));
-    if (speeds != 'NULL') parts.add('speeds=' + '[' + speeds + ']');
+    if (speeds != '') parts.add('speeds=' + '[' + speeds + ']');
     return parts.isEmpty ? 'lavfi-chorus' : 'lavfi-chorus=' + parts.join(':');
   }
 }
@@ -6228,7 +6483,7 @@ final class ChorusSettings {
 /// - [decays]: A list of times in seconds for each channel over which the instantaneous level of the input signal is averaged to determine its volume. `attacks` refers to increase of volume and `decays` refers to decrease of volume. For most situations, the attack time (response to the audio getting louder) should be shorter than the decay time, because the human ear is more sensitive to sudden loud audio than sudden soft audio. A typical value for attack is 0.3 seconds and a typical value for decay is 0.8 seconds. If specified number of attacks & decays is lower than number of channels, the last set attack/decay will be used for all remaining channels. (range 0..0, default "0.8")
 /// - [delay]: Set a delay, in seconds. The input audio is analyzed immediately, but audio is delayed before being fed to the volume adjuster. Specifying a delay approximately equal to the attack/decay times allows the filter to effectively operate in predictive rather than reactive mode. It defaults to 0. (range 0..20, default 0)
 /// - [gain]: Set the additional gain in dB to be applied at all points on the transfer function. This allows for easy adjustment of the overall gain. It defaults to 0. (range -900..900, default 0)
-/// - [points]: A list of points for the transfer function, specified in dB relative to the maximum possible signal amplitude. Each key points list must be defined using the following syntax: `x0/y0|x1/y1|x2/y2|....` or `x0/y0 x1/y1 x2/y2 ....`  The input values must be in strictly increasing order but the transfer function does not have to be monotonically rising. The point `0/0` is assumed but may be overridden (by `0/out-dBn`). Typical values for the transfer function are `-70/-70|-60/-20|1/0`. (range 0..0)
+/// - [points]: A list of points for the transfer function, specified in dB relative to the maximum possible signal amplitude. Each key points list must be defined using the following syntax: `x0/y0|x1/y1|x2/y2|....` or `x0/y0 x1/y1 x2/y2 ....`  The input values must be in strictly increasing order but the transfer function does not have to be monotonically rising. The point `0/0` is assumed but may be overridden (by `0/out-dBn`). Typical values for the transfer function are `-70/-70|-60/-20|1/0`. (range 0..0, default "-70/-70|-60/-20|1/0")
 /// - [volume]: Set an initial volume, in dB, to be assumed for each channel when filtering starts. This permits the user to supply a nominal level initially, so that, for example, a very large gain is not applied to initial signal levels before the companding has begun to operate. A typical value for audio which is initially quiet is -90 dB. It defaults to 0. (range -900..0, default 0)
 ///
 /// Parameters whose names start with a digit, addressed by
@@ -6250,7 +6505,7 @@ final class CompandSettings {
   final String decays;
   final double delay;
   final double gain;
-  final String? points;
+  final String points;
   final double volume;
   final Map<String, double> params;
 
@@ -6260,7 +6515,7 @@ final class CompandSettings {
     this.decays = '0.8',
     this.delay = 0.0,
     this.gain = 0.0,
-    this.points,
+    this.points = '-70/-70|-60/-20|1/0',
     this.volume = 0.0,
     this.params = const <String, double>{},
   });
@@ -6271,7 +6526,7 @@ final class CompandSettings {
     String? decays,
     double? delay,
     double? gain,
-    Object? points = unset,
+    String? points,
     double? volume,
     Map<String, double>? params,
   }) =>
@@ -6281,7 +6536,7 @@ final class CompandSettings {
         decays: decays ?? this.decays,
         delay: delay ?? this.delay,
         gain: gain ?? this.gain,
-        points: identical(points, unset) ? this.points : points as String?,
+        points: points ?? this.points,
         volume: volume ?? this.volume,
         params: params ?? this.params,
       );
@@ -6329,7 +6584,8 @@ final class CompandSettings {
     if (decays != '0.8') parts.add('decays=' + '[' + decays + ']');
     if (delay != 0.0) parts.add('delay=' + _wireDouble(delay));
     if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
-    if (points != null) parts.add('points=' + '[' + points! + ']');
+    if (points != '-70/-70|-60/-20|1/0')
+      parts.add('points=' + '[' + points + ']');
     if (volume != 0.0) parts.add('volume=' + _wireDouble(volume));
     params.forEach((k, v) => parts.add('$k=' + _wireDouble(v)));
     return parts.isEmpty ? 'lavfi-compand' : 'lavfi-compand=' + parts.join(':');
@@ -6483,11 +6739,11 @@ final class CompensationdelaySettings {
 ///
 /// Parameters:
 /// - [block_size]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
-/// - [level_in]: Set input gain. Default is 0.9. (range 0..1, default .9)
-/// - [level_out]: Set output gain. Default is 1. (range 0..1, default 1.)
-/// - [range]: Set soundstage wideness. Default is 0.5. Allowed range is from 0 to 1. This sets cut off frequency of low shelf filter. Default is cut off near 1550 Hz. With range set to 1 cut off frequency is set to 2100 Hz. (range 0..1, default .5)
-/// - [slope]: Set curve slope of low shelf filter. Default is 0.5. Allowed range is from 0.01 to 1. (range .01..1, default .5)
-/// - [strength]: Set strength of crossfeed. Default is 0.2. Allowed range is from 0 to 1. This sets gain of low shelf filter for side part of stereo image. Default is -6dB. Max allowed is -30db when strength is set to 1. (range 0..1, default .2)
+/// - [level_in]: Set input gain. Default is 0.9. (range 0..1, default .9, runtime-tunable)
+/// - [level_out]: Set output gain. Default is 1. (range 0..1, default 1., runtime-tunable)
+/// - [range]: Set soundstage wideness. Default is 0.5. Allowed range is from 0 to 1. This sets cut off frequency of low shelf filter. Default is cut off near 1550 Hz. With range set to 1 cut off frequency is set to 2100 Hz. (range 0..1, default .5, runtime-tunable)
+/// - [slope]: Set curve slope of low shelf filter. Default is 0.5. Allowed range is from 0.01 to 1. (range .01..1, default .5, runtime-tunable)
+/// - [strength]: Set strength of crossfeed. Default is 0.2. Allowed range is from 0 to 1. This sets gain of low shelf filter for side part of stereo image. Default is -6dB. Max allowed is -30db when strength is set to 1. (range 0..1, default .2, runtime-tunable)
 final class CrossfeedSettings {
   static const int block_sizeDefault = 0;
   static const int block_sizeMin = 0;
@@ -6603,8 +6859,8 @@ final class CrossfeedSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [c]: Enable clipping. By default is enabled. (range 0..1, default 1)
-/// - [i]: Sets the intensity of effect (default: 2.0). Must be in range between -10.0 to 0 (unchanged sound) to 10.0 (maximum effect). To inverse filtering use negative value. (range -10..10, default 2.0)
+/// - [c]: Enable clipping. By default is enabled. (range 0..1, default 1, runtime-tunable)
+/// - [i]: Sets the intensity of effect (default: 2.0). Must be in range between -10.0 to 0 (unchanged sound) to 10.0 (maximum effect). To inverse filtering use negative value. (range -10..10, default 2.0, runtime-tunable)
 final class CrystalizerSettings {
   static const double iDefault = 2.0;
   static const double iMin = -10.0;
@@ -6738,7 +6994,7 @@ final class DcshiftSettings {
 /// - [f]: How much of original frequency content to keep when de-essing. Allowed range is from 0 to 1. Default is 0.5. (range 0.0..1.0, default 0.5)
 /// - [i]: Set intensity for triggering de-essing. Allowed range is from 0 to 1. Default is 0. (range 0.0..1.0, default 0.0)
 /// - [m]: Set amount of ducking on treble part of sound. Allowed range is from 0 to 1. Default is 0.5. (range 0.0..1.0, default 0.5)
-/// - [s]: Set the output mode.  It accepts the following values: (default OUT_MODE)
+/// - [s]: Set the output mode.  It accepts the following values: (range 0..2, default OUT_MODE)
 final class DeesserSettings {
   static const double fDefault = 0.5;
   static const double fMin = 0.0;
@@ -6826,9 +7082,9 @@ final class DeesserSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [enhance]: Set the dialogue enhance factor to put in front center channel output. Allowed range is from 0 to 3. Default value is 1. (range 0..3, default 1)
-/// - [original]: Set the original center factor to keep in front center channel output. Allowed range is from 0 to 1. Default value is 1. (range 0..1, default 1)
-/// - [voice]: Set the voice detection factor. Allowed range is from 2 to 32. Default value is 2. (range 2..32, default 2)
+/// - [enhance]: Set the dialogue enhance factor to put in front center channel output. Allowed range is from 0 to 3. Default value is 1. (range 0..3, default 1, runtime-tunable)
+/// - [original]: Set the original center factor to keep in front center channel output. Allowed range is from 0 to 1. Default value is 1. (range 0..1, default 1, runtime-tunable)
+/// - [voice]: Set the voice detection factor. Allowed range is from 2 to 32. Default value is 2. (range 2..32, default 2, runtime-tunable)
 final class DialoguenhanceSettings {
   static const double enhanceDefault = 1.0;
   static const double enhanceMin = 0.0;
@@ -6975,32 +7231,32 @@ final class DrmeterSettings {
 /// of the dynamic range *within* each section of the audio file.
 ///
 /// Parameters:
-/// - [altboundary]: Enable alternative boundary mode. By default is disabled. The Dynamic Audio Normalizer takes into account a certain neighbourhood around each frame. This includes the preceding frames as well as the subsequent frames. However, for the "boundary" frames, located at the very beginning and at the very end of the audio file, not all neighbouring frames are available. In particular, for the first few frames in the audio file, the preceding frames are not known. And, similarly, for the last few frames in the audio file, the subsequent frames are not known. Thus, the question arises which gain factors should be assumed for the missing frames in the "boundary" region. The Dynamic Audio Normalizer implements two modes to deal with this situation. The default boundary mode assumes a gain factor of exactly 1.0 for the missing frames, resulting in a smooth "fade in" and "fade out" at the beginning and at the end of the input, respectively. (range 0..1, default 0)
-/// - [b]: Enable alternative boundary mode. By default is disabled. The Dynamic Audio Normalizer takes into account a certain neighbourhood around each frame. This includes the preceding frames as well as the subsequent frames. However, for the "boundary" frames, located at the very beginning and at the very end of the audio file, not all neighbouring frames are available. In particular, for the first few frames in the audio file, the preceding frames are not known. And, similarly, for the last few frames in the audio file, the subsequent frames are not known. Thus, the question arises which gain factors should be assumed for the missing frames in the "boundary" region. The Dynamic Audio Normalizer implements two modes to deal with this situation. The default boundary mode assumes a gain factor of exactly 1.0 for the missing frames, resulting in a smooth "fade in" and "fade out" at the beginning and at the end of the input, respectively. (range 0..1, default 0)
-/// - [c]: Enable DC bias correction. By default is disabled. An audio signal (in the time domain) is a sequence of sample values. In the Dynamic Audio Normalizer these sample values are represented in the -1.0 to 1.0 range, regardless of the original input format. Normally, the audio signal, or "waveform", should be centered around the zero point. That means if we calculate the mean value of all samples in a file, or in a single frame, then the result should be 0.0 or at least very close to that value. If, however, there is a significant deviation of the mean value from 0.0, in either positive or negative direction, this is referred to as a DC bias or DC offset. Since a DC bias is clearly undesirable, the Dynamic Audio Normalizer provides optional DC bias correction. With DC bias correction enabled, the Dynamic Audio Normalizer will determine the mean value, or "DC correction" offset, of each input frame and subtract that value from all of the frame's sample values which ensures those samples are centered around 0.0 again. Also, in order to avoid "gaps" at the frame boundaries, the DC correction offset values will be interpolated smoothly between neighbouring frames. (range 0..1, default 0)
-/// - [channels]: Specify which channels to filter, by default all available channels are filtered. (range 0..0, default "all")
-/// - [compress]: Set the compress factor. In range from 0.0 to 30.0. Default is 0.0. By default, the Dynamic Audio Normalizer does not apply "traditional" compression. This means that signal peaks will not be pruned and thus the full dynamic range will be retained within each local neighbourhood. However, in some cases it may be desirable to combine the Dynamic Audio Normalizer's normalization algorithm with a more "traditional" compression. For this purpose, the Dynamic Audio Normalizer provides an optional compression (thresholding) function. If (and only if) the compression feature is enabled, all input frames will be processed by a soft knee thresholding function prior to the actual normalization process. Put simply, the thresholding function is going to prune all samples whose magnitude exceeds a certain threshold value. However, the Dynamic Audio Normalizer does not simply apply a fixed threshold value. Instead, the threshold value will be adjusted for each individual frame. In general, smaller parameters result in stronger compression, and vice versa. Values below 3.0 are not recommended, because audible distortion may appear. (range 0.0..30.0, default 0.0)
-/// - [correctdc]: Enable DC bias correction. By default is disabled. An audio signal (in the time domain) is a sequence of sample values. In the Dynamic Audio Normalizer these sample values are represented in the -1.0 to 1.0 range, regardless of the original input format. Normally, the audio signal, or "waveform", should be centered around the zero point. That means if we calculate the mean value of all samples in a file, or in a single frame, then the result should be 0.0 or at least very close to that value. If, however, there is a significant deviation of the mean value from 0.0, in either positive or negative direction, this is referred to as a DC bias or DC offset. Since a DC bias is clearly undesirable, the Dynamic Audio Normalizer provides optional DC bias correction. With DC bias correction enabled, the Dynamic Audio Normalizer will determine the mean value, or "DC correction" offset, of each input frame and subtract that value from all of the frame's sample values which ensures those samples are centered around 0.0 again. Also, in order to avoid "gaps" at the frame boundaries, the DC correction offset values will be interpolated smoothly between neighbouring frames. (range 0..1, default 0)
-/// - [coupling]: Enable channels coupling. By default is enabled. By default, the Dynamic Audio Normalizer will amplify all channels by the same amount. This means the same gain factor will be applied to all channels, i.e. the maximum possible gain factor is determined by the "loudest" channel. However, in some recordings, it may happen that the volume of the different channels is uneven, e.g. one channel may be "quieter" than the other one(s). In this case, this option can be used to disable the channel coupling. This way, the gain factor will be determined independently for each channel, depending only on the individual channel's highest magnitude sample. This allows for harmonizing the volume of the different channels. (range 0..1, default 1)
-/// - [curve]: Specify the peak mapping curve expression which is going to be used when calculating gain applied to frames. The max output frame gain will still be limited by other options mentioned previously for this filter.  The expression can contain the following constants: (default NULL)
-/// - [f]: Set the frame length in milliseconds. In range from 10 to 8000 milliseconds. Default is 500 milliseconds. The Dynamic Audio Normalizer processes the input audio in small chunks, referred to as frames. This is required, because a peak magnitude has no meaning for just a single sample value. Instead, we need to determine the peak magnitude for a contiguous sequence of sample values. While a "standard" normalizer would simply use the peak magnitude of the complete file, the Dynamic Audio Normalizer determines the peak magnitude individually for each frame. The length of a frame is specified in milliseconds. By default, the Dynamic Audio Normalizer uses a frame length of 500 milliseconds, which has been found to give good results with most files. Note that the exact frame length, in number of samples, will be determined automatically, based on the sampling rate of the individual input audio file. (range 10..8000, default 500)
-/// - [framelen]: Set the frame length in milliseconds. In range from 10 to 8000 milliseconds. Default is 500 milliseconds. The Dynamic Audio Normalizer processes the input audio in small chunks, referred to as frames. This is required, because a peak magnitude has no meaning for just a single sample value. Instead, we need to determine the peak magnitude for a contiguous sequence of sample values. While a "standard" normalizer would simply use the peak magnitude of the complete file, the Dynamic Audio Normalizer determines the peak magnitude individually for each frame. The length of a frame is specified in milliseconds. By default, the Dynamic Audio Normalizer uses a frame length of 500 milliseconds, which has been found to give good results with most files. Note that the exact frame length, in number of samples, will be determined automatically, based on the sampling rate of the individual input audio file. (range 10..8000, default 500)
-/// - [g]: Set the Gaussian filter window size. In range from 3 to 301, must be odd number. Default is 31. Probably the most important parameter of the Dynamic Audio Normalizer is the `window size` of the Gaussian smoothing filter. The filter's window size is specified in frames, centered around the current frame. For the sake of simplicity, this must be an odd number. Consequently, the default value of 31 takes into account the current frame, as well as the 15 preceding frames and the 15 subsequent frames. Using a larger window results in a stronger smoothing effect and thus in less gain variation, i.e. slower gain adaptation. Conversely, using a smaller window results in a weaker smoothing effect and thus in more gain variation, i.e. faster gain adaptation. In other words, the more you increase this value, the more the Dynamic Audio Normalizer will behave like a "traditional" normalization filter. On the contrary, the more you decrease this value, the more the Dynamic Audio Normalizer will behave like a dynamic range compressor. (range 3..301, default 31)
-/// - [gausssize]: Set the Gaussian filter window size. In range from 3 to 301, must be odd number. Default is 31. Probably the most important parameter of the Dynamic Audio Normalizer is the `window size` of the Gaussian smoothing filter. The filter's window size is specified in frames, centered around the current frame. For the sake of simplicity, this must be an odd number. Consequently, the default value of 31 takes into account the current frame, as well as the 15 preceding frames and the 15 subsequent frames. Using a larger window results in a stronger smoothing effect and thus in less gain variation, i.e. slower gain adaptation. Conversely, using a smaller window results in a weaker smoothing effect and thus in more gain variation, i.e. faster gain adaptation. In other words, the more you increase this value, the more the Dynamic Audio Normalizer will behave like a "traditional" normalization filter. On the contrary, the more you decrease this value, the more the Dynamic Audio Normalizer will behave like a dynamic range compressor. (range 3..301, default 31)
-/// - [h]: Specify which channels to filter, by default all available channels are filtered. (range 0..0, default "all")
-/// - [m]: Set the maximum gain factor. In range from 1.0 to 100.0. Default is 10.0. The Dynamic Audio Normalizer determines the maximum possible (local) gain factor for each input frame, i.e. the maximum gain factor that does not result in clipping or distortion. The maximum gain factor is determined by the frame's highest magnitude sample. However, the Dynamic Audio Normalizer additionally bounds the frame's maximum gain factor by a predetermined (global) maximum gain factor. This is done in order to avoid excessive gain factors in "silent" or almost silent frames. By default, the maximum gain factor is 10.0, For most inputs the default value should be sufficient and it usually is not recommended to increase this value. Though, for input with an extremely low overall volume level, it may be necessary to allow even higher gain factors. Note, however, that the Dynamic Audio Normalizer does not simply apply a "hard" threshold (i.e. cut off values above the threshold). Instead, a "sigmoid" threshold function will be applied. This way, the gain factors will smoothly approach the threshold value, but never exceed that value. (range 1.0..100.0, default 10.0)
-/// - [maxgain]: Set the maximum gain factor. In range from 1.0 to 100.0. Default is 10.0. The Dynamic Audio Normalizer determines the maximum possible (local) gain factor for each input frame, i.e. the maximum gain factor that does not result in clipping or distortion. The maximum gain factor is determined by the frame's highest magnitude sample. However, the Dynamic Audio Normalizer additionally bounds the frame's maximum gain factor by a predetermined (global) maximum gain factor. This is done in order to avoid excessive gain factors in "silent" or almost silent frames. By default, the maximum gain factor is 10.0, For most inputs the default value should be sufficient and it usually is not recommended to increase this value. Though, for input with an extremely low overall volume level, it may be necessary to allow even higher gain factors. Note, however, that the Dynamic Audio Normalizer does not simply apply a "hard" threshold (i.e. cut off values above the threshold). Instead, a "sigmoid" threshold function will be applied. This way, the gain factors will smoothly approach the threshold value, but never exceed that value. (range 1.0..100.0, default 10.0)
-/// - [n]: Enable channels coupling. By default is enabled. By default, the Dynamic Audio Normalizer will amplify all channels by the same amount. This means the same gain factor will be applied to all channels, i.e. the maximum possible gain factor is determined by the "loudest" channel. However, in some recordings, it may happen that the volume of the different channels is uneven, e.g. one channel may be "quieter" than the other one(s). In this case, this option can be used to disable the channel coupling. This way, the gain factor will be determined independently for each channel, depending only on the individual channel's highest magnitude sample. This allows for harmonizing the volume of the different channels. (range 0..1, default 1)
-/// - [o]: Specify overlap for frames. If set to 0 (default) no frame overlapping is done. Using >0 and <1 values will make less conservative gain adjustments, like when framelen option is set to smaller value, if framelen option value is compensated for non-zero overlap then gain adjustments will be smoother across time compared to zero overlap case. (range 0.0..1.0, default .0)
-/// - [overlap]: Specify overlap for frames. If set to 0 (default) no frame overlapping is done. Using >0 and <1 values will make less conservative gain adjustments, like when framelen option is set to smaller value, if framelen option value is compensated for non-zero overlap then gain adjustments will be smoother across time compared to zero overlap case. (range 0.0..1.0, default .0)
-/// - [p]: Set the target peak value. This specifies the highest permissible magnitude level for the normalized audio input. This filter will try to approach the target peak magnitude as closely as possible, but at the same time it also makes sure that the normalized signal will never exceed the peak magnitude. A frame's maximum local gain factor is imposed directly by the target peak magnitude. The default value is 0.95 and thus leaves a headroom of 5%*. It is not recommended to go above this value. (range 0.0..1.0, default 0.95)
-/// - [peak]: Set the target peak value. This specifies the highest permissible magnitude level for the normalized audio input. This filter will try to approach the target peak magnitude as closely as possible, but at the same time it also makes sure that the normalized signal will never exceed the peak magnitude. A frame's maximum local gain factor is imposed directly by the target peak magnitude. The default value is 0.95 and thus leaves a headroom of 5%*. It is not recommended to go above this value. (range 0.0..1.0, default 0.95)
-/// - [r]: Set the target RMS. In range from 0.0 to 1.0. Default is 0.0 - disabled. By default, the Dynamic Audio Normalizer performs "peak" normalization. This means that the maximum local gain factor for each frame is defined (only) by the frame's highest magnitude sample. This way, the samples can be amplified as much as possible without exceeding the maximum signal level, i.e. without clipping. Optionally, however, the Dynamic Audio Normalizer can also take into account the frame's root mean square, abbreviated RMS. In electrical engineering, the RMS is commonly used to determine the power of a time-varying signal. It is therefore considered that the RMS is a better approximation of the "perceived loudness" than just looking at the signal's peak magnitude. Consequently, by adjusting all frames to a constant RMS value, a uniform "perceived loudness" can be established. If a target RMS value has been specified, a frame's local gain factor is defined as the factor that would result in exactly that RMS value. Note, however, that the maximum local gain factor is still restricted by the frame's highest magnitude sample, in order to prevent clipping. (range 0.0..1.0, default 0.0)
-/// - [s]: Set the compress factor. In range from 0.0 to 30.0. Default is 0.0. By default, the Dynamic Audio Normalizer does not apply "traditional" compression. This means that signal peaks will not be pruned and thus the full dynamic range will be retained within each local neighbourhood. However, in some cases it may be desirable to combine the Dynamic Audio Normalizer's normalization algorithm with a more "traditional" compression. For this purpose, the Dynamic Audio Normalizer provides an optional compression (thresholding) function. If (and only if) the compression feature is enabled, all input frames will be processed by a soft knee thresholding function prior to the actual normalization process. Put simply, the thresholding function is going to prune all samples whose magnitude exceeds a certain threshold value. However, the Dynamic Audio Normalizer does not simply apply a fixed threshold value. Instead, the threshold value will be adjusted for each individual frame. In general, smaller parameters result in stronger compression, and vice versa. Values below 3.0 are not recommended, because audible distortion may appear. (range 0.0..30.0, default 0.0)
-/// - [t]: Set the target threshold value. This specifies the lowest permissible magnitude level for the audio input which will be normalized. If input frame volume is above this value frame will be normalized. Otherwise frame may not be normalized at all. The default value is set to 0, which means all input frames will be normalized. This option is mostly useful if digital noise is not wanted to be amplified. (range 0.0..1.0, default 0.0)
-/// - [targetrms]: Set the target RMS. In range from 0.0 to 1.0. Default is 0.0 - disabled. By default, the Dynamic Audio Normalizer performs "peak" normalization. This means that the maximum local gain factor for each frame is defined (only) by the frame's highest magnitude sample. This way, the samples can be amplified as much as possible without exceeding the maximum signal level, i.e. without clipping. Optionally, however, the Dynamic Audio Normalizer can also take into account the frame's root mean square, abbreviated RMS. In electrical engineering, the RMS is commonly used to determine the power of a time-varying signal. It is therefore considered that the RMS is a better approximation of the "perceived loudness" than just looking at the signal's peak magnitude. Consequently, by adjusting all frames to a constant RMS value, a uniform "perceived loudness" can be established. If a target RMS value has been specified, a frame's local gain factor is defined as the factor that would result in exactly that RMS value. Note, however, that the maximum local gain factor is still restricted by the frame's highest magnitude sample, in order to prevent clipping. (range 0.0..1.0, default 0.0)
-/// - [threshold]: Set the target threshold value. This specifies the lowest permissible magnitude level for the audio input which will be normalized. If input frame volume is above this value frame will be normalized. Otherwise frame may not be normalized at all. The default value is set to 0, which means all input frames will be normalized. This option is mostly useful if digital noise is not wanted to be amplified. (range 0.0..1.0, default 0.0)
-/// - [v]: Specify the peak mapping curve expression which is going to be used when calculating gain applied to frames. The max output frame gain will still be limited by other options mentioned previously for this filter.  The expression can contain the following constants: (default NULL)
+/// - [altboundary]: Enable alternative boundary mode. By default is disabled. The Dynamic Audio Normalizer takes into account a certain neighbourhood around each frame. This includes the preceding frames as well as the subsequent frames. However, for the "boundary" frames, located at the very beginning and at the very end of the audio file, not all neighbouring frames are available. In particular, for the first few frames in the audio file, the preceding frames are not known. And, similarly, for the last few frames in the audio file, the subsequent frames are not known. Thus, the question arises which gain factors should be assumed for the missing frames in the "boundary" region. The Dynamic Audio Normalizer implements two modes to deal with this situation. The default boundary mode assumes a gain factor of exactly 1.0 for the missing frames, resulting in a smooth "fade in" and "fade out" at the beginning and at the end of the input, respectively. (range 0..1, default 0, runtime-tunable)
+/// - [b]: Enable alternative boundary mode. By default is disabled. The Dynamic Audio Normalizer takes into account a certain neighbourhood around each frame. This includes the preceding frames as well as the subsequent frames. However, for the "boundary" frames, located at the very beginning and at the very end of the audio file, not all neighbouring frames are available. In particular, for the first few frames in the audio file, the preceding frames are not known. And, similarly, for the last few frames in the audio file, the subsequent frames are not known. Thus, the question arises which gain factors should be assumed for the missing frames in the "boundary" region. The Dynamic Audio Normalizer implements two modes to deal with this situation. The default boundary mode assumes a gain factor of exactly 1.0 for the missing frames, resulting in a smooth "fade in" and "fade out" at the beginning and at the end of the input, respectively. (range 0..1, default 0, runtime-tunable)
+/// - [c]: Enable DC bias correction. By default is disabled. An audio signal (in the time domain) is a sequence of sample values. In the Dynamic Audio Normalizer these sample values are represented in the -1.0 to 1.0 range, regardless of the original input format. Normally, the audio signal, or "waveform", should be centered around the zero point. That means if we calculate the mean value of all samples in a file, or in a single frame, then the result should be 0.0 or at least very close to that value. If, however, there is a significant deviation of the mean value from 0.0, in either positive or negative direction, this is referred to as a DC bias or DC offset. Since a DC bias is clearly undesirable, the Dynamic Audio Normalizer provides optional DC bias correction. With DC bias correction enabled, the Dynamic Audio Normalizer will determine the mean value, or "DC correction" offset, of each input frame and subtract that value from all of the frame's sample values which ensures those samples are centered around 0.0 again. Also, in order to avoid "gaps" at the frame boundaries, the DC correction offset values will be interpolated smoothly between neighbouring frames. (range 0..1, default 0, runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available channels are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [compress]: Set the compress factor. In range from 0.0 to 30.0. Default is 0.0. By default, the Dynamic Audio Normalizer does not apply "traditional" compression. This means that signal peaks will not be pruned and thus the full dynamic range will be retained within each local neighbourhood. However, in some cases it may be desirable to combine the Dynamic Audio Normalizer's normalization algorithm with a more "traditional" compression. For this purpose, the Dynamic Audio Normalizer provides an optional compression (thresholding) function. If (and only if) the compression feature is enabled, all input frames will be processed by a soft knee thresholding function prior to the actual normalization process. Put simply, the thresholding function is going to prune all samples whose magnitude exceeds a certain threshold value. However, the Dynamic Audio Normalizer does not simply apply a fixed threshold value. Instead, the threshold value will be adjusted for each individual frame. In general, smaller parameters result in stronger compression, and vice versa. Values below 3.0 are not recommended, because audible distortion may appear. (range 0.0..30.0, default 0.0, runtime-tunable)
+/// - [correctdc]: Enable DC bias correction. By default is disabled. An audio signal (in the time domain) is a sequence of sample values. In the Dynamic Audio Normalizer these sample values are represented in the -1.0 to 1.0 range, regardless of the original input format. Normally, the audio signal, or "waveform", should be centered around the zero point. That means if we calculate the mean value of all samples in a file, or in a single frame, then the result should be 0.0 or at least very close to that value. If, however, there is a significant deviation of the mean value from 0.0, in either positive or negative direction, this is referred to as a DC bias or DC offset. Since a DC bias is clearly undesirable, the Dynamic Audio Normalizer provides optional DC bias correction. With DC bias correction enabled, the Dynamic Audio Normalizer will determine the mean value, or "DC correction" offset, of each input frame and subtract that value from all of the frame's sample values which ensures those samples are centered around 0.0 again. Also, in order to avoid "gaps" at the frame boundaries, the DC correction offset values will be interpolated smoothly between neighbouring frames. (range 0..1, default 0, runtime-tunable)
+/// - [coupling]: Enable channels coupling. By default is enabled. By default, the Dynamic Audio Normalizer will amplify all channels by the same amount. This means the same gain factor will be applied to all channels, i.e. the maximum possible gain factor is determined by the "loudest" channel. However, in some recordings, it may happen that the volume of the different channels is uneven, e.g. one channel may be "quieter" than the other one(s). In this case, this option can be used to disable the channel coupling. This way, the gain factor will be determined independently for each channel, depending only on the individual channel's highest magnitude sample. This allows for harmonizing the volume of the different channels. (range 0..1, default 1, runtime-tunable)
+/// - [curve]: Specify the peak mapping curve expression which is going to be used when calculating gain applied to frames. The max output frame gain will still be limited by other options mentioned previously for this filter.  The expression can contain the following constants: (default "", runtime-tunable)
+/// - [f]: Set the frame length in milliseconds. In range from 10 to 8000 milliseconds. Default is 500 milliseconds. The Dynamic Audio Normalizer processes the input audio in small chunks, referred to as frames. This is required, because a peak magnitude has no meaning for just a single sample value. Instead, we need to determine the peak magnitude for a contiguous sequence of sample values. While a "standard" normalizer would simply use the peak magnitude of the complete file, the Dynamic Audio Normalizer determines the peak magnitude individually for each frame. The length of a frame is specified in milliseconds. By default, the Dynamic Audio Normalizer uses a frame length of 500 milliseconds, which has been found to give good results with most files. Note that the exact frame length, in number of samples, will be determined automatically, based on the sampling rate of the individual input audio file. (range 10..8000, default 500, runtime-tunable)
+/// - [framelen]: Set the frame length in milliseconds. In range from 10 to 8000 milliseconds. Default is 500 milliseconds. The Dynamic Audio Normalizer processes the input audio in small chunks, referred to as frames. This is required, because a peak magnitude has no meaning for just a single sample value. Instead, we need to determine the peak magnitude for a contiguous sequence of sample values. While a "standard" normalizer would simply use the peak magnitude of the complete file, the Dynamic Audio Normalizer determines the peak magnitude individually for each frame. The length of a frame is specified in milliseconds. By default, the Dynamic Audio Normalizer uses a frame length of 500 milliseconds, which has been found to give good results with most files. Note that the exact frame length, in number of samples, will be determined automatically, based on the sampling rate of the individual input audio file. (range 10..8000, default 500, runtime-tunable)
+/// - [g]: Set the Gaussian filter window size. In range from 3 to 301, must be odd number. Default is 31. Probably the most important parameter of the Dynamic Audio Normalizer is the `window size` of the Gaussian smoothing filter. The filter's window size is specified in frames, centered around the current frame. For the sake of simplicity, this must be an odd number. Consequently, the default value of 31 takes into account the current frame, as well as the 15 preceding frames and the 15 subsequent frames. Using a larger window results in a stronger smoothing effect and thus in less gain variation, i.e. slower gain adaptation. Conversely, using a smaller window results in a weaker smoothing effect and thus in more gain variation, i.e. faster gain adaptation. In other words, the more you increase this value, the more the Dynamic Audio Normalizer will behave like a "traditional" normalization filter. On the contrary, the more you decrease this value, the more the Dynamic Audio Normalizer will behave like a dynamic range compressor. (range 3..301, default 31, runtime-tunable)
+/// - [gausssize]: Set the Gaussian filter window size. In range from 3 to 301, must be odd number. Default is 31. Probably the most important parameter of the Dynamic Audio Normalizer is the `window size` of the Gaussian smoothing filter. The filter's window size is specified in frames, centered around the current frame. For the sake of simplicity, this must be an odd number. Consequently, the default value of 31 takes into account the current frame, as well as the 15 preceding frames and the 15 subsequent frames. Using a larger window results in a stronger smoothing effect and thus in less gain variation, i.e. slower gain adaptation. Conversely, using a smaller window results in a weaker smoothing effect and thus in more gain variation, i.e. faster gain adaptation. In other words, the more you increase this value, the more the Dynamic Audio Normalizer will behave like a "traditional" normalization filter. On the contrary, the more you decrease this value, the more the Dynamic Audio Normalizer will behave like a dynamic range compressor. (range 3..301, default 31, runtime-tunable)
+/// - [h]: Specify which channels to filter, by default all available channels are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [m]: Set the maximum gain factor. In range from 1.0 to 100.0. Default is 10.0. The Dynamic Audio Normalizer determines the maximum possible (local) gain factor for each input frame, i.e. the maximum gain factor that does not result in clipping or distortion. The maximum gain factor is determined by the frame's highest magnitude sample. However, the Dynamic Audio Normalizer additionally bounds the frame's maximum gain factor by a predetermined (global) maximum gain factor. This is done in order to avoid excessive gain factors in "silent" or almost silent frames. By default, the maximum gain factor is 10.0, For most inputs the default value should be sufficient and it usually is not recommended to increase this value. Though, for input with an extremely low overall volume level, it may be necessary to allow even higher gain factors. Note, however, that the Dynamic Audio Normalizer does not simply apply a "hard" threshold (i.e. cut off values above the threshold). Instead, a "sigmoid" threshold function will be applied. This way, the gain factors will smoothly approach the threshold value, but never exceed that value. (range 1.0..100.0, default 10.0, runtime-tunable)
+/// - [maxgain]: Set the maximum gain factor. In range from 1.0 to 100.0. Default is 10.0. The Dynamic Audio Normalizer determines the maximum possible (local) gain factor for each input frame, i.e. the maximum gain factor that does not result in clipping or distortion. The maximum gain factor is determined by the frame's highest magnitude sample. However, the Dynamic Audio Normalizer additionally bounds the frame's maximum gain factor by a predetermined (global) maximum gain factor. This is done in order to avoid excessive gain factors in "silent" or almost silent frames. By default, the maximum gain factor is 10.0, For most inputs the default value should be sufficient and it usually is not recommended to increase this value. Though, for input with an extremely low overall volume level, it may be necessary to allow even higher gain factors. Note, however, that the Dynamic Audio Normalizer does not simply apply a "hard" threshold (i.e. cut off values above the threshold). Instead, a "sigmoid" threshold function will be applied. This way, the gain factors will smoothly approach the threshold value, but never exceed that value. (range 1.0..100.0, default 10.0, runtime-tunable)
+/// - [n]: Enable channels coupling. By default is enabled. By default, the Dynamic Audio Normalizer will amplify all channels by the same amount. This means the same gain factor will be applied to all channels, i.e. the maximum possible gain factor is determined by the "loudest" channel. However, in some recordings, it may happen that the volume of the different channels is uneven, e.g. one channel may be "quieter" than the other one(s). In this case, this option can be used to disable the channel coupling. This way, the gain factor will be determined independently for each channel, depending only on the individual channel's highest magnitude sample. This allows for harmonizing the volume of the different channels. (range 0..1, default 1, runtime-tunable)
+/// - [o]: Specify overlap for frames. If set to 0 (default) no frame overlapping is done. Using >0 and <1 values will make less conservative gain adjustments, like when framelen option is set to smaller value, if framelen option value is compensated for non-zero overlap then gain adjustments will be smoother across time compared to zero overlap case. (range 0.0..1.0, default .0, runtime-tunable)
+/// - [overlap]: Specify overlap for frames. If set to 0 (default) no frame overlapping is done. Using >0 and <1 values will make less conservative gain adjustments, like when framelen option is set to smaller value, if framelen option value is compensated for non-zero overlap then gain adjustments will be smoother across time compared to zero overlap case. (range 0.0..1.0, default .0, runtime-tunable)
+/// - [p]: Set the target peak value. This specifies the highest permissible magnitude level for the normalized audio input. This filter will try to approach the target peak magnitude as closely as possible, but at the same time it also makes sure that the normalized signal will never exceed the peak magnitude. A frame's maximum local gain factor is imposed directly by the target peak magnitude. The default value is 0.95 and thus leaves a headroom of 5%*. It is not recommended to go above this value. (range 0.0..1.0, default 0.95, runtime-tunable)
+/// - [peak]: Set the target peak value. This specifies the highest permissible magnitude level for the normalized audio input. This filter will try to approach the target peak magnitude as closely as possible, but at the same time it also makes sure that the normalized signal will never exceed the peak magnitude. A frame's maximum local gain factor is imposed directly by the target peak magnitude. The default value is 0.95 and thus leaves a headroom of 5%*. It is not recommended to go above this value. (range 0.0..1.0, default 0.95, runtime-tunable)
+/// - [r]: Set the target RMS. In range from 0.0 to 1.0. Default is 0.0 - disabled. By default, the Dynamic Audio Normalizer performs "peak" normalization. This means that the maximum local gain factor for each frame is defined (only) by the frame's highest magnitude sample. This way, the samples can be amplified as much as possible without exceeding the maximum signal level, i.e. without clipping. Optionally, however, the Dynamic Audio Normalizer can also take into account the frame's root mean square, abbreviated RMS. In electrical engineering, the RMS is commonly used to determine the power of a time-varying signal. It is therefore considered that the RMS is a better approximation of the "perceived loudness" than just looking at the signal's peak magnitude. Consequently, by adjusting all frames to a constant RMS value, a uniform "perceived loudness" can be established. If a target RMS value has been specified, a frame's local gain factor is defined as the factor that would result in exactly that RMS value. Note, however, that the maximum local gain factor is still restricted by the frame's highest magnitude sample, in order to prevent clipping. (range 0.0..1.0, default 0.0, runtime-tunable)
+/// - [s]: Set the compress factor. In range from 0.0 to 30.0. Default is 0.0. By default, the Dynamic Audio Normalizer does not apply "traditional" compression. This means that signal peaks will not be pruned and thus the full dynamic range will be retained within each local neighbourhood. However, in some cases it may be desirable to combine the Dynamic Audio Normalizer's normalization algorithm with a more "traditional" compression. For this purpose, the Dynamic Audio Normalizer provides an optional compression (thresholding) function. If (and only if) the compression feature is enabled, all input frames will be processed by a soft knee thresholding function prior to the actual normalization process. Put simply, the thresholding function is going to prune all samples whose magnitude exceeds a certain threshold value. However, the Dynamic Audio Normalizer does not simply apply a fixed threshold value. Instead, the threshold value will be adjusted for each individual frame. In general, smaller parameters result in stronger compression, and vice versa. Values below 3.0 are not recommended, because audible distortion may appear. (range 0.0..30.0, default 0.0, runtime-tunable)
+/// - [t]: Set the target threshold value. This specifies the lowest permissible magnitude level for the audio input which will be normalized. If input frame volume is above this value frame will be normalized. Otherwise frame may not be normalized at all. The default value is set to 0, which means all input frames will be normalized. This option is mostly useful if digital noise is not wanted to be amplified. (range 0.0..1.0, default 0.0, runtime-tunable)
+/// - [targetrms]: Set the target RMS. In range from 0.0 to 1.0. Default is 0.0 - disabled. By default, the Dynamic Audio Normalizer performs "peak" normalization. This means that the maximum local gain factor for each frame is defined (only) by the frame's highest magnitude sample. This way, the samples can be amplified as much as possible without exceeding the maximum signal level, i.e. without clipping. Optionally, however, the Dynamic Audio Normalizer can also take into account the frame's root mean square, abbreviated RMS. In electrical engineering, the RMS is commonly used to determine the power of a time-varying signal. It is therefore considered that the RMS is a better approximation of the "perceived loudness" than just looking at the signal's peak magnitude. Consequently, by adjusting all frames to a constant RMS value, a uniform "perceived loudness" can be established. If a target RMS value has been specified, a frame's local gain factor is defined as the factor that would result in exactly that RMS value. Note, however, that the maximum local gain factor is still restricted by the frame's highest magnitude sample, in order to prevent clipping. (range 0.0..1.0, default 0.0, runtime-tunable)
+/// - [threshold]: Set the target threshold value. This specifies the lowest permissible magnitude level for the audio input which will be normalized. If input frame volume is above this value frame will be normalized. Otherwise frame may not be normalized at all. The default value is set to 0, which means all input frames will be normalized. This option is mostly useful if digital noise is not wanted to be amplified. (range 0.0..1.0, default 0.0, runtime-tunable)
+/// - [v]: Specify the peak mapping curve expression which is going to be used when calculating gain applied to frames. The max output frame gain will still be limited by other options mentioned previously for this filter.  The expression can contain the following constants: (default "", runtime-tunable)
 final class DynaudnormSettings {
   static const double compressDefault = 0.0;
   static const double compressMin = 0.0;
@@ -7088,7 +7344,7 @@ final class DynaudnormSettings {
     this.compress = 0.0,
     this.correctdc = false,
     this.coupling = true,
-    this.curve = 'NULL',
+    this.curve = '',
     this.f = 500,
     this.framelen = 500,
     this.g = 31,
@@ -7106,7 +7362,7 @@ final class DynaudnormSettings {
     this.t = 0.0,
     this.targetrms = 0.0,
     this.threshold = 0.0,
-    this.v = 'NULL',
+    this.v = '',
   });
 
   DynaudnormSettings copyWith({
@@ -7279,7 +7535,7 @@ final class DynaudnormSettings {
     if (compress != 0.0) parts.add('compress=' + _wireDouble(compress));
     if (correctdc != false) parts.add('correctdc=' + (correctdc ? '1' : '0'));
     if (coupling != true) parts.add('coupling=' + (coupling ? '1' : '0'));
-    if (curve != 'NULL') parts.add('curve=' + '[' + curve + ']');
+    if (curve != '') parts.add('curve=' + '[' + curve + ']');
     if (f != 500) parts.add('f=' + f.toString());
     if (framelen != 500) parts.add('framelen=' + framelen.toString());
     if (g != 31) parts.add('g=' + g.toString());
@@ -7297,7 +7553,7 @@ final class DynaudnormSettings {
     if (t != 0.0) parts.add('t=' + _wireDouble(t));
     if (targetrms != 0.0) parts.add('targetrms=' + _wireDouble(targetrms));
     if (threshold != 0.0) parts.add('threshold=' + _wireDouble(threshold));
-    if (v != 'NULL') parts.add('v=' + '[' + v + ']');
+    if (v != '') parts.add('v=' + '[' + v + ']');
     return parts.isEmpty
         ? 'lavfi-dynaudnorm'
         : 'lavfi-dynaudnorm=' + parts.join(':');
@@ -7376,73 +7632,52 @@ final class EarwaxSettings {
 ///
 /// Parameters:
 /// - [dualmono]: treat mono input files as dual-mono (range 0..1, default 0)
-/// - [framelog]: Force the frame logging level.  Available values are: (default -1)
-/// - [gauge]: set gauge display type (default 0)
-/// - [integrated]: integrated loudness (LUFS) (default 0)
-/// - [lra_high]: LRA high (LUFS) (default 0)
-/// - [lra_low]: LRA low (LUFS) (default 0)
+/// - [framelog]: Force the frame logging level.  Available values are: (range -2147483648..2147483647, default -1)
+/// - [gauge]: set gauge display type (range 0..1, default 0)
 /// - [metadata]: Set metadata injection. If set to `1`, the audio input will be segmented into 100ms output frames, each of them containing various loudness information in metadata.  All the metadata keys are prefixed with `lavfi.r128.`.  Default is `0`. (range 0..1, default 0)
 /// - [meter]: Set the EBU scale meter. Default is `9`. Common values are `9` and `18`, respectively for EBU scale meter +9 and EBU scale meter +18. Any other integer value between this range is allowed. (range 9..18, default 9)
 /// - [panlaw]: set a specific pan law for dual-mono files (range -10.0..0.0, default -3.01029995663978)
-/// - [peak]: set peak mode (default PEAK_MODE_NONE)
-/// - [range]: loudness range (LU) (default 0)
-/// - [sample_peak]: sample peak (dBFS) (default 0)
-/// - [scale]: sets display method for the stats (default 0)
+/// - [peak]: set peak mode (range 0..2147483647, default PEAK_MODE_NONE)
+/// - [scale]: sets display method for the stats (range 0..1, default 0)
+/// - [size]: Set the video size. This option is for video only. For the syntax of this option, check the video size syntax. Default and minimum resolution is `640x480`. (range 0..0, default "640x480")
 /// - [target]: set a specific target level in LUFS (-23 to 0) (range -23..0, default -23)
-/// - [true_peak]: true peak (dBFS) (default 0)
 /// - [video]: Activate the video output. The audio stream is passed unchanged whether this option is set or no. The video stream will be the first output stream if activated. Default is `0`. (range 0..1, default 0)
 final class Ebur128Settings {
-  static const double integratedDefault = 0.0;
-  static const double lra_highDefault = 0.0;
-  static const double lra_lowDefault = 0.0;
   static const int meterDefault = 9;
   static const int meterMin = 9;
   static const int meterMax = 18;
   static const double panlawDefault = -3.01029995663978;
   static const double panlawMin = -10.0;
   static const double panlawMax = 0.0;
-  static const double rangeDefault = 0.0;
-  static const double sample_peakDefault = 0.0;
   static const int targetDefault = -23;
   static const int targetMin = -23;
   static const int targetMax = 0;
-  static const double true_peakDefault = 0.0;
 
   final bool enabled;
   final bool dualmono;
   final Ebur128Level? framelog;
-  final Ebur128Gaugetype? gauge;
-  final double integrated;
-  final double lra_high;
-  final double lra_low;
+  final Ebur128Gaugetype gauge;
   final bool metadata;
   final int meter;
   final double panlaw;
   final Set<Ebur128Mode> peak;
-  final double range;
-  final double sample_peak;
-  final Ebur128Scaletype? scale;
+  final Ebur128Scaletype scale;
+  final String size;
   final int target;
-  final double true_peak;
   final bool video;
 
   const Ebur128Settings({
     this.enabled = false,
     this.dualmono = false,
     this.framelog,
-    this.gauge,
-    this.integrated = 0.0,
-    this.lra_high = 0.0,
-    this.lra_low = 0.0,
+    this.gauge = Ebur128Gaugetype.momentary,
     this.metadata = false,
     this.meter = 9,
     this.panlaw = -3.01029995663978,
     this.peak = const <Ebur128Mode>{},
-    this.range = 0.0,
-    this.sample_peak = 0.0,
-    this.scale,
+    this.scale = Ebur128Scaletype.absolute,
+    this.size = '640x480',
     this.target = -23,
-    this.true_peak = 0.0,
     this.video = false,
   });
 
@@ -7450,19 +7685,14 @@ final class Ebur128Settings {
     bool? enabled,
     bool? dualmono,
     Object? framelog = unset,
-    Object? gauge = unset,
-    double? integrated,
-    double? lra_high,
-    double? lra_low,
+    Ebur128Gaugetype? gauge,
     bool? metadata,
     int? meter,
     double? panlaw,
     Set<Ebur128Mode>? peak,
-    double? range,
-    double? sample_peak,
-    Object? scale = unset,
+    Ebur128Scaletype? scale,
+    String? size,
     int? target,
-    double? true_peak,
     bool? video,
   }) =>
       Ebur128Settings(
@@ -7471,21 +7701,14 @@ final class Ebur128Settings {
         framelog: identical(framelog, unset)
             ? this.framelog
             : framelog as Ebur128Level?,
-        gauge:
-            identical(gauge, unset) ? this.gauge : gauge as Ebur128Gaugetype?,
-        integrated: integrated ?? this.integrated,
-        lra_high: lra_high ?? this.lra_high,
-        lra_low: lra_low ?? this.lra_low,
+        gauge: gauge ?? this.gauge,
         metadata: metadata ?? this.metadata,
         meter: meter ?? this.meter,
         panlaw: panlaw ?? this.panlaw,
         peak: peak ?? this.peak,
-        range: range ?? this.range,
-        sample_peak: sample_peak ?? this.sample_peak,
-        scale:
-            identical(scale, unset) ? this.scale : scale as Ebur128Scaletype?,
+        scale: scale ?? this.scale,
+        size: size ?? this.size,
         target: target ?? this.target,
-        true_peak: true_peak ?? this.true_peak,
         video: video ?? this.video,
       );
 
@@ -7497,43 +7720,22 @@ final class Ebur128Settings {
           other.dualmono == dualmono &&
           other.framelog == framelog &&
           other.gauge == gauge &&
-          other.integrated == integrated &&
-          other.lra_high == lra_high &&
-          other.lra_low == lra_low &&
           other.metadata == metadata &&
           other.meter == meter &&
           other.panlaw == panlaw &&
           _setEq(peak, other.peak) &&
-          other.range == range &&
-          other.sample_peak == sample_peak &&
           other.scale == scale &&
+          other.size == size &&
           other.target == target &&
-          other.true_peak == true_peak &&
           other.video == video);
 
   @override
-  int get hashCode => Object.hash(
-      enabled,
-      dualmono,
-      framelog,
-      gauge,
-      integrated,
-      lra_high,
-      lra_low,
-      metadata,
-      meter,
-      panlaw,
-      Object.hashAllUnordered(peak),
-      range,
-      sample_peak,
-      scale,
-      target,
-      true_peak,
-      video);
+  int get hashCode => Object.hash(enabled, dualmono, framelog, gauge, metadata,
+      meter, panlaw, Object.hashAllUnordered(peak), scale, size, target, video);
 
   @override
   String toString() =>
-      'Ebur128Settings(enabled: $enabled, dualmono: $dualmono, framelog: $framelog, gauge: $gauge, integrated: $integrated, lra_high: $lra_high, lra_low: $lra_low, metadata: $metadata, meter: $meter, panlaw: $panlaw, peak: $peak, range: $range, sample_peak: $sample_peak, scale: $scale, target: $target, true_peak: $true_peak, video: $video)';
+      'Ebur128Settings(enabled: $enabled, dualmono: $dualmono, framelog: $framelog, gauge: $gauge, metadata: $metadata, meter: $meter, panlaw: $panlaw, peak: $peak, scale: $scale, size: $size, target: $target, video: $video)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
@@ -7547,21 +7749,17 @@ final class Ebur128Settings {
     final parts = <String>[];
     if (dualmono != false) parts.add('dualmono=' + (dualmono ? '1' : '0'));
     if (framelog != null) parts.add('framelog=' + framelog!.mpvValue);
-    if (gauge != null) parts.add('gauge=' + gauge!.mpvValue);
-    if (integrated != 0.0) parts.add('integrated=' + _wireDouble(integrated));
-    if (lra_high != 0.0) parts.add('lra_high=' + _wireDouble(lra_high));
-    if (lra_low != 0.0) parts.add('lra_low=' + _wireDouble(lra_low));
+    if (gauge != Ebur128Gaugetype.momentary)
+      parts.add('gauge=' + gauge.mpvValue);
     if (metadata != false) parts.add('metadata=' + (metadata ? '1' : '0'));
     if (meter != 9) parts.add('meter=' + meter.toString());
     if (panlaw != -3.01029995663978) parts.add('panlaw=' + _wireDouble(panlaw));
     if (peak.isNotEmpty)
       parts.add('peak=' + peak.map((e) => e.mpvValue).join('+'));
-    if (range != 0.0) parts.add('range=' + _wireDouble(range));
-    if (sample_peak != 0.0)
-      parts.add('sample_peak=' + _wireDouble(sample_peak));
-    if (scale != null) parts.add('scale=' + scale!.mpvValue);
+    if (scale != Ebur128Scaletype.absolute)
+      parts.add('scale=' + scale.mpvValue);
+    if (size != '640x480') parts.add('size=' + '[' + size + ']');
     if (target != -23) parts.add('target=' + target.toString());
-    if (true_peak != 0.0) parts.add('true_peak=' + _wireDouble(true_peak));
     if (video != false) parts.add('video=' + (video ? '1' : '0'));
     return parts.isEmpty ? 'lavfi-ebur128' : 'lavfi-ebur128=' + parts.join(':');
   }
@@ -7580,26 +7778,26 @@ final class Ebur128Settings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [f]: Set the filter's central frequency in Hz. (range 0..999999, default 0)
-/// - [frequency]: Set the filter's central frequency in Hz. (range 0..999999, default 0)
-/// - [g]: Set the required gain or attenuation in dB. Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [gain]: Set the required gain or attenuation in dB. Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [f]: Set the filter's central frequency in Hz. (range 0..999999, default 0, runtime-tunable)
+/// - [frequency]: Set the filter's central frequency in Hz. (range 0..999999, default 0, runtime-tunable)
+/// - [g]: Set the required gain or attenuation in dB. Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [gain]: Set the required gain or attenuation in dB. Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 1.0)
-/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 1.0)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. (range 0..99999, default 1.0, runtime-tunable)
+/// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 1.0, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class EqualizerSettings {
   static const int bDefault = 0;
   static const int bMin = 0;
@@ -7841,8 +8039,8 @@ final class EqualizerSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [c]: Enable clipping. By default is enabled. (range 0..1, default 1)
-/// - [m]: Sets the difference coefficient (default: 2.5). 0.0 means mono sound (average of both channels), with 1.0 sound will be unchanged, with -1.0 left and right channels will be swapped. (range -10..10, default 2.5)
+/// - [c]: Enable clipping. By default is enabled. (range 0..1, default 1, runtime-tunable)
+/// - [m]: Sets the difference coefficient (default: 2.5). 0.0 means mono sound (average of both channels), with 1.0 sound will be unchanged, with -1.0 left and right channels will be swapped. (range -10..10, default 2.5, runtime-tunable)
 final class ExtrastereoSettings {
   static const double mDefault = 2.5;
   static const double mMin = -10.0;
@@ -7906,16 +8104,16 @@ final class ExtrastereoSettings {
 /// Parameters:
 /// - [accuracy]: Set filter accuracy in Hz. Lower value means more accurate. Default is `5`. (range 0.0..1e10, default 5.0)
 /// - [delay]: Set filter delay in seconds. Higher value means more accurate. Default is `0.01`. (range 0.0..1e10, default 0.01)
-/// - [dumpfile]: Set file for dumping, suitable for gnuplot. (range 0..0, default NULL)
-/// - [dumpscale]: Set scale for dumpfile. Acceptable values are same with scale option. Default is linlog. (default SCALE_LINLOG)
+/// - [dumpfile]: Set file for dumping, suitable for gnuplot. (range 0..0, default "")
+/// - [dumpscale]: Set scale for dumpfile. Acceptable values are same with scale option. Default is linlog. (range 0..3, default SCALE_LINLOG)
 /// - [fft2]: Enable 2-channel convolution using complex FFT. This improves speed significantly. Default is disabled. (range 0..1, default 0)
 /// - [fixed]: If enabled, use fixed number of audio samples. This improves speed when filtering with large delay. Default is disabled. (range 0..1, default 0)
-/// - [gain]: Set gain curve equation (in dB). The expression can contain variables: (range 0..0, default "gain_interpolate(f)")
-/// - [gain_entry]: Set gain entry for gain_interpolate function. The expression can contain functions: (range 0..0, default NULL)
+/// - [gain]: Set gain curve equation (in dB). The expression can contain variables: (range 0..0, default "gain_interpolate(f)", runtime-tunable)
+/// - [gain_entry]: Set gain entry for gain_interpolate function. The expression can contain functions: (range 0..0, default "", runtime-tunable)
 /// - [min_phase]: Enable minimum phase impulse response. Default is disabled. (range 0..1, default 0)
 /// - [multi]: Enable multichannels evaluation on gain. Default is disabled. (range 0..1, default 0)
-/// - [scale]: Set scale used by gain. Acceptable values are: (default SCALE_LINLOG)
-/// - [wfunc]: Set window function. Acceptable values are: (default WFUNC_HANN)
+/// - [scale]: Set scale used by gain. Acceptable values are: (range 0..3, default SCALE_LINLOG)
+/// - [wfunc]: Set window function. Acceptable values are: (range 0..9, default WFUNC_HANN)
 /// - [zero_phase]: Enable zero phase mode by subtracting timestamp to compensate delay. Default is disabled. (range 0..1, default 0)
 final class FirequalizerSettings {
   static const double accuracyDefault = 5.0;
@@ -7944,12 +8142,12 @@ final class FirequalizerSettings {
     this.enabled = false,
     this.accuracy = 5.0,
     this.delay = 0.01,
-    this.dumpfile = 'NULL',
+    this.dumpfile = '',
     this.dumpscale = FirequalizerScale.linlog,
     this.fft2 = false,
     this.fixed = false,
     this.gain = 'gain_interpolate(f)',
-    this.gain_entry = 'NULL',
+    this.gain_entry = '',
     this.min_phase = false,
     this.multi = false,
     this.scale = FirequalizerScale.linlog,
@@ -8040,13 +8238,13 @@ final class FirequalizerSettings {
     final parts = <String>[];
     if (accuracy != 5.0) parts.add('accuracy=' + _wireDouble(accuracy));
     if (delay != 0.01) parts.add('delay=' + _wireDouble(delay));
-    if (dumpfile != 'NULL') parts.add('dumpfile=' + '[' + dumpfile + ']');
+    if (dumpfile != '') parts.add('dumpfile=' + '[' + dumpfile + ']');
     if (dumpscale != FirequalizerScale.linlog)
       parts.add('dumpscale=' + dumpscale.mpvValue);
     if (fft2 != false) parts.add('fft2=' + (fft2 ? '1' : '0'));
     if (fixed != false) parts.add('fixed=' + (fixed ? '1' : '0'));
     if (gain != 'gain_interpolate(f)') parts.add('gain=' + '[' + gain + ']');
-    if (gain_entry != 'NULL') parts.add('gain_entry=' + '[' + gain_entry + ']');
+    if (gain_entry != '') parts.add('gain_entry=' + '[' + gain_entry + ']');
     if (min_phase != false) parts.add('min_phase=' + (min_phase ? '1' : '0'));
     if (multi != false) parts.add('multi=' + (multi ? '1' : '0'));
     if (scale != FirequalizerScale.linlog) parts.add('scale=' + scale.mpvValue);
@@ -8097,7 +8295,7 @@ final class FlangerSettings {
   final bool enabled;
   final double delay;
   final double depth;
-  final FlangerItype? interp;
+  final FlangerItype interp;
   final double phase;
   final double regen;
   final FlangerType shape;
@@ -8108,7 +8306,7 @@ final class FlangerSettings {
     this.enabled = false,
     this.delay = 0.0,
     this.depth = 2.0,
-    this.interp,
+    this.interp = FlangerItype.linear,
     this.phase = 25.0,
     this.regen = 0.0,
     this.shape = FlangerType.sinusoidal,
@@ -8120,7 +8318,7 @@ final class FlangerSettings {
     bool? enabled,
     double? delay,
     double? depth,
-    Object? interp = unset,
+    FlangerItype? interp,
     double? phase,
     double? regen,
     FlangerType? shape,
@@ -8131,8 +8329,7 @@ final class FlangerSettings {
         enabled: enabled ?? this.enabled,
         delay: delay ?? this.delay,
         depth: depth ?? this.depth,
-        interp:
-            identical(interp, unset) ? this.interp : interp as FlangerItype?,
+        interp: interp ?? this.interp,
         phase: phase ?? this.phase,
         regen: regen ?? this.regen,
         shape: shape ?? this.shape,
@@ -8180,7 +8377,7 @@ final class FlangerSettings {
     final parts = <String>[];
     if (delay != 0.0) parts.add('delay=' + _wireDouble(delay));
     if (depth != 2.0) parts.add('depth=' + _wireDouble(depth));
-    if (interp != null) parts.add('interp=' + interp!.mpvValue);
+    if (interp != FlangerItype.linear) parts.add('interp=' + interp.mpvValue);
     if (phase != 25.0) parts.add('phase=' + _wireDouble(phase));
     if (regen != 0.0) parts.add('regen=' + _wireDouble(regen));
     if (shape != FlangerType.sinusoidal) parts.add('shape=' + shape.mpvValue);
@@ -8202,7 +8399,7 @@ final class FlangerSettings {
 ///
 /// Parameters:
 /// - [left_balance]: set left balance (range -1..1, default -1.0)
-/// - [left_delay]: set left delay (default 2.05)
+/// - [left_delay]: set left delay (range 0..40, default 2.05)
 /// - [left_gain]: set left gain (range 0.015625..64, default 1)
 /// - [left_phase]: set left phase (range 0..1, default 0)
 /// - [level_in]: Set input level. By default is `1`, or 0dB (range 0.015625..64, default 1)
@@ -8210,7 +8407,7 @@ final class FlangerSettings {
 /// - [middle_phase]: set middle phase (range 0..1, default 0)
 /// - [middle_source]: Set kind of middle source. Can be one of the following: (range 0..3, default 2)
 /// - [right_balance]: set right balance (range -1..1, default 1)
-/// - [right_delay]: set right delay (default 2.12)
+/// - [right_delay]: set right delay (range 0..40, default 2.12)
 /// - [right_gain]: set right gain (range 0.015625..64, default 1)
 /// - [right_phase]: set right phase (range 0..1, default 1)
 /// - [side_gain]: Set gain applied to side part of signal. By default is `1`. (range 0.015625..64, default 1)
@@ -8220,6 +8417,7 @@ final class HaasSettings {
   static const double left_balanceMax = 1.0;
   static const double left_delayDefault = 2.05;
   static const double left_delayMin = 0.0;
+  static const double left_delayMax = 40.0;
   static const double left_gainDefault = 1.0;
   static const double left_gainMin = 0.015625;
   static const double left_gainMax = 64.0;
@@ -8234,6 +8432,7 @@ final class HaasSettings {
   static const double right_balanceMax = 1.0;
   static const double right_delayDefault = 2.12;
   static const double right_delayMin = 0.0;
+  static const double right_delayMax = 40.0;
   static const double right_gainDefault = 1.0;
   static const double right_gainMin = 0.015625;
   static const double right_gainMax = 64.0;
@@ -8352,6 +8551,7 @@ final class HaasSettings {
     assert(left_balance >= left_balanceMin, 'haas.left_balance must be >= -1');
     assert(left_balance <= left_balanceMax, 'haas.left_balance must be <= 1');
     assert(left_delay >= left_delayMin, 'haas.left_delay must be >= 0');
+    assert(left_delay <= left_delayMax, 'haas.left_delay must be <= 40');
     assert(left_gain >= left_gainMin, 'haas.left_gain must be >= 0.015625');
     assert(left_gain <= left_gainMax, 'haas.left_gain must be <= 64');
     assert(level_in >= level_inMin, 'haas.level_in must be >= 0.015625');
@@ -8363,6 +8563,7 @@ final class HaasSettings {
     assert(
         right_balance <= right_balanceMax, 'haas.right_balance must be <= 1');
     assert(right_delay >= right_delayMin, 'haas.right_delay must be >= 0');
+    assert(right_delay <= right_delayMax, 'haas.right_delay must be <= 40');
     assert(right_gain >= right_gainMin, 'haas.right_gain must be >= 0.015625');
     assert(right_gain <= right_gainMax, 'haas.right_gain must be <= 64');
     assert(side_gain >= side_gainMin, 'haas.side_gain must be >= 0.015625');
@@ -8409,7 +8610,7 @@ final class HaasSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [analyze_mode]: Replace audio with a solid tone and adjust the amplitude to signal some specific aspect of the decoding process. The output file can be loaded in an audio editor alongside the original to aid analysis.  `analyze_mode=pe:force_pe=true` can be used to see all samples above the PE level.  Modes are: (default HDCD_ANA_OFF)
+/// - [analyze_mode]: Replace audio with a solid tone and adjust the amplitude to signal some specific aspect of the decoding process. The output file can be loaded in an audio editor alongside the original to aid analysis.  `analyze_mode=pe:force_pe=true` can be used to see all samples above the PE level.  Modes are: (range 0..4, default HDCD_ANA_OFF)
 /// - [bits_per_sample]: Valid bits per sample (location of the true LSB). (range 16..24, default 16)
 /// - [cdt_ms]: Set the code detect timer period in ms. (range 100..60000, default 2000)
 /// - [disable_autoconvert]: Disable any automatic format conversion or resampling in the filter graph. (range 0..1, default 1)
@@ -8510,7 +8711,7 @@ final class HdcdSettings {
 /// - [gain]: Set gain applied to audio. Value is in dB. Default is 0. (range -20..40, default 0)
 /// - [hrir]: Set format of hrir stream. Default value is `stereo`. Alternative value is `multich`. If value is set to `stereo`, number of additional streams should be greater or equal to number of input channels in first input stream. Also each additional stream should have stereo number of channels. If value is set to `multich`, number of additional streams should be exactly one. Also number of input channels of additional stream should be equal or greater than twice number of channels of first input stream. (range 0..1, default HRIR_STEREO)
 /// - [lfe]: Set custom gain for LFE channels. Value is in dB. Default is 0. (range -20..40, default 0)
-/// - [map]: Set mapping of input streams for convolution. The argument is a '|'-separated list of channel names in order as they are given as additional stream inputs for filter. This also specify number of input streams. Number of input streams must be not less than number of channels in first stream plus one. (default NULL)
+/// - [map]: Set mapping of input streams for convolution. The argument is a '|'-separated list of channel names in order as they are given as additional stream inputs for filter. This also specify number of input streams. Number of input streams must be not less than number of channels in first stream plus one. (default "")
 /// - [size]: Set size of frame in number of samples which will be processed at once. Default value is `1024`. Allowed range is from 1024 to 96000. (range 1024..96000, default 1024)
 /// - [type]: Set processing type. Can be `time` or `freq`. `time` is processing audio in time domain which is slow. `freq` is processing audio in frequency domain which is fast. Default is `freq`. (range 0..1, default 1)
 final class HeadphoneSettings {
@@ -8537,7 +8738,7 @@ final class HeadphoneSettings {
     this.gain = 0.0,
     this.hrir = HeadphoneHrir.stereo,
     this.lfe = 0.0,
-    this.map = 'NULL',
+    this.map = '',
     this.size = 1024,
     this.type = HeadphoneType.freq,
   });
@@ -8593,7 +8794,7 @@ final class HeadphoneSettings {
     if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
     if (hrir != HeadphoneHrir.stereo) parts.add('hrir=' + hrir.mpvValue);
     if (lfe != 0.0) parts.add('lfe=' + _wireDouble(lfe));
-    if (map != 'NULL') parts.add('map=' + '[' + map + ']');
+    if (map != '') parts.add('map=' + '[' + map + ']');
     if (size != 1024) parts.add('size=' + size.toString());
     if (type != HeadphoneType.freq) parts.add('type=' + type.mpvValue);
     return parts.isEmpty
@@ -8611,26 +8812,26 @@ final class HeadphoneSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [f]: Set frequency in Hz. Default is 3000. (range 0..999999, default 3000)
-/// - [frequency]: Set frequency in Hz. Default is 3000. (range 0..999999, default 3000)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [f]: Set frequency in Hz. Default is 3000. (range 0..999999, default 3000, runtime-tunable)
+/// - [frequency]: Set frequency in Hz. Default is 3000. (range 0..999999, default 3000, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707)
-/// - [width]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707, runtime-tunable)
+/// - [width]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class HighpassSettings {
   static const int bDefault = 0;
   static const int bMin = 0;
@@ -8873,28 +9074,28 @@ final class HighpassSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
-/// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
-/// - [g]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [gain]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000, runtime-tunable)
+/// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000, runtime-tunable)
+/// - [g]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [gain]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
-/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class HighshelfSettings {
   static const int bDefault = 0;
   static const int bMin = 0;
@@ -9178,8 +9379,8 @@ final class HighshelfSettings {
 /// - [measured_thresh]: Measured threshold of input file. Range is -99.0 - +0.0. (range -99.0..0.0, default -70.)
 /// - [measured_tp]: Measured true peak of input file. Range is  -99.0 - +99.0. (range -99.0..99.0, default 99.)
 /// - [offset]: Set offset gain. Gain is applied before the true-peak limiter. Range is  -99.0 - +99.0. Default is +0.0. (range -99.0..99.0, default 0.)
-/// - [print_format]: Set print format for stats. Options are summary, json, or none. Default value is none. (default NONE)
-/// - [stats_file]: Write stats to specified file. Format is controlled by @option{print_format}, which must be set. Specify `-` to write to standard output. Default is unset. (range 0..0, default NULL)
+/// - [print_format]: Set print format for stats. Options are summary, json, or none. Default value is none. (range 0..2, default NONE)
+/// - [stats_file]: Write stats to specified file. Format is controlled by @option{print_format}, which must be set. Specify `-` to write to standard output. Default is unset. (range 0..0, default "")
 /// - [tp]: Set maximum true peak. Range is -9.0 - +0.0. Default value is -2.0. (range -9.0..0.0, default -2.)
 final class LoudnormSettings {
   static const double IDefault = -24.0;
@@ -9263,7 +9464,7 @@ final class LoudnormSettings {
     this.measured_tp = 99.0,
     this.offset = 0.0,
     this.print_format = LoudnormPrintFormat.none,
-    this.stats_file = 'NULL',
+    this.stats_file = '',
     this.tp = -2.0,
   });
 
@@ -9424,7 +9625,7 @@ final class LoudnormSettings {
     if (offset != 0.0) parts.add('offset=' + _wireDouble(offset));
     if (print_format != LoudnormPrintFormat.none)
       parts.add('print_format=' + print_format.mpvValue);
-    if (stats_file != 'NULL') parts.add('stats_file=' + '[' + stats_file + ']');
+    if (stats_file != '') parts.add('stats_file=' + '[' + stats_file + ']');
     if (tp != -2.0) parts.add('tp=' + _wireDouble(tp));
     return parts.isEmpty
         ? 'lavfi-loudnorm'
@@ -9441,26 +9642,26 @@ final class LoudnormSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [f]: Set frequency in Hz. Default is 500. (range 0..999999, default 500)
-/// - [frequency]: Set frequency in Hz. Default is 500. (range 0..999999, default 500)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [f]: Set frequency in Hz. Default is 500. (range 0..999999, default 500, runtime-tunable)
+/// - [frequency]: Set frequency in Hz. Default is 500. (range 0..999999, default 500, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707)
-/// - [width]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707, runtime-tunable)
+/// - [width]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class LowpassSettings {
   static const int bDefault = 0;
   static const int bMin = 0;
@@ -9701,28 +9902,28 @@ final class LowpassSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100)
-/// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100)
-/// - [g]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [gain]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100, runtime-tunable)
+/// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `100` Hz. (range 0..999999, default 100, runtime-tunable)
+/// - [g]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [gain]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
-/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class LowshelfSettings {
   static const int bDefault = 0;
   static const int bMin = 0;
@@ -9991,23 +10192,24 @@ final class LowshelfSettings {
 /// It accepts the following parameters:
 ///
 /// Parameters:
-/// - [args]: This option syntax is: attack,decay,[attack,decay..] soft-knee points crossover_frequency [delay [initial_volume [gain]]] | attack,decay ... For explanation of each item refer to compand filter documentation. (range 0..0)
+/// - [args]: This option syntax is: attack,decay,[attack,decay..] soft-knee points crossover_frequency [delay [initial_volume [gain]]] | attack,decay ... For explanation of each item refer to compand filter documentation. (range 0..0, default "0.005,0.1 6 -47/-40,-34/-34,-17/-33 100 | 0.003,0.05 6 -47/-40,-34/-34,-17/-33 400 | 0.000625,0.0125 6 -47/-40,-34/-34,-15/-33 1600 | 0.0001,0.025 6 -47/-40,-34/-34,-31/-31,-0/-30 6400 | 0,0.025 6 -38/-31,-28/-28,-0/-25 22000")
 final class McompandSettings {
   final bool enabled;
-  final String? args;
+  final String args;
 
   const McompandSettings({
     this.enabled = false,
-    this.args,
+    this.args =
+        '0.005,0.1 6 -47/-40,-34/-34,-17/-33 100 | 0.003,0.05 6 -47/-40,-34/-34,-17/-33 400 | 0.000625,0.0125 6 -47/-40,-34/-34,-15/-33 1600 | 0.0001,0.025 6 -47/-40,-34/-34,-31/-31,-0/-30 6400 | 0,0.025 6 -38/-31,-28/-28,-0/-25 22000',
   });
 
   McompandSettings copyWith({
     bool? enabled,
-    Object? args = unset,
+    String? args,
   }) =>
       McompandSettings(
         enabled: enabled ?? this.enabled,
-        args: identical(args, unset) ? this.args : args as String?,
+        args: args ?? this.args,
       );
 
   @override
@@ -10027,7 +10229,9 @@ final class McompandSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     final parts = <String>[];
-    if (args != null) parts.add('args=' + '[' + args! + ']');
+    if (args !=
+        '0.005,0.1 6 -47/-40,-34/-34,-17/-33 100 | 0.003,0.05 6 -47/-40,-34/-34,-17/-33 400 | 0.000625,0.0125 6 -47/-40,-34/-34,-15/-33 1600 | 0.0001,0.025 6 -47/-40,-34/-34,-31/-31,-0/-30 6400 | 0,0.025 6 -38/-31,-28/-28,-0/-25 22000')
+      parts.add('args=' + '[' + args + ']');
     return parts.isEmpty
         ? 'lavfi-mcompand'
         : 'lavfi-mcompand=' + parts.join(':');
@@ -10046,14 +10250,14 @@ final class McompandSettings {
 /// "`l`|`outdef`|`outdef`|..."
 ///
 /// Parameters:
-/// - [args]:  (range 0..0, default NULL)
+/// - [args]:  (range 0..0, default "")
 final class PanSettings {
   final bool enabled;
   final String args;
 
   const PanSettings({
     this.enabled = false,
-    this.args = 'NULL',
+    this.args = '',
   });
 
   PanSettings copyWith({
@@ -10080,7 +10284,7 @@ final class PanSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     final parts = <String>[];
-    if (args != 'NULL') parts.add('args=' + '[' + args + ']');
+    if (args != '') parts.add('args=' + '[' + args + ']');
     return parts.isEmpty ? 'lavfi-pan' : 'lavfi-pan=' + parts.join(':');
   }
 }
@@ -10095,16 +10299,16 @@ final class PanSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [channels]: set channels (default 0)
-/// - [detector]: set detector (default 0)
-/// - [formant]: set formant (default 0)
-/// - [phase]: set phase (default 0)
-/// - [pitch]: Set pitch scale factor. (range 0.01..100, default 1)
-/// - [pitchq]: set pitch quality (default 0)
-/// - [smoothing]: set smoothing (default 0)
-/// - [tempo]: Set tempo scale factor. (range 0.01..100, default 1)
-/// - [transients]: Set transients detector. Possible values are: (default 0)
-/// - [window]: set window (default 0)
+/// - [channels]: set channels (range 0..2147483647, default 0)
+/// - [detector]: set detector (range 0..2147483647, default 0)
+/// - [formant]: set formant (range 0..2147483647, default 0)
+/// - [phase]: set phase (range 0..2147483647, default 0)
+/// - [pitch]: Set pitch scale factor. (range 0.01..100, default 1, runtime-tunable)
+/// - [pitchq]: set pitch quality (range 0..2147483647, default 0)
+/// - [smoothing]: set smoothing (range 0..2147483647, default 0)
+/// - [tempo]: Set tempo scale factor. (range 0.01..100, default 1, runtime-tunable)
+/// - [transients]: Set transients detector. Possible values are: (range 0..2147483647, default 0)
+/// - [window]: set window (range 0..2147483647, default 0)
 final class RubberbandSettings {
   static const double pitchDefault = 1.0;
   static const double pitchMin = 0.01;
@@ -10114,69 +10318,56 @@ final class RubberbandSettings {
   static const double tempoMax = 100.0;
 
   final bool enabled;
-  final RubberbandChannels? channels;
-  final RubberbandDetector? detector;
-  final RubberbandFormant? formant;
-  final RubberbandPhase? phase;
+  final RubberbandChannels channels;
+  final RubberbandDetector detector;
+  final RubberbandFormant formant;
+  final RubberbandPhase phase;
   final double pitch;
-  final RubberbandPitch? pitchq;
-  final RubberbandSmoothing? smoothing;
+  final RubberbandPitch pitchq;
+  final RubberbandSmoothing smoothing;
   final double tempo;
-  final RubberbandTransients? transients;
-  final RubberbandWindow? window;
+  final RubberbandTransients transients;
+  final RubberbandWindow window;
 
   const RubberbandSettings({
     this.enabled = false,
-    this.channels,
-    this.detector,
-    this.formant,
-    this.phase,
+    this.channels = RubberbandChannels.apart,
+    this.detector = RubberbandDetector.compound,
+    this.formant = RubberbandFormant.shifted,
+    this.phase = RubberbandPhase.laminar,
     this.pitch = 1.0,
-    this.pitchq,
-    this.smoothing,
+    this.pitchq = RubberbandPitch.quality,
+    this.smoothing = RubberbandSmoothing.off,
     this.tempo = 1.0,
-    this.transients,
-    this.window,
+    this.transients = RubberbandTransients.crisp,
+    this.window = RubberbandWindow.standard,
   });
 
   RubberbandSettings copyWith({
     bool? enabled,
-    Object? channels = unset,
-    Object? detector = unset,
-    Object? formant = unset,
-    Object? phase = unset,
+    RubberbandChannels? channels,
+    RubberbandDetector? detector,
+    RubberbandFormant? formant,
+    RubberbandPhase? phase,
     double? pitch,
-    Object? pitchq = unset,
-    Object? smoothing = unset,
+    RubberbandPitch? pitchq,
+    RubberbandSmoothing? smoothing,
     double? tempo,
-    Object? transients = unset,
-    Object? window = unset,
+    RubberbandTransients? transients,
+    RubberbandWindow? window,
   }) =>
       RubberbandSettings(
         enabled: enabled ?? this.enabled,
-        channels: identical(channels, unset)
-            ? this.channels
-            : channels as RubberbandChannels?,
-        detector: identical(detector, unset)
-            ? this.detector
-            : detector as RubberbandDetector?,
-        formant: identical(formant, unset)
-            ? this.formant
-            : formant as RubberbandFormant?,
-        phase: identical(phase, unset) ? this.phase : phase as RubberbandPhase?,
+        channels: channels ?? this.channels,
+        detector: detector ?? this.detector,
+        formant: formant ?? this.formant,
+        phase: phase ?? this.phase,
         pitch: pitch ?? this.pitch,
-        pitchq:
-            identical(pitchq, unset) ? this.pitchq : pitchq as RubberbandPitch?,
-        smoothing: identical(smoothing, unset)
-            ? this.smoothing
-            : smoothing as RubberbandSmoothing?,
+        pitchq: pitchq ?? this.pitchq,
+        smoothing: smoothing ?? this.smoothing,
         tempo: tempo ?? this.tempo,
-        transients: identical(transients, unset)
-            ? this.transients
-            : transients as RubberbandTransients?,
-        window: identical(window, unset)
-            ? this.window
-            : window as RubberbandWindow?,
+        transients: transients ?? this.transients,
+        window: window ?? this.window,
       );
 
   @override
@@ -10211,16 +10402,23 @@ final class RubberbandSettings {
     assert(tempo >= tempoMin, 'rubberband.tempo must be >= 0.01');
     assert(tempo <= tempoMax, 'rubberband.tempo must be <= 100');
     final parts = <String>[];
-    if (channels != null) parts.add('channels=' + channels!.mpvValue);
-    if (detector != null) parts.add('detector=' + detector!.mpvValue);
-    if (formant != null) parts.add('formant=' + formant!.mpvValue);
-    if (phase != null) parts.add('phase=' + phase!.mpvValue);
+    if (channels != RubberbandChannels.apart)
+      parts.add('channels=' + channels.mpvValue);
+    if (detector != RubberbandDetector.compound)
+      parts.add('detector=' + detector.mpvValue);
+    if (formant != RubberbandFormant.shifted)
+      parts.add('formant=' + formant.mpvValue);
+    if (phase != RubberbandPhase.laminar) parts.add('phase=' + phase.mpvValue);
     if (pitch != 1.0) parts.add('pitch=' + _wireDouble(pitch));
-    if (pitchq != null) parts.add('pitchq=' + pitchq!.mpvValue);
-    if (smoothing != null) parts.add('smoothing=' + smoothing!.mpvValue);
+    if (pitchq != RubberbandPitch.quality)
+      parts.add('pitchq=' + pitchq.mpvValue);
+    if (smoothing != RubberbandSmoothing.off)
+      parts.add('smoothing=' + smoothing.mpvValue);
     if (tempo != 1.0) parts.add('tempo=' + _wireDouble(tempo));
-    if (transients != null) parts.add('transients=' + transients!.mpvValue);
-    if (window != null) parts.add('window=' + window!.mpvValue);
+    if (transients != RubberbandTransients.crisp)
+      parts.add('transients=' + transients.mpvValue);
+    if (window != RubberbandWindow.standard)
+      parts.add('window=' + window.mpvValue);
     return parts.isEmpty
         ? 'lavfi-rubberband'
         : 'lavfi-rubberband=' + parts.join(':');
@@ -10234,18 +10432,18 @@ final class RubberbandSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [detection]: Set how is silence detected. (default D_RMS)
-/// - [start_duration]: Specify the amount of time that non-silence must be detected before it stops trimming audio. By increasing the duration, bursts of noises can be treated as silence and trimmed off. Default value is `0`. (default 0)
-/// - [start_mode]: Specify mode of detection of silence end at start of multi-channel audio. Can be `any` or `all`. Default is `any`. With `any`, any sample from any channel that is detected as non-silence will trigger end of silence trimming at start of audio stream. With `all`, only if every sample from every channel is detected as non-silence will trigger end of silence trimming at start of audio stream, limited usage. (default T_ANY)
+/// - [detection]: Set how is silence detected. (range 0..5, default D_RMS)
+/// - [start_duration]: Specify the amount of time that non-silence must be detected before it stops trimming audio. By increasing the duration, bursts of noises can be treated as silence and trimmed off. Default value is `0`. (range 0..2147483647, default 0)
+/// - [start_mode]: Specify mode of detection of silence end at start of multi-channel audio. Can be `any` or `all`. Default is `any`. With `any`, any sample from any channel that is detected as non-silence will trigger end of silence trimming at start of audio stream. With `all`, only if every sample from every channel is detected as non-silence will trigger end of silence trimming at start of audio stream, limited usage. (range 0..1, default T_ANY, runtime-tunable)
 /// - [start_periods]: This value is used to indicate if audio should be trimmed at beginning of the audio. A value of zero indicates no silence should be trimmed from the beginning. When specifying a non-zero value, it trims audio up until it finds non-silence. Normally, when trimming silence from beginning of audio the `start_periods` will be `1` but it can be increased to higher values to trim all audio up to specific count of non-silence periods. Default value is `0`. (range 0..9000, default 0)
-/// - [start_silence]: Specify max duration of silence at beginning that will be kept after trimming. Default is 0, which is equal to trimming all samples detected as silence. (default 0)
-/// - [start_threshold]: This indicates what sample value should be treated as silence. For digital audio, a value of `0` may be fine but for audio recorded from analog, you may wish to increase the value to account for background noise. Can be specified in dB (in case "dB" is appended to the specified value) or amplitude ratio. Default value is `0`. (default 0)
-/// - [stop_duration]: Specify a duration of silence that must exist before audio is not copied any more. By specifying a higher duration, silence that is wanted can be left in the audio. Default value is `0`. (default 0)
-/// - [stop_mode]: Specify mode of detection of silence start after start of multi-channel audio. Can be `any` or `all`. Default is `all`. With `any`, any sample from any channel that is detected as silence will trigger start of silence trimming after start of audio stream, limited usage. With `all`, only if every sample from every channel is detected as silence will trigger start of silence trimming after start of audio stream. (default T_ALL)
+/// - [start_silence]: Specify max duration of silence at beginning that will be kept after trimming. Default is 0, which is equal to trimming all samples detected as silence. (range 0..2147483647, default 0)
+/// - [start_threshold]: This indicates what sample value should be treated as silence. For digital audio, a value of `0` may be fine but for audio recorded from analog, you may wish to increase the value to account for background noise. Can be specified in dB (in case "dB" is appended to the specified value) or amplitude ratio. Default value is `0`. (range 0..1.7976931348623157e+308, default 0, runtime-tunable)
+/// - [stop_duration]: Specify a duration of silence that must exist before audio is not copied any more. By specifying a higher duration, silence that is wanted can be left in the audio. Default value is `0`. (range 0..2147483647, default 0)
+/// - [stop_mode]: Specify mode of detection of silence start after start of multi-channel audio. Can be `any` or `all`. Default is `all`. With `any`, any sample from any channel that is detected as silence will trigger start of silence trimming after start of audio stream, limited usage. With `all`, only if every sample from every channel is detected as silence will trigger start of silence trimming after start of audio stream. (range 0..1, default T_ALL, runtime-tunable)
 /// - [stop_periods]: Set the count for trimming silence from the end of audio. When specifying a positive value, it trims audio after it finds specified silence period. To remove silence from the middle of a file, specify a `stop_periods` that is negative. This value is then treated as a positive value and is used to indicate the effect should restart processing as specified by `stop_periods`, making it suitable for removing periods of silence in the middle of the audio. Default value is `0`. (range -9000..9000, default 0)
-/// - [stop_silence]: Specify max duration of silence at end that will be kept after trimming. Default is 0, which is equal to trimming all samples detected as silence. (default 0)
-/// - [stop_threshold]: This is the same as @option{start_threshold} but for trimming silence from the end of audio. Can be specified in dB (in case "dB" is appended to the specified value) or amplitude ratio. Default value is `0`. (default 0)
-/// - [timestamp]: Set processing mode of every audio frame output timestamp. (default TS_WRITE)
+/// - [stop_silence]: Specify max duration of silence at end that will be kept after trimming. Default is 0, which is equal to trimming all samples detected as silence. (range 0..2147483647, default 0)
+/// - [stop_threshold]: This is the same as @option{start_threshold} but for trimming silence from the end of audio. Can be specified in dB (in case "dB" is appended to the specified value) or amplitude ratio. Default value is `0`. (range 0..1.7976931348623157e+308, default 0, runtime-tunable)
+/// - [timestamp]: Set processing mode of every audio frame output timestamp. (range 0..1, default TS_WRITE)
 /// - [window]: Set duration in number of seconds used to calculate size of window in number of samples for detecting silence. Using `0` will effectively disable any windowing and use only single sample per channel for silence detection. In that case it may be needed to also set @option{start_silence} and/or @option{stop_silence} to nonzero values with also @option{start_duration} and/or @option{stop_duration} to nonzero values. Default value is `0.02`. Allowed range is from `0` to `10`. (range 0..100000000, default 20000)
 final class SilenceremoveSettings {
   static const int start_periodsDefault = 0;
@@ -10253,11 +10451,13 @@ final class SilenceremoveSettings {
   static const int start_periodsMax = 9000;
   static const double start_thresholdDefault = 0.0;
   static const double start_thresholdMin = 0.0;
+  static const double start_thresholdMax = 1.7976931348623157e+308;
   static const int stop_periodsDefault = 0;
   static const int stop_periodsMin = -9000;
   static const int stop_periodsMax = 9000;
   static const double stop_thresholdDefault = 0.0;
   static const double stop_thresholdMin = 0.0;
+  static const double stop_thresholdMax = 1.7976931348623157e+308;
 
   final bool enabled;
   final SilenceremoveDetection detection;
@@ -10271,7 +10471,7 @@ final class SilenceremoveSettings {
   final int stop_periods;
   final Duration stop_silence;
   final double stop_threshold;
-  final SilenceremoveTimestamp? timestamp;
+  final SilenceremoveTimestamp timestamp;
   final Duration window;
 
   const SilenceremoveSettings({
@@ -10287,7 +10487,7 @@ final class SilenceremoveSettings {
     this.stop_periods = 0,
     this.stop_silence = const Duration(microseconds: 0),
     this.stop_threshold = 0.0,
-    this.timestamp,
+    this.timestamp = SilenceremoveTimestamp.write,
     this.window = const Duration(microseconds: 20000),
   });
 
@@ -10304,7 +10504,7 @@ final class SilenceremoveSettings {
     int? stop_periods,
     Duration? stop_silence,
     double? stop_threshold,
-    Object? timestamp = unset,
+    SilenceremoveTimestamp? timestamp,
     Duration? window,
   }) =>
       SilenceremoveSettings(
@@ -10320,9 +10520,7 @@ final class SilenceremoveSettings {
         stop_periods: stop_periods ?? this.stop_periods,
         stop_silence: stop_silence ?? this.stop_silence,
         stop_threshold: stop_threshold ?? this.stop_threshold,
-        timestamp: identical(timestamp, unset)
-            ? this.timestamp
-            : timestamp as SilenceremoveTimestamp?,
+        timestamp: timestamp ?? this.timestamp,
         window: window ?? this.window,
       );
 
@@ -10375,12 +10573,16 @@ final class SilenceremoveSettings {
         'silenceremove.start_periods must be <= 9000');
     assert(start_threshold >= start_thresholdMin,
         'silenceremove.start_threshold must be >= 0');
+    assert(start_threshold <= start_thresholdMax,
+        'silenceremove.start_threshold must be <= 1.7976931348623157e+308');
     assert(stop_periods >= stop_periodsMin,
         'silenceremove.stop_periods must be >= -9000');
     assert(stop_periods <= stop_periodsMax,
         'silenceremove.stop_periods must be <= 9000');
     assert(stop_threshold >= stop_thresholdMin,
         'silenceremove.stop_threshold must be >= 0');
+    assert(stop_threshold <= stop_thresholdMax,
+        'silenceremove.stop_threshold must be <= 1.7976931348623157e+308');
     final parts = <String>[];
     if (detection != SilenceremoveDetection.rms)
       parts.add('detection=' + detection.mpvValue);
@@ -10407,7 +10609,8 @@ final class SilenceremoveSettings {
           'stop_silence=' + _wireDouble(stop_silence.inMicroseconds / 1e6));
     if (stop_threshold != 0.0)
       parts.add('stop_threshold=' + _wireDouble(stop_threshold));
-    if (timestamp != null) parts.add('timestamp=' + timestamp!.mpvValue);
+    if (timestamp != SilenceremoveTimestamp.write)
+      parts.add('timestamp=' + timestamp.mpvValue);
     if (window != const Duration(microseconds: 20000))
       parts.add('window=' + _wireDouble(window.inMicroseconds / 1e6));
     return parts.isEmpty
@@ -10427,26 +10630,26 @@ final class SilenceremoveSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [c]: Set the maximum compression factor. Allowed range is from 1.0 to 50.0. Default value is 2.0. This option controls maximum local half-cycle of samples compression. This option is used only if @option{threshold} option is set to value greater than 0.0, then in such cases when local peak is lower or same as value set by @option{threshold} all samples belonging to that peak's half-cycle will be compressed by current compression factor. (range 1.0..50.0, default 2.0)
-/// - [channels]: Specify which channels to filter, by default all available channels are filtered. (range 0..0, default "all")
-/// - [compression]: Set the maximum compression factor. Allowed range is from 1.0 to 50.0. Default value is 2.0. This option controls maximum local half-cycle of samples compression. This option is used only if @option{threshold} option is set to value greater than 0.0, then in such cases when local peak is lower or same as value set by @option{threshold} all samples belonging to that peak's half-cycle will be compressed by current compression factor. (range 1.0..50.0, default 2.0)
-/// - [e]: Set the maximum expansion factor. Allowed range is from 1.0 to 50.0. Default value is 2.0. This option controls maximum local half-cycle of samples expansion. The maximum expansion would be such that local peak value reaches target peak value but never to surpass it and that ratio between new and previous peak value does not surpass this option value. (range 1.0..50.0, default 2.0)
-/// - [expansion]: Set the maximum expansion factor. Allowed range is from 1.0 to 50.0. Default value is 2.0. This option controls maximum local half-cycle of samples expansion. The maximum expansion would be such that local peak value reaches target peak value but never to surpass it and that ratio between new and previous peak value does not surpass this option value. (range 1.0..50.0, default 2.0)
-/// - [f]: Set the compression raising amount per each half-cycle of samples. Default value is 0.001. Allowed range is from 0.0 to 1.0. This controls how fast compression factor is raised per each new half-cycle until it reaches @option{compression} value. (range 0.0..1.0, default 0.001)
-/// - [fall]: Set the compression raising amount per each half-cycle of samples. Default value is 0.001. Allowed range is from 0.0 to 1.0. This controls how fast compression factor is raised per each new half-cycle until it reaches @option{compression} value. (range 0.0..1.0, default 0.001)
-/// - [h]: Specify which channels to filter, by default all available channels are filtered. (range 0..0, default "all")
-/// - [i]: Enable inverted filtering, by default is disabled. This inverts interpretation of @option{threshold} option. When enabled any half-cycle of samples with their local peak value below or same as @option{threshold} option will be expanded otherwise it will be compressed. (range 0..1, default 0)
-/// - [invert]: Enable inverted filtering, by default is disabled. This inverts interpretation of @option{threshold} option. When enabled any half-cycle of samples with their local peak value below or same as @option{threshold} option will be expanded otherwise it will be compressed. (range 0..1, default 0)
-/// - [l]: Link channels when calculating gain applied to each filtered channel sample, by default is disabled. When disabled each filtered channel gain calculation is independent, otherwise when this option is enabled the minimum of all possible gains for each filtered channel is used. (range 0..1, default 0)
-/// - [link]: Link channels when calculating gain applied to each filtered channel sample, by default is disabled. When disabled each filtered channel gain calculation is independent, otherwise when this option is enabled the minimum of all possible gains for each filtered channel is used. (range 0..1, default 0)
-/// - [m]: Set the expansion target RMS value. This specifies the highest allowed RMS level for the normalized audio input. Default value is 0.0, thus disabled. Allowed range is from 0.0 to 1.0. (range 0.0..1.0, default 0.0)
-/// - [p]: Set the expansion target peak value. This specifies the highest allowed absolute amplitude level for the normalized audio input. Default value is 0.95. Allowed range is from 0.0 to 1.0. (range 0.0..1.0, default 0.95)
-/// - [peak]: Set the expansion target peak value. This specifies the highest allowed absolute amplitude level for the normalized audio input. Default value is 0.95. Allowed range is from 0.0 to 1.0. (range 0.0..1.0, default 0.95)
-/// - [r]: Set the expansion raising amount per each half-cycle of samples. Default value is 0.001. Allowed range is from 0.0 to 1.0. This controls how fast expansion factor is raised per each new half-cycle until it reaches @option{expansion} value. Setting this options too high may lead to distortions. (range 0.0..1.0, default 0.001)
-/// - [raise]: Set the expansion raising amount per each half-cycle of samples. Default value is 0.001. Allowed range is from 0.0 to 1.0. This controls how fast expansion factor is raised per each new half-cycle until it reaches @option{expansion} value. Setting this options too high may lead to distortions. (range 0.0..1.0, default 0.001)
-/// - [rms]: Set the expansion target RMS value. This specifies the highest allowed RMS level for the normalized audio input. Default value is 0.0, thus disabled. Allowed range is from 0.0 to 1.0. (range 0.0..1.0, default 0.0)
-/// - [t]: Set the threshold value. Default value is 0.0. Allowed range is from 0.0 to 1.0. This option specifies which half-cycles of samples will be compressed and which will be expanded. Any half-cycle samples with their local peak value below or same as this option value will be compressed by current compression factor, otherwise, if greater than threshold value they will be expanded with expansion factor so that it could reach peak target value but never surpass it. (range 0.0..1.0, default 0)
-/// - [threshold]: Set the threshold value. Default value is 0.0. Allowed range is from 0.0 to 1.0. This option specifies which half-cycles of samples will be compressed and which will be expanded. Any half-cycle samples with their local peak value below or same as this option value will be compressed by current compression factor, otherwise, if greater than threshold value they will be expanded with expansion factor so that it could reach peak target value but never surpass it. (range 0.0..1.0, default 0)
+/// - [c]: Set the maximum compression factor. Allowed range is from 1.0 to 50.0. Default value is 2.0. This option controls maximum local half-cycle of samples compression. This option is used only if @option{threshold} option is set to value greater than 0.0, then in such cases when local peak is lower or same as value set by @option{threshold} all samples belonging to that peak's half-cycle will be compressed by current compression factor. (range 1.0..50.0, default 2.0, runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available channels are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [compression]: Set the maximum compression factor. Allowed range is from 1.0 to 50.0. Default value is 2.0. This option controls maximum local half-cycle of samples compression. This option is used only if @option{threshold} option is set to value greater than 0.0, then in such cases when local peak is lower or same as value set by @option{threshold} all samples belonging to that peak's half-cycle will be compressed by current compression factor. (range 1.0..50.0, default 2.0, runtime-tunable)
+/// - [e]: Set the maximum expansion factor. Allowed range is from 1.0 to 50.0. Default value is 2.0. This option controls maximum local half-cycle of samples expansion. The maximum expansion would be such that local peak value reaches target peak value but never to surpass it and that ratio between new and previous peak value does not surpass this option value. (range 1.0..50.0, default 2.0, runtime-tunable)
+/// - [expansion]: Set the maximum expansion factor. Allowed range is from 1.0 to 50.0. Default value is 2.0. This option controls maximum local half-cycle of samples expansion. The maximum expansion would be such that local peak value reaches target peak value but never to surpass it and that ratio between new and previous peak value does not surpass this option value. (range 1.0..50.0, default 2.0, runtime-tunable)
+/// - [f]: Set the compression raising amount per each half-cycle of samples. Default value is 0.001. Allowed range is from 0.0 to 1.0. This controls how fast compression factor is raised per each new half-cycle until it reaches @option{compression} value. (range 0.0..1.0, default 0.001, runtime-tunable)
+/// - [fall]: Set the compression raising amount per each half-cycle of samples. Default value is 0.001. Allowed range is from 0.0 to 1.0. This controls how fast compression factor is raised per each new half-cycle until it reaches @option{compression} value. (range 0.0..1.0, default 0.001, runtime-tunable)
+/// - [h]: Specify which channels to filter, by default all available channels are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [i]: Enable inverted filtering, by default is disabled. This inverts interpretation of @option{threshold} option. When enabled any half-cycle of samples with their local peak value below or same as @option{threshold} option will be expanded otherwise it will be compressed. (range 0..1, default 0, runtime-tunable)
+/// - [invert]: Enable inverted filtering, by default is disabled. This inverts interpretation of @option{threshold} option. When enabled any half-cycle of samples with their local peak value below or same as @option{threshold} option will be expanded otherwise it will be compressed. (range 0..1, default 0, runtime-tunable)
+/// - [l]: Link channels when calculating gain applied to each filtered channel sample, by default is disabled. When disabled each filtered channel gain calculation is independent, otherwise when this option is enabled the minimum of all possible gains for each filtered channel is used. (range 0..1, default 0, runtime-tunable)
+/// - [link]: Link channels when calculating gain applied to each filtered channel sample, by default is disabled. When disabled each filtered channel gain calculation is independent, otherwise when this option is enabled the minimum of all possible gains for each filtered channel is used. (range 0..1, default 0, runtime-tunable)
+/// - [m]: Set the expansion target RMS value. This specifies the highest allowed RMS level for the normalized audio input. Default value is 0.0, thus disabled. Allowed range is from 0.0 to 1.0. (range 0.0..1.0, default 0.0, runtime-tunable)
+/// - [p]: Set the expansion target peak value. This specifies the highest allowed absolute amplitude level for the normalized audio input. Default value is 0.95. Allowed range is from 0.0 to 1.0. (range 0.0..1.0, default 0.95, runtime-tunable)
+/// - [peak]: Set the expansion target peak value. This specifies the highest allowed absolute amplitude level for the normalized audio input. Default value is 0.95. Allowed range is from 0.0 to 1.0. (range 0.0..1.0, default 0.95, runtime-tunable)
+/// - [r]: Set the expansion raising amount per each half-cycle of samples. Default value is 0.001. Allowed range is from 0.0 to 1.0. This controls how fast expansion factor is raised per each new half-cycle until it reaches @option{expansion} value. Setting this options too high may lead to distortions. (range 0.0..1.0, default 0.001, runtime-tunable)
+/// - [raise]: Set the expansion raising amount per each half-cycle of samples. Default value is 0.001. Allowed range is from 0.0 to 1.0. This controls how fast expansion factor is raised per each new half-cycle until it reaches @option{expansion} value. Setting this options too high may lead to distortions. (range 0.0..1.0, default 0.001, runtime-tunable)
+/// - [rms]: Set the expansion target RMS value. This specifies the highest allowed RMS level for the normalized audio input. Default value is 0.0, thus disabled. Allowed range is from 0.0 to 1.0. (range 0.0..1.0, default 0.0, runtime-tunable)
+/// - [t]: Set the threshold value. Default value is 0.0. Allowed range is from 0.0 to 1.0. This option specifies which half-cycles of samples will be compressed and which will be expanded. Any half-cycle samples with their local peak value below or same as this option value will be compressed by current compression factor, otherwise, if greater than threshold value they will be expanded with expansion factor so that it could reach peak target value but never surpass it. (range 0.0..1.0, default 0, runtime-tunable)
+/// - [threshold]: Set the threshold value. Default value is 0.0. Allowed range is from 0.0 to 1.0. This option specifies which half-cycles of samples will be compressed and which will be expanded. Any half-cycle samples with their local peak value below or same as this option value will be compressed by current compression factor, otherwise, if greater than threshold value they will be expanded with expansion factor so that it could reach peak target value but never surpass it. (range 0.0..1.0, default 0, runtime-tunable)
 final class SpeechnormSettings {
   static const double cDefault = 2.0;
   static const double cMin = 1.0;
@@ -10709,26 +10912,26 @@ final class SpeechnormSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [balance_in]: Set input balance between both channels. Default is 0. Allowed range is from -1 to 1. (range -1..1, default 0)
-/// - [balance_out]: Set output balance between both channels. Default is 0. Allowed range is from -1 to 1. (range -1..1, default 0)
-/// - [base]: set stereo base (range -1..1, default 0)
-/// - [bmode_in]: set balance in mode (range 0..2, default 0)
-/// - [bmode_out]: set balance out mode (range 0..2, default 0)
-/// - [delay]: set delay (range -20..20, default 0)
-/// - [level_in]: Set input level before filtering for both channels. Defaults is 1. Allowed range is from 0.015625 to 64. (range 0.015625..64, default 1)
-/// - [level_out]: Set output level after filtering for both channels. Defaults is 1. Allowed range is from 0.015625 to 64. (range 0.015625..64, default 1)
-/// - [mlev]: set middle level (range 0.015625..64, default 1)
-/// - [mode]: Set stereo mode. Available values are: (range 0..10, default 0)
-/// - [mpan]: set middle pan (range -1..1, default 0)
-/// - [mutel]: Mute the left channel. Disabled by default. (range 0..1, default 0)
-/// - [muter]: Mute the right channel. Disabled by default. (range 0..1, default 0)
-/// - [phase]: set stereo phase (range 0..360, default 0)
-/// - [phasel]: Change the phase of the left channel. Disabled by default. (range 0..1, default 0)
-/// - [phaser]: Change the phase of the right channel. Disabled by default. (range 0..1, default 0)
-/// - [sbal]: set side balance (range -1..1, default 0)
-/// - [sclevel]: set S/C level (range 1..100, default 1)
-/// - [slev]: set side level (range 0.015625..64, default 1)
-/// - [softclip]: Enable softclipping. Results in analog distortion instead of harsh digital 0dB clipping. Disabled by default. (range 0..1, default 0)
+/// - [balance_in]: Set input balance between both channels. Default is 0. Allowed range is from -1 to 1. (range -1..1, default 0, runtime-tunable)
+/// - [balance_out]: Set output balance between both channels. Default is 0. Allowed range is from -1 to 1. (range -1..1, default 0, runtime-tunable)
+/// - [base]: set stereo base (range -1..1, default 0, runtime-tunable)
+/// - [bmode_in]: set balance in mode (range 0..2, default 0, runtime-tunable)
+/// - [bmode_out]: set balance out mode (range 0..2, default 0, runtime-tunable)
+/// - [delay]: set delay (range -20..20, default 0, runtime-tunable)
+/// - [level_in]: Set input level before filtering for both channels. Defaults is 1. Allowed range is from 0.015625 to 64. (range 0.015625..64, default 1, runtime-tunable)
+/// - [level_out]: Set output level after filtering for both channels. Defaults is 1. Allowed range is from 0.015625 to 64. (range 0.015625..64, default 1, runtime-tunable)
+/// - [mlev]: set middle level (range 0.015625..64, default 1, runtime-tunable)
+/// - [mode]: Set stereo mode. Available values are: (range 0..10, default 0, runtime-tunable)
+/// - [mpan]: set middle pan (range -1..1, default 0, runtime-tunable)
+/// - [mutel]: Mute the left channel. Disabled by default. (range 0..1, default 0, runtime-tunable)
+/// - [muter]: Mute the right channel. Disabled by default. (range 0..1, default 0, runtime-tunable)
+/// - [phase]: set stereo phase (range 0..360, default 0, runtime-tunable)
+/// - [phasel]: Change the phase of the left channel. Disabled by default. (range 0..1, default 0, runtime-tunable)
+/// - [phaser]: Change the phase of the right channel. Disabled by default. (range 0..1, default 0, runtime-tunable)
+/// - [sbal]: set side balance (range -1..1, default 0, runtime-tunable)
+/// - [sclevel]: set S/C level (range 1..100, default 1, runtime-tunable)
+/// - [slev]: set side level (range 0.015625..64, default 1, runtime-tunable)
+/// - [softclip]: Enable softclipping. Results in analog distortion instead of harsh digital 0dB clipping. Disabled by default. (range 0..1, default 0, runtime-tunable)
 final class StereotoolsSettings {
   static const double balance_inDefault = 0.0;
   static const double balance_inMin = -1.0;
@@ -10984,10 +11187,10 @@ final class StereotoolsSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [crossfeed]: Cross feed of left into right with inverted phase. This helps in suppressing the mono. If the value is 1 it will cancel all the signal common to both channels. Default is 0.3. (range 0..0.8, default .3)
+/// - [crossfeed]: Cross feed of left into right with inverted phase. This helps in suppressing the mono. If the value is 1 it will cancel all the signal common to both channels. Default is 0.3. (range 0..0.8, default .3, runtime-tunable)
 /// - [delay]: Time in milliseconds of the delay of left signal into right and vice versa. Default is 20 milliseconds. (range 1..100, default 20)
-/// - [drymix]: Set level of input signal of original channel. Default is 0.8. (range 0..1.0, default .8)
-/// - [feedback]: Amount of gain in delayed signal into right and vice versa. Gives a delay effect of left signal in right output and vice versa which gives widening effect. Default is 0.3. (range 0..0.9, default .3)
+/// - [drymix]: Set level of input signal of original channel. Default is 0.8. (range 0..1.0, default .8, runtime-tunable)
+/// - [feedback]: Amount of gain in delayed signal into right and vice versa. Gives a delay effect of left signal in right output and vice versa which gives widening effect. Default is 0.3. (range 0..0.9, default .3, runtime-tunable)
 final class StereowidenSettings {
   static const double crossfeedDefault = .3;
   static const double crossfeedMin = 0.0;
@@ -11151,54 +11354,55 @@ final class SuperequalizerSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [allx]: Set spread usage of stereo image across X axis for all channels. Allowed range is from `-1` to `15`. By default this value is negative `-1`, and thus unused. (range -1..15, default -1)
-/// - [ally]: Set spread usage of stereo image across Y axis for all channels. Allowed range is from `-1` to `15`. By default this value is negative `-1`, and thus unused. (range -1..15, default -1)
-/// - [angle]: Set angle of stereo surround transform, Allowed range is from `0` to `360`. Default is `90`. (range 0..360, default 90)
-/// - [bc_in]: Set back center input volume. By default, this is `1`. (range 0..10, default 1)
-/// - [bc_out]: Set back center output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [bcx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [bcy]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [bl_in]: Set back left input volume. By default, this is `1`. (range 0..10, default 1)
-/// - [bl_out]: Set back left output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [blx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [bly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [br_in]: Set back right input volume. By default, this is `1`. (range 0..10, default 1)
-/// - [br_out]: Set back right output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [brx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [bry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
+/// - [allx]: Set spread usage of stereo image across X axis for all channels. Allowed range is from `-1` to `15`. By default this value is negative `-1`, and thus unused. (range -1..15, default -1, runtime-tunable)
+/// - [ally]: Set spread usage of stereo image across Y axis for all channels. Allowed range is from `-1` to `15`. By default this value is negative `-1`, and thus unused. (range -1..15, default -1, runtime-tunable)
+/// - [angle]: Set angle of stereo surround transform, Allowed range is from `0` to `360`. Default is `90`. (range 0..360, default 90, runtime-tunable)
+/// - [bc_in]: Set back center input volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [bc_out]: Set back center output volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [bcx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [bcy]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [bl_in]: Set back left input volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [bl_out]: Set back left output volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [blx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [bly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [br_in]: Set back right input volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [br_out]: Set back right output volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [brx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [bry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
 /// - [chl_in]: Set input channel layout. By default, this is `stereo`.  See channel layout syntax for the required syntax. (range 0..0, default "stereo")
 /// - [chl_out]: Set output channel layout. By default, this is `5.1`.  See channel layout syntax for the required syntax. (range 0..0, default "5.1")
-/// - [fc_in]: Set front center input volume. By default, this is `1`. (range 0..10, default 1)
-/// - [fc_out]: Set front center output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [fcx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [fcy]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [fl_in]: Set front left input volume. By default, this is `1`. (range 0..10, default 1)
-/// - [fl_out]: Set front left output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [flx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [fly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [focus]: Set focus of stereo surround transform, Allowed range is from `-1` to `1`. Default is `0`. (range -1..1, default 0)
-/// - [fr_in]: Set front right input volume. By default, this is `1`. (range 0..10, default 1)
-/// - [fr_out]: Set front right output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [frx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [fry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [level_in]: Set input volume level. By default, this is `1`. (range 0..10, default 1)
-/// - [level_out]: Set output volume level. By default, this is `1`. (range 0..10, default 1)
-/// - [lfe]: Enable LFE channel output if output channel layout has it. By default, this is enabled. (range 0..1, default 1)
+/// - [fc_in]: Set front center input volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [fc_out]: Set front center output volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [fcx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [fcy]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [fl_in]: Set front left input volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [fl_out]: Set front left output volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [flx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [fly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [focus]: Set focus of stereo surround transform, Allowed range is from `-1` to `1`. Default is `0`. (range -1..1, default 0, runtime-tunable)
+/// - [fr_in]: Set front right input volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [fr_out]: Set front right output volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [frx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [fry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [level_in]: Set input volume level. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [level_out]: Set output volume level. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [lfe]: Enable LFE channel output if output channel layout has it. By default, this is enabled. (range 0..1, default 1, runtime-tunable)
 /// - [lfe_high]: Set LFE high cut off frequency. By default, this is `256` Hz. (range 0..512, default 256)
-/// - [lfe_in]: Set LFE input volume. By default, this is `1`. (range 0..10, default 1)
+/// - [lfe_in]: Set LFE input volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
 /// - [lfe_low]: Set LFE low cut off frequency. By default, this is `128` Hz. (range 0..256, default 128)
-/// - [lfe_mode]: Set LFE mode, can be `add` or `sub`. Default is `add`. In `add` mode, LFE channel is created from input audio and added to output. In `sub` mode, LFE channel is created from input audio and added to output but also all non-LFE output channels are subtracted with output LFE channel. (range 0..1, default 0)
-/// - [lfe_out]: Set LFE output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [overlap]: set window overlap (range 0..1, default 0.5)
-/// - [sl_in]: Set side left input volume. By default, this is `1`. (range 0..10, default 1)
-/// - [sl_out]: Set side left output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [slx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [sly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [smooth]: Set temporal smoothness strength, used to gradually change factors when transforming stereo sound in time. Allowed range is from `0.0` to `1.0`. Useful to improve output quality with `focus` option values greater than `0.0`. Default is `0.0`. Only values inside this range and without edges are effective. (range 0..1, default 0)
-/// - [sr_in]: Set side right input volume. By default, this is `1`. (range 0..10, default 1)
-/// - [sr_out]: Set side right output volume. By default, this is `1`. (range 0..10, default 1)
-/// - [srx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
-/// - [sry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5)
+/// - [lfe_mode]: Set LFE mode, can be `add` or `sub`. Default is `add`. In `add` mode, LFE channel is created from input audio and added to output. In `sub` mode, LFE channel is created from input audio and added to output but also all non-LFE output channels are subtracted with output LFE channel. (range 0..1, default 0, runtime-tunable)
+/// - [lfe_out]: Set LFE output volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [overlap]: set window overlap (range 0..1, default 0.5, runtime-tunable)
+/// - [sl_in]: Set side left input volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [sl_out]: Set side left output volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [slx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [sly]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [smooth]: Set temporal smoothness strength, used to gradually change factors when transforming stereo sound in time. Allowed range is from `0.0` to `1.0`. Useful to improve output quality with `focus` option values greater than `0.0`. Default is `0.0`. Only values inside this range and without edges are effective. (range 0..1, default 0, runtime-tunable)
+/// - [sr_in]: Set side right input volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [sr_out]: Set side right output volume. By default, this is `1`. (range 0..10, default 1, runtime-tunable)
+/// - [srx]: Set spread usage of stereo image across X axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [sry]: Set spread usage of stereo image across Y axis for each channel. Allowed range is from `0.06` to `15`. By default this value is `0.5`. (range .06..15, default 0.5, runtime-tunable)
+/// - [win_func]: Set window function.  It accepts the following values: (default WFUNC_HANNING)
 /// - [win_size]: Set window size. Allowed range is from `1024` to `65536`. Default size is `4096`. (range 1024..65536, default 4096)
 final class SurroundSettings {
   static const double allxDefault = -1.0;
@@ -11386,6 +11590,7 @@ final class SurroundSettings {
   final double sr_out;
   final double srx;
   final double sry;
+  final SurroundWinFunc win_func;
   final int win_size;
 
   const SurroundSettings({
@@ -11438,6 +11643,7 @@ final class SurroundSettings {
     this.sr_out = 1.0,
     this.srx = 0.5,
     this.sry = 0.5,
+    this.win_func = SurroundWinFunc.hann,
     this.win_size = 4096,
   });
 
@@ -11491,6 +11697,7 @@ final class SurroundSettings {
     double? sr_out,
     double? srx,
     double? sry,
+    SurroundWinFunc? win_func,
     int? win_size,
   }) =>
       SurroundSettings(
@@ -11543,6 +11750,7 @@ final class SurroundSettings {
         sr_out: sr_out ?? this.sr_out,
         srx: srx ?? this.srx,
         sry: sry ?? this.sry,
+        win_func: win_func ?? this.win_func,
         win_size: win_size ?? this.win_size,
       );
 
@@ -11599,6 +11807,7 @@ final class SurroundSettings {
           other.sr_out == sr_out &&
           other.srx == srx &&
           other.sry == sry &&
+          other.win_func == win_func &&
           other.win_size == win_size);
 
   @override
@@ -11652,12 +11861,13 @@ final class SurroundSettings {
         sr_out,
         srx,
         sry,
+        win_func,
         win_size
       ]);
 
   @override
   String toString() =>
-      'SurroundSettings(enabled: $enabled, allx: $allx, ally: $ally, angle: $angle, bc_in: $bc_in, bc_out: $bc_out, bcx: $bcx, bcy: $bcy, bl_in: $bl_in, bl_out: $bl_out, blx: $blx, bly: $bly, br_in: $br_in, br_out: $br_out, brx: $brx, bry: $bry, chl_in: $chl_in, chl_out: $chl_out, fc_in: $fc_in, fc_out: $fc_out, fcx: $fcx, fcy: $fcy, fl_in: $fl_in, fl_out: $fl_out, flx: $flx, fly: $fly, focus: $focus, fr_in: $fr_in, fr_out: $fr_out, frx: $frx, fry: $fry, level_in: $level_in, level_out: $level_out, lfe: $lfe, lfe_high: $lfe_high, lfe_in: $lfe_in, lfe_low: $lfe_low, lfe_mode: $lfe_mode, lfe_out: $lfe_out, overlap: $overlap, sl_in: $sl_in, sl_out: $sl_out, slx: $slx, sly: $sly, smooth: $smooth, sr_in: $sr_in, sr_out: $sr_out, srx: $srx, sry: $sry, win_size: $win_size)';
+      'SurroundSettings(enabled: $enabled, allx: $allx, ally: $ally, angle: $angle, bc_in: $bc_in, bc_out: $bc_out, bcx: $bcx, bcy: $bcy, bl_in: $bl_in, bl_out: $bl_out, blx: $blx, bly: $bly, br_in: $br_in, br_out: $br_out, brx: $brx, bry: $bry, chl_in: $chl_in, chl_out: $chl_out, fc_in: $fc_in, fc_out: $fc_out, fcx: $fcx, fcy: $fcy, fl_in: $fl_in, fl_out: $fl_out, flx: $flx, fly: $fly, focus: $focus, fr_in: $fr_in, fr_out: $fr_out, frx: $frx, fry: $fry, level_in: $level_in, level_out: $level_out, lfe: $lfe, lfe_high: $lfe_high, lfe_in: $lfe_in, lfe_low: $lfe_low, lfe_mode: $lfe_mode, lfe_out: $lfe_out, overlap: $overlap, sl_in: $sl_in, sl_out: $sl_out, slx: $slx, sly: $sly, smooth: $smooth, sr_in: $sr_in, sr_out: $sr_out, srx: $srx, sry: $sry, win_func: $win_func, win_size: $win_size)';
 
   /// Returns the audio chain entry for this effect.
   /// Only non-default parameters are emitted.
@@ -11802,6 +12012,8 @@ final class SurroundSettings {
     if (sr_out != 1.0) parts.add('sr_out=' + _wireDouble(sr_out));
     if (srx != 0.5) parts.add('srx=' + _wireDouble(srx));
     if (sry != 0.5) parts.add('sry=' + _wireDouble(sry));
+    if (win_func != SurroundWinFunc.hann)
+      parts.add('win_func=' + win_func.mpvValue);
     if (win_size != 4096) parts.add('win_size=' + win_size.toString());
     return parts.isEmpty
         ? 'lavfi-surround'
@@ -11819,28 +12031,28 @@ final class SurroundSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
-/// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
-/// - [g]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [gain]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000, runtime-tunable)
+/// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000, runtime-tunable)
+/// - [g]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [gain]: Give the gain at 0 Hz. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
-/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class TiltshelfSettings {
   static const int bDefault = 0;
   static const int bMin = 0;
@@ -12107,28 +12319,28 @@ final class TiltshelfSettings {
 /// The filter accepts the following options:
 ///
 /// Parameters:
-/// - [a]: Set transform type of IIR filter. (default DI)
+/// - [a]: Set transform type of IIR filter. (range 0..6, default DI)
 /// - [b]: Set block size used for reverse IIR processing. If this value is set to high enough value (higher than impulse response length truncated when reaches near zero values) filtering will become linear phase otherwise if not big enough it will just produce nasty artifacts.  Note that filter delay will be exactly this many samples when set to non-zero value. (range 0..32768, default 0)
 /// - [blocksize]: set the block size (range 0..32768, default 0)
-/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all")
-/// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
-/// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000)
-/// - [g]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [gain]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0)
-/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1)
-/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
-/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0)
+/// - [c]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [channels]: Specify which channels to filter, by default all available are filtered. (range 0..0, default "all", runtime-tunable)
+/// - [f]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000, runtime-tunable)
+/// - [frequency]: Set the filter's central frequency and so can be used to extend or reduce the frequency range to be boosted or cut. The default value is `3000` Hz. (range 0..999999, default 3000, runtime-tunable)
+/// - [g]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [gain]: Give the gain at whichever is the lower of ~22 kHz and the Nyquist frequency. Its useful range is about -20 (for a large cut) to +20 (for a large boost). Beware of clipping when using a positive gain. (range -900..900, default 0, runtime-tunable)
+/// - [m]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [mix]: How much to use filtered signal in output. Default is 1. Range is between 0 and 1. (range 0..1, default 1, runtime-tunable)
+/// - [n]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
+/// - [normalize]: Normalize biquad coefficients, by default is disabled. Enabling it will normalize magnitude response at DC to 0dB. (range 0..1, default 0, runtime-tunable)
 /// - [p]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [poles]: Set number of poles. Default is 2. (range 1..2, default 2)
 /// - [precision]: Set precision of filtering. (range -1..3, default -1)
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
-/// - [t]: Set method to specify band-width of filter. (default QFACTOR)
-/// - [transform]: Set transform type of IIR filter. (default DI)
-/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
-/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5)
-/// - [width_type]: Set method to specify band-width of filter. (default QFACTOR)
+/// - [t]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
+/// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
+/// - [w]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
+/// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class TrebleSettings {
   static const int bDefault = 0;
   static const int bMin = 0;
@@ -12528,7 +12740,7 @@ final class VibratoSettings {
 ///
 /// Parameters:
 /// - [cutoff]: Set the virtual bass cutoff frequency. Default value is 250 Hz. Allowed range is from 100 to 500 Hz. (range 100..500, default 250)
-/// - [strength]: Set the virtual bass strength. Allowed range is from 0.5 to 3. Default value is 3. (range 0.5..3, default 3)
+/// - [strength]: Set the virtual bass strength. Allowed range is from 0.5 to 3. Default value is 3. (range 0.5..3, default 3, runtime-tunable)
 final class VirtualbassSettings {
   static const double cutoffDefault = 250.0;
   static const double cutoffMin = 100.0;

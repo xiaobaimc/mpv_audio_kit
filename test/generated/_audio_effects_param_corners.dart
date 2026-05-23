@@ -1,11 +1,10 @@
-// GENERATED — do not edit. Source:
-//   libmpv-scripts/lavfi_codegen/generate_tests.py
+// AUTO-GENERATED — do not edit by hand.
 //
 // Per-filter param corner-case manifest. See
 // test/runtime_extended/audio_effects_param_ranges_test.dart
 // for the test that iterates this list.
 
-// ignore_for_file: lines_longer_than_80_chars
+// ignore_for_file: lines_longer_than_80_chars, unnecessary_const, prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 
@@ -823,6 +822,27 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'adecorrelate',
+    label: 'seed=seedMin',
+    bundle: const AudioEffects(
+        adecorrelate: const AdecorrelateSettings(
+            enabled: true, seed: AdecorrelateSettings.seedMin))
+  ),
+  (
+    filter: 'adecorrelate',
+    label: 'seed=seedDefault',
+    bundle: const AudioEffects(
+        adecorrelate: const AdecorrelateSettings(
+            enabled: true, seed: AdecorrelateSettings.seedDefault))
+  ),
+  (
+    filter: 'adecorrelate',
+    label: 'seed=seedMax',
+    bundle: const AudioEffects(
+        adecorrelate: const AdecorrelateSettings(
+            enabled: true, seed: AdecorrelateSettings.seedMax))
+  ),
+  (
+    filter: 'adecorrelate',
     label: 'stages=stagesMin',
     bundle: const AudioEffects(
         adecorrelate: const AdecorrelateSettings(
@@ -834,6 +854,13 @@ const List<ParamCorner> kFilterParamCorners = [
     bundle: const AudioEffects(
         adecorrelate: const AdecorrelateSettings(
             enabled: true, stages: AdecorrelateSettings.stagesDefault))
+  ),
+  (
+    filter: 'adecorrelate',
+    label: 'stages=stagesMax',
+    bundle: const AudioEffects(
+        adecorrelate: const AdecorrelateSettings(
+            enabled: true, stages: AdecorrelateSettings.stagesMax))
   ),
   (
     filter: 'adenorm',
@@ -1385,6 +1412,45 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'afade',
+    label: 'nb_samples=nb_samplesMin',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(
+            enabled: true, nb_samples: AfadeSettings.nb_samplesMin))
+  ),
+  (
+    filter: 'afade',
+    label: 'nb_samples=nb_samplesDefault',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(
+            enabled: true, nb_samples: AfadeSettings.nb_samplesDefault))
+  ),
+  (
+    filter: 'afade',
+    label: 'nb_samples=nb_samplesMax',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(
+            enabled: true, nb_samples: AfadeSettings.nb_samplesMax))
+  ),
+  (
+    filter: 'afade',
+    label: 'ns=nsMin',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(enabled: true, ns: AfadeSettings.nsMin))
+  ),
+  (
+    filter: 'afade',
+    label: 'ns=nsDefault',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(enabled: true, ns: AfadeSettings.nsDefault))
+  ),
+  (
+    filter: 'afade',
+    label: 'ns=nsMax',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(enabled: true, ns: AfadeSettings.nsMax))
+  ),
+  (
+    filter: 'afade',
     label: 'silence=silenceMin',
     bundle: const AudioEffects(
         afade: const AfadeSettings(
@@ -1403,6 +1469,45 @@ const List<ParamCorner> kFilterParamCorners = [
     bundle: const AudioEffects(
         afade: const AfadeSettings(
             enabled: true, silence: AfadeSettings.silenceMax))
+  ),
+  (
+    filter: 'afade',
+    label: 'ss=ssMin',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(enabled: true, ss: AfadeSettings.ssMin))
+  ),
+  (
+    filter: 'afade',
+    label: 'ss=ssDefault',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(enabled: true, ss: AfadeSettings.ssDefault))
+  ),
+  (
+    filter: 'afade',
+    label: 'ss=ssMax',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(enabled: true, ss: AfadeSettings.ssMax))
+  ),
+  (
+    filter: 'afade',
+    label: 'start_sample=start_sampleMin',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(
+            enabled: true, start_sample: AfadeSettings.start_sampleMin))
+  ),
+  (
+    filter: 'afade',
+    label: 'start_sample=start_sampleDefault',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(
+            enabled: true, start_sample: AfadeSettings.start_sampleDefault))
+  ),
+  (
+    filter: 'afade',
+    label: 'start_sample=start_sampleMax',
+    bundle: const AudioEffects(
+        afade: const AfadeSettings(
+            enabled: true, start_sample: AfadeSettings.start_sampleMax))
   ),
   (
     filter: 'afade',
@@ -1787,10 +1892,31 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'afreqshift',
+    label: 'order=orderMax',
+    bundle: const AudioEffects(
+        afreqshift: const AfreqshiftSettings(
+            enabled: true, order: AfreqshiftSettings.orderMax))
+  ),
+  (
+    filter: 'afreqshift',
+    label: 'shift=shiftMin',
+    bundle: const AudioEffects(
+        afreqshift: const AfreqshiftSettings(
+            enabled: true, shift: AfreqshiftSettings.shiftMin))
+  ),
+  (
+    filter: 'afreqshift',
     label: 'shift=shiftDefault',
     bundle: const AudioEffects(
         afreqshift: const AfreqshiftSettings(
             enabled: true, shift: AfreqshiftSettings.shiftDefault))
+  ),
+  (
+    filter: 'afreqshift',
+    label: 'shift=shiftMax',
+    bundle: const AudioEffects(
+        afreqshift: const AfreqshiftSettings(
+            enabled: true, shift: AfreqshiftSettings.shiftMax))
   ),
   (
     filter: 'afwtdn',
@@ -1805,6 +1931,13 @@ const List<ParamCorner> kFilterParamCorners = [
     bundle: const AudioEffects(
         afwtdn: const AfwtdnSettings(
             enabled: true, levels: AfwtdnSettings.levelsDefault))
+  ),
+  (
+    filter: 'afwtdn',
+    label: 'levels=levelsMax',
+    bundle: const AudioEffects(
+        afwtdn: const AfwtdnSettings(
+            enabled: true, levels: AfwtdnSettings.levelsMax))
   ),
   (
     filter: 'afwtdn',
@@ -2552,6 +2685,55 @@ const List<ParamCorner> kFilterParamCorners = [
             enabled: true, packet_size: ApadSettings.packet_sizeDefault))
   ),
   (
+    filter: 'apad',
+    label: 'packet_size=packet_sizeMax',
+    bundle: const AudioEffects(
+        apad: const ApadSettings(
+            enabled: true, packet_size: ApadSettings.packet_sizeMax))
+  ),
+  (
+    filter: 'apad',
+    label: 'pad_len=pad_lenMin',
+    bundle: const AudioEffects(
+        apad:
+            const ApadSettings(enabled: true, pad_len: ApadSettings.pad_lenMin))
+  ),
+  (
+    filter: 'apad',
+    label: 'pad_len=pad_lenDefault',
+    bundle: const AudioEffects(
+        apad: const ApadSettings(
+            enabled: true, pad_len: ApadSettings.pad_lenDefault))
+  ),
+  (
+    filter: 'apad',
+    label: 'pad_len=pad_lenMax',
+    bundle: const AudioEffects(
+        apad:
+            const ApadSettings(enabled: true, pad_len: ApadSettings.pad_lenMax))
+  ),
+  (
+    filter: 'apad',
+    label: 'whole_len=whole_lenMin',
+    bundle: const AudioEffects(
+        apad: const ApadSettings(
+            enabled: true, whole_len: ApadSettings.whole_lenMin))
+  ),
+  (
+    filter: 'apad',
+    label: 'whole_len=whole_lenDefault',
+    bundle: const AudioEffects(
+        apad: const ApadSettings(
+            enabled: true, whole_len: ApadSettings.whole_lenDefault))
+  ),
+  (
+    filter: 'apad',
+    label: 'whole_len=whole_lenMax',
+    bundle: const AudioEffects(
+        apad: const ApadSettings(
+            enabled: true, whole_len: ApadSettings.whole_lenMax))
+  ),
+  (
     filter: 'aphaser',
     label: 'decay=decayMin',
     bundle: const AudioEffects(
@@ -2690,6 +2872,13 @@ const List<ParamCorner> kFilterParamCorners = [
     bundle: const AudioEffects(
         aphaseshift: const AphaseshiftSettings(
             enabled: true, order: AphaseshiftSettings.orderDefault))
+  ),
+  (
+    filter: 'aphaseshift',
+    label: 'order=orderMax',
+    bundle: const AudioEffects(
+        aphaseshift: const AphaseshiftSettings(
+            enabled: true, order: AphaseshiftSettings.orderMax))
   ),
   (
     filter: 'aphaseshift',
@@ -3021,6 +3210,13 @@ const List<ParamCorner> kFilterParamCorners = [
             enabled: true, sample_rate: AresampleSettings.sample_rateDefault))
   ),
   (
+    filter: 'aresample',
+    label: 'sample_rate=sample_rateMax',
+    bundle: const AudioEffects(
+        aresample: const AresampleSettings(
+            enabled: true, sample_rate: AresampleSettings.sample_rateMax))
+  ),
+  (
     filter: 'arnndn',
     label: 'mix=mixMin',
     bundle: const AudioEffects(
@@ -3073,6 +3269,13 @@ const List<ParamCorner> kFilterParamCorners = [
     bundle: const AudioEffects(
         asoftclip: const AsoftclipSettings(
             enabled: true, oversample: AsoftclipSettings.oversampleDefault))
+  ),
+  (
+    filter: 'asoftclip',
+    label: 'oversample=oversampleMax',
+    bundle: const AudioEffects(
+        asoftclip: const AsoftclipSettings(
+            enabled: true, oversample: AsoftclipSettings.oversampleMax))
   ),
   (
     filter: 'asoftclip',
@@ -3580,10 +3783,24 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'atempo',
+    label: 'tempo=tempoMin',
+    bundle: const AudioEffects(
+        atempo:
+            const AtempoSettings(enabled: true, tempo: AtempoSettings.tempoMin))
+  ),
+  (
+    filter: 'atempo',
     label: 'tempo=tempoDefault',
     bundle: const AudioEffects(
         atempo: const AtempoSettings(
             enabled: true, tempo: AtempoSettings.tempoDefault))
+  ),
+  (
+    filter: 'atempo',
+    label: 'tempo=tempoMax',
+    bundle: const AudioEffects(
+        atempo:
+            const AtempoSettings(enabled: true, tempo: AtempoSettings.tempoMax))
   ),
   (
     filter: 'atilt',
@@ -3638,6 +3855,13 @@ const List<ParamCorner> kFilterParamCorners = [
     bundle: const AudioEffects(
         atilt: const AtiltSettings(
             enabled: true, order: AtiltSettings.orderDefault))
+  ),
+  (
+    filter: 'atilt',
+    label: 'order=orderMax',
+    bundle: const AudioEffects(
+        atilt:
+            const AtiltSettings(enabled: true, order: AtiltSettings.orderMax))
   ),
   (
     filter: 'atilt',
@@ -4243,10 +4467,28 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'biquad',
+    label: 'a0=a0Min',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, a0: BiquadSettings.a0Min))
+  ),
+  (
+    filter: 'biquad',
     label: 'a0=a0Default',
     bundle: const AudioEffects(
         biquad:
             const BiquadSettings(enabled: true, a0: BiquadSettings.a0Default))
+  ),
+  (
+    filter: 'biquad',
+    label: 'a0=a0Max',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, a0: BiquadSettings.a0Max))
+  ),
+  (
+    filter: 'biquad',
+    label: 'a1=a1Min',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, a1: BiquadSettings.a1Min))
   ),
   (
     filter: 'biquad',
@@ -4257,10 +4499,28 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'biquad',
+    label: 'a1=a1Max',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, a1: BiquadSettings.a1Max))
+  ),
+  (
+    filter: 'biquad',
+    label: 'a2=a2Min',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, a2: BiquadSettings.a2Min))
+  ),
+  (
+    filter: 'biquad',
     label: 'a2=a2Default',
     bundle: const AudioEffects(
         biquad:
             const BiquadSettings(enabled: true, a2: BiquadSettings.a2Default))
+  ),
+  (
+    filter: 'biquad',
+    label: 'a2=a2Max',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, a2: BiquadSettings.a2Max))
   ),
   (
     filter: 'biquad',
@@ -4282,10 +4542,28 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'biquad',
+    label: 'b0=b0Min',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, b0: BiquadSettings.b0Min))
+  ),
+  (
+    filter: 'biquad',
     label: 'b0=b0Default',
     bundle: const AudioEffects(
         biquad:
             const BiquadSettings(enabled: true, b0: BiquadSettings.b0Default))
+  ),
+  (
+    filter: 'biquad',
+    label: 'b0=b0Max',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, b0: BiquadSettings.b0Max))
+  ),
+  (
+    filter: 'biquad',
+    label: 'b1=b1Min',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, b1: BiquadSettings.b1Min))
   ),
   (
     filter: 'biquad',
@@ -4296,10 +4574,28 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'biquad',
+    label: 'b1=b1Max',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, b1: BiquadSettings.b1Max))
+  ),
+  (
+    filter: 'biquad',
+    label: 'b2=b2Min',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, b2: BiquadSettings.b2Min))
+  ),
+  (
+    filter: 'biquad',
     label: 'b2=b2Default',
     bundle: const AudioEffects(
         biquad:
             const BiquadSettings(enabled: true, b2: BiquadSettings.b2Default))
+  ),
+  (
+    filter: 'biquad',
+    label: 'b2=b2Max',
+    bundle: const AudioEffects(
+        biquad: const BiquadSettings(enabled: true, b2: BiquadSettings.b2Max))
   ),
   (
     filter: 'biquad',
@@ -5258,27 +5554,6 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'ebur128',
-    label: 'integrated=integratedDefault',
-    bundle: const AudioEffects(
-        ebur128: const Ebur128Settings(
-            enabled: true, integrated: Ebur128Settings.integratedDefault))
-  ),
-  (
-    filter: 'ebur128',
-    label: 'lra_high=lra_highDefault',
-    bundle: const AudioEffects(
-        ebur128: const Ebur128Settings(
-            enabled: true, lra_high: Ebur128Settings.lra_highDefault))
-  ),
-  (
-    filter: 'ebur128',
-    label: 'lra_low=lra_lowDefault',
-    bundle: const AudioEffects(
-        ebur128: const Ebur128Settings(
-            enabled: true, lra_low: Ebur128Settings.lra_lowDefault))
-  ),
-  (
-    filter: 'ebur128',
     label: 'meter=meterMin',
     bundle: const AudioEffects(
         ebur128: const Ebur128Settings(
@@ -5321,20 +5596,6 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'ebur128',
-    label: 'range=rangeDefault',
-    bundle: const AudioEffects(
-        ebur128: const Ebur128Settings(
-            enabled: true, range: Ebur128Settings.rangeDefault))
-  ),
-  (
-    filter: 'ebur128',
-    label: 'sample_peak=sample_peakDefault',
-    bundle: const AudioEffects(
-        ebur128: const Ebur128Settings(
-            enabled: true, sample_peak: Ebur128Settings.sample_peakDefault))
-  ),
-  (
-    filter: 'ebur128',
     label: 'target=targetMin',
     bundle: const AudioEffects(
         ebur128: const Ebur128Settings(
@@ -5353,13 +5614,6 @@ const List<ParamCorner> kFilterParamCorners = [
     bundle: const AudioEffects(
         ebur128: const Ebur128Settings(
             enabled: true, target: Ebur128Settings.targetMax))
-  ),
-  (
-    filter: 'ebur128',
-    label: 'true_peak=true_peakDefault',
-    bundle: const AudioEffects(
-        ebur128: const Ebur128Settings(
-            enabled: true, true_peak: Ebur128Settings.true_peakDefault))
   ),
   (
     filter: 'equalizer',
@@ -5797,6 +6051,13 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'haas',
+    label: 'left_delay=left_delayMax',
+    bundle: const AudioEffects(
+        haas: const HaasSettings(
+            enabled: true, left_delay: HaasSettings.left_delayMax))
+  ),
+  (
+    filter: 'haas',
     label: 'left_gain=left_gainMin',
     bundle: const AudioEffects(
         haas: const HaasSettings(
@@ -5892,6 +6153,13 @@ const List<ParamCorner> kFilterParamCorners = [
     bundle: const AudioEffects(
         haas: const HaasSettings(
             enabled: true, right_delay: HaasSettings.right_delayDefault))
+  ),
+  (
+    filter: 'haas',
+    label: 'right_delay=right_delayMax',
+    bundle: const AudioEffects(
+        haas: const HaasSettings(
+            enabled: true, right_delay: HaasSettings.right_delayMax))
   ),
   (
     filter: 'haas',
@@ -7312,6 +7580,14 @@ const List<ParamCorner> kFilterParamCorners = [
   ),
   (
     filter: 'silenceremove',
+    label: 'start_threshold=start_thresholdMax',
+    bundle: const AudioEffects(
+        silenceremove: const SilenceremoveSettings(
+            enabled: true,
+            start_threshold: SilenceremoveSettings.start_thresholdMax))
+  ),
+  (
+    filter: 'silenceremove',
     label: 'stop_periods=stop_periodsMin',
     bundle: const AudioEffects(
         silenceremove: const SilenceremoveSettings(
@@ -7347,6 +7623,14 @@ const List<ParamCorner> kFilterParamCorners = [
         silenceremove: const SilenceremoveSettings(
             enabled: true,
             stop_threshold: SilenceremoveSettings.stop_thresholdDefault))
+  ),
+  (
+    filter: 'silenceremove',
+    label: 'stop_threshold=stop_thresholdMax',
+    bundle: const AudioEffects(
+        silenceremove: const SilenceremoveSettings(
+            enabled: true,
+            stop_threshold: SilenceremoveSettings.stop_thresholdMax))
   ),
   (
     filter: 'speechnorm',

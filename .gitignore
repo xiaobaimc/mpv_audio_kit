@@ -39,8 +39,11 @@ CLAUDE.md
 /scripts/
 /windows/libs/
 /linux/libs/
-/macos/Frameworks/libmpv.xcframework/
-/macos/Frameworks/libmpv_xcframework.zip
-/ios/Frameworks/libmpv.xcframework/
-/ios/Frameworks/libmpv_xcframework.zip
+/macos/mpv_audio_kit/Frameworks/libmpv.xcframework/
+/macos/mpv_audio_kit/Frameworks/libmpv_xcframework.zip
+/ios/mpv_audio_kit/Frameworks/libmpv.xcframework/
+/ios/mpv_audio_kit/Frameworks/libmpv_xcframework.zip
 /android/src/main/jniLibs/
+
+# AI tooling
+graphify-out/

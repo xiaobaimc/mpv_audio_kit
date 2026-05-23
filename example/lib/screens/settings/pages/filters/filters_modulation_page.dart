@@ -3,8 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be
 // found in the LICENSE file.
 //
-// AUTO-GENERATED — do not edit by hand. Regenerate with
-// `python3 scripts/lavfi_codegen/generate_example.py`.
+// AUTO-GENERATED — do not edit by hand.
 
 import 'package:flutter/material.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
@@ -470,6 +469,21 @@ class _FiltersModulationPageState extends State<FiltersModulationPage> {
                     (e) => e.copyWith(aphaser: s.copyWith(speed: v)),
                   ),
                 ),
+                FilterParamDropdown<AphaserType>(
+                  label: 'type',
+                  value: s.type,
+                  defaultValue: AphaserType.triangular,
+                  options: const [
+                    AphaserType.triangular,
+                    AphaserType.t,
+                    AphaserType.sinusoidal,
+                    AphaserType.s,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aphaser: s.copyWith(type: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -543,6 +557,22 @@ class _FiltersModulationPageState extends State<FiltersModulationPage> {
                     (e) => e.copyWith(apulsator: s.copyWith(level_out: v)),
                   ),
                 ),
+                FilterParamDropdown<ApulsatorMode>(
+                  label: 'mode',
+                  value: s.mode,
+                  defaultValue: ApulsatorMode.sine,
+                  options: const [
+                    ApulsatorMode.sine,
+                    ApulsatorMode.triangle,
+                    ApulsatorMode.square,
+                    ApulsatorMode.sawup,
+                    ApulsatorMode.sawdown,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(apulsator: s.copyWith(mode: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'ms',
                   value: s.ms.toDouble(),
@@ -574,6 +604,20 @@ class _FiltersModulationPageState extends State<FiltersModulationPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(apulsator: s.copyWith(offset_r: v)),
+                  ),
+                ),
+                FilterParamDropdown<ApulsatorTiming>(
+                  label: 'timing',
+                  value: s.timing,
+                  defaultValue: ApulsatorTiming.hz,
+                  options: const [
+                    ApulsatorTiming.bpm,
+                    ApulsatorTiming.ms,
+                    ApulsatorTiming.hz,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(apulsator: s.copyWith(timing: v)),
                   ),
                 ),
                 FilterParamSlider(
@@ -608,7 +652,7 @@ class _FiltersModulationPageState extends State<FiltersModulationPage> {
                 FilterParamTextField(
                   label: 'decays',
                   value: s.decays,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(chorus: s.copyWith(decays: v)),
                   ),
@@ -616,7 +660,7 @@ class _FiltersModulationPageState extends State<FiltersModulationPage> {
                 FilterParamTextField(
                   label: 'delays',
                   value: s.delays,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(chorus: s.copyWith(delays: v)),
                   ),
@@ -624,7 +668,7 @@ class _FiltersModulationPageState extends State<FiltersModulationPage> {
                 FilterParamTextField(
                   label: 'depths',
                   value: s.depths,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(chorus: s.copyWith(depths: v)),
                   ),
@@ -654,7 +698,7 @@ class _FiltersModulationPageState extends State<FiltersModulationPage> {
                 FilterParamTextField(
                   label: 'speeds',
                   value: s.speeds,
-                  defaultValue: 'NULL',
+                  defaultValue: '""',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(chorus: s.copyWith(speeds: v)),
                   ),
@@ -776,6 +820,16 @@ class _FiltersModulationPageState extends State<FiltersModulationPage> {
                     (e) => e.copyWith(flanger: s.copyWith(depth: v)),
                   ),
                 ),
+                FilterParamDropdown<FlangerItype>(
+                  label: 'interp',
+                  value: s.interp,
+                  defaultValue: FlangerItype.linear,
+                  options: const [FlangerItype.linear, FlangerItype.quadratic],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(flanger: s.copyWith(interp: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'phase',
                   value: s.phase,
@@ -796,6 +850,21 @@ class _FiltersModulationPageState extends State<FiltersModulationPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(flanger: s.copyWith(regen: v)),
+                  ),
+                ),
+                FilterParamDropdown<FlangerType>(
+                  label: 'shape',
+                  value: s.shape,
+                  defaultValue: FlangerType.sinusoidal,
+                  options: const [
+                    FlangerType.triangular,
+                    FlangerType.t,
+                    FlangerType.sinusoidal,
+                    FlangerType.s,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(flanger: s.copyWith(shape: v)),
                   ),
                 ),
                 FilterParamSlider(
@@ -838,6 +907,22 @@ class _FiltersModulationPageState extends State<FiltersModulationPage> {
                 (e) => e.copyWith(hdcd: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<HdcdAnalyzeMode>(
+                  label: 'analyze_mode',
+                  value: s.analyze_mode,
+                  defaultValue: HdcdAnalyzeMode.off,
+                  options: const [
+                    HdcdAnalyzeMode.off,
+                    HdcdAnalyzeMode.lle,
+                    HdcdAnalyzeMode.pe,
+                    HdcdAnalyzeMode.cdt,
+                    HdcdAnalyzeMode.tgm,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(hdcd: s.copyWith(analyze_mode: v)),
+                  ),
+                ),
                 FilterParamDropdown<HdcdBitsPerSample>(
                   label: 'bits_per_sample',
                   value: s.bits_per_sample,

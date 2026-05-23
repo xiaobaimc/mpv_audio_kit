@@ -3,8 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be
 // found in the LICENSE file.
 //
-// AUTO-GENERATED — do not edit by hand. Regenerate with
-// `python3 scripts/lavfi_codegen/generate_example.py`.
+// AUTO-GENERATED — do not edit by hand.
 
 import 'package:flutter/material.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
@@ -73,6 +72,39 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                   defaultValue: '"re"',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(afftfilt: s.copyWith(real: v)),
+                  ),
+                ),
+                FilterParamDropdown<AfftfiltWinFunc>(
+                  label: 'win_func',
+                  value: s.win_func,
+                  defaultValue: AfftfiltWinFunc.hann,
+                  options: const [
+                    AfftfiltWinFunc.rect,
+                    AfftfiltWinFunc.bartlett,
+                    AfftfiltWinFunc.hann,
+                    AfftfiltWinFunc.hanning,
+                    AfftfiltWinFunc.hamming,
+                    AfftfiltWinFunc.blackman,
+                    AfftfiltWinFunc.welch,
+                    AfftfiltWinFunc.flattop,
+                    AfftfiltWinFunc.bharris,
+                    AfftfiltWinFunc.bnuttall,
+                    AfftfiltWinFunc.bhann,
+                    AfftfiltWinFunc.sine,
+                    AfftfiltWinFunc.nuttall,
+                    AfftfiltWinFunc.lanczos,
+                    AfftfiltWinFunc.gauss,
+                    AfftfiltWinFunc.tukey,
+                    AfftfiltWinFunc.dolph,
+                    AfftfiltWinFunc.cauchy,
+                    AfftfiltWinFunc.parzen,
+                    AfftfiltWinFunc.poisson,
+                    AfftfiltWinFunc.bohman,
+                    AfftfiltWinFunc.kaiser,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afftfilt: s.copyWith(win_func: v)),
                   ),
                 ),
                 FilterParamSlider(
@@ -224,7 +256,7 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                 FilterParamTextField(
                   label: 'p',
                   value: s.p,
-                  defaultValue: '',
+                  defaultValue: '"1+0i 1-0i"',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(aiir: s.copyWith(p: v)),
                   ),
@@ -232,7 +264,7 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                 FilterParamTextField(
                   label: 'poles',
                   value: s.poles,
-                  defaultValue: '',
+                  defaultValue: '"1+0i 1-0i"',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(aiir: s.copyWith(poles: v)),
                   ),
@@ -272,12 +304,28 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                     (e) => e.copyWith(aiir: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamTextField(
+                  label: 'rate',
+                  value: s.rate,
+                  defaultValue: '"25"',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aiir: s.copyWith(rate: v)),
+                  ),
+                ),
                 FilterParamSwitch(
                   label: 'response',
                   value: s.response,
                   defaultValue: false,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(aiir: s.copyWith(response: v)),
+                  ),
+                ),
+                FilterParamTextField(
+                  label: 'size',
+                  value: s.size,
+                  defaultValue: '"hd720"',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aiir: s.copyWith(size: v)),
                   ),
                 ),
                 FilterParamSlider(
@@ -294,7 +342,7 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                 FilterParamTextField(
                   label: 'z',
                   value: s.z,
-                  defaultValue: '',
+                  defaultValue: '"1+0i 1-0i"',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(aiir: s.copyWith(z: v)),
                   ),
@@ -302,7 +350,7 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                 FilterParamTextField(
                   label: 'zeros',
                   value: s.zeros,
-                  defaultValue: '',
+                  defaultValue: '"1+0i 1-0i"',
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(aiir: s.copyWith(zeros: v)),
                   ),
@@ -325,6 +373,98 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                 (e) => e.copyWith(afade: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<AfadeCurve>(
+                  label: 'c',
+                  value: s.c,
+                  defaultValue: AfadeCurve.tri,
+                  options: const [
+                    AfadeCurve.nofade,
+                    AfadeCurve.tri,
+                    AfadeCurve.qsin,
+                    AfadeCurve.esin,
+                    AfadeCurve.hsin,
+                    AfadeCurve.log,
+                    AfadeCurve.ipar,
+                    AfadeCurve.qua,
+                    AfadeCurve.cub,
+                    AfadeCurve.squ,
+                    AfadeCurve.cbr,
+                    AfadeCurve.par,
+                    AfadeCurve.exp,
+                    AfadeCurve.iqsin,
+                    AfadeCurve.ihsin,
+                    AfadeCurve.dese,
+                    AfadeCurve.desi,
+                    AfadeCurve.losi,
+                    AfadeCurve.sinc,
+                    AfadeCurve.isinc,
+                    AfadeCurve.quat,
+                    AfadeCurve.quatr,
+                    AfadeCurve.qsin2,
+                    AfadeCurve.hsin2,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afade: s.copyWith(c: v)),
+                  ),
+                ),
+                FilterParamDropdown<AfadeCurve>(
+                  label: 'curve',
+                  value: s.curve,
+                  defaultValue: AfadeCurve.tri,
+                  options: const [
+                    AfadeCurve.nofade,
+                    AfadeCurve.tri,
+                    AfadeCurve.qsin,
+                    AfadeCurve.esin,
+                    AfadeCurve.hsin,
+                    AfadeCurve.log,
+                    AfadeCurve.ipar,
+                    AfadeCurve.qua,
+                    AfadeCurve.cub,
+                    AfadeCurve.squ,
+                    AfadeCurve.cbr,
+                    AfadeCurve.par,
+                    AfadeCurve.exp,
+                    AfadeCurve.iqsin,
+                    AfadeCurve.ihsin,
+                    AfadeCurve.dese,
+                    AfadeCurve.desi,
+                    AfadeCurve.losi,
+                    AfadeCurve.sinc,
+                    AfadeCurve.isinc,
+                    AfadeCurve.quat,
+                    AfadeCurve.quatr,
+                    AfadeCurve.qsin2,
+                    AfadeCurve.hsin2,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afade: s.copyWith(curve: v)),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'nb_samples',
+                  value: s.nb_samples.toDouble(),
+                  min: 1.0,
+                  max: 9223372036854775807.0,
+                  defaultValue: 44100.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afade: s.copyWith(nb_samples: v.round())),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'ns',
+                  value: s.ns.toDouble(),
+                  min: 1.0,
+                  max: 9223372036854775807.0,
+                  defaultValue: 44100.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afade: s.copyWith(ns: v.round())),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'silence',
                   value: s.silence,
@@ -334,6 +474,29 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(afade: s.copyWith(silence: v)),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'ss',
+                  value: s.ss.toDouble(),
+                  min: 0.0,
+                  max: 9223372036854775807.0,
+                  defaultValue: 0.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afade: s.copyWith(ss: v.round())),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'start_sample',
+                  value: s.start_sample.toDouble(),
+                  min: 0.0,
+                  max: 9223372036854775807.0,
+                  defaultValue: 0.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) =>
+                        e.copyWith(afade: s.copyWith(start_sample: v.round())),
                   ),
                 ),
                 FilterParamDropdown<AfadeType>(
@@ -384,7 +547,41 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
               onToggle: (v) => player.updateAudioEffects(
                 (e) => e.copyWith(apad: s.copyWith(enabled: v)),
               ),
-              params: [],
+              params: [
+                FilterParamSlider(
+                  label: 'packet_size',
+                  value: s.packet_size.toDouble(),
+                  min: 0.0,
+                  max: 2147483647.0,
+                  defaultValue: 4096.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(apad: s.copyWith(packet_size: v.round())),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'pad_len',
+                  value: s.pad_len.toDouble(),
+                  min: -1.0,
+                  max: 9223372036854775807.0,
+                  defaultValue: -1.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(apad: s.copyWith(pad_len: v.round())),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'whole_len',
+                  value: s.whole_len.toDouble(),
+                  min: -1.0,
+                  max: 9223372036854775807.0,
+                  defaultValue: -1.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(apad: s.copyWith(whole_len: v.round())),
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -402,6 +599,33 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                 (e) => e.copyWith(silenceremove: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<SilenceremoveDetection>(
+                  label: 'detection',
+                  value: s.detection,
+                  defaultValue: SilenceremoveDetection.rms,
+                  options: const [
+                    SilenceremoveDetection.avg,
+                    SilenceremoveDetection.rms,
+                    SilenceremoveDetection.peak,
+                    SilenceremoveDetection.median,
+                    SilenceremoveDetection.ptp,
+                    SilenceremoveDetection.dev,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(silenceremove: s.copyWith(detection: v)),
+                  ),
+                ),
+                FilterParamDropdown<SilenceremoveMode>(
+                  label: 'start_mode',
+                  value: s.start_mode,
+                  defaultValue: SilenceremoveMode.any,
+                  options: const [SilenceremoveMode.any, SilenceremoveMode.all],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(silenceremove: s.copyWith(start_mode: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'start_periods',
                   value: s.start_periods.toDouble(),
@@ -416,6 +640,29 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                   ),
                 ),
                 FilterParamSlider(
+                  label: 'start_threshold',
+                  value: s.start_threshold,
+                  min: 0.0,
+                  max: 1.7976931348623157e+308,
+                  defaultValue: 0.0,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(
+                      silenceremove: s.copyWith(start_threshold: v),
+                    ),
+                  ),
+                ),
+                FilterParamDropdown<SilenceremoveMode>(
+                  label: 'stop_mode',
+                  value: s.stop_mode,
+                  defaultValue: SilenceremoveMode.all,
+                  options: const [SilenceremoveMode.any, SilenceremoveMode.all],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(silenceremove: s.copyWith(stop_mode: v)),
+                  ),
+                ),
+                FilterParamSlider(
                   label: 'stop_periods',
                   value: s.stop_periods.toDouble(),
                   min: -9000.0,
@@ -426,6 +673,32 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
                     (e) => e.copyWith(
                       silenceremove: s.copyWith(stop_periods: v.round()),
                     ),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'stop_threshold',
+                  value: s.stop_threshold,
+                  min: 0.0,
+                  max: 1.7976931348623157e+308,
+                  defaultValue: 0.0,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(
+                      silenceremove: s.copyWith(stop_threshold: v),
+                    ),
+                  ),
+                ),
+                FilterParamDropdown<SilenceremoveTimestamp>(
+                  label: 'timestamp',
+                  value: s.timestamp,
+                  defaultValue: SilenceremoveTimestamp.write,
+                  options: const [
+                    SilenceremoveTimestamp.write,
+                    SilenceremoveTimestamp.copy,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(silenceremove: s.copyWith(timestamp: v)),
                   ),
                 ),
               ],
@@ -445,7 +718,32 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
               onToggle: (v) => player.updateAudioEffects(
                 (e) => e.copyWith(aeval: s.copyWith(enabled: v)),
               ),
-              params: [],
+              params: [
+                FilterParamTextField(
+                  label: 'c',
+                  value: s.c,
+                  defaultValue: '""',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aeval: s.copyWith(c: v)),
+                  ),
+                ),
+                FilterParamTextField(
+                  label: 'channel_layout',
+                  value: s.channel_layout,
+                  defaultValue: '""',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aeval: s.copyWith(channel_layout: v)),
+                  ),
+                ),
+                FilterParamTextField(
+                  label: 'exprs',
+                  value: s.exprs,
+                  defaultValue: '""',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aeval: s.copyWith(exprs: v)),
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -462,7 +760,56 @@ class _FiltersUtilityPageState extends State<FiltersUtilityPage> {
               onToggle: (v) => player.updateAudioEffects(
                 (e) => e.copyWith(aformat: s.copyWith(enabled: v)),
               ),
-              params: [],
+              params: [
+                FilterParamTextField(
+                  label: 'channel_layouts',
+                  value: s.channel_layouts,
+                  defaultValue: '',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aformat: s.copyWith(channel_layouts: v)),
+                  ),
+                ),
+                FilterParamTextField(
+                  label: 'cl',
+                  value: s.cl,
+                  defaultValue: '',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aformat: s.copyWith(cl: v)),
+                  ),
+                ),
+                FilterParamTextField(
+                  label: 'f',
+                  value: s.f,
+                  defaultValue: '',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aformat: s.copyWith(f: v)),
+                  ),
+                ),
+                FilterParamTextField(
+                  label: 'r',
+                  value: s.r,
+                  defaultValue: '',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aformat: s.copyWith(r: v)),
+                  ),
+                ),
+                FilterParamTextField(
+                  label: 'sample_fmts',
+                  value: s.sample_fmts,
+                  defaultValue: '',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aformat: s.copyWith(sample_fmts: v)),
+                  ),
+                ),
+                FilterParamTextField(
+                  label: 'sample_rates',
+                  value: s.sample_rates,
+                  defaultValue: '',
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(aformat: s.copyWith(sample_rates: v)),
+                  ),
+                ),
+              ],
             );
           },
         ),

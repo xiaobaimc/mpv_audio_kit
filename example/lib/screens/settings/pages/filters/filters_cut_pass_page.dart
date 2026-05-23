@@ -3,8 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be
 // found in the LICENSE file.
 //
-// AUTO-GENERATED — do not edit by hand. Regenerate with
-// `python3 scripts/lavfi_codegen/generate_example.py`.
+// AUTO-GENERATED — do not edit by hand.
 
 import 'package:flutter/material.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
@@ -48,6 +47,24 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                 (e) => e.copyWith(allpass: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<AllpassTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: AllpassTransformType.di,
+                  options: const [
+                    AllpassTransformType.di,
+                    AllpassTransformType.dii,
+                    AllpassTransformType.tdi,
+                    AllpassTransformType.tdii,
+                    AllpassTransformType.latt,
+                    AllpassTransformType.svf,
+                    AllpassTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(allpass: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamTextField(
                   label: 'c',
                   value: s.c,
@@ -178,6 +195,40 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                     (e) => e.copyWith(allpass: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<AllpassWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: AllpassWidthType.q,
+                  options: const [
+                    AllpassWidthType.h,
+                    AllpassWidthType.q,
+                    AllpassWidthType.o,
+                    AllpassWidthType.s,
+                    AllpassWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(allpass: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<AllpassTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: AllpassTransformType.di,
+                  options: const [
+                    AllpassTransformType.di,
+                    AllpassTransformType.dii,
+                    AllpassTransformType.tdi,
+                    AllpassTransformType.tdii,
+                    AllpassTransformType.latt,
+                    AllpassTransformType.svf,
+                    AllpassTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(allpass: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -198,6 +249,22 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(allpass: s.copyWith(width: v)),
+                  ),
+                ),
+                FilterParamDropdown<AllpassWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: AllpassWidthType.q,
+                  options: const [
+                    AllpassWidthType.h,
+                    AllpassWidthType.q,
+                    AllpassWidthType.o,
+                    AllpassWidthType.s,
+                    AllpassWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(allpass: s.copyWith(width_type: v)),
                   ),
                 ),
               ],
@@ -444,6 +511,24 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                 (e) => e.copyWith(bandpass: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<BandpassTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: BandpassTransformType.di,
+                  options: const [
+                    BandpassTransformType.di,
+                    BandpassTransformType.dii,
+                    BandpassTransformType.tdi,
+                    BandpassTransformType.tdii,
+                    BandpassTransformType.latt,
+                    BandpassTransformType.svf,
+                    BandpassTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bandpass: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -583,6 +668,40 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                     (e) => e.copyWith(bandpass: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<BandpassWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: BandpassWidthType.q,
+                  options: const [
+                    BandpassWidthType.h,
+                    BandpassWidthType.q,
+                    BandpassWidthType.o,
+                    BandpassWidthType.s,
+                    BandpassWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bandpass: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<BandpassTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: BandpassTransformType.di,
+                  options: const [
+                    BandpassTransformType.di,
+                    BandpassTransformType.dii,
+                    BandpassTransformType.tdi,
+                    BandpassTransformType.tdii,
+                    BandpassTransformType.latt,
+                    BandpassTransformType.svf,
+                    BandpassTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bandpass: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -605,6 +724,22 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                     (e) => e.copyWith(bandpass: s.copyWith(width: v)),
                   ),
                 ),
+                FilterParamDropdown<BandpassWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: BandpassWidthType.q,
+                  options: const [
+                    BandpassWidthType.h,
+                    BandpassWidthType.q,
+                    BandpassWidthType.o,
+                    BandpassWidthType.s,
+                    BandpassWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bandpass: s.copyWith(width_type: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -623,6 +758,24 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                 (e) => e.copyWith(bandreject: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<BandrejectTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: BandrejectTransformType.di,
+                  options: const [
+                    BandrejectTransformType.di,
+                    BandrejectTransformType.dii,
+                    BandrejectTransformType.tdi,
+                    BandrejectTransformType.tdii,
+                    BandrejectTransformType.latt,
+                    BandrejectTransformType.svf,
+                    BandrejectTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bandreject: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -755,6 +908,40 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                     (e) => e.copyWith(bandreject: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<BandrejectWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: BandrejectWidthType.q,
+                  options: const [
+                    BandrejectWidthType.h,
+                    BandrejectWidthType.q,
+                    BandrejectWidthType.o,
+                    BandrejectWidthType.s,
+                    BandrejectWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bandreject: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<BandrejectTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: BandrejectTransformType.di,
+                  options: const [
+                    BandrejectTransformType.di,
+                    BandrejectTransformType.dii,
+                    BandrejectTransformType.tdi,
+                    BandrejectTransformType.tdii,
+                    BandrejectTransformType.latt,
+                    BandrejectTransformType.svf,
+                    BandrejectTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bandreject: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -777,6 +964,22 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                     (e) => e.copyWith(bandreject: s.copyWith(width: v)),
                   ),
                 ),
+                FilterParamDropdown<BandrejectWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: BandrejectWidthType.q,
+                  options: const [
+                    BandrejectWidthType.h,
+                    BandrejectWidthType.q,
+                    BandrejectWidthType.o,
+                    BandrejectWidthType.s,
+                    BandrejectWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(bandreject: s.copyWith(width_type: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -795,6 +998,24 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                 (e) => e.copyWith(highpass: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<HighpassTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: HighpassTransformType.di,
+                  options: const [
+                    HighpassTransformType.di,
+                    HighpassTransformType.dii,
+                    HighpassTransformType.tdi,
+                    HighpassTransformType.tdii,
+                    HighpassTransformType.latt,
+                    HighpassTransformType.svf,
+                    HighpassTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(highpass: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -948,6 +1169,40 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                     (e) => e.copyWith(highpass: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<HighpassWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: HighpassWidthType.q,
+                  options: const [
+                    HighpassWidthType.h,
+                    HighpassWidthType.q,
+                    HighpassWidthType.o,
+                    HighpassWidthType.s,
+                    HighpassWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(highpass: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<HighpassTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: HighpassTransformType.di,
+                  options: const [
+                    HighpassTransformType.di,
+                    HighpassTransformType.dii,
+                    HighpassTransformType.tdi,
+                    HighpassTransformType.tdii,
+                    HighpassTransformType.latt,
+                    HighpassTransformType.svf,
+                    HighpassTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(highpass: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -970,6 +1225,22 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                     (e) => e.copyWith(highpass: s.copyWith(width: v)),
                   ),
                 ),
+                FilterParamDropdown<HighpassWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: HighpassWidthType.q,
+                  options: const [
+                    HighpassWidthType.h,
+                    HighpassWidthType.q,
+                    HighpassWidthType.o,
+                    HighpassWidthType.s,
+                    HighpassWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(highpass: s.copyWith(width_type: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -988,6 +1259,24 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                 (e) => e.copyWith(lowpass: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<LowpassTransformType>(
+                  label: 'a',
+                  value: s.a,
+                  defaultValue: LowpassTransformType.di,
+                  options: const [
+                    LowpassTransformType.di,
+                    LowpassTransformType.dii,
+                    LowpassTransformType.tdi,
+                    LowpassTransformType.tdii,
+                    LowpassTransformType.latt,
+                    LowpassTransformType.svf,
+                    LowpassTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(lowpass: s.copyWith(a: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'b',
                   value: s.b.toDouble(),
@@ -1141,6 +1430,40 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                     (e) => e.copyWith(lowpass: s.copyWith(r: v)),
                   ),
                 ),
+                FilterParamDropdown<LowpassWidthType>(
+                  label: 't',
+                  value: s.t,
+                  defaultValue: LowpassWidthType.q,
+                  options: const [
+                    LowpassWidthType.h,
+                    LowpassWidthType.q,
+                    LowpassWidthType.o,
+                    LowpassWidthType.s,
+                    LowpassWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(lowpass: s.copyWith(t: v)),
+                  ),
+                ),
+                FilterParamDropdown<LowpassTransformType>(
+                  label: 'transform',
+                  value: s.transform,
+                  defaultValue: LowpassTransformType.di,
+                  options: const [
+                    LowpassTransformType.di,
+                    LowpassTransformType.dii,
+                    LowpassTransformType.tdi,
+                    LowpassTransformType.tdii,
+                    LowpassTransformType.latt,
+                    LowpassTransformType.svf,
+                    LowpassTransformType.zdf,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(lowpass: s.copyWith(transform: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'w',
                   value: s.w,
@@ -1161,6 +1484,22 @@ class _FiltersCutPassPageState extends State<FiltersCutPassPage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(lowpass: s.copyWith(width: v)),
+                  ),
+                ),
+                FilterParamDropdown<LowpassWidthType>(
+                  label: 'width_type',
+                  value: s.width_type,
+                  defaultValue: LowpassWidthType.q,
+                  options: const [
+                    LowpassWidthType.h,
+                    LowpassWidthType.q,
+                    LowpassWidthType.o,
+                    LowpassWidthType.s,
+                    LowpassWidthType.k,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(lowpass: s.copyWith(width_type: v)),
                   ),
                 ),
               ],

@@ -3,8 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be
 // found in the LICENSE file.
 //
-// AUTO-GENERATED — do not edit by hand. Regenerate with
-// `python3 scripts/lavfi_codegen/generate_example.py`.
+// AUTO-GENERATED — do not edit by hand.
 
 import 'package:flutter/material.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
@@ -59,6 +58,28 @@ class _FiltersPitchTimePageState extends State<FiltersPitchTimePage> {
                     (e) => e.copyWith(afreqshift: s.copyWith(level: v)),
                   ),
                 ),
+                FilterParamSlider(
+                  label: 'order',
+                  value: s.order.toDouble(),
+                  min: 1.0,
+                  max: 16.0,
+                  defaultValue: 8.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afreqshift: s.copyWith(order: v.round())),
+                  ),
+                ),
+                FilterParamSlider(
+                  label: 'shift',
+                  value: s.shift,
+                  min: -2147483647.0,
+                  max: 2147483647.0,
+                  defaultValue: 0.0,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(afreqshift: s.copyWith(shift: v)),
+                  ),
+                ),
               ],
             );
           },
@@ -89,6 +110,18 @@ class _FiltersPitchTimePageState extends State<FiltersPitchTimePage> {
                   ),
                 ),
                 FilterParamSlider(
+                  label: 'order',
+                  value: s.order.toDouble(),
+                  min: 1.0,
+                  max: 16.0,
+                  defaultValue: 8.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) =>
+                        e.copyWith(aphaseshift: s.copyWith(order: v.round())),
+                  ),
+                ),
+                FilterParamSlider(
                   label: 'shift',
                   value: s.shift,
                   min: -1.0,
@@ -116,7 +149,21 @@ class _FiltersPitchTimePageState extends State<FiltersPitchTimePage> {
               onToggle: (v) => player.updateAudioEffects(
                 (e) => e.copyWith(aresample: s.copyWith(enabled: v)),
               ),
-              params: [],
+              params: [
+                FilterParamSlider(
+                  label: 'sample_rate',
+                  value: s.sample_rate.toDouble(),
+                  min: 0.0,
+                  max: 2147483647.0,
+                  defaultValue: 0.toDouble(),
+                  labelBuilder: (v) => v.toStringAsFixed(0),
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(
+                      aresample: s.copyWith(sample_rate: v.round()),
+                    ),
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -133,7 +180,19 @@ class _FiltersPitchTimePageState extends State<FiltersPitchTimePage> {
               onToggle: (v) => player.updateAudioEffects(
                 (e) => e.copyWith(atempo: s.copyWith(enabled: v)),
               ),
-              params: [],
+              params: [
+                FilterParamSlider(
+                  label: 'tempo',
+                  value: s.tempo,
+                  min: 0.5,
+                  max: 100.0,
+                  defaultValue: 1.0,
+                  labelBuilder: _f,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(atempo: s.copyWith(tempo: v)),
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -151,6 +210,59 @@ class _FiltersPitchTimePageState extends State<FiltersPitchTimePage> {
                 (e) => e.copyWith(rubberband: s.copyWith(enabled: v)),
               ),
               params: [
+                FilterParamDropdown<RubberbandChannels>(
+                  label: 'channels',
+                  value: s.channels,
+                  defaultValue: RubberbandChannels.apart,
+                  options: const [
+                    RubberbandChannels.apart,
+                    RubberbandChannels.together,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(rubberband: s.copyWith(channels: v)),
+                  ),
+                ),
+                FilterParamDropdown<RubberbandDetector>(
+                  label: 'detector',
+                  value: s.detector,
+                  defaultValue: RubberbandDetector.compound,
+                  options: const [
+                    RubberbandDetector.compound,
+                    RubberbandDetector.percussive,
+                    RubberbandDetector.soft,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(rubberband: s.copyWith(detector: v)),
+                  ),
+                ),
+                FilterParamDropdown<RubberbandFormant>(
+                  label: 'formant',
+                  value: s.formant,
+                  defaultValue: RubberbandFormant.shifted,
+                  options: const [
+                    RubberbandFormant.shifted,
+                    RubberbandFormant.preserved,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(rubberband: s.copyWith(formant: v)),
+                  ),
+                ),
+                FilterParamDropdown<RubberbandPhase>(
+                  label: 'phase',
+                  value: s.phase,
+                  defaultValue: RubberbandPhase.laminar,
+                  options: const [
+                    RubberbandPhase.laminar,
+                    RubberbandPhase.independent,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(rubberband: s.copyWith(phase: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'pitch',
                   value: s.pitch,
@@ -162,6 +274,33 @@ class _FiltersPitchTimePageState extends State<FiltersPitchTimePage> {
                     (e) => e.copyWith(rubberband: s.copyWith(pitch: v)),
                   ),
                 ),
+                FilterParamDropdown<RubberbandPitch>(
+                  label: 'pitchq',
+                  value: s.pitchq,
+                  defaultValue: RubberbandPitch.quality,
+                  options: const [
+                    RubberbandPitch.quality,
+                    RubberbandPitch.speed,
+                    RubberbandPitch.consistency,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(rubberband: s.copyWith(pitchq: v)),
+                  ),
+                ),
+                FilterParamDropdown<RubberbandSmoothing>(
+                  label: 'smoothing',
+                  value: s.smoothing,
+                  defaultValue: RubberbandSmoothing.off,
+                  options: const [
+                    RubberbandSmoothing.off,
+                    RubberbandSmoothing.on_,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(rubberband: s.copyWith(smoothing: v)),
+                  ),
+                ),
                 FilterParamSlider(
                   label: 'tempo',
                   value: s.tempo,
@@ -171,6 +310,34 @@ class _FiltersPitchTimePageState extends State<FiltersPitchTimePage> {
                   labelBuilder: _f,
                   onChanged: (v) => player.updateAudioEffects(
                     (e) => e.copyWith(rubberband: s.copyWith(tempo: v)),
+                  ),
+                ),
+                FilterParamDropdown<RubberbandTransients>(
+                  label: 'transients',
+                  value: s.transients,
+                  defaultValue: RubberbandTransients.crisp,
+                  options: const [
+                    RubberbandTransients.crisp,
+                    RubberbandTransients.mixed,
+                    RubberbandTransients.smooth,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(rubberband: s.copyWith(transients: v)),
+                  ),
+                ),
+                FilterParamDropdown<RubberbandWindow>(
+                  label: 'window',
+                  value: s.window,
+                  defaultValue: RubberbandWindow.standard,
+                  options: const [
+                    RubberbandWindow.standard,
+                    RubberbandWindow.short,
+                    RubberbandWindow.long,
+                  ],
+                  optionLabel: (o) => o.mpvValue,
+                  onChanged: (v) => player.updateAudioEffects(
+                    (e) => e.copyWith(rubberband: s.copyWith(window: v)),
                   ),
                 ),
               ],
