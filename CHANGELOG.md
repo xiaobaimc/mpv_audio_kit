@@ -1,3 +1,8 @@
+## [0.2.3] - 25-05-2026
+
+### Docs
+- Branding realignment with the rest of the libraries.
+
 ## [0.2.2] - 23-05-2026
 
 ### Added

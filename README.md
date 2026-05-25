@@ -33,7 +33,7 @@ Many existing Flutter audio libraries are either built on an old version of mpv 
 <td valign="middle"><b>Plex</b><br>transcoding in this case requires a <code>/decision</code> call before each stream. Plex rejects multiple parallel requests when creating playlists, so instead of relying to a local proxy server, the <code>on_load</code> hook method resolves <code>.m3u8</code> or <code>.mpd</code> (DASH) URLs lazily.</td>
 </tr>
 <tr>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/wrench.png" width="32" alt=""></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/wrench.png" width="32" alt=""></td>
 <td valign="middle"><b>Total control</b><br>this library doesn't limit features; it exposes the native engine so you can tune buffers, network timeouts, DSP filters and play with ffmpeg exactly how you want.</td>
 </tr>
 </table>
@@ -46,7 +46,7 @@ Add `mpv_audio_kit` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mpv_audio_kit: ^0.2.2
+  mpv_audio_kit: ^0.2.3
 ```
 
 ### ⚠️ 0.1.x is a big release!
@@ -260,51 +260,51 @@ The following images demonstrate the example app included in the `example/` dire
 
 <table>
 <tr>
-<td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/zap.png" width="32"></td>
+<td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/zap.png" width="32"></td>
 <td valign="middle" width="45%"><b>Non-blocking</b><br>mpv events run in a background isolate; the UI thread stays free.</td>
-<td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/shield-check.png" width="32"></td>
+<td valign="middle" width="48"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/shield-check.png" width="32"></td>
 <td valign="middle" width="45%"><b>Type-safe API</b><br>typed enums, sealed selectors, <code>*Settings</code> bundles. No stringly-typed setters.</td>
 </tr>
 <tr>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/activity.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/activity.png" width="32"></td>
 <td valign="middle"><b>Reactive state</b><br>synchronous <a href="#913-complete-state-snapshot"><code>state</code></a> snapshot, <a href="#9-state-and-streams">90+ observable streams</a> covering every mpv property.</td>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/music.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/music.png" width="32"></td>
 <td valign="middle"><b>Gapless playback</b><br>seamless track transitions with an observable <a href="#911-prefetch-lifecycle-stream">prefetch lifecycle</a>.</td>
 </tr>
 <tr>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/sliders-horizontal.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/sliders-horizontal.png" width="32"></td>
 <td valign="middle"><b>DSP pipeline</b><br>one <a href="#5-audio-quality-and-dsp"><code>AudioEffects</code></a> bundle covering 18-band graphic EQ, compressor, loudness, pitch and tempo, bass and treble, stereo width, headphone crossfeed, silence trim, plus any custom <code>--af</code> filter.</td>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/audio-lines.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/audio-lines.png" width="32"></td>
 <td valign="middle"><b>Visualizer</b><br>real-time <a href="#13-visualizer-waveform-and-spectrum">FFT spectrum + raw PCM streams</a> with log-spaced bands and asymmetric smoothing.</td>
 </tr>
 <tr>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/scale.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/scale.png" width="32"></td>
 <td valign="middle"><b>ReplayGain</b><br>track and album normalization, preamp, fallback gain.</td>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/list-plus.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/list-plus.png" width="32"></td>
 <td valign="middle"><b>Dynamic playlist</b><br>add, remove, move, replace mid-playback; <a href="#36-chapter-navigation">chapters</a> and <a href="#43-a-b-loop">A-B loop</a>.</td>
 </tr>
 <tr>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/layers.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/layers.png" width="32"></td>
 <td valign="middle"><b>Multi-track audio</b><br>typed <a href="#67-audio-track-selection">track selection</a> for multilingual containers (MKV, MP4) with codec, language, and gain metadata per track.</td>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/cpu.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/cpu.png" width="32"></td>
 <td valign="middle"><b>Hardware control</b><br><a href="#62-exclusive-mode">exclusive mode</a>, <a href="#63-device-selection">device selection</a>, <a href="#64-output-format">bit-perfect sample-rate and format</a>, <a href="#65-spdif-passthrough">S/PDIF passthrough</a>.</td>
 </tr>
 <tr>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/tag.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/tag.png" width="32"></td>
 <td valign="middle"><b>Metadata and cover art</b><br><a href="#82-cover-art">embedded artwork</a> as raw bytes plus a Flutter <a href="#82-cover-art"><code>ImageProvider</code></a> helper, and <a href="#81-metadata-tags">tags</a>.</td>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/globe.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/globe.png" width="32"></td>
 <td valign="middle"><b>Network streams</b><br>HLS, DASH, SMB and HTTP/HTTPS.</td>
 </tr>
 <tr>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/package.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/package.png" width="32"></td>
 <td valign="middle"><b>Cache control</b><br><a href="#71-cache-configuration"><code>CacheSettings</code></a> bundle for memory cache, disk overflow, pause-on-empty.</td>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/webhook.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/webhook.png" width="32"></td>
 <td valign="middle"><b>Hooks</b><br>intercept the file-loading pipeline (also during <a href="#12-hooks">prefetch</a>) to resolve URLs, redirect, or inject headers.</td>
 </tr>
 <tr>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/triangle-alert.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/triangle-alert.png" width="32"></td>
 <td valign="middle"><b>Typed errors</b><br>sealed <a href="#111-typed-error-stream"><code>MpvPlayerError</code></a> hierarchy plus dedicated sinks for engine errors, end-file events, AO failures, and logs.</td>
-<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/features/terminal.png" width="32"></td>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/terminal.png" width="32"></td>
 <td valign="middle"><b>Raw access</b><br>read or write any mpv property or command; failures surface as typed <a href="#10-raw-api"><code>MpvException</code></a>.</td>
 </tr>
 </table>

@@ -1,6 +1,6 @@
 name: mpv_audio_kit
-description: "Flutter audio player built on top of libmpv. Supports audio filters, pitch control, equalizer, and all mpv audio features. Targets macOS, Windows, Linux, iOS and Android."
-version: 0.2.2
+description: Dart audio player built on mpv. Supports audio filters, equalizer, visualizer, waveform and more. Targets macOS, Windows, Linux, iOS and Android.
+version: 0.2.3
 homepage: https://github.com/ales-drnz/mpv_audio_kit
 repository: https://github.com/ales-drnz/mpv_audio_kit
 issue_tracker: https://github.com/ales-drnz/mpv_audio_kit/issues
@@ -22,17 +22,17 @@ platforms:
 screenshots:
   - description: 'The mpv_audio_kit package logo.'
     path: imgs/mpv_audio_kit.png
-  - description: 'Desktop demo app: the audio player with a waveform seekbar and a live mpv log console.'
+  - description: 'Audio player with a waveform seekbar and a live mpv log console.'
     path: imgs/desktop_player_console.gif
-  - description: 'Desktop demo app: the settings grid exposing every mpv audio subsystem.'
+  - description: 'Settings grid exposing every mpv audio subsystem.'
     path: imgs/desktop_settings_grid.png
-  - description: 'Mobile demo app: the now-playing screen with cover art and a waveform seekbar.'
+  - description: 'Now-playing screen with cover art and a waveform seekbar.'
     path: imgs/mobile_player.png
-  - description: 'Mobile demo app: the playlist queue screen.'
+  - description: 'Playlist queue screen.'
     path: imgs/mobile_queue.png
-  - description: 'Mobile demo app: the DSP audio-effects screen.'
+  - description: 'DSP audio-effects screen.'
     path: imgs/mobile_filters.png
-  - description: 'Mobile demo app: the audio hardware and output routing screen.'
+  - description: 'Audio hardware and output routing screen.'
     path: imgs/mobile_audio_hardware.png
 
 environment:
