@@ -1,0 +1,898 @@
+// Copyright © 2026 & onwards, Alessandro Di Ronza <ales.drnz@gmail.com>.
+// All rights reserved.
+// Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
+
+#if os(iOS)
+import AVFoundation
+import Flutter
+import UIKit
+
+private typealias PlatformImage = UIImage
+#elseif os(macOS)
+import AppKit
+import FlutterMacOS
+
+private typealias PlatformImage = NSImage
+#endif
+
+import Foundation
+import MediaPlayer
+
+/// Shared Apple (iOS + macOS) bridge: publishes the Dart-side `Player`
+/// to the OS Now Playing surface (lockscreen / Control Center / CarPlay)
+/// and forwards `MPRemoteCommandCenter` taps back to Dart. Symlinked
+/// into both platform packages — one source of truth.
+///
+/// A renderer, not a state machine: Dart owns playback truth and pushes
+/// resolved snapshots; each push reassigns a fresh `nowPlayingInfo`. The
+/// OS extrapolates the scrubber from `(elapsed, rate)`, and Dart hides
+/// mpv's transient seek-pause, so there's nothing to correlate or time
+/// here. Load-bearing details:
+///
+/// - **macOS needs `playbackState`** on every publish, or the app never
+///   appears in Control Center (iOS infers it from the audio session).
+/// - **Full-dict writes**, never read-modify-write — the system value
+///   races across notification handlers.
+/// - **Commands installed once** on the `MPRemoteCommandCenter` singleton
+///   (static targets + weak `currentInstance`); re-adding per track is
+///   the classic double-fire bug.
+/// - **Scrub freeze**: publish the target with `rate = 0` so the slider
+///   pins there while the engine seeks; cleared by the next `updatePlayback`.
+/// - **iOS only**: activate `AVAudioSession` `.playback` (needed for
+///   background + Now Playing) and react to interruptions per the
+///   consumer's `interruptionPolicy`; headphone unplug always pauses
+///   (consumer must declare `UIBackgroundModes: audio`). No-op on macOS.
+public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
+  private static let methodChannelName = "mpv_audio_kit/media_session"
+  private static let eventChannelName = "mpv_audio_kit/media_session/commands"
+
+  // Default skip interval when the consumer doesn't override
+  // `fastForwardInterval` / `rewindInterval`. 15s matches Apple Podcasts.
+  private static let defaultSkipIntervalSeconds: TimeInterval = 15
+  // Largest retained artwork edge. The request closure downscales on
+  // demand, so this caps the cached bitmap, not what the OS can ask for.
+  private static let artworkBoundsSide: CGFloat = 600
+
+  // ── Process-singleton command-target storage (installed once) ──────
+  private static var sharedCommandsInstalled = false
+  private static var sharedCommandTargets: [(MPRemoteCommand, Any)] = []
+  // The instance the static handlers route to. Weak so a deallocated
+  // plugin clears it automatically (handlers then no-op).
+  private static weak var currentInstance: MediaSessionPlugin?
+
+  // ── State (main-queue only) ─────────────────────────────────────────
+  // `internal` (not private) so the in-tree headless test driver under
+  // `test/media_session/darwin/` can assert against it directly.
+
+  internal var enabled = false
+  internal var currentConfig: [String: Any] = [:]
+  internal var currentMetadata: [String: Any] = [:]
+  internal var currentPlayback: [String: Any] = [:]
+
+  // Scrub freeze: non-nil ⇒ the slider is pinned at this elapsed with
+  // rate 0. Set in `handleScrub`, cleared by the next `updatePlayback`
+  // (or by `refreshSeekableGate` when the source becomes non-seekable).
+  internal var frozenElapsed: TimeInterval?
+
+  // Artwork cache: the cache key (bytes identity) + the
+  // `MPMediaItemArtwork` wrapper. The wrapper's request closure captures
+  // and downscales the decoded image on demand, so the dedup reference
+  // check keeps matching while the bytes are unchanged — without
+  // retaining a second copy of the bitmap.
+  internal var artworkCacheKey: Data?
+  internal var artworkCacheObject: MPMediaItemArtwork?
+
+  // Last published dict + state, for the dedup check in `publishNowPlaying`.
+  internal var lastPublishedInfo: [String: Any]?
+  internal var lastPublishedPlaybackState: MPNowPlayingPlaybackState = .unknown
+  // Count of non-deduped publishes — used by the test driver to assert
+  // that redundant pushes coalesce.
+  internal var publishCount: Int = 0
+
+  #if os(iOS)
+  private var audioSessionWired = false
+  #endif
+
+  private var eventSink: FlutterEventSink?
+
+  deinit {
+    // Safety net for the case where the instance is released without
+    // disable() running: selector-based NotificationCenter observers are
+    // NOT auto-removed, so drop them here so a later interruption /
+    // route-change notification can't dispatch to freed memory. A no-op
+    // when nothing was registered (incl. macOS, which never wires them).
+    NotificationCenter.default.removeObserver(self)
+  }
+
+  public static func register(with registrar: FlutterPluginRegistrar) {
+    let instance = MediaSessionPlugin()
+
+    #if os(iOS)
+    let messenger = registrar.messenger()
+    #elseif os(macOS)
+    let messenger = registrar.messenger
+    #endif
+
+    let methodChannel = FlutterMethodChannel(
+      name: methodChannelName,
+      binaryMessenger: messenger)
+    registrar.addMethodCallDelegate(instance, channel: methodChannel)
+
+    let eventChannel = FlutterEventChannel(
+      name: eventChannelName,
+      binaryMessenger: messenger)
+    eventChannel.setStreamHandler(instance)
+  }
+
+  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    switch call.method {
+    case "enable":
+      guard let args = call.arguments as? [String: Any] else {
+        result(invalidArgs("enable")); return
+      }
+      onMain { self.enable(args: args) }
+      result(nil)
+
+    case "updateConfig":
+      guard let cfg = call.arguments as? [String: Any] else {
+        result(invalidArgs("updateConfig")); return
+      }
+      onMain {
+        self.currentConfig = cfg
+        if self.enabled {
+          self.configureCommands()
+          #if os(iOS)
+          self.applyAudioSessionConfig()
+          #endif
+        }
+      }
+      result(nil)
+
+    case "updateMetadata":
+      guard let meta = call.arguments as? [String: Any] else {
+        result(invalidArgs("updateMetadata")); return
+      }
+      onMain {
+        self.currentMetadata = meta
+        if self.enabled { self.publishNowPlaying() }
+      }
+      result(nil)
+
+    case "updatePlayback":
+      guard let pb = call.arguments as? [String: Any] else {
+        result(invalidArgs("updatePlayback")); return
+      }
+      onMain {
+        self.currentPlayback = pb
+        // Release the scrub freeze only once the engine actually reaches
+        // the frozen target. A routine push (loop / shuffle / rate) that
+        // fires while a seek is still in flight carries the stale pre-seek
+        // position; clearing the freeze there would snap the slider back
+        // to that stale value — the exact glitch the freeze prevents.
+        let landedOnFrozen: Bool
+        if let frozen = self.frozenElapsed,
+           let posMs = pb["positionMs"] as? Int
+        {
+          landedOnFrozen = abs(Double(posMs) / 1000.0 - frozen) <= 1.0
+        } else {
+          landedOnFrozen = true  // no active freeze (or no position) to hold
+        }
+        if landedOnFrozen { self.frozenElapsed = nil }
+        if self.enabled {
+          self.publishNowPlaying()
+          // `seekable` can flip mid-stream (HLS sliding window, live →
+          // DVR). Re-evaluate the scrubber gate.
+          self.refreshSeekableGate()
+        }
+      }
+      result(nil)
+
+    case "disable":
+      onMain { self.disable() }
+      result(nil)
+
+    case "debugNowPlayingInfo":
+      // Test seam: returns the OS-visible Now Playing snapshot so the
+      // `test_app` integration test can assert against the REAL
+      // `MPNowPlayingInfoCenter` from the running app. Not part of the
+      // public Dart API.
+      onMain { result(self.debugNowPlayingSnapshot()) }
+
+    default:
+      result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func invalidArgs(_ method: String) -> FlutterError {
+    FlutterError(
+      code: "INVALID_ARGS",
+      message: "\(method) requires a Map payload",
+      details: nil)
+  }
+
+  // ── Enable / Disable ──────────────────────────────────────────────
+
+  private func enable(args: [String: Any]) {
+    dispatchPrecondition(condition: .onQueue(.main))
+    if let cfg = args["config"] as? [String: Any] { currentConfig = cfg }
+    if let meta = args["metadata"] as? [String: Any] { currentMetadata = meta }
+    if let pb = args["playback"] as? [String: Any] { currentPlayback = pb }
+
+    enabled = true
+    // Re-point the static handlers at this instance (engine restart
+    // safe). installCommandTargetsIfNeeded only installs once.
+    MediaSessionPlugin.currentInstance = self
+    installCommandTargetsIfNeeded()
+    configureCommands()
+    #if os(iOS)
+    applyAudioSessionConfig()
+    #endif
+    publishNowPlaying()
+  }
+
+  private func disable() {
+    dispatchPrecondition(condition: .onQueue(.main))
+    enabled = false
+
+    // `.stopped` BEFORE `nil` notifies the system the publisher is
+    // retiring, so the Now Playing entry clears within ~1s instead of
+    // holding a ghost entry for the IPC cache TTL.
+    let center = MPNowPlayingInfoCenter.default()
+    center.playbackState = .stopped
+    center.nowPlayingInfo = nil
+
+    // Targets stay installed (re-enable is one isEnabled flip away);
+    // disable them so the OS knows nothing is actionable.
+    for (command, _) in MediaSessionPlugin.sharedCommandTargets {
+      command.isEnabled = false
+    }
+    if MediaSessionPlugin.currentInstance === self {
+      MediaSessionPlugin.currentInstance = nil
+    }
+
+    #if os(iOS)
+    teardownAudioSession()
+    #endif
+
+    currentConfig = [:]
+    currentMetadata = [:]
+    currentPlayback = [:]
+    frozenElapsed = nil
+    artworkCacheKey = nil
+    artworkCacheObject = nil
+    lastPublishedInfo = nil
+    lastPublishedPlaybackState = .unknown
+  }
+
+  #if os(iOS)
+  // ── AVAudioSession (iOS-only) ─────────────────────────────────────
+
+  /// Configures the `.playback` category and registers the interruption /
+  /// route-change observers. Does NOT take the audio route — activation is
+  /// deferred to the first real playback (see `activateSessionIfPlaying`)
+  /// so enabling the session doesn't pre-empt another app's audio before
+  /// this player produces output. Activation is INDEPENDENT of
+  /// `interruptionPolicy` — the policy only governs how we react to an
+  /// interruption. Idempotent; re-applies the policy on every call.
+  private func applyAudioSessionConfig() {
+    dispatchPrecondition(condition: .onQueue(.main))
+    let session = AVAudioSession.sharedInstance()
+    if !audioSessionWired {
+      // Register observers up front, independent of activation success, so
+      // a route change or interruption-end can drive recovery even if
+      // activation is later declined (e.g. enabled during an active call).
+      let center = NotificationCenter.default
+      center.addObserver(
+        self,
+        selector: #selector(handleAudioSessionInterruption(_:)),
+        name: AVAudioSession.interruptionNotification,
+        object: nil)
+      center.addObserver(
+        self,
+        selector: #selector(handleAudioSessionRouteChange(_:)),
+        name: AVAudioSession.routeChangeNotification,
+        object: nil)
+      audioSessionWired = true
+    }
+    // Declare intent; activation happens lazily on the first playing push.
+    try? session.setCategory(.playback, mode: .default, options: [])
+    // `keepPlaying` asks the system not to pre-empt playback for
+    // incidental alerts (timers, calendar). A real call / Siri still
+    // interrupts — that's OS-enforced and cannot be overridden.
+    try? session.setPrefersNoInterruptionsFromSystemAlerts(
+      currentInterruptionPolicy() == "keepPlaying")
+  }
+
+  /// Takes the audio route on the first real playback. Idempotent; the OS
+  /// may decline during an active call, in which case a later playing push
+  /// (or an interruption `.ended`) retries.
+  private func activateSessionIfPlaying(_ playing: Bool) {
+    dispatchPrecondition(condition: .onQueue(.main))
+    guard playing, audioSessionWired else { return }
+    try? AVAudioSession.sharedInstance().setActive(true, options: [])
+  }
+
+  /// Consumer's interruption-policy wire value (`pauseAndResume` /
+  /// `pauseOnly` / `keepPlaying`); defaults to `pauseAndResume`.
+  private func currentInterruptionPolicy() -> String {
+    (currentConfig["interruptionPolicy"] as? String) ?? "pauseAndResume"
+  }
+
+  private func teardownAudioSession() {
+    dispatchPrecondition(condition: .onQueue(.main))
+    guard audioSessionWired else { return }
+    let center = NotificationCenter.default
+    center.removeObserver(
+      self, name: AVAudioSession.interruptionNotification, object: nil)
+    center.removeObserver(
+      self, name: AVAudioSession.routeChangeNotification, object: nil)
+    audioSessionWired = false
+    // Don't `setActive(false)` — the session is process-wide config and
+    // other audio paths may still need it; iOS reclaims it at exit.
+  }
+
+  /// Reacts to a phone call / Siri / alarm per `interruptionPolicy`:
+  /// - `pauseAndResume`: pause on `.began`; resume on `.ended` when the
+  ///   OS sets `shouldResume`.
+  /// - `pauseOnly`: pause on `.began`; never auto-resume.
+  /// - `keepPlaying`: don't pause; reactivate the session on `.ended` so
+  ///   the engine's output recovers after the interruption.
+  @objc private func handleAudioSessionInterruption(_ note: Notification) {
+    guard let info = note.userInfo,
+          let typeRaw = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+          let type = AVAudioSession.InterruptionType(rawValue: typeRaw)
+    else { return }
+
+    DispatchQueue.main.async {
+      let policy = self.currentInterruptionPolicy()
+      switch type {
+      case .began:
+        if policy != "keepPlaying" {
+          self.eventSink?(["type": "pause"])
+        }
+      case .ended:
+        switch policy {
+        case "keepPlaying":
+          // We never paused; reactivate so the engine's output resumes.
+          try? AVAudioSession.sharedInstance().setActive(true, options: [])
+        case "pauseOnly":
+          break  // paused on `.began`, no auto-resume
+        default:  // pauseAndResume
+          let optsRaw =
+            (info[AVAudioSessionInterruptionOptionKey] as? UInt) ?? 0
+          let opts = AVAudioSession.InterruptionOptions(rawValue: optsRaw)
+          if opts.contains(.shouldResume) {
+            try? AVAudioSession.sharedInstance().setActive(true, options: [])
+            self.eventSink?(["type": "play"])
+          }
+        }
+      @unknown default:
+        break
+      }
+    }
+  }
+
+  /// Headphones unplugged → pause, regardless of `interruptionPolicy`
+  /// (Apple HIG: don't blast the speaker — even in `keepPlaying`).
+  @objc private func handleAudioSessionRouteChange(_ note: Notification) {
+    guard let info = note.userInfo,
+          let reasonRaw = info[AVAudioSessionRouteChangeReasonKey] as? UInt,
+          let reason = AVAudioSession.RouteChangeReason(rawValue: reasonRaw),
+          reason == .oldDeviceUnavailable
+    else { return }
+    DispatchQueue.main.async {
+      self.eventSink?(["type": "pause"])
+    }
+  }
+  #endif
+
+  // ── Now-playing snapshot ──────────────────────────────────────────
+
+  internal func publishNowPlaying() {
+    dispatchPrecondition(condition: .onQueue(.main))
+
+    // macOS "poison" guard: do NOT publish a content-less entry. Setting
+    // an empty / paused `nowPlayingInfo` before there's real media drops
+    // the app from Control Center (the system reverts to the Music app)
+    // and a later `.playing` won't resurface — so publish only once a
+    // title exists. IINA (also mpv-based) documents the same launch
+    // ordering pitfall.
+    guard let resolvedTitle = (currentMetadata["title"] as? String)
+      .flatMap({ $0.isEmpty ? nil : $0 })
+    else { return }
+
+    var info: [String: Any] = [:]
+
+    info[MPNowPlayingInfoPropertyMediaType] =
+      NSNumber(value: MPNowPlayingInfoMediaType.audio.rawValue)
+
+    // Live only when truly unbounded: not seekable AND no known duration.
+    // A freshly-loaded seekable file can briefly report seekable=false
+    // before mpv's `seekable` observation lands; if its duration is
+    // already known it is not a live stream, so don't suppress the
+    // scrubber / duration for that one frame. The lockscreen suppresses
+    // the scrub-bar for a genuine live stream rather than render a phantom.
+    let seekable = (currentPlayback["seekable"] as? Bool) ?? true
+    let durationMs = currentMetadata["durationMs"] as? Int
+    let isLiveStream = !seekable && (durationMs == nil || durationMs! <= 0)
+    if isLiveStream {
+      info[MPNowPlayingInfoPropertyIsLiveStream] = true
+    }
+
+    info[MPMediaItemPropertyTitle] = resolvedTitle
+    if let artist = currentMetadata["artist"] as? String, !artist.isEmpty {
+      info[MPMediaItemPropertyArtist] = artist
+    }
+    if let album = currentMetadata["album"] as? String, !album.isEmpty {
+      info[MPMediaItemPropertyAlbumTitle] = album
+    }
+
+    if !isLiveStream, let durationMs = durationMs, durationMs > 0 {
+      info[MPMediaItemPropertyPlaybackDuration] =
+        NSNumber(value: Double(durationMs) / 1000.0)
+    }
+
+    // Elapsed: the scrub-freeze target if pinned, else mpv's position.
+    if !isLiveStream {
+      if let frozen = frozenElapsed {
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] =
+          NSNumber(value: frozen)
+      } else if let posMs = currentPlayback["positionMs"] as? Int {
+        info[MPNowPlayingInfoPropertyElapsedPlaybackTime] =
+          NSNumber(value: Double(posMs) / 1000.0)
+      }
+    }
+
+    if let artwork = resolveArtwork() {
+      info[MPMediaItemPropertyArtwork] = artwork
+    }
+
+    let playing = (currentPlayback["playing"] as? Bool) ?? false
+    #if os(iOS)
+    // Take the audio route lazily — only once real playing content is
+    // published — so enabling the session at app launch doesn't pre-empt
+    // another app's audio before this player produces any output.
+    activateSessionIfPlaying(playing)
+    #endif
+    let rate = (currentPlayback["rate"] as? Double) ?? 1.0
+    // Frozen ⇒ rate 0 so the OS stops extrapolating and pins the slider
+    // at the drop target. Otherwise mirror mpv: rate when playing, 0
+    // when paused.
+    let publishedRate = frozenElapsed != nil ? 0.0 : (playing ? rate : 0.0)
+    info[MPNowPlayingInfoPropertyPlaybackRate] = NSNumber(value: publishedRate)
+    info[MPNowPlayingInfoPropertyDefaultPlaybackRate] = NSNumber(value: 1.0)
+
+    let nextPlaybackState: MPNowPlayingPlaybackState =
+      playing ? .playing : .paused
+
+    // Repeat / shuffle live on MPRemoteCommandCenter, not in the
+    // nowPlayingInfo dict — update them before the dedup gate (which
+    // compares only the dict), or a loop/shuffle-only change would be
+    // swallowed.
+    publishCurrentRepeatAndShuffle()
+
+    // Dedup: the widget re-animates the slider on every assignment even
+    // when nothing changed — skip identical writes.
+    if let last = lastPublishedInfo,
+       lastPublishedPlaybackState == nextPlaybackState,
+       Self.isInfoEqual(last, info)
+    {
+      return
+    }
+
+    let center = MPNowPlayingInfoCenter.default()
+    center.nowPlayingInfo = info
+    center.playbackState = nextPlaybackState
+    lastPublishedInfo = info
+    lastPublishedPlaybackState = nextPlaybackState
+    publishCount += 1
+  }
+
+  /// Field-by-field comparison. Artwork compares by reference identity —
+  /// `resolveArtwork`'s cache reuses the same wrapper for unchanged bytes.
+  private static func isInfoEqual(_ a: [String: Any], _ b: [String: Any])
+    -> Bool
+  {
+    let scalarKeys: [String] = [
+      MPNowPlayingInfoPropertyElapsedPlaybackTime,
+      MPNowPlayingInfoPropertyPlaybackRate,
+      MPNowPlayingInfoPropertyDefaultPlaybackRate,
+      MPNowPlayingInfoPropertyIsLiveStream,
+      MPNowPlayingInfoPropertyMediaType,
+      MPMediaItemPropertyTitle,
+      MPMediaItemPropertyArtist,
+      MPMediaItemPropertyAlbumTitle,
+      MPMediaItemPropertyPlaybackDuration,
+    ]
+    for key in scalarKeys {
+      let av = a[key] as? NSObject
+      let bv = b[key] as? NSObject
+      if av != bv { return false }
+    }
+    let aArt = a[MPMediaItemPropertyArtwork] as AnyObject?
+    let bArt = b[MPMediaItemPropertyArtwork] as AnyObject?
+    if aArt !== bArt { return false }
+    return true
+  }
+
+  private func publishCurrentRepeatAndShuffle() {
+    dispatchPrecondition(condition: .onQueue(.main))
+    let center = MPRemoteCommandCenter.shared()
+
+    let loopWire = currentPlayback["loop"] as? String ?? "off"
+    let repeatType: MPRepeatType
+    switch loopWire {
+    case "file": repeatType = .one
+    case "playlist": repeatType = .all
+    default: repeatType = .off
+    }
+    center.changeRepeatModeCommand.currentRepeatType = repeatType
+
+    let shuffleOn = (currentPlayback["shuffle"] as? Bool) ?? false
+    center.changeShuffleModeCommand.currentShuffleType =
+      shuffleOn ? .items : .off
+  }
+
+  private func resolveArtwork() -> MPMediaItemArtwork? {
+    guard let bytes = currentMetadata["artworkBytes"] as? FlutterStandardTypedData
+    else {
+      artworkCacheKey = nil
+      artworkCacheObject = nil
+      return nil
+    }
+
+    // Cache by byte identity. The wrapper's bounds are declared at the
+    // image's true aspect ratio (longest edge capped at `artworkBoundsSide`)
+    // so the OS requests proportional sizes and non-square art isn't
+    // stretched; the closure downscales on demand and retains the decoded
+    // image, so the system can request lockscreen / Control Center /
+    // CarPlay / Watch sizes without a second copy of the bitmap.
+    if artworkCacheKey != bytes.data,
+       let image = PlatformImage(data: bytes.data)
+    {
+      artworkCacheKey = bytes.data
+      artworkCacheObject =
+        MPMediaItemArtwork(boundsSize: Self.boundsSize(for: image)) { size in
+          Self.resizedArtwork(image, to: size)
+        }
+    }
+
+    return artworkCacheObject
+  }
+
+  /// The artwork's natural size scaled so its longest edge is at most
+  /// `artworkBoundsSide` (never upscaled). Preserves aspect ratio so the
+  /// OS-requested sizes — and therefore `resizedArtwork`'s draw rect — stay
+  /// proportional. Falls back to a square bound when the image reports no
+  /// intrinsic size.
+  private static func boundsSize(for image: PlatformImage) -> CGSize {
+    let natural = image.size
+    let maxEdge = max(natural.width, natural.height)
+    guard maxEdge > 0 else {
+      return CGSize(width: artworkBoundsSide, height: artworkBoundsSide)
+    }
+    let scale = min(1.0, artworkBoundsSide / maxEdge)
+    return CGSize(width: natural.width * scale, height: natural.height * scale)
+  }
+
+  private static func resizedArtwork(_ image: PlatformImage,
+                                     to size: CGSize) -> PlatformImage
+  {
+    #if os(iOS)
+    let format = UIGraphicsImageRendererFormat.default()
+    format.scale = 1
+    format.opaque = false
+    let renderer = UIGraphicsImageRenderer(size: size, format: format)
+    return renderer.image { _ in
+      image.draw(in: CGRect(origin: .zero, size: size))
+    }
+    #elseif os(macOS)
+    let resized = NSImage(size: size)
+    resized.lockFocus()
+    NSGraphicsContext.current?.imageInterpolation = .high
+    image.draw(
+      in: NSRect(origin: .zero, size: size),
+      from: NSRect(origin: .zero, size: image.size),
+      operation: .copy,
+      fraction: 1.0)
+    resized.unlockFocus()
+    return resized
+    #endif
+  }
+
+  // ── Remote command center wiring ──────────────────────────────────
+
+  /// One-time, process-wide install of every command target. Held in
+  /// static storage so the list cannot grow across engine restarts —
+  /// every closure resolves `currentInstance` at fire time and no-ops
+  /// when there's no active plugin. Later config changes only flip
+  /// `isEnabled`. Unsupported commands are pinned disabled.
+  private func installCommandTargetsIfNeeded() {
+    dispatchPrecondition(condition: .onQueue(.main))
+    guard !MediaSessionPlugin.sharedCommandsInstalled else { return }
+    MediaSessionPlugin.sharedCommandsInstalled = true
+
+    let center = MPRemoteCommandCenter.shared()
+
+    Self.installSimple(center.playCommand, type: "play")
+    Self.installSimple(center.pauseCommand, type: "pause")
+    Self.installSimple(center.togglePlayPauseCommand, type: "playPause")
+    Self.installSimple(center.stopCommand, type: "stop")
+    Self.installSimple(center.nextTrackCommand, type: "next")
+    Self.installSimple(center.previousTrackCommand, type: "previous")
+
+    let repeatCmd = center.changeRepeatModeCommand
+    let repeatTarget = repeatCmd.addTarget { event in
+      guard let instance = MediaSessionPlugin.currentInstance
+      else { return .commandFailed }
+      guard let evt = event as? MPChangeRepeatModeCommandEvent
+      else { return .commandFailed }
+      let wire: String
+      switch evt.repeatType {
+      case .off: wire = "off"
+      case .one: wire = "file"
+      case .all: wire = "playlist"
+      @unknown default: wire = "off"
+      }
+      instance.onMain {
+        guard !instance.currentMetadata.isEmpty else { return }
+        instance.eventSink?(["type": "setRepeatMode", "loop": wire])
+      }
+      return .success
+    }
+    MediaSessionPlugin.sharedCommandTargets.append((repeatCmd, repeatTarget))
+
+    let shuffleCmd = center.changeShuffleModeCommand
+    let shuffleTarget = shuffleCmd.addTarget { event in
+      guard let instance = MediaSessionPlugin.currentInstance
+      else { return .commandFailed }
+      guard let evt = event as? MPChangeShuffleModeCommandEvent
+      else { return .commandFailed }
+      // mpv models shuffle as a bool; anything non-.off → true.
+      let on = evt.shuffleType != .off
+      instance.onMain {
+        guard !instance.currentMetadata.isEmpty else { return }
+        instance.eventSink?(["type": "setShuffle", "shuffle": on])
+      }
+      return .success
+    }
+    MediaSessionPlugin.sharedCommandTargets.append((shuffleCmd, shuffleTarget))
+
+    let rateCmd = center.changePlaybackRateCommand
+    let rateTarget = rateCmd.addTarget { event in
+      guard let instance = MediaSessionPlugin.currentInstance
+      else { return .commandFailed }
+      guard let evt = event as? MPChangePlaybackRateCommandEvent
+      else { return .commandFailed }
+      let rate = Double(evt.playbackRate)
+      instance.onMain {
+        guard !instance.currentMetadata.isEmpty else { return }
+        instance.eventSink?(["type": "setPlaybackRate", "rate": rate])
+      }
+      return .success
+    }
+    MediaSessionPlugin.sharedCommandTargets.append((rateCmd, rateTarget))
+
+    let scrubTarget = center.changePlaybackPositionCommand.addTarget { event in
+      guard let instance = MediaSessionPlugin.currentInstance
+      else { return .commandFailed }
+      guard let posEvent = event as? MPChangePlaybackPositionCommandEvent
+      else { return .commandFailed }
+      let target = posEvent.positionTime
+      // handleScrub mutates state, publishes, and asserts the main queue —
+      // hop before calling it (MPRemoteCommand handlers aren't guaranteed
+      // to run on main).
+      instance.onMain {
+        guard !instance.currentMetadata.isEmpty else { return }
+        instance.handleScrub(to: target)
+      }
+      return .success
+    }
+    MediaSessionPlugin.sharedCommandTargets.append(
+      (center.changePlaybackPositionCommand, scrubTarget))
+
+    let skipFwd = center.skipForwardCommand
+    let skipFwdTarget = skipFwd.addTarget { event in
+      guard let instance = MediaSessionPlugin.currentInstance
+      else { return .commandFailed }
+      guard let evt = event as? MPSkipIntervalCommandEvent
+      else { return .commandFailed }
+      let offsetMs = Int((evt.interval * 1000.0).rounded())
+      instance.onMain {
+        guard !instance.currentMetadata.isEmpty else { return }
+        instance.eventSink?(["type": "seekBy", "offsetMs": offsetMs])
+      }
+      return .success
+    }
+    MediaSessionPlugin.sharedCommandTargets.append((skipFwd, skipFwdTarget))
+
+    let skipBack = center.skipBackwardCommand
+    let skipBackTarget = skipBack.addTarget { event in
+      guard let instance = MediaSessionPlugin.currentInstance
+      else { return .commandFailed }
+      guard let evt = event as? MPSkipIntervalCommandEvent
+      else { return .commandFailed }
+      let offsetMs = -Int((evt.interval * 1000.0).rounded())
+      instance.onMain {
+        guard !instance.currentMetadata.isEmpty else { return }
+        instance.eventSink?(["type": "seekBy", "offsetMs": offsetMs])
+      }
+      return .success
+    }
+    MediaSessionPlugin.sharedCommandTargets.append((skipBack, skipBackTarget))
+
+    let unsupported: [MPRemoteCommand] = [
+      center.ratingCommand,
+      center.likeCommand,
+      center.dislikeCommand,
+      center.bookmarkCommand,
+      center.enableLanguageOptionCommand,
+      center.disableLanguageOptionCommand,
+      center.seekForwardCommand,
+      center.seekBackwardCommand,
+    ]
+    for command in unsupported {
+      command.isEnabled = false
+    }
+  }
+
+  /// Single-event command installer (no payload). The handler resolves
+  /// `currentInstance` lazily so the target survives engine restarts.
+  private static func installSimple(_ command: MPRemoteCommand, type: String) {
+    let target = command.addTarget { _ in
+      guard let instance = MediaSessionPlugin.currentInstance
+      else { return .commandFailed }
+      // Hop to main before touching main-only state (currentMetadata,
+      // eventSink); MPRemoteCommand handlers aren't guaranteed to run on
+      // the main queue. Return .success synchronously — commands are
+      // advisory and tolerate the async hop.
+      instance.onMain {
+        guard !instance.currentMetadata.isEmpty else { return }
+        instance.eventSink?(["type": type])
+      }
+      return .success
+    }
+    sharedCommandTargets.append((command, target))
+  }
+
+  /// Pins the slider at the drop target (rate 0) and forwards the seek
+  /// to Dart. The freeze clears on the next `updatePlayback` (the
+  /// landed position). A double-fired command just re-pins the same
+  /// target and re-forwards — harmless.
+  internal func handleScrub(to seconds: TimeInterval) {
+    dispatchPrecondition(condition: .onQueue(.main))
+    frozenElapsed = seconds
+    publishNowPlaying()
+    eventSink?([
+      "type": "seekTo",
+      "positionMs": Int((seconds * 1000.0).rounded()),
+    ])
+  }
+
+  private func configureCommands() {
+    dispatchPrecondition(condition: .onQueue(.main))
+    let actions = Set((currentConfig["actions"] as? [String]) ?? [])
+    let center = MPRemoteCommandCenter.shared()
+
+    center.playCommand.isEnabled = actions.contains("play")
+    center.pauseCommand.isEnabled = actions.contains("pause")
+    center.togglePlayPauseCommand.isEnabled = actions.contains("playPause")
+    center.stopCommand.isEnabled = actions.contains("stop")
+    // next / previous follow the advertised action set even on a
+    // single-item mpv playlist: the command is still delivered on
+    // `Player.stream.mediaSessionCommands` so a consumer driving its own
+    // external queue can advance it. (mpv-playlist auto-advance is a
+    // convenience layered on top, gated separately in `_handleSessionCommand`.)
+    center.nextTrackCommand.isEnabled = actions.contains("next")
+    center.previousTrackCommand.isEnabled = actions.contains("previous")
+    center.skipForwardCommand.isEnabled = actions.contains("fastForward")
+    center.skipBackwardCommand.isEnabled = actions.contains("rewind")
+    center.changeRepeatModeCommand.isEnabled = actions.contains("setRepeatMode")
+    center.changeShuffleModeCommand.isEnabled = actions.contains("setShuffle")
+    center.changePlaybackRateCommand.isEnabled =
+      actions.contains("setPlaybackRate")
+    applySkipIntervals()
+    applySupportedPlaybackRates()
+    refreshSeekableGate()
+  }
+
+  private func applySupportedPlaybackRates() {
+    dispatchPrecondition(condition: .onQueue(.main))
+    let rates = (currentConfig["supportedPlaybackRates"] as? [Double])
+      ?? [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
+    MPRemoteCommandCenter.shared().changePlaybackRateCommand.supportedPlaybackRates =
+      rates.map { NSNumber(value: $0) }
+  }
+
+  private func applySkipIntervals() {
+    dispatchPrecondition(condition: .onQueue(.main))
+    let center = MPRemoteCommandCenter.shared()
+    let fwdMs = (currentConfig["fastForwardIntervalMs"] as? Int)
+      ?? Int(Self.defaultSkipIntervalSeconds * 1000)
+    let backMs = (currentConfig["rewindIntervalMs"] as? Int)
+      ?? Int(Self.defaultSkipIntervalSeconds * 1000)
+    center.skipForwardCommand.preferredIntervals =
+      [NSNumber(value: Double(fwdMs) / 1000.0)]
+    center.skipBackwardCommand.preferredIntervals =
+      [NSNumber(value: Double(backMs) / 1000.0)]
+  }
+
+  /// Gates the scrubber on the current `seekable` state. Clears any
+  /// active freeze when the source becomes non-seekable so a pinned
+  /// slider doesn't get stranded.
+  internal func refreshSeekableGate() {
+    dispatchPrecondition(condition: .onQueue(.main))
+    let actions = Set((currentConfig["actions"] as? [String]) ?? [])
+    let seekable = (currentPlayback["seekable"] as? Bool) ?? true
+    MPRemoteCommandCenter.shared().changePlaybackPositionCommand.isEnabled =
+      actions.contains("seek") && seekable
+    if !seekable { frozenElapsed = nil }
+  }
+
+  // ── Debug probe (test seam) ───────────────────────────────────────
+
+  private func debugNowPlayingSnapshot() -> [String: Any] {
+    dispatchPrecondition(condition: .onQueue(.main))
+    let center = MPNowPlayingInfoCenter.default()
+    let info = center.nowPlayingInfo ?? [:]
+    var out: [String: Any] = [
+      "publishCount": publishCount,
+      "playbackState": Self.playbackStateName(center.playbackState),
+      "frozen": frozenElapsed != nil,
+      "hasArtwork": info[MPMediaItemPropertyArtwork] != nil,
+    ]
+    if let v = info[MPMediaItemPropertyTitle] as? String { out["title"] = v }
+    if let v = info[MPMediaItemPropertyArtist] as? String { out["artist"] = v }
+    if let v = info[MPMediaItemPropertyAlbumTitle] as? String { out["album"] = v }
+    if let v = info[MPNowPlayingInfoPropertyElapsedPlaybackTime] as? NSNumber {
+      out["elapsed"] = v.doubleValue
+    }
+    if let v = info[MPMediaItemPropertyPlaybackDuration] as? NSNumber {
+      out["duration"] = v.doubleValue
+    }
+    if let v = info[MPNowPlayingInfoPropertyPlaybackRate] as? NSNumber {
+      out["rate"] = v.doubleValue
+    }
+    if let v = info[MPNowPlayingInfoPropertyIsLiveStream] as? NSNumber {
+      out["isLiveStream"] = v.boolValue
+    }
+    return out
+  }
+
+  private static func playbackStateName(_ s: MPNowPlayingPlaybackState) -> String {
+    switch s {
+    case .playing: return "playing"
+    case .paused: return "paused"
+    case .stopped: return "stopped"
+    case .interrupted: return "interrupted"
+    default: return "unknown"
+    }
+  }
+
+  // ── FlutterStreamHandler ──────────────────────────────────────────
+
+  public func onListen(
+    withArguments arguments: Any?,
+    eventSink events: @escaping FlutterEventSink
+  ) -> FlutterError? {
+    eventSink = events
+    return nil
+  }
+
+  public func onCancel(withArguments arguments: Any?) -> FlutterError? {
+    eventSink = nil
+    return nil
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────
+
+  /// Main-queue hop, sync if already there. MediaPlayer + AVAudioSession
+  /// notifications arrive on arbitrary queues; all state is main-only.
+  private func onMain(_ block: @escaping () -> Void) {
+    if Thread.isMainThread {
+      block()
+    } else {
+      DispatchQueue.main.async(execute: block)
+    }
+  }
+}

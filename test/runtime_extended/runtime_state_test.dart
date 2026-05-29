@@ -7,8 +7,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -44,17 +45,17 @@ void main() {
 
       // fileFormat populated by the demuxer.
       expect(player.state.fileFormat, isNotEmpty,
-          reason: 'demuxer must report the container format');
+          reason: 'demuxer must report the container format',);
 
       // fileSize is non-zero for a finite file.
       expect(player.state.fileSize, greaterThan(0),
-          reason: 'sine_5s.flac is a finite local file');
+          reason: 'sine_5s.flac is a finite local file',);
 
       // Local files are fully seekable.
       expect(player.state.seekable, isTrue);
       expect(player.state.partiallySeekable, isFalse,
-          reason: 'partial seek is for HLS / DASH only');
-    }, timeout: const Timeout(Duration(seconds: 15)));
+          reason: 'partial seek is for HLS / DASH only',);
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('audioBitrate emits a non-null value during playback', () async {
       // Subscribe BEFORE play so the first observer event isn't missed.
@@ -67,11 +68,11 @@ void main() {
         expect(br, isNotNull);
         expect(br!, greaterThan(0),
             reason: 'mpv emits audio-bitrate ~once per second during '
-                'playback; FLAC at 44.1 kHz mono yields >50 kbps');
+                'playback; FLAC at 44.1 kHz mono yields >50 kbps',);
       } finally {
         await player.pause();
       }
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('bufferDuration populates during playback (demuxer-cache-duration)',
         () async {
@@ -86,11 +87,11 @@ void main() {
         final buf = await bufferCompleter;
         expect(buf.inMilliseconds, greaterThan(0),
             reason: 'demuxer-cache-duration must show some lookahead '
-                'while audio is producing samples');
+                'while audio is producing samples',);
       } finally {
         await player.pause();
       }
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('audioPts emits a Duration distinct from time-pos baseline', () async {
       // audio-pts may or may not differ from time-pos depending on
@@ -109,7 +110,7 @@ void main() {
       } finally {
         await player.pause();
       }
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('eofReached flips to true when the file ends naturally', () async {
       // Switch to the 1-second fixture so the wait is bounded and we
@@ -129,8 +130,8 @@ void main() {
       expect(player.state.eofReached, isTrue,
           reason: 'with keep-open=yes mpv pauses at EOF and emits '
               'eof-reached=true; assert via state to dodge the broadcast '
-              'firstWhere subscribe-after-emit window');
+              'firstWhere subscribe-after-emit window',);
       await player.pause();
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

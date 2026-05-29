@@ -83,14 +83,14 @@ void main() {
       final paramsFuture = player.stream.audioParams
           .firstWhere((p) => p.sampleRate != null)
           .timeout(const Duration(seconds: 20));
-      await player.open(Media(icyRadio), play: false);
+      await player.open(const Media(icyRadio), play: false);
       final params = await paramsFuture;
       expect(params.sampleRate, isNotNull,
           reason:
-              'demuxer must report sampleRate after the network buffer fills');
+              'demuxer must report sampleRate after the network buffer fills',);
       expect(params.channelCount, anyOf(1, 2),
-          reason: 'reference stream is mono or stereo');
-    }, timeout: const Timeout(Duration(seconds: 30)));
+          reason: 'reference stream is mono or stereo',);
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test('HLS audio playlist demuxes and reports duration', () async {
       if (!networkAvailable) {
@@ -102,11 +102,11 @@ void main() {
       final paramsFuture = player.stream.audioParams
           .firstWhere((p) => p.sampleRate != null)
           .timeout(const Duration(seconds: 20));
-      await player.open(Media(hlsStream), play: false);
+      await player.open(const Media(hlsStream), play: false);
       await paramsFuture;
       expect(player.state.duration.inMilliseconds, greaterThan(0),
           reason: 'BipBop HLS clip has finite duration; mpv must parse the '
-              'playlist and surface it');
-    }, timeout: const Timeout(Duration(seconds: 30)));
+              'playlist and surface it',);
+    }, timeout: const Timeout(Duration(seconds: 30)),);
   });
 }

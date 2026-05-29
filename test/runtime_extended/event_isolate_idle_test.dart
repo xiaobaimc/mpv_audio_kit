@@ -36,7 +36,6 @@ void main() {
     try {
       final player = Player.testInstrumented(
         configuration: const PlayerConfiguration(
-          autoPlay: false,
           logLevel: LogLevel.off,
         ),
         wakeupCounterAddress: counter.address,
@@ -83,5 +82,5 @@ void main() {
     } finally {
       calloc.free(counter);
     }
-  }, timeout: const Timeout(Duration(seconds: 30)));
+  }, timeout: const Timeout(Duration(seconds: 30)),);
 }

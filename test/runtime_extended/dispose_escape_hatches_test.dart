@@ -5,8 +5,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -29,13 +30,13 @@ void main() {
       expect(() => player.getRawProperty('volume'), throwsStateError);
       expect(() => player.setRawProperty('volume', '50'), throwsStateError);
       expect(() => player.sendRawCommand(['set', 'volume', '50']),
-          throwsStateError);
+          throwsStateError,);
       expect(() => player.registerHook(Hook.load), throwsStateError);
       expect(() => player.continueHook(1), throwsStateError);
 
       // Let libmpv's background threads wind down (see
       // dispose_safety_test.dart for the rationale).
       await Future.delayed(const Duration(seconds: 1));
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

@@ -2,16 +2,16 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 import 'package:mpv_audio_kit/src/player/lifecycle_transitions.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('deriveLoop — loop-file transitions', () {
     test('loop-file=inf → single regardless of previous mode', () {
       expect(deriveLoop('loop-file', 'inf', Loop.off), Loop.file);
       expect(deriveLoop('loop-file', 'inf', Loop.playlist), Loop.file,
-          reason: 'switching from loop-playlist to loop-file is allowed');
+          reason: 'switching from loop-playlist to loop-file is allowed',);
       expect(deriveLoop('loop-file', 'inf', Loop.file), Loop.file);
     });
 
@@ -25,7 +25,7 @@ void main() {
       // event must not silently downgrade the mode to none.
       expect(deriveLoop('loop-file', 'no', Loop.playlist), isNull,
           reason: 'loop-file=no with prev=loop must not modify the playlist '
-              'loop — the wrapper would lose user-visible state');
+              'loop — the wrapper would lose user-visible state',);
     });
 
     test('loop-file=no with prev=none is a no-op', () {

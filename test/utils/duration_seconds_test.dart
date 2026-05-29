@@ -2,8 +2,8 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/src/internals/duration_seconds.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('secondsToDuration', () {
@@ -61,7 +61,7 @@ void main() {
       // Even at 24h (86400s), microsecond precision still fits in a
       // double (~15-17 sig figs).
       expect(durationToSeconds(const Duration(hours: 24, microseconds: 1)),
-          closeTo(86400.000001, 1e-9));
+          closeTo(86400.000001, 1e-9),);
     });
   });
 

@@ -186,7 +186,7 @@ mixin _PlaylistModule on _PlayerBase {
       _command(['playlist-unshuffle']);
     }
     _updateField(
-        (s) => s.copyWith(shuffle: shuffle), _reactives.shuffle, shuffle);
+        (s) => s.copyWith(shuffle: shuffle), _reactives.shuffle, shuffle,);
   }
 
   /// Enables or disables background prefetch of the next playlist item.
@@ -200,6 +200,6 @@ mixin _PlaylistModule on _PlayerBase {
     await _ready;
     _prop('prefetch-playlist', enabled ? 'yes' : 'no');
     _updateField((s) => s.copyWith(prefetchPlaylist: enabled),
-        _reactives.prefetchPlaylist, enabled);
+        _reactives.prefetchPlaylist, enabled,);
   }
 }

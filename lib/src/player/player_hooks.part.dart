@@ -46,7 +46,7 @@ mixin _HooksModule on _PlayerBase {
   /// [priority] values run earlier; the default (0) is fine for most
   /// uses.
   Future<void> registerHook(Hook hook,
-      {int priority = 0, Duration? timeout}) async {
+      {int priority = 0, Duration? timeout,}) async {
     _checkNotDisposed();
     await _ready;
     final name = hook.mpvValue;

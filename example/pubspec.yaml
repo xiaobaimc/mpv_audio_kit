@@ -33,8 +33,6 @@ dependencies:
   desktop_drop: ^0.5.0
   window_manager: ^0.5.1
   shared_preferences: ^2.5.4
-  audio_service: ^0.18.18
-  audio_service_win: ^0.0.3
   flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:

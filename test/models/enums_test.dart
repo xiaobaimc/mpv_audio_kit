@@ -2,12 +2,12 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
-import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
+import 'package:mpv_audio_kit/src/types/enums/cache.dart';
 import 'package:mpv_audio_kit/src/types/enums/cover.dart';
 import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
-import 'package:mpv_audio_kit/src/types/enums/cache.dart';
 import 'package:mpv_audio_kit/src/types/enums/replay_gain.dart';
+import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
+import 'package:test/test.dart';
 
 /// Pairs every enum the wrapper exposes via `setX(...)` / `state.X` / mpv
 /// property dispatch with its documented fallback variant. The fallback
@@ -62,7 +62,7 @@ void main() {
     test('unknown values fall back to the documented default variant', () {
       for (final (_, fromMpv, fallback, name) in _typed) {
         expect(fromMpv('totally-bogus-${name.toLowerCase()}'), fallback,
-            reason: '$name fallback');
+            reason: '$name fallback',);
         expect(fromMpv(''), fallback, reason: '$name empty fallback');
       }
     });

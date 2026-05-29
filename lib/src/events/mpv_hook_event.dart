@@ -32,6 +32,7 @@ class MpvHookEvent {
   /// The lifecycle phase mpv is asking you to handle.
   final Hook hook;
 
+  /// Creates a hook event for the given libmpv hook [id] and [hook] phase.
   const MpvHookEvent(this.id, this.hook);
 
   @override

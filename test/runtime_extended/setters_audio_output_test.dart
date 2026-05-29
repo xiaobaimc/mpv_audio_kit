@@ -5,8 +5,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -66,7 +67,7 @@ void main() {
 
       await player.setAudioSampleRate(48000);
       expect(player.state.audioSampleRate, 48000);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('audioClientName / audioDriver round-trip', () async {
       await player.setAudioClientName('test-client');
@@ -74,13 +75,13 @@ void main() {
 
       await player.setAudioDriver('null');
       expect(player.state.audioDriver, 'null');
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('audioDevice round-trips by name (description is metadata)', () async {
       const dev = Device(name: 'null', description: 'Null Driver');
       await player.setAudioDevice(dev);
       expect(player.state.audioDevice.name, 'null');
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test(
         'audioDevice description is sourced from audioDevices list, '
@@ -101,12 +102,12 @@ void main() {
 
       final autoEntry = player.state.audioDevices.firstWhere(
           (d) => d.name == 'auto',
-          orElse: () => const Device(name: 'auto', description: 'auto'));
+          orElse: () => const Device(name: 'auto', description: 'auto'),);
       expect(player.state.audioDevice.name, 'auto');
       expect(player.state.audioDevice.description, autoEntry.description,
           reason: 'active device description must match the audioDevices '
-              'entry, not be a copy of the name');
-    }, timeout: const Timeout(Duration(seconds: 15)));
+              'entry, not be a copy of the name',);
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('reloadAudio is a fire-and-forget command (no state mutation)',
         () async {
@@ -116,6 +117,6 @@ void main() {
       await player.reloadAudio();
       await player.setVolume(80.0);
       expect(player.state.volume, 80.0);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

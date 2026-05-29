@@ -26,8 +26,8 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 import '../_helpers/libmpv_resolver.dart';
 import '../_helpers/mpv_error_capture.dart';
@@ -93,7 +93,6 @@ void main() {
 
     player = Player(
       configuration: const PlayerConfiguration(
-        autoPlay: false,
         logLevel: LogLevel.error,
       ),
     );

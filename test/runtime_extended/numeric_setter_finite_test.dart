@@ -6,8 +6,8 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 import '../_helpers/setter_test_helpers.dart';
 
@@ -35,10 +35,10 @@ void main() {
       double.negativeInfinity,
     ]) {
       expect(() => player.setVolume(bad), throwsArgumentError,
-          reason: 'volume=$bad must be rejected at the wrapper boundary');
+          reason: 'volume=$bad must be rejected at the wrapper boundary',);
     }
     expect(player.state.volume, priorVolume,
-        reason: 'state must not advance past a rejected non-finite write');
+        reason: 'state must not advance past a rejected non-finite write',);
   });
 
   test('setRate rejects NaN / Infinity', () async {

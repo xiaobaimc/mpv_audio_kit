@@ -6,8 +6,8 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 import '../_helpers/setter_test_helpers.dart';
 
@@ -23,24 +23,22 @@ void main() {
   test('Player() then dispose() synchronously must not throw', () async {
     final player = Player(
       configuration: const PlayerConfiguration(
-        autoPlay: false,
         logLevel: LogLevel.off,
       ),
     );
     // Deliberately NO awaitable work between construction and dispose.
     // This is the hostile path that triggered the LateInitError.
     await player.dispose();
-  }, timeout: const Timeout(Duration(seconds: 5)));
+  }, timeout: const Timeout(Duration(seconds: 5)),);
 
   test('Player() then dispose() in the same microtask must not throw',
       () async {
     final player = Player(
       configuration: const PlayerConfiguration(
-        autoPlay: false,
         logLevel: LogLevel.off,
       ),
     );
     final disposed = player.dispose();
     await disposed;
-  }, timeout: const Timeout(Duration(seconds: 5)));
+  }, timeout: const Timeout(Duration(seconds: 5)),);
 }

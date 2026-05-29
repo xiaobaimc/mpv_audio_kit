@@ -24,12 +24,21 @@ Pod::Spec.new do |s|
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'mpv_audio_kit' => 'ales-drnz.com' }
   s.source           = { :path => '.' }
+  # Swift sources are physically under `darwin/Sources/mpv_audio_kit/`
+  # and exposed in this Pod via symlinks. We can't reference them as
+  # `'../darwin/...'` directly because SwiftPM (the other distribution
+  # channel for this plugin) rejects `path:` values that escape the
+  # package root, so the symlinks are the canonical way to keep both
+  # build systems happy with one set of Swift sources.
   s.source_files     = 'mpv_audio_kit/Sources/mpv_audio_kit/**/*'
   s.dependency 'Flutter'
   s.platform         = :ios, '15.0'
 
-  # Required frameworks for Audio Session and Core functions
-  s.frameworks = 'AVFoundation', 'AudioToolbox', 'Security', 'CoreFoundation'
+  # Required frameworks. MediaPlayer hosts MPNowPlayingInfoCenter +
+  # MPRemoteCommandCenter for the lockscreen / Control Center / CarPlay
+  # Now Playing entry. AVFoundation is needed for AVAudioSession (audio
+  # interruption handling).
+  s.frameworks = 'MediaPlayer', 'AVFoundation', 'AudioToolbox', 'Security', 'CoreFoundation'
 
   # ── Dynamic libmpv XCFramework ────────────────────────────────────────────
   # Automatically downloaded from GitHub Releases if missing or invalid.

@@ -12,14 +12,14 @@
 // has its `mpvValue` / `fromMpv` round-trip checked exhaustively.
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, unused_local_variable, unnecessary_const, prefer_adjacent_string_concatenation, prefer_interpolation_to_compose_strings
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Per-filter wire coverage', () {
     group('AcompressorSettings (acompressor)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(acompressor: AcompressorSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -30,80 +30,80 @@ void main() {
       });
 
       test('param `attack` lands in wire when set to a non-default value', () {
-        final s = const AcompressorSettings(enabled: true, attack: 2000.0);
+        const s = AcompressorSettings(enabled: true, attack: 2000.0);
         expect(s.toFilterString(), contains('attack='));
         expect(s.toFilterString(), contains('attack=2000.000'));
       });
 
       test('param `detection` lands in wire when set to a non-default value',
           () {
-        final s = const AcompressorSettings(
-            enabled: true, detection: AcompressorDetection.peak);
+        const s = AcompressorSettings(
+            enabled: true, detection: AcompressorDetection.peak,);
         expect(s.toFilterString(), contains('detection='));
         expect(s.toFilterString(), contains('detection=peak'));
       });
 
       test('param `knee` lands in wire when set to a non-default value', () {
-        final s = const AcompressorSettings(enabled: true, knee: 8.0);
+        const s = AcompressorSettings(enabled: true, knee: 8.0);
         expect(s.toFilterString(), contains('knee='));
         expect(s.toFilterString(), contains('knee=8.000'));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const AcompressorSettings(enabled: true, level_in: 64.0);
+        const s = AcompressorSettings(enabled: true, level_in: 64.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=64.000'));
       });
 
       test('param `level_sc` lands in wire when set to a non-default value',
           () {
-        final s = const AcompressorSettings(enabled: true, level_sc: 64.0);
+        const s = AcompressorSettings(enabled: true, level_sc: 64.0);
         expect(s.toFilterString(), contains('level_sc='));
         expect(s.toFilterString(), contains('level_sc=64.000'));
       });
 
       test('param `link` lands in wire when set to a non-default value', () {
-        final s = const AcompressorSettings(
-            enabled: true, link: AcompressorLink.maximum);
+        const s = AcompressorSettings(
+            enabled: true, link: AcompressorLink.maximum,);
         expect(s.toFilterString(), contains('link='));
         expect(s.toFilterString(), contains('link=maximum'));
       });
 
       test('param `makeup` lands in wire when set to a non-default value', () {
-        final s = const AcompressorSettings(enabled: true, makeup: 64.0);
+        const s = AcompressorSettings(enabled: true, makeup: 64.0);
         expect(s.toFilterString(), contains('makeup='));
         expect(s.toFilterString(), contains('makeup=64.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const AcompressorSettings(enabled: true, mix: 0.0);
+        const s = AcompressorSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `mode` lands in wire when set to a non-default value', () {
-        final s = const AcompressorSettings(
-            enabled: true, mode: AcompressorMode.upward);
+        const s = AcompressorSettings(
+            enabled: true, mode: AcompressorMode.upward,);
         expect(s.toFilterString(), contains('mode='));
         expect(s.toFilterString(), contains('mode=upward'));
       });
 
       test('param `ratio` lands in wire when set to a non-default value', () {
-        final s = const AcompressorSettings(enabled: true, ratio: 20.0);
+        const s = AcompressorSettings(enabled: true, ratio: 20.0);
         expect(s.toFilterString(), contains('ratio='));
         expect(s.toFilterString(), contains('ratio=20.000'));
       });
 
       test('param `release` lands in wire when set to a non-default value', () {
-        final s = const AcompressorSettings(enabled: true, release: 9000.0);
+        const s = AcompressorSettings(enabled: true, release: 9000.0);
         expect(s.toFilterString(), contains('release='));
         expect(s.toFilterString(), contains('release=9000.000'));
       });
 
       test('param `threshold` lands in wire when set to a non-default value',
           () {
-        final s = const AcompressorSettings(enabled: true, threshold: 1.0);
+        const s = AcompressorSettings(enabled: true, threshold: 1.0);
         expect(s.toFilterString(), contains('threshold='));
         expect(s.toFilterString(), contains('threshold=1.000'));
       });
@@ -111,54 +111,54 @@ void main() {
       test('param `attack` const `attackMin` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, attack: AcompressorSettings.attackMin);
+            enabled: true, attack: AcompressorSettings.attackMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `attack` const `attackMax` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, attack: AcompressorSettings.attackMax);
+            enabled: true, attack: AcompressorSettings.attackMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `attack` const `attackDefault` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, attack: AcompressorSettings.attackDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `knee` const `kneeMin` is accepted by toFilterString', () {
         final s = AcompressorSettings(
-            enabled: true, knee: AcompressorSettings.kneeMin);
+            enabled: true, knee: AcompressorSettings.kneeMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `knee` const `kneeMax` is accepted by toFilterString', () {
         final s = AcompressorSettings(
-            enabled: true, knee: AcompressorSettings.kneeMax);
+            enabled: true, knee: AcompressorSettings.kneeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `knee` const `kneeDefault` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, knee: AcompressorSettings.kneeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMin` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, level_in: AcompressorSettings.level_inMin);
+            enabled: true, level_in: AcompressorSettings.level_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMax` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, level_in: AcompressorSettings.level_inMax);
+            enabled: true, level_in: AcompressorSettings.level_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -166,21 +166,21 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, level_in: AcompressorSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_sc` const `level_scMin` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, level_sc: AcompressorSettings.level_scMin);
+            enabled: true, level_sc: AcompressorSettings.level_scMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_sc` const `level_scMax` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, level_sc: AcompressorSettings.level_scMax);
+            enabled: true, level_sc: AcompressorSettings.level_scMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -188,28 +188,28 @@ void main() {
           'param `level_sc` const `level_scDefault` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, level_sc: AcompressorSettings.level_scDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `makeup` const `makeupMin` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, makeup: AcompressorSettings.makeupMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `makeup` const `makeupMax` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, makeup: AcompressorSettings.makeupMax);
+            enabled: true, makeup: AcompressorSettings.makeupMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `makeup` const `makeupDefault` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, makeup: AcompressorSettings.makeupDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -221,46 +221,46 @@ void main() {
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
         final s =
-            AcompressorSettings(enabled: true, mix: AcompressorSettings.mixMax);
+            AcompressorSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s = AcompressorSettings(
-            enabled: true, mix: AcompressorSettings.mixDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `ratio` const `ratioMin` is accepted by toFilterString', () {
         final s = AcompressorSettings(
-            enabled: true, ratio: AcompressorSettings.ratioMin);
+            enabled: true, ratio: AcompressorSettings.ratioMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `ratio` const `ratioMax` is accepted by toFilterString', () {
         final s = AcompressorSettings(
-            enabled: true, ratio: AcompressorSettings.ratioMax);
+            enabled: true, ratio: AcompressorSettings.ratioMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `ratio` const `ratioDefault` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, ratio: AcompressorSettings.ratioDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `release` const `releaseMin` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, release: AcompressorSettings.releaseMin);
+            enabled: true, release: AcompressorSettings.releaseMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `release` const `releaseMax` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, release: AcompressorSettings.releaseMax);
+            enabled: true, release: AcompressorSettings.releaseMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -268,7 +268,7 @@ void main() {
           'param `release` const `releaseDefault` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, release: AcompressorSettings.releaseDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -276,7 +276,7 @@ void main() {
           'param `threshold` const `thresholdMin` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, threshold: AcompressorSettings.thresholdMin);
+            enabled: true, threshold: AcompressorSettings.thresholdMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -284,7 +284,7 @@ void main() {
           'param `threshold` const `thresholdMax` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, threshold: AcompressorSettings.thresholdMax);
+            enabled: true, threshold: AcompressorSettings.thresholdMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -292,13 +292,13 @@ void main() {
           'param `threshold` const `thresholdDefault` is accepted by toFilterString',
           () {
         final s = AcompressorSettings(
-            enabled: true, threshold: AcompressorSettings.thresholdDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AcontrastSettings (acontrast)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(acontrast: AcontrastSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -309,7 +309,7 @@ void main() {
 
       test('param `contrast` lands in wire when set to a non-default value',
           () {
-        final s = const AcontrastSettings(enabled: true, contrast: 100.0);
+        const s = AcontrastSettings(enabled: true, contrast: 100.0);
         expect(s.toFilterString(), contains('contrast='));
         expect(s.toFilterString(), contains('contrast=100.000'));
       });
@@ -317,14 +317,14 @@ void main() {
       test('param `contrast` const `contrastMin` is accepted by toFilterString',
           () {
         final s = AcontrastSettings(
-            enabled: true, contrast: AcontrastSettings.contrastMin);
+            enabled: true, contrast: AcontrastSettings.contrastMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `contrast` const `contrastMax` is accepted by toFilterString',
           () {
         final s = AcontrastSettings(
-            enabled: true, contrast: AcontrastSettings.contrastMax);
+            enabled: true, contrast: AcontrastSettings.contrastMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -332,13 +332,13 @@ void main() {
           'param `contrast` const `contrastDefault` is accepted by toFilterString',
           () {
         final s = AcontrastSettings(
-            enabled: true, contrast: AcontrastSettings.contrastDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AcrusherSettings (acrusher)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(acrusher: AcrusherSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -348,69 +348,69 @@ void main() {
       });
 
       test('param `aa` lands in wire when set to a non-default value', () {
-        final s = const AcrusherSettings(enabled: true, aa: 1.0);
+        const s = AcrusherSettings(enabled: true, aa: 1.0);
         expect(s.toFilterString(), contains('aa='));
         expect(s.toFilterString(), contains('aa=1.000'));
       });
 
       test('param `bits` lands in wire when set to a non-default value', () {
-        final s = const AcrusherSettings(enabled: true, bits: 64.0);
+        const s = AcrusherSettings(enabled: true, bits: 64.0);
         expect(s.toFilterString(), contains('bits='));
         expect(s.toFilterString(), contains('bits=64.000'));
       });
 
       test('param `dc` lands in wire when set to a non-default value', () {
-        final s = const AcrusherSettings(enabled: true, dc: 4.0);
+        const s = AcrusherSettings(enabled: true, dc: 4.0);
         expect(s.toFilterString(), contains('dc='));
         expect(s.toFilterString(), contains('dc=4.000'));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const AcrusherSettings(enabled: true, level_in: 64.0);
+        const s = AcrusherSettings(enabled: true, level_in: 64.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=64.000'));
       });
 
       test('param `level_out` lands in wire when set to a non-default value',
           () {
-        final s = const AcrusherSettings(enabled: true, level_out: 64.0);
+        const s = AcrusherSettings(enabled: true, level_out: 64.0);
         expect(s.toFilterString(), contains('level_out='));
         expect(s.toFilterString(), contains('level_out=64.000'));
       });
 
       test('param `lfo` lands in wire when set to a non-default value', () {
-        final s = const AcrusherSettings(enabled: true, lfo: true);
+        const s = AcrusherSettings(enabled: true, lfo: true);
         expect(s.toFilterString(), contains('lfo='));
       });
 
       test('param `lforange` lands in wire when set to a non-default value',
           () {
-        final s = const AcrusherSettings(enabled: true, lforange: 250.0);
+        const s = AcrusherSettings(enabled: true, lforange: 250.0);
         expect(s.toFilterString(), contains('lforange='));
         expect(s.toFilterString(), contains('lforange=250.000'));
       });
 
       test('param `lforate` lands in wire when set to a non-default value', () {
-        final s = const AcrusherSettings(enabled: true, lforate: 200.0);
+        const s = AcrusherSettings(enabled: true, lforate: 200.0);
         expect(s.toFilterString(), contains('lforate='));
         expect(s.toFilterString(), contains('lforate=200.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const AcrusherSettings(enabled: true, mix: 1.0);
+        const s = AcrusherSettings(enabled: true, mix: 1.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=1.000'));
       });
 
       test('param `mode` lands in wire when set to a non-default value', () {
-        final s = const AcrusherSettings(enabled: true, mode: AcrusherMode.log);
+        const s = AcrusherSettings(enabled: true, mode: AcrusherMode.log);
         expect(s.toFilterString(), contains('mode='));
         expect(s.toFilterString(), contains('mode=log'));
       });
 
       test('param `samples` lands in wire when set to a non-default value', () {
-        final s = const AcrusherSettings(enabled: true, samples: 250.0);
+        const s = AcrusherSettings(enabled: true, samples: 250.0);
         expect(s.toFilterString(), contains('samples='));
         expect(s.toFilterString(), contains('samples=250.000'));
       });
@@ -427,7 +427,7 @@ void main() {
 
       test('param `aa` const `aaDefault` is accepted by toFilterString', () {
         final s =
-            AcrusherSettings(enabled: true, aa: AcrusherSettings.aaDefault);
+            AcrusherSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -446,7 +446,7 @@ void main() {
       test('param `bits` const `bitsDefault` is accepted by toFilterString',
           () {
         final s =
-            AcrusherSettings(enabled: true, bits: AcrusherSettings.bitsDefault);
+            AcrusherSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -462,21 +462,21 @@ void main() {
 
       test('param `dc` const `dcDefault` is accepted by toFilterString', () {
         final s =
-            AcrusherSettings(enabled: true, dc: AcrusherSettings.dcDefault);
+            AcrusherSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMin` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, level_in: AcrusherSettings.level_inMin);
+            enabled: true, level_in: AcrusherSettings.level_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMax` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, level_in: AcrusherSettings.level_inMax);
+            enabled: true, level_in: AcrusherSettings.level_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -484,7 +484,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, level_in: AcrusherSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -492,7 +492,7 @@ void main() {
           'param `level_out` const `level_outMin` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, level_out: AcrusherSettings.level_outMin);
+            enabled: true, level_out: AcrusherSettings.level_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -500,7 +500,7 @@ void main() {
           'param `level_out` const `level_outMax` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, level_out: AcrusherSettings.level_outMax);
+            enabled: true, level_out: AcrusherSettings.level_outMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -508,21 +508,21 @@ void main() {
           'param `level_out` const `level_outDefault` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, level_out: AcrusherSettings.level_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `lforange` const `lforangeMin` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, lforange: AcrusherSettings.lforangeMin);
+            enabled: true, lforange: AcrusherSettings.lforangeMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `lforange` const `lforangeMax` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, lforange: AcrusherSettings.lforangeMax);
+            enabled: true, lforange: AcrusherSettings.lforangeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -530,21 +530,21 @@ void main() {
           'param `lforange` const `lforangeDefault` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, lforange: AcrusherSettings.lforangeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `lforate` const `lforateMin` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, lforate: AcrusherSettings.lforateMin);
+            enabled: true, lforate: AcrusherSettings.lforateMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `lforate` const `lforateMax` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, lforate: AcrusherSettings.lforateMax);
+            enabled: true, lforate: AcrusherSettings.lforateMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -552,7 +552,7 @@ void main() {
           'param `lforate` const `lforateDefault` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, lforate: AcrusherSettings.lforateDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -568,21 +568,21 @@ void main() {
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s =
-            AcrusherSettings(enabled: true, mix: AcrusherSettings.mixDefault);
+            AcrusherSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `samples` const `samplesMin` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, samples: AcrusherSettings.samplesMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `samples` const `samplesMax` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, samples: AcrusherSettings.samplesMax);
+            enabled: true, samples: AcrusherSettings.samplesMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -590,13 +590,13 @@ void main() {
           'param `samples` const `samplesDefault` is accepted by toFilterString',
           () {
         final s = AcrusherSettings(
-            enabled: true, samples: AcrusherSettings.samplesDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AdeclickSettings (adeclick)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(adeclick: AdeclickSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -606,74 +606,74 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, a: 25.0);
+        const s = AdeclickSettings(enabled: true, a: 25.0);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=25.000'));
       });
 
       test('param `arorder` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, arorder: 25.0);
+        const s = AdeclickSettings(enabled: true, arorder: 25.0);
         expect(s.toFilterString(), contains('arorder='));
         expect(s.toFilterString(), contains('arorder=25.000'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, b: 10.0);
+        const s = AdeclickSettings(enabled: true, b: 10.0);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=10.000'));
       });
 
       test('param `burst` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, burst: 10.0);
+        const s = AdeclickSettings(enabled: true, burst: 10.0);
         expect(s.toFilterString(), contains('burst='));
         expect(s.toFilterString(), contains('burst=10.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, m: AdeclickM.a);
+        const s = AdeclickSettings(enabled: true, m: AdeclickM.a);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=a'));
       });
 
       test('param `method` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, method: AdeclickM.a);
+        const s = AdeclickSettings(enabled: true, method: AdeclickM.a);
         expect(s.toFilterString(), contains('method='));
         expect(s.toFilterString(), contains('method=a'));
       });
 
       test('param `o` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, o: 95.0);
+        const s = AdeclickSettings(enabled: true, o: 95.0);
         expect(s.toFilterString(), contains('o='));
         expect(s.toFilterString(), contains('o=95.000'));
       });
 
       test('param `overlap` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, overlap: 95.0);
+        const s = AdeclickSettings(enabled: true, overlap: 95.0);
         expect(s.toFilterString(), contains('overlap='));
         expect(s.toFilterString(), contains('overlap=95.000'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, t: 100.0);
+        const s = AdeclickSettings(enabled: true, t: 100.0);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=100.000'));
       });
 
       test('param `threshold` lands in wire when set to a non-default value',
           () {
-        final s = const AdeclickSettings(enabled: true, threshold: 100.0);
+        const s = AdeclickSettings(enabled: true, threshold: 100.0);
         expect(s.toFilterString(), contains('threshold='));
         expect(s.toFilterString(), contains('threshold=100.000'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, w: 100.0);
+        const s = AdeclickSettings(enabled: true, w: 100.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=100.000'));
       });
 
       test('param `window` lands in wire when set to a non-default value', () {
-        final s = const AdeclickSettings(enabled: true, window: 100.0);
+        const s = AdeclickSettings(enabled: true, window: 100.0);
         expect(s.toFilterString(), contains('window='));
         expect(s.toFilterString(), contains('window=100.000'));
       });
@@ -689,21 +689,21 @@ void main() {
       });
 
       test('param `a` const `aDefault` is accepted by toFilterString', () {
-        final s = AdeclickSettings(enabled: true, a: AdeclickSettings.aDefault);
+        final s = AdeclickSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `arorder` const `arorderMin` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, arorder: AdeclickSettings.arorderMin);
+            enabled: true, arorder: AdeclickSettings.arorderMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `arorder` const `arorderMax` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, arorder: AdeclickSettings.arorderMax);
+            enabled: true, arorder: AdeclickSettings.arorderMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -711,7 +711,7 @@ void main() {
           'param `arorder` const `arorderDefault` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, arorder: AdeclickSettings.arorderDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -726,7 +726,7 @@ void main() {
       });
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
-        final s = AdeclickSettings(enabled: true, b: AdeclickSettings.bDefault);
+        final s = AdeclickSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -745,7 +745,7 @@ void main() {
       test('param `burst` const `burstDefault` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, burst: AdeclickSettings.burstDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -760,21 +760,21 @@ void main() {
       });
 
       test('param `o` const `oDefault` is accepted by toFilterString', () {
-        final s = AdeclickSettings(enabled: true, o: AdeclickSettings.oDefault);
+        final s = AdeclickSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `overlap` const `overlapMin` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, overlap: AdeclickSettings.overlapMin);
+            enabled: true, overlap: AdeclickSettings.overlapMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `overlap` const `overlapMax` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, overlap: AdeclickSettings.overlapMax);
+            enabled: true, overlap: AdeclickSettings.overlapMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -782,7 +782,7 @@ void main() {
           'param `overlap` const `overlapDefault` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, overlap: AdeclickSettings.overlapDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -797,7 +797,7 @@ void main() {
       });
 
       test('param `t` const `tDefault` is accepted by toFilterString', () {
-        final s = AdeclickSettings(enabled: true, t: AdeclickSettings.tDefault);
+        final s = AdeclickSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -805,7 +805,7 @@ void main() {
           'param `threshold` const `thresholdMin` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, threshold: AdeclickSettings.thresholdMin);
+            enabled: true, threshold: AdeclickSettings.thresholdMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -813,7 +813,7 @@ void main() {
           'param `threshold` const `thresholdMax` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, threshold: AdeclickSettings.thresholdMax);
+            enabled: true, threshold: AdeclickSettings.thresholdMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -821,7 +821,7 @@ void main() {
           'param `threshold` const `thresholdDefault` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, threshold: AdeclickSettings.thresholdDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -836,7 +836,7 @@ void main() {
       });
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
-        final s = AdeclickSettings(enabled: true, w: AdeclickSettings.wDefault);
+        final s = AdeclickSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -857,13 +857,13 @@ void main() {
       test('param `window` const `windowDefault` is accepted by toFilterString',
           () {
         final s = AdeclickSettings(
-            enabled: true, window: AdeclickSettings.windowDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AdeclipSettings (adeclip)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(adeclip: AdeclipSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -873,74 +873,74 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, a: 25.0);
+        const s = AdeclipSettings(enabled: true, a: 25.0);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=25.000'));
       });
 
       test('param `arorder` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, arorder: 25.0);
+        const s = AdeclipSettings(enabled: true, arorder: 25.0);
         expect(s.toFilterString(), contains('arorder='));
         expect(s.toFilterString(), contains('arorder=25.000'));
       });
 
       test('param `hsize` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, hsize: 9999);
+        const s = AdeclipSettings(enabled: true, hsize: 9999);
         expect(s.toFilterString(), contains('hsize='));
         expect(s.toFilterString(), contains('hsize=9999'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, m: AdeclipM.a);
+        const s = AdeclipSettings(enabled: true, m: AdeclipM.a);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=a'));
       });
 
       test('param `method` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, method: AdeclipM.a);
+        const s = AdeclipSettings(enabled: true, method: AdeclipM.a);
         expect(s.toFilterString(), contains('method='));
         expect(s.toFilterString(), contains('method=a'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, n: 9999);
+        const s = AdeclipSettings(enabled: true, n: 9999);
         expect(s.toFilterString(), contains('n='));
         expect(s.toFilterString(), contains('n=9999'));
       });
 
       test('param `o` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, o: 95.0);
+        const s = AdeclipSettings(enabled: true, o: 95.0);
         expect(s.toFilterString(), contains('o='));
         expect(s.toFilterString(), contains('o=95.000'));
       });
 
       test('param `overlap` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, overlap: 95.0);
+        const s = AdeclipSettings(enabled: true, overlap: 95.0);
         expect(s.toFilterString(), contains('overlap='));
         expect(s.toFilterString(), contains('overlap=95.000'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, t: 100.0);
+        const s = AdeclipSettings(enabled: true, t: 100.0);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=100.000'));
       });
 
       test('param `threshold` lands in wire when set to a non-default value',
           () {
-        final s = const AdeclipSettings(enabled: true, threshold: 100.0);
+        const s = AdeclipSettings(enabled: true, threshold: 100.0);
         expect(s.toFilterString(), contains('threshold='));
         expect(s.toFilterString(), contains('threshold=100.000'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, w: 100.0);
+        const s = AdeclipSettings(enabled: true, w: 100.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=100.000'));
       });
 
       test('param `window` lands in wire when set to a non-default value', () {
-        final s = const AdeclipSettings(enabled: true, window: 100.0);
+        const s = AdeclipSettings(enabled: true, window: 100.0);
         expect(s.toFilterString(), contains('window='));
         expect(s.toFilterString(), contains('window=100.000'));
       });
@@ -956,7 +956,7 @@ void main() {
       });
 
       test('param `a` const `aDefault` is accepted by toFilterString', () {
-        final s = AdeclipSettings(enabled: true, a: AdeclipSettings.aDefault);
+        final s = AdeclipSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -978,7 +978,7 @@ void main() {
           'param `arorder` const `arorderDefault` is accepted by toFilterString',
           () {
         final s = AdeclipSettings(
-            enabled: true, arorder: AdeclipSettings.arorderDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -997,7 +997,7 @@ void main() {
       test('param `hsize` const `hsizeDefault` is accepted by toFilterString',
           () {
         final s =
-            AdeclipSettings(enabled: true, hsize: AdeclipSettings.hsizeDefault);
+            AdeclipSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1012,7 +1012,7 @@ void main() {
       });
 
       test('param `n` const `nDefault` is accepted by toFilterString', () {
-        final s = AdeclipSettings(enabled: true, n: AdeclipSettings.nDefault);
+        final s = AdeclipSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1027,7 +1027,7 @@ void main() {
       });
 
       test('param `o` const `oDefault` is accepted by toFilterString', () {
-        final s = AdeclipSettings(enabled: true, o: AdeclipSettings.oDefault);
+        final s = AdeclipSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1049,7 +1049,7 @@ void main() {
           'param `overlap` const `overlapDefault` is accepted by toFilterString',
           () {
         final s = AdeclipSettings(
-            enabled: true, overlap: AdeclipSettings.overlapDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1064,7 +1064,7 @@ void main() {
       });
 
       test('param `t` const `tDefault` is accepted by toFilterString', () {
-        final s = AdeclipSettings(enabled: true, t: AdeclipSettings.tDefault);
+        final s = AdeclipSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1072,7 +1072,7 @@ void main() {
           'param `threshold` const `thresholdMin` is accepted by toFilterString',
           () {
         final s = AdeclipSettings(
-            enabled: true, threshold: AdeclipSettings.thresholdMin);
+            enabled: true, threshold: AdeclipSettings.thresholdMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1080,7 +1080,7 @@ void main() {
           'param `threshold` const `thresholdMax` is accepted by toFilterString',
           () {
         final s = AdeclipSettings(
-            enabled: true, threshold: AdeclipSettings.thresholdMax);
+            enabled: true, threshold: AdeclipSettings.thresholdMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1088,7 +1088,7 @@ void main() {
           'param `threshold` const `thresholdDefault` is accepted by toFilterString',
           () {
         final s = AdeclipSettings(
-            enabled: true, threshold: AdeclipSettings.thresholdDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1103,7 +1103,7 @@ void main() {
       });
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
-        final s = AdeclipSettings(enabled: true, w: AdeclipSettings.wDefault);
+        final s = AdeclipSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1124,13 +1124,13 @@ void main() {
       test('param `window` const `windowDefault` is accepted by toFilterString',
           () {
         final s = AdeclipSettings(
-            enabled: true, window: AdeclipSettings.windowDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AdecorrelateSettings (adecorrelate)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(adecorrelate: AdecorrelateSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -1141,60 +1141,60 @@ void main() {
       });
 
       test('param `seed` lands in wire when set to a non-default value', () {
-        final s = const AdecorrelateSettings(enabled: true, seed: 4294967295);
+        const s = AdecorrelateSettings(enabled: true, seed: 4294967295);
         expect(s.toFilterString(), contains('seed='));
         expect(s.toFilterString(), contains('seed=4294967295'));
       });
 
       test('param `stages` lands in wire when set to a non-default value', () {
-        final s = const AdecorrelateSettings(enabled: true, stages: 16);
+        const s = AdecorrelateSettings(enabled: true, stages: 16);
         expect(s.toFilterString(), contains('stages='));
         expect(s.toFilterString(), contains('stages=16'));
       });
 
       test('param `seed` const `seedMin` is accepted by toFilterString', () {
         final s = AdecorrelateSettings(
-            enabled: true, seed: AdecorrelateSettings.seedMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `seed` const `seedMax` is accepted by toFilterString', () {
         final s = AdecorrelateSettings(
-            enabled: true, seed: AdecorrelateSettings.seedMax);
+            enabled: true, seed: AdecorrelateSettings.seedMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `seed` const `seedDefault` is accepted by toFilterString',
           () {
         final s = AdecorrelateSettings(
-            enabled: true, seed: AdecorrelateSettings.seedDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `stages` const `stagesMin` is accepted by toFilterString',
           () {
         final s = AdecorrelateSettings(
-            enabled: true, stages: AdecorrelateSettings.stagesMin);
+            enabled: true, stages: AdecorrelateSettings.stagesMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `stages` const `stagesMax` is accepted by toFilterString',
           () {
         final s = AdecorrelateSettings(
-            enabled: true, stages: AdecorrelateSettings.stagesMax);
+            enabled: true, stages: AdecorrelateSettings.stagesMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `stages` const `stagesDefault` is accepted by toFilterString',
           () {
         final s = AdecorrelateSettings(
-            enabled: true, stages: AdecorrelateSettings.stagesDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AdelaySettings (adelay)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(adelay: AdelaySettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -1204,18 +1204,18 @@ void main() {
       });
 
       test('param `all` lands in wire when set to a non-default value', () {
-        final s = const AdelaySettings(enabled: true, all: true);
+        const s = AdelaySettings(enabled: true, all: true);
         expect(s.toFilterString(), contains('all='));
       });
 
       test('param `delays` lands in wire when set to a non-default value', () {
-        final s = const AdelaySettings(enabled: true, delays: 'wire_test_alt');
+        const s = AdelaySettings(enabled: true, delays: 'wire_test_alt');
         expect(s.toFilterString(), contains('delays='));
       });
     });
     group('AdenormSettings (adenorm)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(adenorm: AdenormSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -1225,13 +1225,13 @@ void main() {
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
-        final s = const AdenormSettings(enabled: true, level: -90.0);
+        const s = AdenormSettings(enabled: true, level: -90.0);
         expect(s.toFilterString(), contains('level='));
         expect(s.toFilterString(), contains('level=-90.000'));
       });
 
       test('param `type` lands in wire when set to a non-default value', () {
-        final s = const AdenormSettings(enabled: true, type: AdenormType.ac);
+        const s = AdenormSettings(enabled: true, type: AdenormType.ac);
         expect(s.toFilterString(), contains('type='));
         expect(s.toFilterString(), contains('type=ac'));
       });
@@ -1251,13 +1251,13 @@ void main() {
       test('param `level` const `levelDefault` is accepted by toFilterString',
           () {
         final s =
-            AdenormSettings(enabled: true, level: AdenormSettings.levelDefault);
+            AdenormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AderivativeSettings (aderivative)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(aderivative: AderivativeSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -1269,7 +1269,7 @@ void main() {
     });
     group('AdrcSettings (adrc)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(adrc: AdrcSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -1279,26 +1279,26 @@ void main() {
       });
 
       test('param `attack` lands in wire when set to a non-default value', () {
-        final s = const AdrcSettings(enabled: true, attack: 1000.0);
+        const s = AdrcSettings(enabled: true, attack: 1000.0);
         expect(s.toFilterString(), contains('attack='));
         expect(s.toFilterString(), contains('attack=1000.000'));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s = const AdrcSettings(enabled: true, channels: 'wire_test_alt');
+        const s = AdrcSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `release` lands in wire when set to a non-default value', () {
-        final s = const AdrcSettings(enabled: true, release: 2000.0);
+        const s = AdrcSettings(enabled: true, release: 2000.0);
         expect(s.toFilterString(), contains('release='));
         expect(s.toFilterString(), contains('release=2000.000'));
       });
 
       test('param `transfer` lands in wire when set to a non-default value',
           () {
-        final s = const AdrcSettings(enabled: true, transfer: 'wire_test_alt');
+        const s = AdrcSettings(enabled: true, transfer: 'wire_test_alt');
         expect(s.toFilterString(), contains('transfer='));
       });
 
@@ -1317,7 +1317,7 @@ void main() {
       test('param `attack` const `attackDefault` is accepted by toFilterString',
           () {
         final s =
-            AdrcSettings(enabled: true, attack: AdrcSettings.attackDefault);
+            AdrcSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1337,127 +1337,127 @@ void main() {
           'param `release` const `releaseDefault` is accepted by toFilterString',
           () {
         final s =
-            AdrcSettings(enabled: true, release: AdrcSettings.releaseDefault);
+            AdrcSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AdynamicequalizerSettings (adynamicequalizer)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(adynamicequalizer: AdynamicequalizerSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(
-            adynamicequalizer: AdynamicequalizerSettings(enabled: true));
+            adynamicequalizer: AdynamicequalizerSettings(enabled: true),);
         expect(fx.toAfChain(), 'lavfi-adynamicequalizer');
       });
 
       test('param `attack` lands in wire when set to a non-default value', () {
-        final s =
-            const AdynamicequalizerSettings(enabled: true, attack: 2000.0);
+        const s =
+            AdynamicequalizerSettings(enabled: true, attack: 2000.0);
         expect(s.toFilterString(), contains('attack='));
         expect(s.toFilterString(), contains('attack=2000.000'));
       });
 
       test('param `auto` lands in wire when set to a non-default value', () {
-        final s = const AdynamicequalizerSettings(
-            enabled: true, auto: AdynamicequalizerAuto.disabled);
+        const s = AdynamicequalizerSettings(
+            enabled: true, auto: AdynamicequalizerAuto.disabled,);
         expect(s.toFilterString(), contains('auto='));
         expect(s.toFilterString(), contains('auto=disabled'));
       });
 
       test('param `dfrequency` lands in wire when set to a non-default value',
           () {
-        final s = const AdynamicequalizerSettings(
-            enabled: true, dfrequency: 1000000.0);
+        const s = AdynamicequalizerSettings(
+            enabled: true, dfrequency: 1000000.0,);
         expect(s.toFilterString(), contains('dfrequency='));
         expect(s.toFilterString(), contains('dfrequency=1000000.000'));
       });
 
       test('param `dftype` lands in wire when set to a non-default value', () {
-        final s = const AdynamicequalizerSettings(
-            enabled: true, dftype: AdynamicequalizerDftype.lowpass);
+        const s = AdynamicequalizerSettings(
+            enabled: true, dftype: AdynamicequalizerDftype.lowpass,);
         expect(s.toFilterString(), contains('dftype='));
         expect(s.toFilterString(), contains('dftype=lowpass'));
       });
 
       test('param `dqfactor` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AdynamicequalizerSettings(enabled: true, dqfactor: 1000.0);
+        const s =
+            AdynamicequalizerSettings(enabled: true, dqfactor: 1000.0);
         expect(s.toFilterString(), contains('dqfactor='));
         expect(s.toFilterString(), contains('dqfactor=1000.000'));
       });
 
       test('param `makeup` lands in wire when set to a non-default value', () {
-        final s =
-            const AdynamicequalizerSettings(enabled: true, makeup: 1000.0);
+        const s =
+            AdynamicequalizerSettings(enabled: true, makeup: 1000.0);
         expect(s.toFilterString(), contains('makeup='));
         expect(s.toFilterString(), contains('makeup=1000.000'));
       });
 
       test('param `mode` lands in wire when set to a non-default value', () {
-        final s = const AdynamicequalizerSettings(
-            enabled: true, mode: AdynamicequalizerMode.cutbelow);
+        const s = AdynamicequalizerSettings(
+            enabled: true, mode: AdynamicequalizerMode.cutbelow,);
         expect(s.toFilterString(), contains('mode='));
         expect(s.toFilterString(), contains('mode=cutbelow'));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s = const AdynamicequalizerSettings(
-            enabled: true, precision: AdynamicequalizerPrecision.float);
+        const s = AdynamicequalizerSettings(
+            enabled: true, precision: AdynamicequalizerPrecision.float,);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=float'));
       });
 
       test('param `range` lands in wire when set to a non-default value', () {
-        final s = const AdynamicequalizerSettings(enabled: true, range: 2000.0);
+        const s = AdynamicequalizerSettings(enabled: true, range: 2000.0);
         expect(s.toFilterString(), contains('range='));
         expect(s.toFilterString(), contains('range=2000.000'));
       });
 
       test('param `ratio` lands in wire when set to a non-default value', () {
-        final s = const AdynamicequalizerSettings(enabled: true, ratio: 30.0);
+        const s = AdynamicequalizerSettings(enabled: true, ratio: 30.0);
         expect(s.toFilterString(), contains('ratio='));
         expect(s.toFilterString(), contains('ratio=30.000'));
       });
 
       test('param `release` lands in wire when set to a non-default value', () {
-        final s =
-            const AdynamicequalizerSettings(enabled: true, release: 2000.0);
+        const s =
+            AdynamicequalizerSettings(enabled: true, release: 2000.0);
         expect(s.toFilterString(), contains('release='));
         expect(s.toFilterString(), contains('release=2000.000'));
       });
 
       test('param `tfrequency` lands in wire when set to a non-default value',
           () {
-        final s = const AdynamicequalizerSettings(
-            enabled: true, tfrequency: 1000000.0);
+        const s = AdynamicequalizerSettings(
+            enabled: true, tfrequency: 1000000.0,);
         expect(s.toFilterString(), contains('tfrequency='));
         expect(s.toFilterString(), contains('tfrequency=1000000.000'));
       });
 
       test('param `tftype` lands in wire when set to a non-default value', () {
-        final s = const AdynamicequalizerSettings(
-            enabled: true, tftype: AdynamicequalizerTftype.lowshelf);
+        const s = AdynamicequalizerSettings(
+            enabled: true, tftype: AdynamicequalizerTftype.lowshelf,);
         expect(s.toFilterString(), contains('tftype='));
         expect(s.toFilterString(), contains('tftype=lowshelf'));
       });
 
       test('param `threshold` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AdynamicequalizerSettings(enabled: true, threshold: 100.0);
+        const s =
+            AdynamicequalizerSettings(enabled: true, threshold: 100.0);
         expect(s.toFilterString(), contains('threshold='));
         expect(s.toFilterString(), contains('threshold=100.000'));
       });
 
       test('param `tqfactor` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AdynamicequalizerSettings(enabled: true, tqfactor: 1000.0);
+        const s =
+            AdynamicequalizerSettings(enabled: true, tqfactor: 1000.0);
         expect(s.toFilterString(), contains('tqfactor='));
         expect(s.toFilterString(), contains('tqfactor=1000.000'));
       });
@@ -1465,21 +1465,21 @@ void main() {
       test('param `attack` const `attackMin` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, attack: AdynamicequalizerSettings.attackMin);
+            enabled: true, attack: AdynamicequalizerSettings.attackMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `attack` const `attackMax` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, attack: AdynamicequalizerSettings.attackMax);
+            enabled: true, attack: AdynamicequalizerSettings.attackMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `attack` const `attackDefault` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, attack: AdynamicequalizerSettings.attackDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1487,7 +1487,7 @@ void main() {
           'param `dfrequency` const `dfrequencyMin` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, dfrequency: AdynamicequalizerSettings.dfrequencyMin);
+            enabled: true, dfrequency: AdynamicequalizerSettings.dfrequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1495,7 +1495,7 @@ void main() {
           'param `dfrequency` const `dfrequencyMax` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, dfrequency: AdynamicequalizerSettings.dfrequencyMax);
+            enabled: true, dfrequency: AdynamicequalizerSettings.dfrequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1503,22 +1503,21 @@ void main() {
           'param `dfrequency` const `dfrequencyDefault` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true,
-            dfrequency: AdynamicequalizerSettings.dfrequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `dqfactor` const `dqfactorMin` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, dqfactor: AdynamicequalizerSettings.dqfactorMin);
+            enabled: true, dqfactor: AdynamicequalizerSettings.dqfactorMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `dqfactor` const `dqfactorMax` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, dqfactor: AdynamicequalizerSettings.dqfactorMax);
+            enabled: true, dqfactor: AdynamicequalizerSettings.dqfactorMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1526,80 +1525,80 @@ void main() {
           'param `dqfactor` const `dqfactorDefault` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, dqfactor: AdynamicequalizerSettings.dqfactorDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `makeup` const `makeupMin` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, makeup: AdynamicequalizerSettings.makeupMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `makeup` const `makeupMax` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, makeup: AdynamicequalizerSettings.makeupMax);
+            enabled: true, makeup: AdynamicequalizerSettings.makeupMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `makeup` const `makeupDefault` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, makeup: AdynamicequalizerSettings.makeupDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `range` const `rangeMin` is accepted by toFilterString', () {
         final s = AdynamicequalizerSettings(
-            enabled: true, range: AdynamicequalizerSettings.rangeMin);
+            enabled: true, range: AdynamicequalizerSettings.rangeMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `range` const `rangeMax` is accepted by toFilterString', () {
         final s = AdynamicequalizerSettings(
-            enabled: true, range: AdynamicequalizerSettings.rangeMax);
+            enabled: true, range: AdynamicequalizerSettings.rangeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `range` const `rangeDefault` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, range: AdynamicequalizerSettings.rangeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `ratio` const `ratioMin` is accepted by toFilterString', () {
         final s = AdynamicequalizerSettings(
-            enabled: true, ratio: AdynamicequalizerSettings.ratioMin);
+            enabled: true, ratio: AdynamicequalizerSettings.ratioMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `ratio` const `ratioMax` is accepted by toFilterString', () {
         final s = AdynamicequalizerSettings(
-            enabled: true, ratio: AdynamicequalizerSettings.ratioMax);
+            enabled: true, ratio: AdynamicequalizerSettings.ratioMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `ratio` const `ratioDefault` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, ratio: AdynamicequalizerSettings.ratioDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `release` const `releaseMin` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, release: AdynamicequalizerSettings.releaseMin);
+            enabled: true, release: AdynamicequalizerSettings.releaseMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `release` const `releaseMax` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, release: AdynamicequalizerSettings.releaseMax);
+            enabled: true, release: AdynamicequalizerSettings.releaseMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1607,7 +1606,7 @@ void main() {
           'param `release` const `releaseDefault` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, release: AdynamicequalizerSettings.releaseDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1615,7 +1614,7 @@ void main() {
           'param `tfrequency` const `tfrequencyMin` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, tfrequency: AdynamicequalizerSettings.tfrequencyMin);
+            enabled: true, tfrequency: AdynamicequalizerSettings.tfrequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1623,7 +1622,7 @@ void main() {
           'param `tfrequency` const `tfrequencyMax` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, tfrequency: AdynamicequalizerSettings.tfrequencyMax);
+            enabled: true, tfrequency: AdynamicequalizerSettings.tfrequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1631,8 +1630,7 @@ void main() {
           'param `tfrequency` const `tfrequencyDefault` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true,
-            tfrequency: AdynamicequalizerSettings.tfrequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1640,7 +1638,7 @@ void main() {
           'param `threshold` const `thresholdMin` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, threshold: AdynamicequalizerSettings.thresholdMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1648,7 +1646,7 @@ void main() {
           'param `threshold` const `thresholdMax` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, threshold: AdynamicequalizerSettings.thresholdMax);
+            enabled: true, threshold: AdynamicequalizerSettings.thresholdMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1656,22 +1654,21 @@ void main() {
           'param `threshold` const `thresholdDefault` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true,
-            threshold: AdynamicequalizerSettings.thresholdDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `tqfactor` const `tqfactorMin` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, tqfactor: AdynamicequalizerSettings.tqfactorMin);
+            enabled: true, tqfactor: AdynamicequalizerSettings.tqfactorMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `tqfactor` const `tqfactorMax` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, tqfactor: AdynamicequalizerSettings.tqfactorMax);
+            enabled: true, tqfactor: AdynamicequalizerSettings.tqfactorMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1679,13 +1676,13 @@ void main() {
           'param `tqfactor` const `tqfactorDefault` is accepted by toFilterString',
           () {
         final s = AdynamicequalizerSettings(
-            enabled: true, tqfactor: AdynamicequalizerSettings.tqfactorDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AdynamicsmoothSettings (adynamicsmooth)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(adynamicsmooth: AdynamicsmoothSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -1697,16 +1694,16 @@ void main() {
 
       test('param `basefreq` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AdynamicsmoothSettings(enabled: true, basefreq: 1000000.0);
+        const s =
+            AdynamicsmoothSettings(enabled: true, basefreq: 1000000.0);
         expect(s.toFilterString(), contains('basefreq='));
         expect(s.toFilterString(), contains('basefreq=1000000.000'));
       });
 
       test('param `sensitivity` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AdynamicsmoothSettings(enabled: true, sensitivity: 1000000.0);
+        const s =
+            AdynamicsmoothSettings(enabled: true, sensitivity: 1000000.0);
         expect(s.toFilterString(), contains('sensitivity='));
         expect(s.toFilterString(), contains('sensitivity=1000000.000'));
       });
@@ -1714,14 +1711,14 @@ void main() {
       test('param `basefreq` const `basefreqMin` is accepted by toFilterString',
           () {
         final s = AdynamicsmoothSettings(
-            enabled: true, basefreq: AdynamicsmoothSettings.basefreqMin);
+            enabled: true, basefreq: AdynamicsmoothSettings.basefreqMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `basefreq` const `basefreqMax` is accepted by toFilterString',
           () {
         final s = AdynamicsmoothSettings(
-            enabled: true, basefreq: AdynamicsmoothSettings.basefreqMax);
+            enabled: true, basefreq: AdynamicsmoothSettings.basefreqMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1729,7 +1726,7 @@ void main() {
           'param `basefreq` const `basefreqDefault` is accepted by toFilterString',
           () {
         final s = AdynamicsmoothSettings(
-            enabled: true, basefreq: AdynamicsmoothSettings.basefreqDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1737,7 +1734,7 @@ void main() {
           'param `sensitivity` const `sensitivityMin` is accepted by toFilterString',
           () {
         final s = AdynamicsmoothSettings(
-            enabled: true, sensitivity: AdynamicsmoothSettings.sensitivityMin);
+            enabled: true, sensitivity: AdynamicsmoothSettings.sensitivityMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1745,7 +1742,7 @@ void main() {
           'param `sensitivity` const `sensitivityMax` is accepted by toFilterString',
           () {
         final s = AdynamicsmoothSettings(
-            enabled: true, sensitivity: AdynamicsmoothSettings.sensitivityMax);
+            enabled: true, sensitivity: AdynamicsmoothSettings.sensitivityMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1753,14 +1750,13 @@ void main() {
           'param `sensitivity` const `sensitivityDefault` is accepted by toFilterString',
           () {
         final s = AdynamicsmoothSettings(
-            enabled: true,
-            sensitivity: AdynamicsmoothSettings.sensitivityDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AechoSettings (aecho)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(aecho: AechoSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -1770,24 +1766,24 @@ void main() {
       });
 
       test('param `decays` lands in wire when set to a non-default value', () {
-        final s = const AechoSettings(enabled: true, decays: 'wire_test_alt');
+        const s = AechoSettings(enabled: true, decays: 'wire_test_alt');
         expect(s.toFilterString(), contains('decays='));
       });
 
       test('param `delays` lands in wire when set to a non-default value', () {
-        final s = const AechoSettings(enabled: true, delays: 'wire_test_alt');
+        const s = AechoSettings(enabled: true, delays: 'wire_test_alt');
         expect(s.toFilterString(), contains('delays='));
       });
 
       test('param `in_gain` lands in wire when set to a non-default value', () {
-        final s = const AechoSettings(enabled: true, in_gain: 1.0);
+        const s = AechoSettings(enabled: true, in_gain: 1.0);
         expect(s.toFilterString(), contains('in_gain='));
         expect(s.toFilterString(), contains('in_gain=1.000'));
       });
 
       test('param `out_gain` lands in wire when set to a non-default value',
           () {
-        final s = const AechoSettings(enabled: true, out_gain: 1.0);
+        const s = AechoSettings(enabled: true, out_gain: 1.0);
         expect(s.toFilterString(), contains('out_gain='));
         expect(s.toFilterString(), contains('out_gain=1.000'));
       });
@@ -1810,7 +1806,7 @@ void main() {
           'param `in_gain` const `in_gainDefault` is accepted by toFilterString',
           () {
         final s =
-            AechoSettings(enabled: true, in_gain: AechoSettings.in_gainDefault);
+            AechoSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1832,13 +1828,13 @@ void main() {
           'param `out_gain` const `out_gainDefault` is accepted by toFilterString',
           () {
         final s = AechoSettings(
-            enabled: true, out_gain: AechoSettings.out_gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AemphasisSettings (aemphasis)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(aemphasis: AemphasisSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -1849,28 +1845,28 @@ void main() {
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const AemphasisSettings(enabled: true, level_in: 64.0);
+        const s = AemphasisSettings(enabled: true, level_in: 64.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=64.000'));
       });
 
       test('param `level_out` lands in wire when set to a non-default value',
           () {
-        final s = const AemphasisSettings(enabled: true, level_out: 64.0);
+        const s = AemphasisSettings(enabled: true, level_out: 64.0);
         expect(s.toFilterString(), contains('level_out='));
         expect(s.toFilterString(), contains('level_out=64.000'));
       });
 
       test('param `mode` lands in wire when set to a non-default value', () {
-        final s = const AemphasisSettings(
-            enabled: true, mode: AemphasisMode.production);
+        const s = AemphasisSettings(
+            enabled: true, mode: AemphasisMode.production,);
         expect(s.toFilterString(), contains('mode='));
         expect(s.toFilterString(), contains('mode=production'));
       });
 
       test('param `type` lands in wire when set to a non-default value', () {
-        final s =
-            const AemphasisSettings(enabled: true, type: AemphasisType.col);
+        const s =
+            AemphasisSettings(enabled: true, type: AemphasisType.col);
         expect(s.toFilterString(), contains('type='));
         expect(s.toFilterString(), contains('type=col'));
       });
@@ -1878,14 +1874,14 @@ void main() {
       test('param `level_in` const `level_inMin` is accepted by toFilterString',
           () {
         final s = AemphasisSettings(
-            enabled: true, level_in: AemphasisSettings.level_inMin);
+            enabled: true, level_in: AemphasisSettings.level_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMax` is accepted by toFilterString',
           () {
         final s = AemphasisSettings(
-            enabled: true, level_in: AemphasisSettings.level_inMax);
+            enabled: true, level_in: AemphasisSettings.level_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1893,7 +1889,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = AemphasisSettings(
-            enabled: true, level_in: AemphasisSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1901,7 +1897,7 @@ void main() {
           'param `level_out` const `level_outMin` is accepted by toFilterString',
           () {
         final s = AemphasisSettings(
-            enabled: true, level_out: AemphasisSettings.level_outMin);
+            enabled: true, level_out: AemphasisSettings.level_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1909,7 +1905,7 @@ void main() {
           'param `level_out` const `level_outMax` is accepted by toFilterString',
           () {
         final s = AemphasisSettings(
-            enabled: true, level_out: AemphasisSettings.level_outMax);
+            enabled: true, level_out: AemphasisSettings.level_outMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -1917,13 +1913,13 @@ void main() {
           'param `level_out` const `level_outDefault` is accepted by toFilterString',
           () {
         final s = AemphasisSettings(
-            enabled: true, level_out: AemphasisSettings.level_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AevalSettings (aeval)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(aeval: AevalSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -1933,26 +1929,26 @@ void main() {
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const AevalSettings(enabled: true, c: 'wire_test_alt');
+        const s = AevalSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test(
           'param `channel_layout` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AevalSettings(enabled: true, channel_layout: 'wire_test_alt');
+        const s =
+            AevalSettings(enabled: true, channel_layout: 'wire_test_alt');
         expect(s.toFilterString(), contains('channel_layout='));
       });
 
       test('param `exprs` lands in wire when set to a non-default value', () {
-        final s = const AevalSettings(enabled: true, exprs: 'wire_test_alt');
+        const s = AevalSettings(enabled: true, exprs: 'wire_test_alt');
         expect(s.toFilterString(), contains('exprs='));
       });
     });
     group('AexciterSettings (aexciter)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(aexciter: AexciterSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -1962,51 +1958,51 @@ void main() {
       });
 
       test('param `amount` lands in wire when set to a non-default value', () {
-        final s = const AexciterSettings(enabled: true, amount: 64.0);
+        const s = AexciterSettings(enabled: true, amount: 64.0);
         expect(s.toFilterString(), contains('amount='));
         expect(s.toFilterString(), contains('amount=64.000'));
       });
 
       test('param `blend` lands in wire when set to a non-default value', () {
-        final s = const AexciterSettings(enabled: true, blend: 10.0);
+        const s = AexciterSettings(enabled: true, blend: 10.0);
         expect(s.toFilterString(), contains('blend='));
         expect(s.toFilterString(), contains('blend=10.000'));
       });
 
       test('param `ceil` lands in wire when set to a non-default value', () {
-        final s = const AexciterSettings(enabled: true, ceil: 20000.0);
+        const s = AexciterSettings(enabled: true, ceil: 20000.0);
         expect(s.toFilterString(), contains('ceil='));
         expect(s.toFilterString(), contains('ceil=20000.000'));
       });
 
       test('param `drive` lands in wire when set to a non-default value', () {
-        final s = const AexciterSettings(enabled: true, drive: 10.0);
+        const s = AexciterSettings(enabled: true, drive: 10.0);
         expect(s.toFilterString(), contains('drive='));
         expect(s.toFilterString(), contains('drive=10.000'));
       });
 
       test('param `freq` lands in wire when set to a non-default value', () {
-        final s = const AexciterSettings(enabled: true, freq: 12000.0);
+        const s = AexciterSettings(enabled: true, freq: 12000.0);
         expect(s.toFilterString(), contains('freq='));
         expect(s.toFilterString(), contains('freq=12000.000'));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const AexciterSettings(enabled: true, level_in: 64.0);
+        const s = AexciterSettings(enabled: true, level_in: 64.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=64.000'));
       });
 
       test('param `level_out` lands in wire when set to a non-default value',
           () {
-        final s = const AexciterSettings(enabled: true, level_out: 64.0);
+        const s = AexciterSettings(enabled: true, level_out: 64.0);
         expect(s.toFilterString(), contains('level_out='));
         expect(s.toFilterString(), contains('level_out=64.000'));
       });
 
       test('param `listen` lands in wire when set to a non-default value', () {
-        final s = const AexciterSettings(enabled: true, listen: true);
+        const s = AexciterSettings(enabled: true, listen: true);
         expect(s.toFilterString(), contains('listen='));
       });
 
@@ -2027,7 +2023,7 @@ void main() {
       test('param `amount` const `amountDefault` is accepted by toFilterString',
           () {
         final s = AexciterSettings(
-            enabled: true, amount: AexciterSettings.amountDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2046,13 +2042,13 @@ void main() {
       test('param `blend` const `blendDefault` is accepted by toFilterString',
           () {
         final s = AexciterSettings(
-            enabled: true, blend: AexciterSettings.blendDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `ceil` const `ceilMin` is accepted by toFilterString', () {
         final s =
-            AexciterSettings(enabled: true, ceil: AexciterSettings.ceilMin);
+            AexciterSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2065,7 +2061,7 @@ void main() {
       test('param `ceil` const `ceilDefault` is accepted by toFilterString',
           () {
         final s =
-            AexciterSettings(enabled: true, ceil: AexciterSettings.ceilDefault);
+            AexciterSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2084,7 +2080,7 @@ void main() {
       test('param `drive` const `driveDefault` is accepted by toFilterString',
           () {
         final s = AexciterSettings(
-            enabled: true, drive: AexciterSettings.driveDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2103,21 +2099,21 @@ void main() {
       test('param `freq` const `freqDefault` is accepted by toFilterString',
           () {
         final s =
-            AexciterSettings(enabled: true, freq: AexciterSettings.freqDefault);
+            AexciterSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMin` is accepted by toFilterString',
           () {
         final s = AexciterSettings(
-            enabled: true, level_in: AexciterSettings.level_inMin);
+            enabled: true, level_in: AexciterSettings.level_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMax` is accepted by toFilterString',
           () {
         final s = AexciterSettings(
-            enabled: true, level_in: AexciterSettings.level_inMax);
+            enabled: true, level_in: AexciterSettings.level_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2125,7 +2121,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = AexciterSettings(
-            enabled: true, level_in: AexciterSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2133,7 +2129,7 @@ void main() {
           'param `level_out` const `level_outMin` is accepted by toFilterString',
           () {
         final s = AexciterSettings(
-            enabled: true, level_out: AexciterSettings.level_outMin);
+            enabled: true, level_out: AexciterSettings.level_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2141,7 +2137,7 @@ void main() {
           'param `level_out` const `level_outMax` is accepted by toFilterString',
           () {
         final s = AexciterSettings(
-            enabled: true, level_out: AexciterSettings.level_outMax);
+            enabled: true, level_out: AexciterSettings.level_outMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2149,13 +2145,13 @@ void main() {
           'param `level_out` const `level_outDefault` is accepted by toFilterString',
           () {
         final s = AexciterSettings(
-            enabled: true, level_out: AexciterSettings.level_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AfadeSettings (afade)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(afade: AfadeSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -2165,92 +2161,92 @@ void main() {
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(enabled: true, c: AfadeCurve.nofade);
+        const s = AfadeSettings(enabled: true, c: AfadeCurve.nofade);
         expect(s.toFilterString(), contains('c='));
         expect(s.toFilterString(), contains('c=nofade'));
       });
 
       test('param `curve` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(enabled: true, curve: AfadeCurve.nofade);
+        const s = AfadeSettings(enabled: true, curve: AfadeCurve.nofade);
         expect(s.toFilterString(), contains('curve='));
         expect(s.toFilterString(), contains('curve=nofade'));
       });
 
       test('param `d` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(
-            enabled: true, d: const Duration(microseconds: 1000000));
+        const s = AfadeSettings(
+            enabled: true, d: const Duration(microseconds: 1000000),);
         expect(s.toFilterString(), contains('d='));
       });
 
       test('param `duration` lands in wire when set to a non-default value',
           () {
-        final s = const AfadeSettings(
-            enabled: true, duration: const Duration(microseconds: 1000000));
+        const s = AfadeSettings(
+            enabled: true, duration: const Duration(microseconds: 1000000),);
         expect(s.toFilterString(), contains('duration='));
       });
 
       test('param `nb_samples` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AfadeSettings(enabled: true, nb_samples: 9223372036854775807);
+        const s =
+            AfadeSettings(enabled: true, nb_samples: 9223372036854775807);
         expect(s.toFilterString(), contains('nb_samples='));
         expect(s.toFilterString(), contains('nb_samples=9223372036854775807'));
       });
 
       test('param `ns` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(enabled: true, ns: 9223372036854775807);
+        const s = AfadeSettings(enabled: true, ns: 9223372036854775807);
         expect(s.toFilterString(), contains('ns='));
         expect(s.toFilterString(), contains('ns=9223372036854775807'));
       });
 
       test('param `silence` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(enabled: true, silence: 1.0);
+        const s = AfadeSettings(enabled: true, silence: 1.0);
         expect(s.toFilterString(), contains('silence='));
         expect(s.toFilterString(), contains('silence=1.000'));
       });
 
       test('param `ss` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(enabled: true, ss: 9223372036854775807);
+        const s = AfadeSettings(enabled: true, ss: 9223372036854775807);
         expect(s.toFilterString(), contains('ss='));
         expect(s.toFilterString(), contains('ss=9223372036854775807'));
       });
 
       test('param `st` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(
-            enabled: true, st: const Duration(microseconds: 1000000));
+        const s = AfadeSettings(
+            enabled: true, st: const Duration(microseconds: 1000000),);
         expect(s.toFilterString(), contains('st='));
       });
 
       test('param `start_sample` lands in wire when set to a non-default value',
           () {
-        final s = const AfadeSettings(
-            enabled: true, start_sample: 9223372036854775807);
+        const s = AfadeSettings(
+            enabled: true, start_sample: 9223372036854775807,);
         expect(s.toFilterString(), contains('start_sample='));
         expect(
-            s.toFilterString(), contains('start_sample=9223372036854775807'));
+            s.toFilterString(), contains('start_sample=9223372036854775807'),);
       });
 
       test('param `start_time` lands in wire when set to a non-default value',
           () {
-        final s = const AfadeSettings(
-            enabled: true, start_time: const Duration(microseconds: 1000000));
+        const s = AfadeSettings(
+            enabled: true, start_time: const Duration(microseconds: 1000000),);
         expect(s.toFilterString(), contains('start_time='));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(enabled: true, t: AfadeType.out);
+        const s = AfadeSettings(enabled: true, t: AfadeType.out);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=out'));
       });
 
       test('param `type` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(enabled: true, type: AfadeType.out);
+        const s = AfadeSettings(enabled: true, type: AfadeType.out);
         expect(s.toFilterString(), contains('type='));
         expect(s.toFilterString(), contains('type=out'));
       });
 
       test('param `unity` lands in wire when set to a non-default value', () {
-        final s = const AfadeSettings(enabled: true, unity: 0.0);
+        const s = AfadeSettings(enabled: true, unity: 0.0);
         expect(s.toFilterString(), contains('unity='));
         expect(s.toFilterString(), contains('unity=0.000'));
       });
@@ -2259,7 +2255,7 @@ void main() {
           'param `nb_samples` const `nb_samplesMin` is accepted by toFilterString',
           () {
         final s = AfadeSettings(
-            enabled: true, nb_samples: AfadeSettings.nb_samplesMin);
+            enabled: true, nb_samples: AfadeSettings.nb_samplesMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2267,7 +2263,7 @@ void main() {
           'param `nb_samples` const `nb_samplesMax` is accepted by toFilterString',
           () {
         final s = AfadeSettings(
-            enabled: true, nb_samples: AfadeSettings.nb_samplesMax);
+            enabled: true, nb_samples: AfadeSettings.nb_samplesMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2275,7 +2271,7 @@ void main() {
           'param `nb_samples` const `nb_samplesDefault` is accepted by toFilterString',
           () {
         final s = AfadeSettings(
-            enabled: true, nb_samples: AfadeSettings.nb_samplesDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2290,14 +2286,14 @@ void main() {
       });
 
       test('param `ns` const `nsDefault` is accepted by toFilterString', () {
-        final s = AfadeSettings(enabled: true, ns: AfadeSettings.nsDefault);
+        final s = AfadeSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `silence` const `silenceMin` is accepted by toFilterString',
           () {
         final s =
-            AfadeSettings(enabled: true, silence: AfadeSettings.silenceMin);
+            AfadeSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2312,12 +2308,12 @@ void main() {
           'param `silence` const `silenceDefault` is accepted by toFilterString',
           () {
         final s =
-            AfadeSettings(enabled: true, silence: AfadeSettings.silenceDefault);
+            AfadeSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `ss` const `ssMin` is accepted by toFilterString', () {
-        final s = AfadeSettings(enabled: true, ss: AfadeSettings.ssMin);
+        final s = AfadeSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2327,7 +2323,7 @@ void main() {
       });
 
       test('param `ss` const `ssDefault` is accepted by toFilterString', () {
-        final s = AfadeSettings(enabled: true, ss: AfadeSettings.ssDefault);
+        final s = AfadeSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2335,7 +2331,7 @@ void main() {
           'param `start_sample` const `start_sampleMin` is accepted by toFilterString',
           () {
         final s = AfadeSettings(
-            enabled: true, start_sample: AfadeSettings.start_sampleMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2343,7 +2339,7 @@ void main() {
           'param `start_sample` const `start_sampleMax` is accepted by toFilterString',
           () {
         final s = AfadeSettings(
-            enabled: true, start_sample: AfadeSettings.start_sampleMax);
+            enabled: true, start_sample: AfadeSettings.start_sampleMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2351,7 +2347,7 @@ void main() {
           'param `start_sample` const `start_sampleDefault` is accepted by toFilterString',
           () {
         final s = AfadeSettings(
-            enabled: true, start_sample: AfadeSettings.start_sampleDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2361,20 +2357,20 @@ void main() {
       });
 
       test('param `unity` const `unityMax` is accepted by toFilterString', () {
-        final s = AfadeSettings(enabled: true, unity: AfadeSettings.unityMax);
+        final s = AfadeSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `unity` const `unityDefault` is accepted by toFilterString',
           () {
         final s =
-            AfadeSettings(enabled: true, unity: AfadeSettings.unityDefault);
+            AfadeSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AfftdnSettings (afftdn)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(afftdn: AfftdnSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -2384,14 +2380,14 @@ void main() {
       });
 
       test('param `ad` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, ad: 1.0);
+        const s = AfftdnSettings(enabled: true, ad: 1.0);
         expect(s.toFilterString(), contains('ad='));
         expect(s.toFilterString(), contains('ad=1.000'));
       });
 
       test('param `adaptivity` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(enabled: true, adaptivity: 1.0);
+        const s = AfftdnSettings(enabled: true, adaptivity: 1.0);
         expect(s.toFilterString(), contains('adaptivity='));
         expect(s.toFilterString(), contains('adaptivity=1.000'));
       });
@@ -2399,78 +2395,78 @@ void main() {
       test(
           'param `band_multiplier` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(enabled: true, band_multiplier: 5.0);
+        const s = AfftdnSettings(enabled: true, band_multiplier: 5.0);
         expect(s.toFilterString(), contains('band_multiplier='));
         expect(s.toFilterString(), contains('band_multiplier=5.000'));
       });
 
       test('param `band_noise` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AfftdnSettings(enabled: true, band_noise: 'wire_test_alt');
+        const s =
+            AfftdnSettings(enabled: true, band_noise: 'wire_test_alt');
         expect(s.toFilterString(), contains('band_noise='));
       });
 
       test('param `bm` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, bm: 5.0);
+        const s = AfftdnSettings(enabled: true, bm: 5.0);
         expect(s.toFilterString(), contains('bm='));
         expect(s.toFilterString(), contains('bm=5.000'));
       });
 
       test('param `bn` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, bn: 'wire_test_alt');
+        const s = AfftdnSettings(enabled: true, bn: 'wire_test_alt');
         expect(s.toFilterString(), contains('bn='));
       });
 
       test('param `floor_offset` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(enabled: true, floor_offset: 2.0);
+        const s = AfftdnSettings(enabled: true, floor_offset: 2.0);
         expect(s.toFilterString(), contains('floor_offset='));
         expect(s.toFilterString(), contains('floor_offset=2.000'));
       });
 
       test('param `fo` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, fo: 2.0);
+        const s = AfftdnSettings(enabled: true, fo: 2.0);
         expect(s.toFilterString(), contains('fo='));
         expect(s.toFilterString(), contains('fo=2.000'));
       });
 
       test('param `gain_smooth` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(enabled: true, gain_smooth: 50);
+        const s = AfftdnSettings(enabled: true, gain_smooth: 50);
         expect(s.toFilterString(), contains('gain_smooth='));
         expect(s.toFilterString(), contains('gain_smooth=50'));
       });
 
       test('param `gs` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, gs: 50);
+        const s = AfftdnSettings(enabled: true, gs: 50);
         expect(s.toFilterString(), contains('gs='));
         expect(s.toFilterString(), contains('gs=50'));
       });
 
       test('param `nf` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, nf: -20.0);
+        const s = AfftdnSettings(enabled: true, nf: -20.0);
         expect(s.toFilterString(), contains('nf='));
         expect(s.toFilterString(), contains('nf=-20.000'));
       });
 
       test('param `nl` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, nl: AfftdnLink.none);
+        const s = AfftdnSettings(enabled: true, nl: AfftdnLink.none);
         expect(s.toFilterString(), contains('nl='));
         expect(s.toFilterString(), contains('nl=none'));
       });
 
       test('param `noise_floor` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(enabled: true, noise_floor: -20.0);
+        const s = AfftdnSettings(enabled: true, noise_floor: -20.0);
         expect(s.toFilterString(), contains('noise_floor='));
         expect(s.toFilterString(), contains('noise_floor=-20.000'));
       });
 
       test('param `noise_link` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AfftdnSettings(enabled: true, noise_link: AfftdnLink.none);
+        const s =
+            AfftdnSettings(enabled: true, noise_link: AfftdnLink.none);
         expect(s.toFilterString(), contains('noise_link='));
         expect(s.toFilterString(), contains('noise_link=none'));
       });
@@ -2478,40 +2474,40 @@ void main() {
       test(
           'param `noise_reduction` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(enabled: true, noise_reduction: 97.0);
+        const s = AfftdnSettings(enabled: true, noise_reduction: 97.0);
         expect(s.toFilterString(), contains('noise_reduction='));
         expect(s.toFilterString(), contains('noise_reduction=97.000'));
       });
 
       test('param `noise_type` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(enabled: true, noise_type: AfftdnType.w);
+        const s = AfftdnSettings(enabled: true, noise_type: AfftdnType.w);
         expect(s.toFilterString(), contains('noise_type='));
         expect(s.toFilterString(), contains('noise_type=w'));
       });
 
       test('param `nr` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, nr: 97.0);
+        const s = AfftdnSettings(enabled: true, nr: 97.0);
         expect(s.toFilterString(), contains('nr='));
         expect(s.toFilterString(), contains('nr=97.000'));
       });
 
       test('param `nt` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, nt: AfftdnType.w);
+        const s = AfftdnSettings(enabled: true, nt: AfftdnType.w);
         expect(s.toFilterString(), contains('nt='));
         expect(s.toFilterString(), contains('nt=w'));
       });
 
       test('param `om` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, om: AfftdnMode.input);
+        const s = AfftdnSettings(enabled: true, om: AfftdnMode.input);
         expect(s.toFilterString(), contains('om='));
         expect(s.toFilterString(), contains('om=input'));
       });
 
       test('param `output_mode` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AfftdnSettings(enabled: true, output_mode: AfftdnMode.input);
+        const s =
+            AfftdnSettings(enabled: true, output_mode: AfftdnMode.input);
         expect(s.toFilterString(), contains('output_mode='));
         expect(s.toFilterString(), contains('output_mode=input'));
       });
@@ -2519,51 +2515,51 @@ void main() {
       test(
           'param `residual_floor` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(enabled: true, residual_floor: -20.0);
+        const s = AfftdnSettings(enabled: true, residual_floor: -20.0);
         expect(s.toFilterString(), contains('residual_floor='));
         expect(s.toFilterString(), contains('residual_floor=-20.000'));
       });
 
       test('param `rf` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, rf: -20.0);
+        const s = AfftdnSettings(enabled: true, rf: -20.0);
         expect(s.toFilterString(), contains('rf='));
         expect(s.toFilterString(), contains('rf=-20.000'));
       });
 
       test('param `sample_noise` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(
-            enabled: true, sample_noise: AfftdnSample.start);
+        const s = AfftdnSettings(
+            enabled: true, sample_noise: AfftdnSample.start,);
         expect(s.toFilterString(), contains('sample_noise='));
         expect(s.toFilterString(), contains('sample_noise=start'));
       });
 
       test('param `sn` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, sn: AfftdnSample.start);
+        const s = AfftdnSettings(enabled: true, sn: AfftdnSample.start);
         expect(s.toFilterString(), contains('sn='));
         expect(s.toFilterString(), contains('sn=start'));
       });
 
       test('param `tn` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, tn: true);
+        const s = AfftdnSettings(enabled: true, tn: true);
         expect(s.toFilterString(), contains('tn='));
       });
 
       test('param `tr` lands in wire when set to a non-default value', () {
-        final s = const AfftdnSettings(enabled: true, tr: true);
+        const s = AfftdnSettings(enabled: true, tr: true);
         expect(s.toFilterString(), contains('tr='));
       });
 
       test('param `track_noise` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(enabled: true, track_noise: true);
+        const s = AfftdnSettings(enabled: true, track_noise: true);
         expect(s.toFilterString(), contains('track_noise='));
       });
 
       test(
           'param `track_residual` lands in wire when set to a non-default value',
           () {
-        final s = const AfftdnSettings(enabled: true, track_residual: true);
+        const s = AfftdnSettings(enabled: true, track_residual: true);
         expect(s.toFilterString(), contains('track_residual='));
       });
 
@@ -2578,7 +2574,7 @@ void main() {
       });
 
       test('param `ad` const `adDefault` is accepted by toFilterString', () {
-        final s = AfftdnSettings(enabled: true, ad: AfftdnSettings.adDefault);
+        final s = AfftdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2586,7 +2582,7 @@ void main() {
           'param `adaptivity` const `adaptivityMin` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, adaptivity: AfftdnSettings.adaptivityMin);
+            enabled: true, adaptivity: AfftdnSettings.adaptivityMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2594,7 +2590,7 @@ void main() {
           'param `adaptivity` const `adaptivityMax` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, adaptivity: AfftdnSettings.adaptivityMax);
+            enabled: true, adaptivity: AfftdnSettings.adaptivityMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2602,7 +2598,7 @@ void main() {
           'param `adaptivity` const `adaptivityDefault` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, adaptivity: AfftdnSettings.adaptivityDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2610,7 +2606,7 @@ void main() {
           'param `band_multiplier` const `band_multiplierMin` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, band_multiplier: AfftdnSettings.band_multiplierMin);
+            enabled: true, band_multiplier: AfftdnSettings.band_multiplierMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2618,7 +2614,7 @@ void main() {
           'param `band_multiplier` const `band_multiplierMax` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, band_multiplier: AfftdnSettings.band_multiplierMax);
+            enabled: true, band_multiplier: AfftdnSettings.band_multiplierMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2626,8 +2622,7 @@ void main() {
           'param `band_multiplier` const `band_multiplierDefault` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true,
-            band_multiplier: AfftdnSettings.band_multiplierDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2642,7 +2637,7 @@ void main() {
       });
 
       test('param `bm` const `bmDefault` is accepted by toFilterString', () {
-        final s = AfftdnSettings(enabled: true, bm: AfftdnSettings.bmDefault);
+        final s = AfftdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2650,7 +2645,7 @@ void main() {
           'param `floor_offset` const `floor_offsetMin` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, floor_offset: AfftdnSettings.floor_offsetMin);
+            enabled: true, floor_offset: AfftdnSettings.floor_offsetMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2658,7 +2653,7 @@ void main() {
           'param `floor_offset` const `floor_offsetMax` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, floor_offset: AfftdnSettings.floor_offsetMax);
+            enabled: true, floor_offset: AfftdnSettings.floor_offsetMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2666,7 +2661,7 @@ void main() {
           'param `floor_offset` const `floor_offsetDefault` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, floor_offset: AfftdnSettings.floor_offsetDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2681,7 +2676,7 @@ void main() {
       });
 
       test('param `fo` const `foDefault` is accepted by toFilterString', () {
-        final s = AfftdnSettings(enabled: true, fo: AfftdnSettings.foDefault);
+        final s = AfftdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2689,7 +2684,7 @@ void main() {
           'param `gain_smooth` const `gain_smoothMin` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, gain_smooth: AfftdnSettings.gain_smoothMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2697,7 +2692,7 @@ void main() {
           'param `gain_smooth` const `gain_smoothMax` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, gain_smooth: AfftdnSettings.gain_smoothMax);
+            enabled: true, gain_smooth: AfftdnSettings.gain_smoothMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2705,12 +2700,12 @@ void main() {
           'param `gain_smooth` const `gain_smoothDefault` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, gain_smooth: AfftdnSettings.gain_smoothDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `gs` const `gsMin` is accepted by toFilterString', () {
-        final s = AfftdnSettings(enabled: true, gs: AfftdnSettings.gsMin);
+        final s = AfftdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2720,7 +2715,7 @@ void main() {
       });
 
       test('param `gs` const `gsDefault` is accepted by toFilterString', () {
-        final s = AfftdnSettings(enabled: true, gs: AfftdnSettings.gsDefault);
+        final s = AfftdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2735,7 +2730,7 @@ void main() {
       });
 
       test('param `nf` const `nfDefault` is accepted by toFilterString', () {
-        final s = AfftdnSettings(enabled: true, nf: AfftdnSettings.nfDefault);
+        final s = AfftdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2743,7 +2738,7 @@ void main() {
           'param `noise_floor` const `noise_floorMin` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, noise_floor: AfftdnSettings.noise_floorMin);
+            enabled: true, noise_floor: AfftdnSettings.noise_floorMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2751,7 +2746,7 @@ void main() {
           'param `noise_floor` const `noise_floorMax` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, noise_floor: AfftdnSettings.noise_floorMax);
+            enabled: true, noise_floor: AfftdnSettings.noise_floorMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2759,7 +2754,7 @@ void main() {
           'param `noise_floor` const `noise_floorDefault` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, noise_floor: AfftdnSettings.noise_floorDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2767,7 +2762,7 @@ void main() {
           'param `noise_reduction` const `noise_reductionMin` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, noise_reduction: AfftdnSettings.noise_reductionMin);
+            enabled: true, noise_reduction: AfftdnSettings.noise_reductionMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2775,7 +2770,7 @@ void main() {
           'param `noise_reduction` const `noise_reductionMax` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, noise_reduction: AfftdnSettings.noise_reductionMax);
+            enabled: true, noise_reduction: AfftdnSettings.noise_reductionMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2783,8 +2778,7 @@ void main() {
           'param `noise_reduction` const `noise_reductionDefault` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true,
-            noise_reduction: AfftdnSettings.noise_reductionDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2799,7 +2793,7 @@ void main() {
       });
 
       test('param `nr` const `nrDefault` is accepted by toFilterString', () {
-        final s = AfftdnSettings(enabled: true, nr: AfftdnSettings.nrDefault);
+        final s = AfftdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2807,7 +2801,7 @@ void main() {
           'param `residual_floor` const `residual_floorMin` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, residual_floor: AfftdnSettings.residual_floorMin);
+            enabled: true, residual_floor: AfftdnSettings.residual_floorMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2815,7 +2809,7 @@ void main() {
           'param `residual_floor` const `residual_floorMax` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true, residual_floor: AfftdnSettings.residual_floorMax);
+            enabled: true, residual_floor: AfftdnSettings.residual_floorMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2823,8 +2817,7 @@ void main() {
           'param `residual_floor` const `residual_floorDefault` is accepted by toFilterString',
           () {
         final s = AfftdnSettings(
-            enabled: true,
-            residual_floor: AfftdnSettings.residual_floorDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2839,13 +2832,13 @@ void main() {
       });
 
       test('param `rf` const `rfDefault` is accepted by toFilterString', () {
-        final s = AfftdnSettings(enabled: true, rf: AfftdnSettings.rfDefault);
+        final s = AfftdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AfftfiltSettings (afftfilt)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(afftfilt: AfftfiltSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -2855,32 +2848,32 @@ void main() {
       });
 
       test('param `imag` lands in wire when set to a non-default value', () {
-        final s = const AfftfiltSettings(enabled: true, imag: 'wire_test_alt');
+        const s = AfftfiltSettings(enabled: true, imag: 'wire_test_alt');
         expect(s.toFilterString(), contains('imag='));
       });
 
       test('param `overlap` lands in wire when set to a non-default value', () {
-        final s = const AfftfiltSettings(enabled: true, overlap: 1.0);
+        const s = AfftfiltSettings(enabled: true, overlap: 1.0);
         expect(s.toFilterString(), contains('overlap='));
         expect(s.toFilterString(), contains('overlap=1.000'));
       });
 
       test('param `real` lands in wire when set to a non-default value', () {
-        final s = const AfftfiltSettings(enabled: true, real: 'wire_test_alt');
+        const s = AfftfiltSettings(enabled: true, real: 'wire_test_alt');
         expect(s.toFilterString(), contains('real='));
       });
 
       test('param `win_func` lands in wire when set to a non-default value',
           () {
-        final s = const AfftfiltSettings(
-            enabled: true, win_func: AfftfiltWinFunc.rect);
+        const s = AfftfiltSettings(
+            enabled: true, win_func: AfftfiltWinFunc.rect,);
         expect(s.toFilterString(), contains('win_func='));
         expect(s.toFilterString(), contains('win_func=rect'));
       });
 
       test('param `win_size` lands in wire when set to a non-default value',
           () {
-        final s = const AfftfiltSettings(enabled: true, win_size: 131072);
+        const s = AfftfiltSettings(enabled: true, win_size: 131072);
         expect(s.toFilterString(), contains('win_size='));
         expect(s.toFilterString(), contains('win_size=131072'));
       });
@@ -2888,14 +2881,14 @@ void main() {
       test('param `overlap` const `overlapMin` is accepted by toFilterString',
           () {
         final s = AfftfiltSettings(
-            enabled: true, overlap: AfftfiltSettings.overlapMin);
+            enabled: true, overlap: AfftfiltSettings.overlapMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `overlap` const `overlapMax` is accepted by toFilterString',
           () {
         final s = AfftfiltSettings(
-            enabled: true, overlap: AfftfiltSettings.overlapMax);
+            enabled: true, overlap: AfftfiltSettings.overlapMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2903,21 +2896,21 @@ void main() {
           'param `overlap` const `overlapDefault` is accepted by toFilterString',
           () {
         final s = AfftfiltSettings(
-            enabled: true, overlap: AfftfiltSettings.overlapDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `win_size` const `win_sizeMin` is accepted by toFilterString',
           () {
         final s = AfftfiltSettings(
-            enabled: true, win_size: AfftfiltSettings.win_sizeMin);
+            enabled: true, win_size: AfftfiltSettings.win_sizeMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `win_size` const `win_sizeMax` is accepted by toFilterString',
           () {
         final s = AfftfiltSettings(
-            enabled: true, win_size: AfftfiltSettings.win_sizeMax);
+            enabled: true, win_size: AfftfiltSettings.win_sizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -2925,13 +2918,13 @@ void main() {
           'param `win_size` const `win_sizeDefault` is accepted by toFilterString',
           () {
         final s = AfftfiltSettings(
-            enabled: true, win_size: AfftfiltSettings.win_sizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AformatSettings (aformat)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(aformat: AformatSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -2943,43 +2936,43 @@ void main() {
       test(
           'param `channel_layouts` lands in wire when set to a non-default value',
           () {
-        final s = const AformatSettings(
-            enabled: true, channel_layouts: 'wire_test_alt');
+        const s = AformatSettings(
+            enabled: true, channel_layouts: 'wire_test_alt',);
         expect(s.toFilterString(), contains('channel_layouts='));
       });
 
       test('param `cl` lands in wire when set to a non-default value', () {
-        final s = const AformatSettings(enabled: true, cl: 'wire_test_alt');
+        const s = AformatSettings(enabled: true, cl: 'wire_test_alt');
         expect(s.toFilterString(), contains('cl='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const AformatSettings(enabled: true, f: 'wire_test_alt');
+        const s = AformatSettings(enabled: true, f: 'wire_test_alt');
         expect(s.toFilterString(), contains('f='));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s = const AformatSettings(enabled: true, r: 'wire_test_alt');
+        const s = AformatSettings(enabled: true, r: 'wire_test_alt');
         expect(s.toFilterString(), contains('r='));
       });
 
       test('param `sample_fmts` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AformatSettings(enabled: true, sample_fmts: 'wire_test_alt');
+        const s =
+            AformatSettings(enabled: true, sample_fmts: 'wire_test_alt');
         expect(s.toFilterString(), contains('sample_fmts='));
       });
 
       test('param `sample_rates` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AformatSettings(enabled: true, sample_rates: 'wire_test_alt');
+        const s =
+            AformatSettings(enabled: true, sample_rates: 'wire_test_alt');
         expect(s.toFilterString(), contains('sample_rates='));
       });
     });
     group('AfreqshiftSettings (afreqshift)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(afreqshift: AfreqshiftSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -2989,83 +2982,83 @@ void main() {
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
-        final s = const AfreqshiftSettings(enabled: true, level: 0.0);
+        const s = AfreqshiftSettings(enabled: true, level: 0.0);
         expect(s.toFilterString(), contains('level='));
         expect(s.toFilterString(), contains('level=0.000'));
       });
 
       test('param `order` lands in wire when set to a non-default value', () {
-        final s = const AfreqshiftSettings(enabled: true, order: 16);
+        const s = AfreqshiftSettings(enabled: true, order: 16);
         expect(s.toFilterString(), contains('order='));
         expect(s.toFilterString(), contains('order=16'));
       });
 
       test('param `shift` lands in wire when set to a non-default value', () {
-        final s = const AfreqshiftSettings(enabled: true, shift: 2147483647.0);
+        const s = AfreqshiftSettings(enabled: true, shift: 2147483647.0);
         expect(s.toFilterString(), contains('shift='));
         expect(s.toFilterString(), contains('shift=2147483647.000'));
       });
 
       test('param `level` const `levelMin` is accepted by toFilterString', () {
         final s = AfreqshiftSettings(
-            enabled: true, level: AfreqshiftSettings.levelMin);
+            enabled: true, level: AfreqshiftSettings.levelMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelMax` is accepted by toFilterString', () {
         final s = AfreqshiftSettings(
-            enabled: true, level: AfreqshiftSettings.levelMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelDefault` is accepted by toFilterString',
           () {
         final s = AfreqshiftSettings(
-            enabled: true, level: AfreqshiftSettings.levelDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderMin` is accepted by toFilterString', () {
         final s = AfreqshiftSettings(
-            enabled: true, order: AfreqshiftSettings.orderMin);
+            enabled: true, order: AfreqshiftSettings.orderMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderMax` is accepted by toFilterString', () {
         final s = AfreqshiftSettings(
-            enabled: true, order: AfreqshiftSettings.orderMax);
+            enabled: true, order: AfreqshiftSettings.orderMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderDefault` is accepted by toFilterString',
           () {
         final s = AfreqshiftSettings(
-            enabled: true, order: AfreqshiftSettings.orderDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `shift` const `shiftMin` is accepted by toFilterString', () {
         final s = AfreqshiftSettings(
-            enabled: true, shift: AfreqshiftSettings.shiftMin);
+            enabled: true, shift: AfreqshiftSettings.shiftMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `shift` const `shiftMax` is accepted by toFilterString', () {
         final s = AfreqshiftSettings(
-            enabled: true, shift: AfreqshiftSettings.shiftMax);
+            enabled: true, shift: AfreqshiftSettings.shiftMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `shift` const `shiftDefault` is accepted by toFilterString',
           () {
         final s = AfreqshiftSettings(
-            enabled: true, shift: AfreqshiftSettings.shiftDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AfwtdnSettings (afwtdn)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(afwtdn: AfwtdnSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -3076,48 +3069,48 @@ void main() {
 
       test('param `adaptive` lands in wire when set to a non-default value',
           () {
-        final s = const AfwtdnSettings(enabled: true, adaptive: true);
+        const s = AfwtdnSettings(enabled: true, adaptive: true);
         expect(s.toFilterString(), contains('adaptive='));
       });
 
       test('param `levels` lands in wire when set to a non-default value', () {
-        final s = const AfwtdnSettings(enabled: true, levels: 12);
+        const s = AfwtdnSettings(enabled: true, levels: 12);
         expect(s.toFilterString(), contains('levels='));
         expect(s.toFilterString(), contains('levels=12'));
       });
 
       test('param `percent` lands in wire when set to a non-default value', () {
-        final s = const AfwtdnSettings(enabled: true, percent: 100.0);
+        const s = AfwtdnSettings(enabled: true, percent: 100.0);
         expect(s.toFilterString(), contains('percent='));
         expect(s.toFilterString(), contains('percent=100.000'));
       });
 
       test('param `profile` lands in wire when set to a non-default value', () {
-        final s = const AfwtdnSettings(enabled: true, profile: true);
+        const s = AfwtdnSettings(enabled: true, profile: true);
         expect(s.toFilterString(), contains('profile='));
       });
 
       test('param `samples` lands in wire when set to a non-default value', () {
-        final s = const AfwtdnSettings(enabled: true, samples: 65536);
+        const s = AfwtdnSettings(enabled: true, samples: 65536);
         expect(s.toFilterString(), contains('samples='));
         expect(s.toFilterString(), contains('samples=65536'));
       });
 
       test('param `sigma` lands in wire when set to a non-default value', () {
-        final s = const AfwtdnSettings(enabled: true, sigma: 1.0);
+        const s = AfwtdnSettings(enabled: true, sigma: 1.0);
         expect(s.toFilterString(), contains('sigma='));
         expect(s.toFilterString(), contains('sigma=1.000'));
       });
 
       test('param `softness` lands in wire when set to a non-default value',
           () {
-        final s = const AfwtdnSettings(enabled: true, softness: 10.0);
+        const s = AfwtdnSettings(enabled: true, softness: 10.0);
         expect(s.toFilterString(), contains('softness='));
         expect(s.toFilterString(), contains('softness=10.000'));
       });
 
       test('param `wavet` lands in wire when set to a non-default value', () {
-        final s = const AfwtdnSettings(enabled: true, wavet: AfwtdnWavet.sym2);
+        const s = AfwtdnSettings(enabled: true, wavet: AfwtdnWavet.sym2);
         expect(s.toFilterString(), contains('wavet='));
         expect(s.toFilterString(), contains('wavet=sym2'));
       });
@@ -3139,7 +3132,7 @@ void main() {
       test('param `levels` const `levelsDefault` is accepted by toFilterString',
           () {
         final s =
-            AfwtdnSettings(enabled: true, levels: AfwtdnSettings.levelsDefault);
+            AfwtdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3161,7 +3154,7 @@ void main() {
           'param `percent` const `percentDefault` is accepted by toFilterString',
           () {
         final s = AfwtdnSettings(
-            enabled: true, percent: AfwtdnSettings.percentDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3183,12 +3176,12 @@ void main() {
           'param `samples` const `samplesDefault` is accepted by toFilterString',
           () {
         final s = AfwtdnSettings(
-            enabled: true, samples: AfwtdnSettings.samplesDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `sigma` const `sigmaMin` is accepted by toFilterString', () {
-        final s = AfwtdnSettings(enabled: true, sigma: AfwtdnSettings.sigmaMin);
+        final s = AfwtdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3200,7 +3193,7 @@ void main() {
       test('param `sigma` const `sigmaDefault` is accepted by toFilterString',
           () {
         final s =
-            AfwtdnSettings(enabled: true, sigma: AfwtdnSettings.sigmaDefault);
+            AfwtdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3222,13 +3215,13 @@ void main() {
           'param `softness` const `softnessDefault` is accepted by toFilterString',
           () {
         final s = AfwtdnSettings(
-            enabled: true, softness: AfwtdnSettings.softnessDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AgateSettings (agate)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(agate: AgateSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -3238,78 +3231,78 @@ void main() {
       });
 
       test('param `attack` lands in wire when set to a non-default value', () {
-        final s = const AgateSettings(enabled: true, attack: 9000.0);
+        const s = AgateSettings(enabled: true, attack: 9000.0);
         expect(s.toFilterString(), contains('attack='));
         expect(s.toFilterString(), contains('attack=9000.000'));
       });
 
       test('param `detection` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AgateSettings(enabled: true, detection: AgateDetection.peak);
+        const s =
+            AgateSettings(enabled: true, detection: AgateDetection.peak);
         expect(s.toFilterString(), contains('detection='));
         expect(s.toFilterString(), contains('detection=peak'));
       });
 
       test('param `knee` lands in wire when set to a non-default value', () {
-        final s = const AgateSettings(enabled: true, knee: 8.0);
+        const s = AgateSettings(enabled: true, knee: 8.0);
         expect(s.toFilterString(), contains('knee='));
         expect(s.toFilterString(), contains('knee=8.000'));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const AgateSettings(enabled: true, level_in: 64.0);
+        const s = AgateSettings(enabled: true, level_in: 64.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=64.000'));
       });
 
       test('param `level_sc` lands in wire when set to a non-default value',
           () {
-        final s = const AgateSettings(enabled: true, level_sc: 64.0);
+        const s = AgateSettings(enabled: true, level_sc: 64.0);
         expect(s.toFilterString(), contains('level_sc='));
         expect(s.toFilterString(), contains('level_sc=64.000'));
       });
 
       test('param `link` lands in wire when set to a non-default value', () {
-        final s = const AgateSettings(enabled: true, link: AgateLink.maximum);
+        const s = AgateSettings(enabled: true, link: AgateLink.maximum);
         expect(s.toFilterString(), contains('link='));
         expect(s.toFilterString(), contains('link=maximum'));
       });
 
       test('param `makeup` lands in wire when set to a non-default value', () {
-        final s = const AgateSettings(enabled: true, makeup: 64.0);
+        const s = AgateSettings(enabled: true, makeup: 64.0);
         expect(s.toFilterString(), contains('makeup='));
         expect(s.toFilterString(), contains('makeup=64.000'));
       });
 
       test('param `mode` lands in wire when set to a non-default value', () {
-        final s = const AgateSettings(enabled: true, mode: AgateMode.upward);
+        const s = AgateSettings(enabled: true, mode: AgateMode.upward);
         expect(s.toFilterString(), contains('mode='));
         expect(s.toFilterString(), contains('mode=upward'));
       });
 
       test('param `range` lands in wire when set to a non-default value', () {
-        final s = const AgateSettings(enabled: true, range: 1.0);
+        const s = AgateSettings(enabled: true, range: 1.0);
         expect(s.toFilterString(), contains('range='));
         expect(s.toFilterString(), contains('range=1.000'));
       });
 
       test('param `ratio` lands in wire when set to a non-default value', () {
-        final s = const AgateSettings(enabled: true, ratio: 9000.0);
+        const s = AgateSettings(enabled: true, ratio: 9000.0);
         expect(s.toFilterString(), contains('ratio='));
         expect(s.toFilterString(), contains('ratio=9000.000'));
       });
 
       test('param `release` lands in wire when set to a non-default value', () {
-        final s = const AgateSettings(enabled: true, release: 9000.0);
+        const s = AgateSettings(enabled: true, release: 9000.0);
         expect(s.toFilterString(), contains('release='));
         expect(s.toFilterString(), contains('release=9000.000'));
       });
 
       test('param `threshold` lands in wire when set to a non-default value',
           () {
-        final s = const AgateSettings(enabled: true, threshold: 1.0);
+        const s = AgateSettings(enabled: true, threshold: 1.0);
         expect(s.toFilterString(), contains('threshold='));
         expect(s.toFilterString(), contains('threshold=1.000'));
       });
@@ -3329,7 +3322,7 @@ void main() {
       test('param `attack` const `attackDefault` is accepted by toFilterString',
           () {
         final s =
-            AgateSettings(enabled: true, attack: AgateSettings.attackDefault);
+            AgateSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3345,7 +3338,7 @@ void main() {
 
       test('param `knee` const `kneeDefault` is accepted by toFilterString',
           () {
-        final s = AgateSettings(enabled: true, knee: AgateSettings.kneeDefault);
+        final s = AgateSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3367,7 +3360,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = AgateSettings(
-            enabled: true, level_in: AgateSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3389,13 +3382,13 @@ void main() {
           'param `level_sc` const `level_scDefault` is accepted by toFilterString',
           () {
         final s = AgateSettings(
-            enabled: true, level_sc: AgateSettings.level_scDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `makeup` const `makeupMin` is accepted by toFilterString',
           () {
-        final s = AgateSettings(enabled: true, makeup: AgateSettings.makeupMin);
+        final s = AgateSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3408,7 +3401,7 @@ void main() {
       test('param `makeup` const `makeupDefault` is accepted by toFilterString',
           () {
         final s =
-            AgateSettings(enabled: true, makeup: AgateSettings.makeupDefault);
+            AgateSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3425,7 +3418,7 @@ void main() {
       test('param `range` const `rangeDefault` is accepted by toFilterString',
           () {
         final s =
-            AgateSettings(enabled: true, range: AgateSettings.rangeDefault);
+            AgateSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3442,7 +3435,7 @@ void main() {
       test('param `ratio` const `ratioDefault` is accepted by toFilterString',
           () {
         final s =
-            AgateSettings(enabled: true, ratio: AgateSettings.ratioDefault);
+            AgateSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3464,7 +3457,7 @@ void main() {
           'param `release` const `releaseDefault` is accepted by toFilterString',
           () {
         final s =
-            AgateSettings(enabled: true, release: AgateSettings.releaseDefault);
+            AgateSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3488,13 +3481,13 @@ void main() {
           'param `threshold` const `thresholdDefault` is accepted by toFilterString',
           () {
         final s = AgateSettings(
-            enabled: true, threshold: AgateSettings.thresholdDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AiirSettings (aiir)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(aiir: AiirSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -3504,127 +3497,127 @@ void main() {
       });
 
       test('param `channel` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, channel: 1024);
+        const s = AiirSettings(enabled: true, channel: 1024);
         expect(s.toFilterString(), contains('channel='));
         expect(s.toFilterString(), contains('channel=1024'));
       });
 
       test('param `dry` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, dry: 0.0);
+        const s = AiirSettings(enabled: true, dry: 0.0);
         expect(s.toFilterString(), contains('dry='));
         expect(s.toFilterString(), contains('dry=0.000'));
       });
 
       test('param `e` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, e: AiirPrecision.flt);
+        const s = AiirSettings(enabled: true, e: AiirPrecision.flt);
         expect(s.toFilterString(), contains('e='));
         expect(s.toFilterString(), contains('e=flt'));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, f: AiirFormat.ll);
+        const s = AiirSettings(enabled: true, f: AiirFormat.ll);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=ll'));
       });
 
       test('param `format` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, format: AiirFormat.ll);
+        const s = AiirSettings(enabled: true, format: AiirFormat.ll);
         expect(s.toFilterString(), contains('format='));
         expect(s.toFilterString(), contains('format=ll'));
       });
 
       test('param `gains` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, gains: 'wire_test_alt');
+        const s = AiirSettings(enabled: true, gains: 'wire_test_alt');
         expect(s.toFilterString(), contains('gains='));
       });
 
       test('param `k` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, k: 'wire_test_alt');
+        const s = AiirSettings(enabled: true, k: 'wire_test_alt');
         expect(s.toFilterString(), contains('k='));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, mix: 0.0);
+        const s = AiirSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, n: false);
+        const s = AiirSettings(enabled: true, n: false);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const AiirSettings(enabled: true, normalize: false);
+        const s = AiirSettings(enabled: true, normalize: false);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, p: 'wire_test_alt');
+        const s = AiirSettings(enabled: true, p: 'wire_test_alt');
         expect(s.toFilterString(), contains('p='));
       });
 
       test('param `poles` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, poles: 'wire_test_alt');
+        const s = AiirSettings(enabled: true, poles: 'wire_test_alt');
         expect(s.toFilterString(), contains('poles='));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AiirSettings(enabled: true, precision: AiirPrecision.flt);
+        const s =
+            AiirSettings(enabled: true, precision: AiirPrecision.flt);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=flt'));
       });
 
       test('param `process` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, process: AiirProcess.d);
+        const s = AiirSettings(enabled: true, process: AiirProcess.d);
         expect(s.toFilterString(), contains('process='));
         expect(s.toFilterString(), contains('process=d'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, r: AiirProcess.d);
+        const s = AiirSettings(enabled: true, r: AiirProcess.d);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=d'));
       });
 
       test('param `rate` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, rate: 'wire_test_alt');
+        const s = AiirSettings(enabled: true, rate: 'wire_test_alt');
         expect(s.toFilterString(), contains('rate='));
       });
 
       test('param `response` lands in wire when set to a non-default value',
           () {
-        final s = const AiirSettings(enabled: true, response: true);
+        const s = AiirSettings(enabled: true, response: true);
         expect(s.toFilterString(), contains('response='));
       });
 
       test('param `size` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, size: 'wire_test_alt');
+        const s = AiirSettings(enabled: true, size: 'wire_test_alt');
         expect(s.toFilterString(), contains('size='));
       });
 
       test('param `wet` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, wet: 0.0);
+        const s = AiirSettings(enabled: true, wet: 0.0);
         expect(s.toFilterString(), contains('wet='));
         expect(s.toFilterString(), contains('wet=0.000'));
       });
 
       test('param `z` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, z: 'wire_test_alt');
+        const s = AiirSettings(enabled: true, z: 'wire_test_alt');
         expect(s.toFilterString(), contains('z='));
       });
 
       test('param `zeros` lands in wire when set to a non-default value', () {
-        final s = const AiirSettings(enabled: true, zeros: 'wire_test_alt');
+        const s = AiirSettings(enabled: true, zeros: 'wire_test_alt');
         expect(s.toFilterString(), contains('zeros='));
       });
 
       test('param `channel` const `channelMin` is accepted by toFilterString',
           () {
-        final s = AiirSettings(enabled: true, channel: AiirSettings.channelMin);
+        final s = AiirSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3638,7 +3631,7 @@ void main() {
           'param `channel` const `channelDefault` is accepted by toFilterString',
           () {
         final s =
-            AiirSettings(enabled: true, channel: AiirSettings.channelDefault);
+            AiirSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3648,12 +3641,12 @@ void main() {
       });
 
       test('param `dry` const `dryMax` is accepted by toFilterString', () {
-        final s = AiirSettings(enabled: true, dry: AiirSettings.dryMax);
+        final s = AiirSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `dry` const `dryDefault` is accepted by toFilterString', () {
-        final s = AiirSettings(enabled: true, dry: AiirSettings.dryDefault);
+        final s = AiirSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3663,12 +3656,12 @@ void main() {
       });
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
-        final s = AiirSettings(enabled: true, mix: AiirSettings.mixMax);
+        final s = AiirSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
-        final s = AiirSettings(enabled: true, mix: AiirSettings.mixDefault);
+        final s = AiirSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3678,18 +3671,18 @@ void main() {
       });
 
       test('param `wet` const `wetMax` is accepted by toFilterString', () {
-        final s = AiirSettings(enabled: true, wet: AiirSettings.wetMax);
+        final s = AiirSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `wet` const `wetDefault` is accepted by toFilterString', () {
-        final s = AiirSettings(enabled: true, wet: AiirSettings.wetDefault);
+        final s = AiirSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AlimiterSettings (alimiter)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(alimiter: AlimiterSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -3699,55 +3692,55 @@ void main() {
       });
 
       test('param `asc` lands in wire when set to a non-default value', () {
-        final s = const AlimiterSettings(enabled: true, asc: true);
+        const s = AlimiterSettings(enabled: true, asc: true);
         expect(s.toFilterString(), contains('asc='));
       });
 
       test('param `asc_level` lands in wire when set to a non-default value',
           () {
-        final s = const AlimiterSettings(enabled: true, asc_level: 1.0);
+        const s = AlimiterSettings(enabled: true, asc_level: 1.0);
         expect(s.toFilterString(), contains('asc_level='));
         expect(s.toFilterString(), contains('asc_level=1.000'));
       });
 
       test('param `attack` lands in wire when set to a non-default value', () {
-        final s = const AlimiterSettings(enabled: true, attack: 80.0);
+        const s = AlimiterSettings(enabled: true, attack: 80.0);
         expect(s.toFilterString(), contains('attack='));
         expect(s.toFilterString(), contains('attack=80.000'));
       });
 
       test('param `latency` lands in wire when set to a non-default value', () {
-        final s = const AlimiterSettings(enabled: true, latency: true);
+        const s = AlimiterSettings(enabled: true, latency: true);
         expect(s.toFilterString(), contains('latency='));
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
-        final s = const AlimiterSettings(enabled: true, level: false);
+        const s = AlimiterSettings(enabled: true, level: false);
         expect(s.toFilterString(), contains('level='));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const AlimiterSettings(enabled: true, level_in: 64.0);
+        const s = AlimiterSettings(enabled: true, level_in: 64.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=64.000'));
       });
 
       test('param `level_out` lands in wire when set to a non-default value',
           () {
-        final s = const AlimiterSettings(enabled: true, level_out: 64.0);
+        const s = AlimiterSettings(enabled: true, level_out: 64.0);
         expect(s.toFilterString(), contains('level_out='));
         expect(s.toFilterString(), contains('level_out=64.000'));
       });
 
       test('param `limit` lands in wire when set to a non-default value', () {
-        final s = const AlimiterSettings(enabled: true, limit: 0.0625);
+        const s = AlimiterSettings(enabled: true, limit: 0.0625);
         expect(s.toFilterString(), contains('limit='));
         expect(s.toFilterString(), contains('limit=0.063'));
       });
 
       test('param `release` lands in wire when set to a non-default value', () {
-        final s = const AlimiterSettings(enabled: true, release: 8000.0);
+        const s = AlimiterSettings(enabled: true, release: 8000.0);
         expect(s.toFilterString(), contains('release='));
         expect(s.toFilterString(), contains('release=8000.000'));
       });
@@ -3756,7 +3749,7 @@ void main() {
           'param `asc_level` const `asc_levelMin` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, asc_level: AlimiterSettings.asc_levelMin);
+            enabled: true, asc_level: AlimiterSettings.asc_levelMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3764,7 +3757,7 @@ void main() {
           'param `asc_level` const `asc_levelMax` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, asc_level: AlimiterSettings.asc_levelMax);
+            enabled: true, asc_level: AlimiterSettings.asc_levelMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3772,7 +3765,7 @@ void main() {
           'param `asc_level` const `asc_levelDefault` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, asc_level: AlimiterSettings.asc_levelDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3793,21 +3786,21 @@ void main() {
       test('param `attack` const `attackDefault` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, attack: AlimiterSettings.attackDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMin` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, level_in: AlimiterSettings.level_inMin);
+            enabled: true, level_in: AlimiterSettings.level_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMax` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, level_in: AlimiterSettings.level_inMax);
+            enabled: true, level_in: AlimiterSettings.level_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3815,7 +3808,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, level_in: AlimiterSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3823,7 +3816,7 @@ void main() {
           'param `level_out` const `level_outMin` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, level_out: AlimiterSettings.level_outMin);
+            enabled: true, level_out: AlimiterSettings.level_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3831,7 +3824,7 @@ void main() {
           'param `level_out` const `level_outMax` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, level_out: AlimiterSettings.level_outMax);
+            enabled: true, level_out: AlimiterSettings.level_outMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3839,7 +3832,7 @@ void main() {
           'param `level_out` const `level_outDefault` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, level_out: AlimiterSettings.level_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3851,28 +3844,28 @@ void main() {
 
       test('param `limit` const `limitMax` is accepted by toFilterString', () {
         final s =
-            AlimiterSettings(enabled: true, limit: AlimiterSettings.limitMax);
+            AlimiterSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `limit` const `limitDefault` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, limit: AlimiterSettings.limitDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `release` const `releaseMin` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, release: AlimiterSettings.releaseMin);
+            enabled: true, release: AlimiterSettings.releaseMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `release` const `releaseMax` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, release: AlimiterSettings.releaseMax);
+            enabled: true, release: AlimiterSettings.releaseMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -3880,13 +3873,13 @@ void main() {
           'param `release` const `releaseDefault` is accepted by toFilterString',
           () {
         final s = AlimiterSettings(
-            enabled: true, release: AlimiterSettings.releaseDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AllpassSettings (allpass)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(allpass: AllpassSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -3896,116 +3889,116 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s =
-            const AllpassSettings(enabled: true, a: AllpassTransformType.dii);
+        const s =
+            AllpassSettings(enabled: true, a: AllpassTransformType.dii);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, c: 'wire_test_alt');
+        const s = AllpassSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AllpassSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            AllpassSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, f: 999999.0);
+        const s = AllpassSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const AllpassSettings(enabled: true, frequency: 999999.0);
+        const s = AllpassSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, m: 0.0);
+        const s = AllpassSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, mix: 0.0);
+        const s = AllpassSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, n: true);
+        const s = AllpassSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const AllpassSettings(enabled: true, normalize: true);
+        const s = AllpassSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `o` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, o: 1);
+        const s = AllpassSettings(enabled: true, o: 1);
         expect(s.toFilterString(), contains('o='));
         expect(s.toFilterString(), contains('o=1'));
       });
 
       test('param `order` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, order: 1);
+        const s = AllpassSettings(enabled: true, order: 1);
         expect(s.toFilterString(), contains('order='));
         expect(s.toFilterString(), contains('order=1'));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s = const AllpassSettings(
-            enabled: true, precision: AllpassPrecision.s16);
+        const s = AllpassSettings(
+            enabled: true, precision: AllpassPrecision.s16,);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, r: AllpassPrecision.s16);
+        const s = AllpassSettings(enabled: true, r: AllpassPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, t: AllpassWidthType.h);
+        const s = AllpassSettings(enabled: true, t: AllpassWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const AllpassSettings(
-            enabled: true, transform: AllpassTransformType.dii);
+        const s = AllpassSettings(
+            enabled: true, transform: AllpassTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, w: 99999.0);
+        const s = AllpassSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const AllpassSettings(enabled: true, width: 99999.0);
+        const s = AllpassSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s = const AllpassSettings(
-            enabled: true, width_type: AllpassWidthType.h);
+        const s = AllpassSettings(
+            enabled: true, width_type: AllpassWidthType.h,);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
@@ -4021,7 +4014,7 @@ void main() {
       });
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
-        final s = AllpassSettings(enabled: true, f: AllpassSettings.fDefault);
+        final s = AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4029,7 +4022,7 @@ void main() {
           'param `frequency` const `frequencyMin` is accepted by toFilterString',
           () {
         final s = AllpassSettings(
-            enabled: true, frequency: AllpassSettings.frequencyMin);
+            enabled: true, frequency: AllpassSettings.frequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4037,7 +4030,7 @@ void main() {
           'param `frequency` const `frequencyMax` is accepted by toFilterString',
           () {
         final s = AllpassSettings(
-            enabled: true, frequency: AllpassSettings.frequencyMax);
+            enabled: true, frequency: AllpassSettings.frequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4045,7 +4038,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = AllpassSettings(
-            enabled: true, frequency: AllpassSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4055,12 +4048,12 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = AllpassSettings(enabled: true, m: AllpassSettings.mMax);
+        final s = AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
-        final s = AllpassSettings(enabled: true, m: AllpassSettings.mDefault);
+        final s = AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4070,13 +4063,13 @@ void main() {
       });
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
-        final s = AllpassSettings(enabled: true, mix: AllpassSettings.mixMax);
+        final s = AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s =
-            AllpassSettings(enabled: true, mix: AllpassSettings.mixDefault);
+            AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4086,12 +4079,12 @@ void main() {
       });
 
       test('param `o` const `oMax` is accepted by toFilterString', () {
-        final s = AllpassSettings(enabled: true, o: AllpassSettings.oMax);
+        final s = AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `o` const `oDefault` is accepted by toFilterString', () {
-        final s = AllpassSettings(enabled: true, o: AllpassSettings.oDefault);
+        final s = AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4103,14 +4096,14 @@ void main() {
 
       test('param `order` const `orderMax` is accepted by toFilterString', () {
         final s =
-            AllpassSettings(enabled: true, order: AllpassSettings.orderMax);
+            AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderDefault` is accepted by toFilterString',
           () {
         final s =
-            AllpassSettings(enabled: true, order: AllpassSettings.orderDefault);
+            AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4125,7 +4118,7 @@ void main() {
       });
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
-        final s = AllpassSettings(enabled: true, w: AllpassSettings.wDefault);
+        final s = AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4144,13 +4137,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s =
-            AllpassSettings(enabled: true, width: AllpassSettings.widthDefault);
+            AllpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AnequalizerSettings (anequalizer)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(anequalizer: AnequalizerSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -4161,63 +4154,63 @@ void main() {
       });
 
       test('param `colors` lands in wire when set to a non-default value', () {
-        final s =
-            const AnequalizerSettings(enabled: true, colors: 'wire_test_alt');
+        const s =
+            AnequalizerSettings(enabled: true, colors: 'wire_test_alt');
         expect(s.toFilterString(), contains('colors='));
       });
 
       test('param `curves` lands in wire when set to a non-default value', () {
-        final s = const AnequalizerSettings(enabled: true, curves: true);
+        const s = AnequalizerSettings(enabled: true, curves: true);
         expect(s.toFilterString(), contains('curves='));
       });
 
       test('param `fscale` lands in wire when set to a non-default value', () {
-        final s = const AnequalizerSettings(
-            enabled: true, fscale: AnequalizerFscale.lin);
+        const s = AnequalizerSettings(
+            enabled: true, fscale: AnequalizerFscale.lin,);
         expect(s.toFilterString(), contains('fscale='));
         expect(s.toFilterString(), contains('fscale=lin'));
       });
 
       test('param `mgain` lands in wire when set to a non-default value', () {
-        final s = const AnequalizerSettings(enabled: true, mgain: 900.0);
+        const s = AnequalizerSettings(enabled: true, mgain: 900.0);
         expect(s.toFilterString(), contains('mgain='));
         expect(s.toFilterString(), contains('mgain=900.000'));
       });
 
       test('param `params` lands in wire when set to a non-default value', () {
-        final s =
-            const AnequalizerSettings(enabled: true, params: 'wire_test_alt');
+        const s =
+            AnequalizerSettings(enabled: true, params: 'wire_test_alt');
         expect(s.toFilterString(), contains('params='));
       });
 
       test('param `size` lands in wire when set to a non-default value', () {
-        final s =
-            const AnequalizerSettings(enabled: true, size: 'wire_test_alt');
+        const s =
+            AnequalizerSettings(enabled: true, size: 'wire_test_alt');
         expect(s.toFilterString(), contains('size='));
       });
 
       test('param `mgain` const `mgainMin` is accepted by toFilterString', () {
         final s = AnequalizerSettings(
-            enabled: true, mgain: AnequalizerSettings.mgainMin);
+            enabled: true, mgain: AnequalizerSettings.mgainMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mgain` const `mgainMax` is accepted by toFilterString', () {
         final s = AnequalizerSettings(
-            enabled: true, mgain: AnequalizerSettings.mgainMax);
+            enabled: true, mgain: AnequalizerSettings.mgainMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mgain` const `mgainDefault` is accepted by toFilterString',
           () {
         final s = AnequalizerSettings(
-            enabled: true, mgain: AnequalizerSettings.mgainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AnlmdnSettings (anlmdn)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(anlmdn: AnlmdnSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -4227,63 +4220,63 @@ void main() {
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const AnlmdnSettings(enabled: true, m: 1000.0);
+        const s = AnlmdnSettings(enabled: true, m: 1000.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=1000.000'));
       });
 
       test('param `o` lands in wire when set to a non-default value', () {
-        final s = const AnlmdnSettings(enabled: true, o: AnlmdnMode.i);
+        const s = AnlmdnSettings(enabled: true, o: AnlmdnMode.i);
         expect(s.toFilterString(), contains('o='));
         expect(s.toFilterString(), contains('o=i'));
       });
 
       test('param `output` lands in wire when set to a non-default value', () {
-        final s = const AnlmdnSettings(enabled: true, output: AnlmdnMode.i);
+        const s = AnlmdnSettings(enabled: true, output: AnlmdnMode.i);
         expect(s.toFilterString(), contains('output='));
         expect(s.toFilterString(), contains('output=i'));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const AnlmdnSettings(
-            enabled: true, p: const Duration(microseconds: 1002000));
+        const s = AnlmdnSettings(
+            enabled: true, p: const Duration(microseconds: 1002000),);
         expect(s.toFilterString(), contains('p='));
       });
 
       test('param `patch` lands in wire when set to a non-default value', () {
-        final s = const AnlmdnSettings(
-            enabled: true, patch: const Duration(microseconds: 1002000));
+        const s = AnlmdnSettings(
+            enabled: true, patch: const Duration(microseconds: 1002000),);
         expect(s.toFilterString(), contains('patch='));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s = const AnlmdnSettings(
-            enabled: true, r: const Duration(microseconds: 1006000));
+        const s = AnlmdnSettings(
+            enabled: true, r: const Duration(microseconds: 1006000),);
         expect(s.toFilterString(), contains('r='));
       });
 
       test('param `research` lands in wire when set to a non-default value',
           () {
-        final s = const AnlmdnSettings(
-            enabled: true, research: const Duration(microseconds: 1006000));
+        const s = AnlmdnSettings(
+            enabled: true, research: const Duration(microseconds: 1006000),);
         expect(s.toFilterString(), contains('research='));
       });
 
       test('param `s` lands in wire when set to a non-default value', () {
-        final s = const AnlmdnSettings(enabled: true, s: 10000.0);
+        const s = AnlmdnSettings(enabled: true, s: 10000.0);
         expect(s.toFilterString(), contains('s='));
         expect(s.toFilterString(), contains('s=10000.000'));
       });
 
       test('param `smooth` lands in wire when set to a non-default value', () {
-        final s = const AnlmdnSettings(enabled: true, smooth: 1000.0);
+        const s = AnlmdnSettings(enabled: true, smooth: 1000.0);
         expect(s.toFilterString(), contains('smooth='));
         expect(s.toFilterString(), contains('smooth=1000.000'));
       });
 
       test('param `strength` lands in wire when set to a non-default value',
           () {
-        final s = const AnlmdnSettings(enabled: true, strength: 10000.0);
+        const s = AnlmdnSettings(enabled: true, strength: 10000.0);
         expect(s.toFilterString(), contains('strength='));
         expect(s.toFilterString(), contains('strength=10000.000'));
       });
@@ -4299,12 +4292,12 @@ void main() {
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
-        final s = AnlmdnSettings(enabled: true, m: AnlmdnSettings.mDefault);
+        final s = AnlmdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `s` const `sMin` is accepted by toFilterString', () {
-        final s = AnlmdnSettings(enabled: true, s: AnlmdnSettings.sMin);
+        final s = AnlmdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4314,7 +4307,7 @@ void main() {
       });
 
       test('param `s` const `sDefault` is accepted by toFilterString', () {
-        final s = AnlmdnSettings(enabled: true, s: AnlmdnSettings.sDefault);
+        final s = AnlmdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4335,14 +4328,14 @@ void main() {
       test('param `smooth` const `smoothDefault` is accepted by toFilterString',
           () {
         final s =
-            AnlmdnSettings(enabled: true, smooth: AnlmdnSettings.smoothDefault);
+            AnlmdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `strength` const `strengthMin` is accepted by toFilterString',
           () {
         final s =
-            AnlmdnSettings(enabled: true, strength: AnlmdnSettings.strengthMin);
+            AnlmdnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4357,13 +4350,13 @@ void main() {
           'param `strength` const `strengthDefault` is accepted by toFilterString',
           () {
         final s = AnlmdnSettings(
-            enabled: true, strength: AnlmdnSettings.strengthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('ApadSettings (apad)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(apad: ApadSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -4374,35 +4367,35 @@ void main() {
 
       test('param `packet_size` lands in wire when set to a non-default value',
           () {
-        final s = const ApadSettings(enabled: true, packet_size: 2147483647);
+        const s = ApadSettings(enabled: true, packet_size: 2147483647);
         expect(s.toFilterString(), contains('packet_size='));
         expect(s.toFilterString(), contains('packet_size=2147483647'));
       });
 
       test('param `pad_dur` lands in wire when set to a non-default value', () {
-        final s = const ApadSettings(
-            enabled: true, pad_dur: const Duration(microseconds: 999999));
+        const s = ApadSettings(
+            enabled: true, pad_dur: const Duration(microseconds: 999999),);
         expect(s.toFilterString(), contains('pad_dur='));
       });
 
       test('param `pad_len` lands in wire when set to a non-default value', () {
-        final s =
-            const ApadSettings(enabled: true, pad_len: 9223372036854775807);
+        const s =
+            ApadSettings(enabled: true, pad_len: 9223372036854775807);
         expect(s.toFilterString(), contains('pad_len='));
         expect(s.toFilterString(), contains('pad_len=9223372036854775807'));
       });
 
       test('param `whole_dur` lands in wire when set to a non-default value',
           () {
-        final s = const ApadSettings(
-            enabled: true, whole_dur: const Duration(microseconds: 999999));
+        const s = ApadSettings(
+            enabled: true, whole_dur: const Duration(microseconds: 999999),);
         expect(s.toFilterString(), contains('whole_dur='));
       });
 
       test('param `whole_len` lands in wire when set to a non-default value',
           () {
-        final s =
-            const ApadSettings(enabled: true, whole_len: 9223372036854775807);
+        const s =
+            ApadSettings(enabled: true, whole_len: 9223372036854775807);
         expect(s.toFilterString(), contains('whole_len='));
         expect(s.toFilterString(), contains('whole_len=9223372036854775807'));
       });
@@ -4411,7 +4404,7 @@ void main() {
           'param `packet_size` const `packet_sizeMin` is accepted by toFilterString',
           () {
         final s = ApadSettings(
-            enabled: true, packet_size: ApadSettings.packet_sizeMin);
+            enabled: true, packet_size: ApadSettings.packet_sizeMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4419,7 +4412,7 @@ void main() {
           'param `packet_size` const `packet_sizeMax` is accepted by toFilterString',
           () {
         final s = ApadSettings(
-            enabled: true, packet_size: ApadSettings.packet_sizeMax);
+            enabled: true, packet_size: ApadSettings.packet_sizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4427,13 +4420,13 @@ void main() {
           'param `packet_size` const `packet_sizeDefault` is accepted by toFilterString',
           () {
         final s = ApadSettings(
-            enabled: true, packet_size: ApadSettings.packet_sizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `pad_len` const `pad_lenMin` is accepted by toFilterString',
           () {
-        final s = ApadSettings(enabled: true, pad_len: ApadSettings.pad_lenMin);
+        final s = ApadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4447,7 +4440,7 @@ void main() {
           'param `pad_len` const `pad_lenDefault` is accepted by toFilterString',
           () {
         final s =
-            ApadSettings(enabled: true, pad_len: ApadSettings.pad_lenDefault);
+            ApadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4455,7 +4448,7 @@ void main() {
           'param `whole_len` const `whole_lenMin` is accepted by toFilterString',
           () {
         final s =
-            ApadSettings(enabled: true, whole_len: ApadSettings.whole_lenMin);
+            ApadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4471,13 +4464,13 @@ void main() {
           'param `whole_len` const `whole_lenDefault` is accepted by toFilterString',
           () {
         final s = ApadSettings(
-            enabled: true, whole_len: ApadSettings.whole_lenDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AphaserSettings (aphaser)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(aphaser: AphaserSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -4487,38 +4480,38 @@ void main() {
       });
 
       test('param `decay` lands in wire when set to a non-default value', () {
-        final s = const AphaserSettings(enabled: true, decay: 0.99);
+        const s = AphaserSettings(enabled: true, decay: 0.99);
         expect(s.toFilterString(), contains('decay='));
         expect(s.toFilterString(), contains('decay=0.990'));
       });
 
       test('param `delay` lands in wire when set to a non-default value', () {
-        final s = const AphaserSettings(enabled: true, delay: 5.0);
+        const s = AphaserSettings(enabled: true, delay: 5.0);
         expect(s.toFilterString(), contains('delay='));
         expect(s.toFilterString(), contains('delay=5.000'));
       });
 
       test('param `in_gain` lands in wire when set to a non-default value', () {
-        final s = const AphaserSettings(enabled: true, in_gain: 1.0);
+        const s = AphaserSettings(enabled: true, in_gain: 1.0);
         expect(s.toFilterString(), contains('in_gain='));
         expect(s.toFilterString(), contains('in_gain=1.000'));
       });
 
       test('param `out_gain` lands in wire when set to a non-default value',
           () {
-        final s = const AphaserSettings(enabled: true, out_gain: 1000000000.0);
+        const s = AphaserSettings(enabled: true, out_gain: 1000000000.0);
         expect(s.toFilterString(), contains('out_gain='));
         expect(s.toFilterString(), contains('out_gain=1000000000.000'));
       });
 
       test('param `speed` lands in wire when set to a non-default value', () {
-        final s = const AphaserSettings(enabled: true, speed: 2.0);
+        const s = AphaserSettings(enabled: true, speed: 2.0);
         expect(s.toFilterString(), contains('speed='));
         expect(s.toFilterString(), contains('speed=2.000'));
       });
 
       test('param `type` lands in wire when set to a non-default value', () {
-        final s = const AphaserSettings(enabled: true, type: AphaserType.t);
+        const s = AphaserSettings(enabled: true, type: AphaserType.t);
         expect(s.toFilterString(), contains('type='));
         expect(s.toFilterString(), contains('type=t'));
       });
@@ -4538,7 +4531,7 @@ void main() {
       test('param `decay` const `decayDefault` is accepted by toFilterString',
           () {
         final s =
-            AphaserSettings(enabled: true, decay: AphaserSettings.decayDefault);
+            AphaserSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4557,7 +4550,7 @@ void main() {
       test('param `delay` const `delayDefault` is accepted by toFilterString',
           () {
         final s =
-            AphaserSettings(enabled: true, delay: AphaserSettings.delayDefault);
+            AphaserSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4579,21 +4572,21 @@ void main() {
           'param `in_gain` const `in_gainDefault` is accepted by toFilterString',
           () {
         final s = AphaserSettings(
-            enabled: true, in_gain: AphaserSettings.in_gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `out_gain` const `out_gainMin` is accepted by toFilterString',
           () {
         final s = AphaserSettings(
-            enabled: true, out_gain: AphaserSettings.out_gainMin);
+            enabled: true, out_gain: AphaserSettings.out_gainMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `out_gain` const `out_gainMax` is accepted by toFilterString',
           () {
         final s = AphaserSettings(
-            enabled: true, out_gain: AphaserSettings.out_gainMax);
+            enabled: true, out_gain: AphaserSettings.out_gainMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4601,7 +4594,7 @@ void main() {
           'param `out_gain` const `out_gainDefault` is accepted by toFilterString',
           () {
         final s = AphaserSettings(
-            enabled: true, out_gain: AphaserSettings.out_gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4620,13 +4613,13 @@ void main() {
       test('param `speed` const `speedDefault` is accepted by toFilterString',
           () {
         final s =
-            AphaserSettings(enabled: true, speed: AphaserSettings.speedDefault);
+            AphaserSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AphaseshiftSettings (aphaseshift)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(aphaseshift: AphaseshiftSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -4637,83 +4630,83 @@ void main() {
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
-        final s = const AphaseshiftSettings(enabled: true, level: 0.0);
+        const s = AphaseshiftSettings(enabled: true, level: 0.0);
         expect(s.toFilterString(), contains('level='));
         expect(s.toFilterString(), contains('level=0.000'));
       });
 
       test('param `order` lands in wire when set to a non-default value', () {
-        final s = const AphaseshiftSettings(enabled: true, order: 16);
+        const s = AphaseshiftSettings(enabled: true, order: 16);
         expect(s.toFilterString(), contains('order='));
         expect(s.toFilterString(), contains('order=16'));
       });
 
       test('param `shift` lands in wire when set to a non-default value', () {
-        final s = const AphaseshiftSettings(enabled: true, shift: 1.0);
+        const s = AphaseshiftSettings(enabled: true, shift: 1.0);
         expect(s.toFilterString(), contains('shift='));
         expect(s.toFilterString(), contains('shift=1.000'));
       });
 
       test('param `level` const `levelMin` is accepted by toFilterString', () {
         final s = AphaseshiftSettings(
-            enabled: true, level: AphaseshiftSettings.levelMin);
+            enabled: true, level: AphaseshiftSettings.levelMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelMax` is accepted by toFilterString', () {
         final s = AphaseshiftSettings(
-            enabled: true, level: AphaseshiftSettings.levelMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelDefault` is accepted by toFilterString',
           () {
         final s = AphaseshiftSettings(
-            enabled: true, level: AphaseshiftSettings.levelDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderMin` is accepted by toFilterString', () {
         final s = AphaseshiftSettings(
-            enabled: true, order: AphaseshiftSettings.orderMin);
+            enabled: true, order: AphaseshiftSettings.orderMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderMax` is accepted by toFilterString', () {
         final s = AphaseshiftSettings(
-            enabled: true, order: AphaseshiftSettings.orderMax);
+            enabled: true, order: AphaseshiftSettings.orderMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderDefault` is accepted by toFilterString',
           () {
         final s = AphaseshiftSettings(
-            enabled: true, order: AphaseshiftSettings.orderDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `shift` const `shiftMin` is accepted by toFilterString', () {
         final s = AphaseshiftSettings(
-            enabled: true, shift: AphaseshiftSettings.shiftMin);
+            enabled: true, shift: AphaseshiftSettings.shiftMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `shift` const `shiftMax` is accepted by toFilterString', () {
         final s = AphaseshiftSettings(
-            enabled: true, shift: AphaseshiftSettings.shiftMax);
+            enabled: true, shift: AphaseshiftSettings.shiftMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `shift` const `shiftDefault` is accepted by toFilterString',
           () {
         final s = AphaseshiftSettings(
-            enabled: true, shift: AphaseshiftSettings.shiftDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('ApsyclipSettings (apsyclip)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(apsyclip: ApsyclipSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -4724,44 +4717,44 @@ void main() {
 
       test('param `adaptive` lands in wire when set to a non-default value',
           () {
-        final s = const ApsyclipSettings(enabled: true, adaptive: 1.0);
+        const s = ApsyclipSettings(enabled: true, adaptive: 1.0);
         expect(s.toFilterString(), contains('adaptive='));
         expect(s.toFilterString(), contains('adaptive=1.000'));
       });
 
       test('param `clip` lands in wire when set to a non-default value', () {
-        final s = const ApsyclipSettings(enabled: true, clip: 0.015625);
+        const s = ApsyclipSettings(enabled: true, clip: 0.015625);
         expect(s.toFilterString(), contains('clip='));
         expect(s.toFilterString(), contains('clip=0.016'));
       });
 
       test('param `diff` lands in wire when set to a non-default value', () {
-        final s = const ApsyclipSettings(enabled: true, diff: true);
+        const s = ApsyclipSettings(enabled: true, diff: true);
         expect(s.toFilterString(), contains('diff='));
       });
 
       test('param `iterations` lands in wire when set to a non-default value',
           () {
-        final s = const ApsyclipSettings(enabled: true, iterations: 20);
+        const s = ApsyclipSettings(enabled: true, iterations: 20);
         expect(s.toFilterString(), contains('iterations='));
         expect(s.toFilterString(), contains('iterations=20'));
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
-        final s = const ApsyclipSettings(enabled: true, level: true);
+        const s = ApsyclipSettings(enabled: true, level: true);
         expect(s.toFilterString(), contains('level='));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const ApsyclipSettings(enabled: true, level_in: 64.0);
+        const s = ApsyclipSettings(enabled: true, level_in: 64.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=64.000'));
       });
 
       test('param `level_out` lands in wire when set to a non-default value',
           () {
-        final s = const ApsyclipSettings(enabled: true, level_out: 64.0);
+        const s = ApsyclipSettings(enabled: true, level_out: 64.0);
         expect(s.toFilterString(), contains('level_out='));
         expect(s.toFilterString(), contains('level_out=64.000'));
       });
@@ -4769,14 +4762,14 @@ void main() {
       test('param `adaptive` const `adaptiveMin` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, adaptive: ApsyclipSettings.adaptiveMin);
+            enabled: true, adaptive: ApsyclipSettings.adaptiveMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `adaptive` const `adaptiveMax` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, adaptive: ApsyclipSettings.adaptiveMax);
+            enabled: true, adaptive: ApsyclipSettings.adaptiveMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4784,7 +4777,7 @@ void main() {
           'param `adaptive` const `adaptiveDefault` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, adaptive: ApsyclipSettings.adaptiveDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4796,14 +4789,14 @@ void main() {
 
       test('param `clip` const `clipMax` is accepted by toFilterString', () {
         final s =
-            ApsyclipSettings(enabled: true, clip: ApsyclipSettings.clipMax);
+            ApsyclipSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `clip` const `clipDefault` is accepted by toFilterString',
           () {
         final s =
-            ApsyclipSettings(enabled: true, clip: ApsyclipSettings.clipDefault);
+            ApsyclipSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4811,7 +4804,7 @@ void main() {
           'param `iterations` const `iterationsMin` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, iterations: ApsyclipSettings.iterationsMin);
+            enabled: true, iterations: ApsyclipSettings.iterationsMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4819,7 +4812,7 @@ void main() {
           'param `iterations` const `iterationsMax` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, iterations: ApsyclipSettings.iterationsMax);
+            enabled: true, iterations: ApsyclipSettings.iterationsMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4827,21 +4820,21 @@ void main() {
           'param `iterations` const `iterationsDefault` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, iterations: ApsyclipSettings.iterationsDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMin` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, level_in: ApsyclipSettings.level_inMin);
+            enabled: true, level_in: ApsyclipSettings.level_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMax` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, level_in: ApsyclipSettings.level_inMax);
+            enabled: true, level_in: ApsyclipSettings.level_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4849,7 +4842,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, level_in: ApsyclipSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4857,7 +4850,7 @@ void main() {
           'param `level_out` const `level_outMin` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, level_out: ApsyclipSettings.level_outMin);
+            enabled: true, level_out: ApsyclipSettings.level_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4865,7 +4858,7 @@ void main() {
           'param `level_out` const `level_outMax` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, level_out: ApsyclipSettings.level_outMax);
+            enabled: true, level_out: ApsyclipSettings.level_outMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4873,13 +4866,13 @@ void main() {
           'param `level_out` const `level_outDefault` is accepted by toFilterString',
           () {
         final s = ApsyclipSettings(
-            enabled: true, level_out: ApsyclipSettings.level_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('ApulsatorSettings (apulsator)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(apulsator: ApulsatorSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -4889,73 +4882,73 @@ void main() {
       });
 
       test('param `amount` lands in wire when set to a non-default value', () {
-        final s = const ApulsatorSettings(enabled: true, amount: 0.0);
+        const s = ApulsatorSettings(enabled: true, amount: 0.0);
         expect(s.toFilterString(), contains('amount='));
         expect(s.toFilterString(), contains('amount=0.000'));
       });
 
       test('param `bpm` lands in wire when set to a non-default value', () {
-        final s = const ApulsatorSettings(enabled: true, bpm: 300.0);
+        const s = ApulsatorSettings(enabled: true, bpm: 300.0);
         expect(s.toFilterString(), contains('bpm='));
         expect(s.toFilterString(), contains('bpm=300.000'));
       });
 
       test('param `hz` lands in wire when set to a non-default value', () {
-        final s = const ApulsatorSettings(enabled: true, hz: 100.0);
+        const s = ApulsatorSettings(enabled: true, hz: 100.0);
         expect(s.toFilterString(), contains('hz='));
         expect(s.toFilterString(), contains('hz=100.000'));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const ApulsatorSettings(enabled: true, level_in: 64.0);
+        const s = ApulsatorSettings(enabled: true, level_in: 64.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=64.000'));
       });
 
       test('param `level_out` lands in wire when set to a non-default value',
           () {
-        final s = const ApulsatorSettings(enabled: true, level_out: 64.0);
+        const s = ApulsatorSettings(enabled: true, level_out: 64.0);
         expect(s.toFilterString(), contains('level_out='));
         expect(s.toFilterString(), contains('level_out=64.000'));
       });
 
       test('param `mode` lands in wire when set to a non-default value', () {
-        final s = const ApulsatorSettings(
-            enabled: true, mode: ApulsatorMode.triangle);
+        const s = ApulsatorSettings(
+            enabled: true, mode: ApulsatorMode.triangle,);
         expect(s.toFilterString(), contains('mode='));
         expect(s.toFilterString(), contains('mode=triangle'));
       });
 
       test('param `ms` lands in wire when set to a non-default value', () {
-        final s = const ApulsatorSettings(enabled: true, ms: 2000);
+        const s = ApulsatorSettings(enabled: true, ms: 2000);
         expect(s.toFilterString(), contains('ms='));
         expect(s.toFilterString(), contains('ms=2000'));
       });
 
       test('param `offset_l` lands in wire when set to a non-default value',
           () {
-        final s = const ApulsatorSettings(enabled: true, offset_l: 1.0);
+        const s = ApulsatorSettings(enabled: true, offset_l: 1.0);
         expect(s.toFilterString(), contains('offset_l='));
         expect(s.toFilterString(), contains('offset_l=1.000'));
       });
 
       test('param `offset_r` lands in wire when set to a non-default value',
           () {
-        final s = const ApulsatorSettings(enabled: true, offset_r: 1.0);
+        const s = ApulsatorSettings(enabled: true, offset_r: 1.0);
         expect(s.toFilterString(), contains('offset_r='));
         expect(s.toFilterString(), contains('offset_r=1.000'));
       });
 
       test('param `timing` lands in wire when set to a non-default value', () {
-        final s =
-            const ApulsatorSettings(enabled: true, timing: ApulsatorTiming.ms);
+        const s =
+            ApulsatorSettings(enabled: true, timing: ApulsatorTiming.ms);
         expect(s.toFilterString(), contains('timing='));
         expect(s.toFilterString(), contains('timing=ms'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const ApulsatorSettings(enabled: true, width: 2.0);
+        const s = ApulsatorSettings(enabled: true, width: 2.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=2.000'));
       });
@@ -4963,21 +4956,21 @@ void main() {
       test('param `amount` const `amountMin` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, amount: ApulsatorSettings.amountMin);
+            enabled: true, amount: ApulsatorSettings.amountMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `amount` const `amountMax` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, amount: ApulsatorSettings.amountMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `amount` const `amountDefault` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, amount: ApulsatorSettings.amountDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -4995,7 +4988,7 @@ void main() {
 
       test('param `bpm` const `bpmDefault` is accepted by toFilterString', () {
         final s =
-            ApulsatorSettings(enabled: true, bpm: ApulsatorSettings.bpmDefault);
+            ApulsatorSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5011,21 +5004,21 @@ void main() {
 
       test('param `hz` const `hzDefault` is accepted by toFilterString', () {
         final s =
-            ApulsatorSettings(enabled: true, hz: ApulsatorSettings.hzDefault);
+            ApulsatorSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMin` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, level_in: ApulsatorSettings.level_inMin);
+            enabled: true, level_in: ApulsatorSettings.level_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMax` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, level_in: ApulsatorSettings.level_inMax);
+            enabled: true, level_in: ApulsatorSettings.level_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5033,7 +5026,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, level_in: ApulsatorSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5041,7 +5034,7 @@ void main() {
           'param `level_out` const `level_outMin` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, level_out: ApulsatorSettings.level_outMin);
+            enabled: true, level_out: ApulsatorSettings.level_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5049,7 +5042,7 @@ void main() {
           'param `level_out` const `level_outMax` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, level_out: ApulsatorSettings.level_outMax);
+            enabled: true, level_out: ApulsatorSettings.level_outMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5057,7 +5050,7 @@ void main() {
           'param `level_out` const `level_outDefault` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, level_out: ApulsatorSettings.level_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5073,21 +5066,21 @@ void main() {
 
       test('param `ms` const `msDefault` is accepted by toFilterString', () {
         final s =
-            ApulsatorSettings(enabled: true, ms: ApulsatorSettings.msDefault);
+            ApulsatorSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `offset_l` const `offset_lMin` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, offset_l: ApulsatorSettings.offset_lMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `offset_l` const `offset_lMax` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, offset_l: ApulsatorSettings.offset_lMax);
+            enabled: true, offset_l: ApulsatorSettings.offset_lMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5095,21 +5088,21 @@ void main() {
           'param `offset_l` const `offset_lDefault` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, offset_l: ApulsatorSettings.offset_lDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `offset_r` const `offset_rMin` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, offset_r: ApulsatorSettings.offset_rMin);
+            enabled: true, offset_r: ApulsatorSettings.offset_rMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `offset_r` const `offset_rMax` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, offset_r: ApulsatorSettings.offset_rMax);
+            enabled: true, offset_r: ApulsatorSettings.offset_rMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5117,7 +5110,7 @@ void main() {
           'param `offset_r` const `offset_rDefault` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, offset_r: ApulsatorSettings.offset_rDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5136,13 +5129,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s = ApulsatorSettings(
-            enabled: true, width: ApulsatorSettings.widthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AresampleSettings (aresample)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(aresample: AresampleSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -5153,8 +5146,8 @@ void main() {
 
       test('param `sample_rate` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AresampleSettings(enabled: true, sample_rate: 2147483647);
+        const s =
+            AresampleSettings(enabled: true, sample_rate: 2147483647);
         expect(s.toFilterString(), contains('sample_rate='));
         expect(s.toFilterString(), contains('sample_rate=2147483647'));
       });
@@ -5163,7 +5156,7 @@ void main() {
           'param `sample_rate` const `sample_rateMin` is accepted by toFilterString',
           () {
         final s = AresampleSettings(
-            enabled: true, sample_rate: AresampleSettings.sample_rateMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5171,7 +5164,7 @@ void main() {
           'param `sample_rate` const `sample_rateMax` is accepted by toFilterString',
           () {
         final s = AresampleSettings(
-            enabled: true, sample_rate: AresampleSettings.sample_rateMax);
+            enabled: true, sample_rate: AresampleSettings.sample_rateMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5179,13 +5172,13 @@ void main() {
           'param `sample_rate` const `sample_rateDefault` is accepted by toFilterString',
           () {
         final s = AresampleSettings(
-            enabled: true, sample_rate: AresampleSettings.sample_rateDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('ArnndnSettings (arnndn)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(arnndn: ArnndnSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -5195,18 +5188,18 @@ void main() {
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const ArnndnSettings(enabled: true, m: 'wire_test_alt');
+        const s = ArnndnSettings(enabled: true, m: 'wire_test_alt');
         expect(s.toFilterString(), contains('m='));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const ArnndnSettings(enabled: true, mix: -1.0);
+        const s = ArnndnSettings(enabled: true, mix: -1.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=-1.000'));
       });
 
       test('param `model` lands in wire when set to a non-default value', () {
-        final s = const ArnndnSettings(enabled: true, model: 'wire_test_alt');
+        const s = ArnndnSettings(enabled: true, model: 'wire_test_alt');
         expect(s.toFilterString(), contains('model='));
       });
 
@@ -5216,18 +5209,18 @@ void main() {
       });
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
-        final s = ArnndnSettings(enabled: true, mix: ArnndnSettings.mixMax);
+        final s = ArnndnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
-        final s = ArnndnSettings(enabled: true, mix: ArnndnSettings.mixDefault);
+        final s = ArnndnSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AsoftclipSettings (asoftclip)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(asoftclip: AsoftclipSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -5237,34 +5230,34 @@ void main() {
       });
 
       test('param `output` lands in wire when set to a non-default value', () {
-        final s = const AsoftclipSettings(enabled: true, output: 16.0);
+        const s = AsoftclipSettings(enabled: true, output: 16.0);
         expect(s.toFilterString(), contains('output='));
         expect(s.toFilterString(), contains('output=16.000'));
       });
 
       test('param `oversample` lands in wire when set to a non-default value',
           () {
-        final s = const AsoftclipSettings(enabled: true, oversample: 64);
+        const s = AsoftclipSettings(enabled: true, oversample: 64);
         expect(s.toFilterString(), contains('oversample='));
         expect(s.toFilterString(), contains('oversample=64'));
       });
 
       test('param `param` lands in wire when set to a non-default value', () {
-        final s = const AsoftclipSettings(enabled: true, param: 3.0);
+        const s = AsoftclipSettings(enabled: true, param: 3.0);
         expect(s.toFilterString(), contains('param='));
         expect(s.toFilterString(), contains('param=3.000'));
       });
 
       test('param `threshold` lands in wire when set to a non-default value',
           () {
-        final s = const AsoftclipSettings(enabled: true, threshold: 1e-06);
+        const s = AsoftclipSettings(enabled: true, threshold: 1e-06);
         expect(s.toFilterString(), contains('threshold='));
         expect(s.toFilterString(), contains('threshold=1e-6'));
       });
 
       test('param `type` lands in wire when set to a non-default value', () {
-        final s =
-            const AsoftclipSettings(enabled: true, type: AsoftclipTypes.tanh);
+        const s =
+            AsoftclipSettings(enabled: true, type: AsoftclipTypes.tanh);
         expect(s.toFilterString(), contains('type='));
         expect(s.toFilterString(), contains('type=tanh'));
       });
@@ -5272,21 +5265,21 @@ void main() {
       test('param `output` const `outputMin` is accepted by toFilterString',
           () {
         final s = AsoftclipSettings(
-            enabled: true, output: AsoftclipSettings.outputMin);
+            enabled: true, output: AsoftclipSettings.outputMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `output` const `outputMax` is accepted by toFilterString',
           () {
         final s = AsoftclipSettings(
-            enabled: true, output: AsoftclipSettings.outputMax);
+            enabled: true, output: AsoftclipSettings.outputMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `output` const `outputDefault` is accepted by toFilterString',
           () {
         final s = AsoftclipSettings(
-            enabled: true, output: AsoftclipSettings.outputDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5294,7 +5287,7 @@ void main() {
           'param `oversample` const `oversampleMin` is accepted by toFilterString',
           () {
         final s = AsoftclipSettings(
-            enabled: true, oversample: AsoftclipSettings.oversampleMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5302,7 +5295,7 @@ void main() {
           'param `oversample` const `oversampleMax` is accepted by toFilterString',
           () {
         final s = AsoftclipSettings(
-            enabled: true, oversample: AsoftclipSettings.oversampleMax);
+            enabled: true, oversample: AsoftclipSettings.oversampleMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5310,7 +5303,7 @@ void main() {
           'param `oversample` const `oversampleDefault` is accepted by toFilterString',
           () {
         final s = AsoftclipSettings(
-            enabled: true, oversample: AsoftclipSettings.oversampleDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5329,7 +5322,7 @@ void main() {
       test('param `param` const `paramDefault` is accepted by toFilterString',
           () {
         final s = AsoftclipSettings(
-            enabled: true, param: AsoftclipSettings.paramDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5337,7 +5330,7 @@ void main() {
           'param `threshold` const `thresholdMin` is accepted by toFilterString',
           () {
         final s = AsoftclipSettings(
-            enabled: true, threshold: AsoftclipSettings.thresholdMin);
+            enabled: true, threshold: AsoftclipSettings.thresholdMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5345,7 +5338,7 @@ void main() {
           'param `threshold` const `thresholdMax` is accepted by toFilterString',
           () {
         final s = AsoftclipSettings(
-            enabled: true, threshold: AsoftclipSettings.thresholdMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5353,13 +5346,13 @@ void main() {
           'param `threshold` const `thresholdDefault` is accepted by toFilterString',
           () {
         final s = AsoftclipSettings(
-            enabled: true, threshold: AsoftclipSettings.thresholdDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AsubboostSettings (asubboost)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(asubboost: AsubboostSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -5369,57 +5362,57 @@ void main() {
       });
 
       test('param `boost` lands in wire when set to a non-default value', () {
-        final s = const AsubboostSettings(enabled: true, boost: 12.0);
+        const s = AsubboostSettings(enabled: true, boost: 12.0);
         expect(s.toFilterString(), contains('boost='));
         expect(s.toFilterString(), contains('boost=12.000'));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const AsubboostSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            AsubboostSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `cutoff` lands in wire when set to a non-default value', () {
-        final s = const AsubboostSettings(enabled: true, cutoff: 900.0);
+        const s = AsubboostSettings(enabled: true, cutoff: 900.0);
         expect(s.toFilterString(), contains('cutoff='));
         expect(s.toFilterString(), contains('cutoff=900.000'));
       });
 
       test('param `decay` lands in wire when set to a non-default value', () {
-        final s = const AsubboostSettings(enabled: true, decay: 1.0);
+        const s = AsubboostSettings(enabled: true, decay: 1.0);
         expect(s.toFilterString(), contains('decay='));
         expect(s.toFilterString(), contains('decay=1.000'));
       });
 
       test('param `delay` lands in wire when set to a non-default value', () {
-        final s = const AsubboostSettings(enabled: true, delay: 100.0);
+        const s = AsubboostSettings(enabled: true, delay: 100.0);
         expect(s.toFilterString(), contains('delay='));
         expect(s.toFilterString(), contains('delay=100.000'));
       });
 
       test('param `dry` lands in wire when set to a non-default value', () {
-        final s = const AsubboostSettings(enabled: true, dry: 0.0);
+        const s = AsubboostSettings(enabled: true, dry: 0.0);
         expect(s.toFilterString(), contains('dry='));
         expect(s.toFilterString(), contains('dry=0.000'));
       });
 
       test('param `feedback` lands in wire when set to a non-default value',
           () {
-        final s = const AsubboostSettings(enabled: true, feedback: 1.0);
+        const s = AsubboostSettings(enabled: true, feedback: 1.0);
         expect(s.toFilterString(), contains('feedback='));
         expect(s.toFilterString(), contains('feedback=1.000'));
       });
 
       test('param `slope` lands in wire when set to a non-default value', () {
-        final s = const AsubboostSettings(enabled: true, slope: 1.0);
+        const s = AsubboostSettings(enabled: true, slope: 1.0);
         expect(s.toFilterString(), contains('slope='));
         expect(s.toFilterString(), contains('slope=1.000'));
       });
 
       test('param `wet` lands in wire when set to a non-default value', () {
-        final s = const AsubboostSettings(enabled: true, wet: 0.0);
+        const s = AsubboostSettings(enabled: true, wet: 0.0);
         expect(s.toFilterString(), contains('wet='));
         expect(s.toFilterString(), contains('wet=0.000'));
       });
@@ -5439,34 +5432,34 @@ void main() {
       test('param `boost` const `boostDefault` is accepted by toFilterString',
           () {
         final s = AsubboostSettings(
-            enabled: true, boost: AsubboostSettings.boostDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `cutoff` const `cutoffMin` is accepted by toFilterString',
           () {
         final s = AsubboostSettings(
-            enabled: true, cutoff: AsubboostSettings.cutoffMin);
+            enabled: true, cutoff: AsubboostSettings.cutoffMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `cutoff` const `cutoffMax` is accepted by toFilterString',
           () {
         final s = AsubboostSettings(
-            enabled: true, cutoff: AsubboostSettings.cutoffMax);
+            enabled: true, cutoff: AsubboostSettings.cutoffMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `cutoff` const `cutoffDefault` is accepted by toFilterString',
           () {
         final s = AsubboostSettings(
-            enabled: true, cutoff: AsubboostSettings.cutoffDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `decay` const `decayMin` is accepted by toFilterString', () {
         final s =
-            AsubboostSettings(enabled: true, decay: AsubboostSettings.decayMin);
+            AsubboostSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5479,7 +5472,7 @@ void main() {
       test('param `decay` const `decayDefault` is accepted by toFilterString',
           () {
         final s = AsubboostSettings(
-            enabled: true, decay: AsubboostSettings.decayDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5498,7 +5491,7 @@ void main() {
       test('param `delay` const `delayDefault` is accepted by toFilterString',
           () {
         final s = AsubboostSettings(
-            enabled: true, delay: AsubboostSettings.delayDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5510,27 +5503,27 @@ void main() {
 
       test('param `dry` const `dryMax` is accepted by toFilterString', () {
         final s =
-            AsubboostSettings(enabled: true, dry: AsubboostSettings.dryMax);
+            AsubboostSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `dry` const `dryDefault` is accepted by toFilterString', () {
         final s =
-            AsubboostSettings(enabled: true, dry: AsubboostSettings.dryDefault);
+            AsubboostSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `feedback` const `feedbackMin` is accepted by toFilterString',
           () {
         final s = AsubboostSettings(
-            enabled: true, feedback: AsubboostSettings.feedbackMin);
+            enabled: true, feedback: AsubboostSettings.feedbackMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `feedback` const `feedbackMax` is accepted by toFilterString',
           () {
         final s = AsubboostSettings(
-            enabled: true, feedback: AsubboostSettings.feedbackMax);
+            enabled: true, feedback: AsubboostSettings.feedbackMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5538,7 +5531,7 @@ void main() {
           'param `feedback` const `feedbackDefault` is accepted by toFilterString',
           () {
         final s = AsubboostSettings(
-            enabled: true, feedback: AsubboostSettings.feedbackDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5557,7 +5550,7 @@ void main() {
       test('param `slope` const `slopeDefault` is accepted by toFilterString',
           () {
         final s = AsubboostSettings(
-            enabled: true, slope: AsubboostSettings.slopeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5569,19 +5562,19 @@ void main() {
 
       test('param `wet` const `wetMax` is accepted by toFilterString', () {
         final s =
-            AsubboostSettings(enabled: true, wet: AsubboostSettings.wetMax);
+            AsubboostSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `wet` const `wetDefault` is accepted by toFilterString', () {
         final s =
-            AsubboostSettings(enabled: true, wet: AsubboostSettings.wetDefault);
+            AsubboostSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AsubcutSettings (asubcut)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(asubcut: AsubcutSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -5591,19 +5584,19 @@ void main() {
       });
 
       test('param `cutoff` lands in wire when set to a non-default value', () {
-        final s = const AsubcutSettings(enabled: true, cutoff: 200.0);
+        const s = AsubcutSettings(enabled: true, cutoff: 200.0);
         expect(s.toFilterString(), contains('cutoff='));
         expect(s.toFilterString(), contains('cutoff=200.000'));
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
-        final s = const AsubcutSettings(enabled: true, level: 0.0);
+        const s = AsubcutSettings(enabled: true, level: 0.0);
         expect(s.toFilterString(), contains('level='));
         expect(s.toFilterString(), contains('level=0.000'));
       });
 
       test('param `order` lands in wire when set to a non-default value', () {
-        final s = const AsubcutSettings(enabled: true, order: 20);
+        const s = AsubcutSettings(enabled: true, order: 20);
         expect(s.toFilterString(), contains('order='));
         expect(s.toFilterString(), contains('order=20'));
       });
@@ -5625,7 +5618,7 @@ void main() {
       test('param `cutoff` const `cutoffDefault` is accepted by toFilterString',
           () {
         final s = AsubcutSettings(
-            enabled: true, cutoff: AsubcutSettings.cutoffDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5637,14 +5630,14 @@ void main() {
 
       test('param `level` const `levelMax` is accepted by toFilterString', () {
         final s =
-            AsubcutSettings(enabled: true, level: AsubcutSettings.levelMax);
+            AsubcutSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelDefault` is accepted by toFilterString',
           () {
         final s =
-            AsubcutSettings(enabled: true, level: AsubcutSettings.levelDefault);
+            AsubcutSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5663,13 +5656,13 @@ void main() {
       test('param `order` const `orderDefault` is accepted by toFilterString',
           () {
         final s =
-            AsubcutSettings(enabled: true, order: AsubcutSettings.orderDefault);
+            AsubcutSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AsupercutSettings (asupercut)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(asupercut: AsupercutSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -5679,19 +5672,19 @@ void main() {
       });
 
       test('param `cutoff` lands in wire when set to a non-default value', () {
-        final s = const AsupercutSettings(enabled: true, cutoff: 192000.0);
+        const s = AsupercutSettings(enabled: true, cutoff: 192000.0);
         expect(s.toFilterString(), contains('cutoff='));
         expect(s.toFilterString(), contains('cutoff=192000.000'));
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
-        final s = const AsupercutSettings(enabled: true, level: 0.0);
+        const s = AsupercutSettings(enabled: true, level: 0.0);
         expect(s.toFilterString(), contains('level='));
         expect(s.toFilterString(), contains('level=0.000'));
       });
 
       test('param `order` lands in wire when set to a non-default value', () {
-        final s = const AsupercutSettings(enabled: true, order: 20);
+        const s = AsupercutSettings(enabled: true, order: 20);
         expect(s.toFilterString(), contains('order='));
         expect(s.toFilterString(), contains('order=20'));
       });
@@ -5699,21 +5692,21 @@ void main() {
       test('param `cutoff` const `cutoffMin` is accepted by toFilterString',
           () {
         final s = AsupercutSettings(
-            enabled: true, cutoff: AsupercutSettings.cutoffMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `cutoff` const `cutoffMax` is accepted by toFilterString',
           () {
         final s = AsupercutSettings(
-            enabled: true, cutoff: AsupercutSettings.cutoffMax);
+            enabled: true, cutoff: AsupercutSettings.cutoffMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `cutoff` const `cutoffDefault` is accepted by toFilterString',
           () {
         final s = AsupercutSettings(
-            enabled: true, cutoff: AsupercutSettings.cutoffDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5725,14 +5718,14 @@ void main() {
 
       test('param `level` const `levelMax` is accepted by toFilterString', () {
         final s =
-            AsupercutSettings(enabled: true, level: AsupercutSettings.levelMax);
+            AsupercutSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelDefault` is accepted by toFilterString',
           () {
         final s = AsupercutSettings(
-            enabled: true, level: AsupercutSettings.levelDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5751,13 +5744,13 @@ void main() {
       test('param `order` const `orderDefault` is accepted by toFilterString',
           () {
         final s = AsupercutSettings(
-            enabled: true, order: AsupercutSettings.orderDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AsuperpassSettings (asuperpass)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(asuperpass: AsuperpassSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -5767,25 +5760,25 @@ void main() {
       });
 
       test('param `centerf` lands in wire when set to a non-default value', () {
-        final s = const AsuperpassSettings(enabled: true, centerf: 999999.0);
+        const s = AsuperpassSettings(enabled: true, centerf: 999999.0);
         expect(s.toFilterString(), contains('centerf='));
         expect(s.toFilterString(), contains('centerf=999999.000'));
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
-        final s = const AsuperpassSettings(enabled: true, level: 2.0);
+        const s = AsuperpassSettings(enabled: true, level: 2.0);
         expect(s.toFilterString(), contains('level='));
         expect(s.toFilterString(), contains('level=2.000'));
       });
 
       test('param `order` lands in wire when set to a non-default value', () {
-        final s = const AsuperpassSettings(enabled: true, order: 20);
+        const s = AsuperpassSettings(enabled: true, order: 20);
         expect(s.toFilterString(), contains('order='));
         expect(s.toFilterString(), contains('order=20'));
       });
 
       test('param `qfactor` lands in wire when set to a non-default value', () {
-        final s = const AsuperpassSettings(enabled: true, qfactor: 100.0);
+        const s = AsuperpassSettings(enabled: true, qfactor: 100.0);
         expect(s.toFilterString(), contains('qfactor='));
         expect(s.toFilterString(), contains('qfactor=100.000'));
       });
@@ -5793,14 +5786,14 @@ void main() {
       test('param `centerf` const `centerfMin` is accepted by toFilterString',
           () {
         final s = AsuperpassSettings(
-            enabled: true, centerf: AsuperpassSettings.centerfMin);
+            enabled: true, centerf: AsuperpassSettings.centerfMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `centerf` const `centerfMax` is accepted by toFilterString',
           () {
         final s = AsuperpassSettings(
-            enabled: true, centerf: AsuperpassSettings.centerfMax);
+            enabled: true, centerf: AsuperpassSettings.centerfMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5808,59 +5801,59 @@ void main() {
           'param `centerf` const `centerfDefault` is accepted by toFilterString',
           () {
         final s = AsuperpassSettings(
-            enabled: true, centerf: AsuperpassSettings.centerfDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelMin` is accepted by toFilterString', () {
         final s = AsuperpassSettings(
-            enabled: true, level: AsuperpassSettings.levelMin);
+            enabled: true, level: AsuperpassSettings.levelMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelMax` is accepted by toFilterString', () {
         final s = AsuperpassSettings(
-            enabled: true, level: AsuperpassSettings.levelMax);
+            enabled: true, level: AsuperpassSettings.levelMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelDefault` is accepted by toFilterString',
           () {
         final s = AsuperpassSettings(
-            enabled: true, level: AsuperpassSettings.levelDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderMin` is accepted by toFilterString', () {
         final s = AsuperpassSettings(
-            enabled: true, order: AsuperpassSettings.orderMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderMax` is accepted by toFilterString', () {
         final s = AsuperpassSettings(
-            enabled: true, order: AsuperpassSettings.orderMax);
+            enabled: true, order: AsuperpassSettings.orderMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderDefault` is accepted by toFilterString',
           () {
         final s = AsuperpassSettings(
-            enabled: true, order: AsuperpassSettings.orderDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `qfactor` const `qfactorMin` is accepted by toFilterString',
           () {
         final s = AsuperpassSettings(
-            enabled: true, qfactor: AsuperpassSettings.qfactorMin);
+            enabled: true, qfactor: AsuperpassSettings.qfactorMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `qfactor` const `qfactorMax` is accepted by toFilterString',
           () {
         final s = AsuperpassSettings(
-            enabled: true, qfactor: AsuperpassSettings.qfactorMax);
+            enabled: true, qfactor: AsuperpassSettings.qfactorMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5868,13 +5861,13 @@ void main() {
           'param `qfactor` const `qfactorDefault` is accepted by toFilterString',
           () {
         final s = AsuperpassSettings(
-            enabled: true, qfactor: AsuperpassSettings.qfactorDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AsuperstopSettings (asuperstop)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(asuperstop: AsuperstopSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -5884,25 +5877,25 @@ void main() {
       });
 
       test('param `centerf` lands in wire when set to a non-default value', () {
-        final s = const AsuperstopSettings(enabled: true, centerf: 999999.0);
+        const s = AsuperstopSettings(enabled: true, centerf: 999999.0);
         expect(s.toFilterString(), contains('centerf='));
         expect(s.toFilterString(), contains('centerf=999999.000'));
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
-        final s = const AsuperstopSettings(enabled: true, level: 2.0);
+        const s = AsuperstopSettings(enabled: true, level: 2.0);
         expect(s.toFilterString(), contains('level='));
         expect(s.toFilterString(), contains('level=2.000'));
       });
 
       test('param `order` lands in wire when set to a non-default value', () {
-        final s = const AsuperstopSettings(enabled: true, order: 20);
+        const s = AsuperstopSettings(enabled: true, order: 20);
         expect(s.toFilterString(), contains('order='));
         expect(s.toFilterString(), contains('order=20'));
       });
 
       test('param `qfactor` lands in wire when set to a non-default value', () {
-        final s = const AsuperstopSettings(enabled: true, qfactor: 100.0);
+        const s = AsuperstopSettings(enabled: true, qfactor: 100.0);
         expect(s.toFilterString(), contains('qfactor='));
         expect(s.toFilterString(), contains('qfactor=100.000'));
       });
@@ -5910,14 +5903,14 @@ void main() {
       test('param `centerf` const `centerfMin` is accepted by toFilterString',
           () {
         final s = AsuperstopSettings(
-            enabled: true, centerf: AsuperstopSettings.centerfMin);
+            enabled: true, centerf: AsuperstopSettings.centerfMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `centerf` const `centerfMax` is accepted by toFilterString',
           () {
         final s = AsuperstopSettings(
-            enabled: true, centerf: AsuperstopSettings.centerfMax);
+            enabled: true, centerf: AsuperstopSettings.centerfMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5925,59 +5918,59 @@ void main() {
           'param `centerf` const `centerfDefault` is accepted by toFilterString',
           () {
         final s = AsuperstopSettings(
-            enabled: true, centerf: AsuperstopSettings.centerfDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelMin` is accepted by toFilterString', () {
         final s = AsuperstopSettings(
-            enabled: true, level: AsuperstopSettings.levelMin);
+            enabled: true, level: AsuperstopSettings.levelMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelMax` is accepted by toFilterString', () {
         final s = AsuperstopSettings(
-            enabled: true, level: AsuperstopSettings.levelMax);
+            enabled: true, level: AsuperstopSettings.levelMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level` const `levelDefault` is accepted by toFilterString',
           () {
         final s = AsuperstopSettings(
-            enabled: true, level: AsuperstopSettings.levelDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderMin` is accepted by toFilterString', () {
         final s = AsuperstopSettings(
-            enabled: true, order: AsuperstopSettings.orderMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderMax` is accepted by toFilterString', () {
         final s = AsuperstopSettings(
-            enabled: true, order: AsuperstopSettings.orderMax);
+            enabled: true, order: AsuperstopSettings.orderMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `order` const `orderDefault` is accepted by toFilterString',
           () {
         final s = AsuperstopSettings(
-            enabled: true, order: AsuperstopSettings.orderDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `qfactor` const `qfactorMin` is accepted by toFilterString',
           () {
         final s = AsuperstopSettings(
-            enabled: true, qfactor: AsuperstopSettings.qfactorMin);
+            enabled: true, qfactor: AsuperstopSettings.qfactorMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `qfactor` const `qfactorMax` is accepted by toFilterString',
           () {
         final s = AsuperstopSettings(
-            enabled: true, qfactor: AsuperstopSettings.qfactorMax);
+            enabled: true, qfactor: AsuperstopSettings.qfactorMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -5985,13 +5978,13 @@ void main() {
           'param `qfactor` const `qfactorDefault` is accepted by toFilterString',
           () {
         final s = AsuperstopSettings(
-            enabled: true, qfactor: AsuperstopSettings.qfactorDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AtempoSettings (atempo)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(atempo: AtempoSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -6001,7 +5994,7 @@ void main() {
       });
 
       test('param `tempo` lands in wire when set to a non-default value', () {
-        final s = const AtempoSettings(enabled: true, tempo: 100.0);
+        const s = AtempoSettings(enabled: true, tempo: 100.0);
         expect(s.toFilterString(), contains('tempo='));
         expect(s.toFilterString(), contains('tempo=100.000'));
       });
@@ -6019,13 +6012,13 @@ void main() {
       test('param `tempo` const `tempoDefault` is accepted by toFilterString',
           () {
         final s =
-            AtempoSettings(enabled: true, tempo: AtempoSettings.tempoDefault);
+            AtempoSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('AtiltSettings (atilt)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(atilt: AtiltSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -6035,31 +6028,31 @@ void main() {
       });
 
       test('param `freq` lands in wire when set to a non-default value', () {
-        final s = const AtiltSettings(enabled: true, freq: 192000.0);
+        const s = AtiltSettings(enabled: true, freq: 192000.0);
         expect(s.toFilterString(), contains('freq='));
         expect(s.toFilterString(), contains('freq=192000.000'));
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
-        final s = const AtiltSettings(enabled: true, level: 4.0);
+        const s = AtiltSettings(enabled: true, level: 4.0);
         expect(s.toFilterString(), contains('level='));
         expect(s.toFilterString(), contains('level=4.000'));
       });
 
       test('param `order` lands in wire when set to a non-default value', () {
-        final s = const AtiltSettings(enabled: true, order: 30);
+        const s = AtiltSettings(enabled: true, order: 30);
         expect(s.toFilterString(), contains('order='));
         expect(s.toFilterString(), contains('order=30'));
       });
 
       test('param `slope` lands in wire when set to a non-default value', () {
-        final s = const AtiltSettings(enabled: true, slope: 1.0);
+        const s = AtiltSettings(enabled: true, slope: 1.0);
         expect(s.toFilterString(), contains('slope='));
         expect(s.toFilterString(), contains('slope=1.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const AtiltSettings(enabled: true, width: 10000.0);
+        const s = AtiltSettings(enabled: true, width: 10000.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=10000.000'));
       });
@@ -6076,7 +6069,7 @@ void main() {
 
       test('param `freq` const `freqDefault` is accepted by toFilterString',
           () {
-        final s = AtiltSettings(enabled: true, freq: AtiltSettings.freqDefault);
+        final s = AtiltSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6093,7 +6086,7 @@ void main() {
       test('param `level` const `levelDefault` is accepted by toFilterString',
           () {
         final s =
-            AtiltSettings(enabled: true, level: AtiltSettings.levelDefault);
+            AtiltSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6110,7 +6103,7 @@ void main() {
       test('param `order` const `orderDefault` is accepted by toFilterString',
           () {
         final s =
-            AtiltSettings(enabled: true, order: AtiltSettings.orderDefault);
+            AtiltSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6127,7 +6120,7 @@ void main() {
       test('param `slope` const `slopeDefault` is accepted by toFilterString',
           () {
         final s =
-            AtiltSettings(enabled: true, slope: AtiltSettings.slopeDefault);
+            AtiltSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6144,13 +6137,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s =
-            AtiltSettings(enabled: true, width: AtiltSettings.widthDefault);
+            AtiltSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('BandpassSettings (bandpass)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(bandpass: BandpassSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -6160,129 +6153,129 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s =
-            const BandpassSettings(enabled: true, a: BandpassTransformType.dii);
+        const s =
+            BandpassSettings(enabled: true, a: BandpassTransformType.dii);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const BandpassSettings(enabled: true, b: 32768);
+        const s = BandpassSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const BandpassSettings(enabled: true, blocksize: 32768);
+        const s = BandpassSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const BandpassSettings(enabled: true, c: 'wire_test_alt');
+        const s = BandpassSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const BandpassSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            BandpassSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `csg` lands in wire when set to a non-default value', () {
-        final s = const BandpassSettings(enabled: true, csg: true);
+        const s = BandpassSettings(enabled: true, csg: true);
         expect(s.toFilterString(), contains('csg='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const BandpassSettings(enabled: true, f: 999999.0);
+        const s = BandpassSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const BandpassSettings(enabled: true, frequency: 999999.0);
+        const s = BandpassSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const BandpassSettings(enabled: true, m: 0.0);
+        const s = BandpassSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const BandpassSettings(enabled: true, mix: 0.0);
+        const s = BandpassSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const BandpassSettings(enabled: true, n: true);
+        const s = BandpassSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const BandpassSettings(enabled: true, normalize: true);
+        const s = BandpassSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s = const BandpassSettings(
-            enabled: true, precision: BandpassPrecision.s16);
+        const s = BandpassSettings(
+            enabled: true, precision: BandpassPrecision.s16,);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s =
-            const BandpassSettings(enabled: true, r: BandpassPrecision.s16);
+        const s =
+            BandpassSettings(enabled: true, r: BandpassPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const BandpassSettings(enabled: true, t: BandpassWidthType.h);
+        const s = BandpassSettings(enabled: true, t: BandpassWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const BandpassSettings(
-            enabled: true, transform: BandpassTransformType.dii);
+        const s = BandpassSettings(
+            enabled: true, transform: BandpassTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const BandpassSettings(enabled: true, w: 99999.0);
+        const s = BandpassSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const BandpassSettings(enabled: true, width: 99999.0);
+        const s = BandpassSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s = const BandpassSettings(
-            enabled: true, width_type: BandpassWidthType.h);
+        const s = BandpassSettings(
+            enabled: true, width_type: BandpassWidthType.h,);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = BandpassSettings(enabled: true, b: BandpassSettings.bMin);
+        final s = BandpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6292,7 +6285,7 @@ void main() {
       });
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
-        final s = BandpassSettings(enabled: true, b: BandpassSettings.bDefault);
+        final s = BandpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6300,7 +6293,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s = BandpassSettings(
-            enabled: true, blocksize: BandpassSettings.blocksizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6308,7 +6301,7 @@ void main() {
           'param `blocksize` const `blocksizeMax` is accepted by toFilterString',
           () {
         final s = BandpassSettings(
-            enabled: true, blocksize: BandpassSettings.blocksizeMax);
+            enabled: true, blocksize: BandpassSettings.blocksizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6316,7 +6309,7 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = BandpassSettings(
-            enabled: true, blocksize: BandpassSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6331,7 +6324,7 @@ void main() {
       });
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
-        final s = BandpassSettings(enabled: true, f: BandpassSettings.fDefault);
+        final s = BandpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6339,7 +6332,7 @@ void main() {
           'param `frequency` const `frequencyMin` is accepted by toFilterString',
           () {
         final s = BandpassSettings(
-            enabled: true, frequency: BandpassSettings.frequencyMin);
+            enabled: true, frequency: BandpassSettings.frequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6347,7 +6340,7 @@ void main() {
           'param `frequency` const `frequencyMax` is accepted by toFilterString',
           () {
         final s = BandpassSettings(
-            enabled: true, frequency: BandpassSettings.frequencyMax);
+            enabled: true, frequency: BandpassSettings.frequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6355,7 +6348,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = BandpassSettings(
-            enabled: true, frequency: BandpassSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6365,12 +6358,12 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = BandpassSettings(enabled: true, m: BandpassSettings.mMax);
+        final s = BandpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
-        final s = BandpassSettings(enabled: true, m: BandpassSettings.mDefault);
+        final s = BandpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6380,13 +6373,13 @@ void main() {
       });
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
-        final s = BandpassSettings(enabled: true, mix: BandpassSettings.mixMax);
+        final s = BandpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s =
-            BandpassSettings(enabled: true, mix: BandpassSettings.mixDefault);
+            BandpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6401,7 +6394,7 @@ void main() {
       });
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
-        final s = BandpassSettings(enabled: true, w: BandpassSettings.wDefault);
+        final s = BandpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6420,13 +6413,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s = BandpassSettings(
-            enabled: true, width: BandpassSettings.widthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('BandrejectSettings (bandreject)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(bandreject: BandrejectSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -6436,125 +6429,125 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s = const BandrejectSettings(
-            enabled: true, a: BandrejectTransformType.dii);
+        const s = BandrejectSettings(
+            enabled: true, a: BandrejectTransformType.dii,);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const BandrejectSettings(enabled: true, b: 32768);
+        const s = BandrejectSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const BandrejectSettings(enabled: true, blocksize: 32768);
+        const s = BandrejectSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const BandrejectSettings(enabled: true, c: 'wire_test_alt');
+        const s = BandrejectSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const BandrejectSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            BandrejectSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const BandrejectSettings(enabled: true, f: 999999.0);
+        const s = BandrejectSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const BandrejectSettings(enabled: true, frequency: 999999.0);
+        const s = BandrejectSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const BandrejectSettings(enabled: true, m: 0.0);
+        const s = BandrejectSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const BandrejectSettings(enabled: true, mix: 0.0);
+        const s = BandrejectSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const BandrejectSettings(enabled: true, n: true);
+        const s = BandrejectSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const BandrejectSettings(enabled: true, normalize: true);
+        const s = BandrejectSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s = const BandrejectSettings(
-            enabled: true, precision: BandrejectPrecision.s16);
+        const s = BandrejectSettings(
+            enabled: true, precision: BandrejectPrecision.s16,);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s =
-            const BandrejectSettings(enabled: true, r: BandrejectPrecision.s16);
+        const s =
+            BandrejectSettings(enabled: true, r: BandrejectPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s =
-            const BandrejectSettings(enabled: true, t: BandrejectWidthType.h);
+        const s =
+            BandrejectSettings(enabled: true, t: BandrejectWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const BandrejectSettings(
-            enabled: true, transform: BandrejectTransformType.dii);
+        const s = BandrejectSettings(
+            enabled: true, transform: BandrejectTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const BandrejectSettings(enabled: true, w: 99999.0);
+        const s = BandrejectSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const BandrejectSettings(enabled: true, width: 99999.0);
+        const s = BandrejectSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s = const BandrejectSettings(
-            enabled: true, width_type: BandrejectWidthType.h);
+        const s = BandrejectSettings(
+            enabled: true, width_type: BandrejectWidthType.h,);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = BandrejectSettings(enabled: true, b: BandrejectSettings.bMin);
+        final s = BandrejectSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6565,7 +6558,7 @@ void main() {
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
         final s =
-            BandrejectSettings(enabled: true, b: BandrejectSettings.bDefault);
+            BandrejectSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6573,7 +6566,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s = BandrejectSettings(
-            enabled: true, blocksize: BandrejectSettings.blocksizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6581,7 +6574,7 @@ void main() {
           'param `blocksize` const `blocksizeMax` is accepted by toFilterString',
           () {
         final s = BandrejectSettings(
-            enabled: true, blocksize: BandrejectSettings.blocksizeMax);
+            enabled: true, blocksize: BandrejectSettings.blocksizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6589,7 +6582,7 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = BandrejectSettings(
-            enabled: true, blocksize: BandrejectSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6605,7 +6598,7 @@ void main() {
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
         final s =
-            BandrejectSettings(enabled: true, f: BandrejectSettings.fDefault);
+            BandrejectSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6613,7 +6606,7 @@ void main() {
           'param `frequency` const `frequencyMin` is accepted by toFilterString',
           () {
         final s = BandrejectSettings(
-            enabled: true, frequency: BandrejectSettings.frequencyMin);
+            enabled: true, frequency: BandrejectSettings.frequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6621,7 +6614,7 @@ void main() {
           'param `frequency` const `frequencyMax` is accepted by toFilterString',
           () {
         final s = BandrejectSettings(
-            enabled: true, frequency: BandrejectSettings.frequencyMax);
+            enabled: true, frequency: BandrejectSettings.frequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6629,7 +6622,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = BandrejectSettings(
-            enabled: true, frequency: BandrejectSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6639,13 +6632,13 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = BandrejectSettings(enabled: true, m: BandrejectSettings.mMax);
+        final s = BandrejectSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
         final s =
-            BandrejectSettings(enabled: true, m: BandrejectSettings.mDefault);
+            BandrejectSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6657,13 +6650,13 @@ void main() {
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
         final s =
-            BandrejectSettings(enabled: true, mix: BandrejectSettings.mixMax);
+            BandrejectSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s = BandrejectSettings(
-            enabled: true, mix: BandrejectSettings.mixDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6679,32 +6672,32 @@ void main() {
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
         final s =
-            BandrejectSettings(enabled: true, w: BandrejectSettings.wDefault);
+            BandrejectSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `width` const `widthMin` is accepted by toFilterString', () {
         final s = BandrejectSettings(
-            enabled: true, width: BandrejectSettings.widthMin);
+            enabled: true, width: BandrejectSettings.widthMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `width` const `widthMax` is accepted by toFilterString', () {
         final s = BandrejectSettings(
-            enabled: true, width: BandrejectSettings.widthMax);
+            enabled: true, width: BandrejectSettings.widthMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s = BandrejectSettings(
-            enabled: true, width: BandrejectSettings.widthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('BassSettings (bass)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(bass: BassSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -6714,145 +6707,145 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, a: BassTransformType.dii);
+        const s = BassSettings(enabled: true, a: BassTransformType.dii);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, b: 32768);
+        const s = BassSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const BassSettings(enabled: true, blocksize: 32768);
+        const s = BassSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, c: 'wire_test_alt');
+        const s = BassSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s = const BassSettings(enabled: true, channels: 'wire_test_alt');
+        const s = BassSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, f: 999999.0);
+        const s = BassSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const BassSettings(enabled: true, frequency: 999999.0);
+        const s = BassSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `g` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, g: 900.0);
+        const s = BassSettings(enabled: true, g: 900.0);
         expect(s.toFilterString(), contains('g='));
         expect(s.toFilterString(), contains('g=900.000'));
       });
 
       test('param `gain` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, gain: 900.0);
+        const s = BassSettings(enabled: true, gain: 900.0);
         expect(s.toFilterString(), contains('gain='));
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, m: 0.0);
+        const s = BassSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, mix: 0.0);
+        const s = BassSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, n: true);
+        const s = BassSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const BassSettings(enabled: true, normalize: true);
+        const s = BassSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, p: 1);
+        const s = BassSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
         expect(s.toFilterString(), contains('p=1'));
       });
 
       test('param `poles` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, poles: 1);
+        const s = BassSettings(enabled: true, poles: 1);
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s =
-            const BassSettings(enabled: true, precision: BassPrecision.s16);
+        const s =
+            BassSettings(enabled: true, precision: BassPrecision.s16);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, r: BassPrecision.s16);
+        const s = BassSettings(enabled: true, r: BassPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, t: BassWidthType.h);
+        const s = BassSettings(enabled: true, t: BassWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s =
-            const BassSettings(enabled: true, transform: BassTransformType.dii);
+        const s =
+            BassSettings(enabled: true, transform: BassTransformType.dii);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, w: 99999.0);
+        const s = BassSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const BassSettings(enabled: true, width: 99999.0);
+        const s = BassSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s =
-            const BassSettings(enabled: true, width_type: BassWidthType.h);
+        const s =
+            BassSettings(enabled: true, width_type: BassWidthType.h);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, b: BassSettings.bMin);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6862,7 +6855,7 @@ void main() {
       });
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, b: BassSettings.bDefault);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6870,7 +6863,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s =
-            BassSettings(enabled: true, blocksize: BassSettings.blocksizeMin);
+            BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6886,7 +6879,7 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = BassSettings(
-            enabled: true, blocksize: BassSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6901,7 +6894,7 @@ void main() {
       });
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, f: BassSettings.fDefault);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6925,7 +6918,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = BassSettings(
-            enabled: true, frequency: BassSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6940,7 +6933,7 @@ void main() {
       });
 
       test('param `g` const `gDefault` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, g: BassSettings.gDefault);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6956,7 +6949,7 @@ void main() {
 
       test('param `gain` const `gainDefault` is accepted by toFilterString',
           () {
-        final s = BassSettings(enabled: true, gain: BassSettings.gainDefault);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6966,12 +6959,12 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, m: BassSettings.mMax);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, m: BassSettings.mDefault);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6981,12 +6974,12 @@ void main() {
       });
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, mix: BassSettings.mixMax);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, mix: BassSettings.mixDefault);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -6996,12 +6989,12 @@ void main() {
       });
 
       test('param `p` const `pMax` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, p: BassSettings.pMax);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `p` const `pDefault` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, p: BassSettings.pDefault);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7011,13 +7004,13 @@ void main() {
       });
 
       test('param `poles` const `polesMax` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, poles: BassSettings.polesMax);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `poles` const `polesDefault` is accepted by toFilterString',
           () {
-        final s = BassSettings(enabled: true, poles: BassSettings.polesDefault);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7032,7 +7025,7 @@ void main() {
       });
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
-        final s = BassSettings(enabled: true, w: BassSettings.wDefault);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7048,13 +7041,13 @@ void main() {
 
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
-        final s = BassSettings(enabled: true, width: BassSettings.widthDefault);
+        final s = BassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('BiquadSettings (biquad)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(biquad: BiquadSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -7064,114 +7057,114 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s =
-            const BiquadSettings(enabled: true, a: BiquadTransformType.dii);
+        const s =
+            BiquadSettings(enabled: true, a: BiquadTransformType.dii);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `a0` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, a0: 2147483647.0);
+        const s = BiquadSettings(enabled: true, a0: 2147483647.0);
         expect(s.toFilterString(), contains('a0='));
         expect(s.toFilterString(), contains('a0=2147483647.000'));
       });
 
       test('param `a1` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, a1: 2147483647.0);
+        const s = BiquadSettings(enabled: true, a1: 2147483647.0);
         expect(s.toFilterString(), contains('a1='));
         expect(s.toFilterString(), contains('a1=2147483647.000'));
       });
 
       test('param `a2` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, a2: 2147483647.0);
+        const s = BiquadSettings(enabled: true, a2: 2147483647.0);
         expect(s.toFilterString(), contains('a2='));
         expect(s.toFilterString(), contains('a2=2147483647.000'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, b: 32768);
+        const s = BiquadSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `b0` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, b0: 2147483647.0);
+        const s = BiquadSettings(enabled: true, b0: 2147483647.0);
         expect(s.toFilterString(), contains('b0='));
         expect(s.toFilterString(), contains('b0=2147483647.000'));
       });
 
       test('param `b1` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, b1: 2147483647.0);
+        const s = BiquadSettings(enabled: true, b1: 2147483647.0);
         expect(s.toFilterString(), contains('b1='));
         expect(s.toFilterString(), contains('b1=2147483647.000'));
       });
 
       test('param `b2` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, b2: 2147483647.0);
+        const s = BiquadSettings(enabled: true, b2: 2147483647.0);
         expect(s.toFilterString(), contains('b2='));
         expect(s.toFilterString(), contains('b2=2147483647.000'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const BiquadSettings(enabled: true, blocksize: 32768);
+        const s = BiquadSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, c: 'wire_test_alt');
+        const s = BiquadSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const BiquadSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            BiquadSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, m: 0.0);
+        const s = BiquadSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, mix: 0.0);
+        const s = BiquadSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, n: true);
+        const s = BiquadSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const BiquadSettings(enabled: true, normalize: true);
+        const s = BiquadSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s =
-            const BiquadSettings(enabled: true, precision: BiquadPrecision.s16);
+        const s =
+            BiquadSettings(enabled: true, precision: BiquadPrecision.s16);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s = const BiquadSettings(enabled: true, r: BiquadPrecision.s16);
+        const s = BiquadSettings(enabled: true, r: BiquadPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const BiquadSettings(
-            enabled: true, transform: BiquadTransformType.dii);
+        const s = BiquadSettings(
+            enabled: true, transform: BiquadTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
@@ -7187,7 +7180,7 @@ void main() {
       });
 
       test('param `a0` const `a0Default` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, a0: BiquadSettings.a0Default);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7202,7 +7195,7 @@ void main() {
       });
 
       test('param `a1` const `a1Default` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, a1: BiquadSettings.a1Default);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7217,12 +7210,12 @@ void main() {
       });
 
       test('param `a2` const `a2Default` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, a2: BiquadSettings.a2Default);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, b: BiquadSettings.bMin);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7232,7 +7225,7 @@ void main() {
       });
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, b: BiquadSettings.bDefault);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7247,7 +7240,7 @@ void main() {
       });
 
       test('param `b0` const `b0Default` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, b0: BiquadSettings.b0Default);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7262,7 +7255,7 @@ void main() {
       });
 
       test('param `b1` const `b1Default` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, b1: BiquadSettings.b1Default);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7277,7 +7270,7 @@ void main() {
       });
 
       test('param `b2` const `b2Default` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, b2: BiquadSettings.b2Default);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7285,7 +7278,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s = BiquadSettings(
-            enabled: true, blocksize: BiquadSettings.blocksizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7293,7 +7286,7 @@ void main() {
           'param `blocksize` const `blocksizeMax` is accepted by toFilterString',
           () {
         final s = BiquadSettings(
-            enabled: true, blocksize: BiquadSettings.blocksizeMax);
+            enabled: true, blocksize: BiquadSettings.blocksizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7301,7 +7294,7 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = BiquadSettings(
-            enabled: true, blocksize: BiquadSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7311,12 +7304,12 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, m: BiquadSettings.mMax);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, m: BiquadSettings.mDefault);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7326,18 +7319,18 @@ void main() {
       });
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, mix: BiquadSettings.mixMax);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
-        final s = BiquadSettings(enabled: true, mix: BiquadSettings.mixDefault);
+        final s = BiquadSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('ChannelmapSettings (channelmap)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(channelmap: ChannelmapSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -7349,19 +7342,19 @@ void main() {
       test(
           'param `channel_layout` lands in wire when set to a non-default value',
           () {
-        final s = const ChannelmapSettings(
-            enabled: true, channel_layout: 'wire_test_alt');
+        const s = ChannelmapSettings(
+            enabled: true, channel_layout: 'wire_test_alt',);
         expect(s.toFilterString(), contains('channel_layout='));
       });
 
       test('param `map` lands in wire when set to a non-default value', () {
-        final s = const ChannelmapSettings(enabled: true, map: 'wire_test_alt');
+        const s = ChannelmapSettings(enabled: true, map: 'wire_test_alt');
         expect(s.toFilterString(), contains('map='));
       });
     });
     group('ChorusSettings (chorus)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(chorus: ChorusSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -7371,35 +7364,35 @@ void main() {
       });
 
       test('param `decays` lands in wire when set to a non-default value', () {
-        final s = const ChorusSettings(enabled: true, decays: 'wire_test_alt');
+        const s = ChorusSettings(enabled: true, decays: 'wire_test_alt');
         expect(s.toFilterString(), contains('decays='));
       });
 
       test('param `delays` lands in wire when set to a non-default value', () {
-        final s = const ChorusSettings(enabled: true, delays: 'wire_test_alt');
+        const s = ChorusSettings(enabled: true, delays: 'wire_test_alt');
         expect(s.toFilterString(), contains('delays='));
       });
 
       test('param `depths` lands in wire when set to a non-default value', () {
-        final s = const ChorusSettings(enabled: true, depths: 'wire_test_alt');
+        const s = ChorusSettings(enabled: true, depths: 'wire_test_alt');
         expect(s.toFilterString(), contains('depths='));
       });
 
       test('param `in_gain` lands in wire when set to a non-default value', () {
-        final s = const ChorusSettings(enabled: true, in_gain: 1.0);
+        const s = ChorusSettings(enabled: true, in_gain: 1.0);
         expect(s.toFilterString(), contains('in_gain='));
         expect(s.toFilterString(), contains('in_gain=1.000'));
       });
 
       test('param `out_gain` lands in wire when set to a non-default value',
           () {
-        final s = const ChorusSettings(enabled: true, out_gain: 1.0);
+        const s = ChorusSettings(enabled: true, out_gain: 1.0);
         expect(s.toFilterString(), contains('out_gain='));
         expect(s.toFilterString(), contains('out_gain=1.000'));
       });
 
       test('param `speeds` lands in wire when set to a non-default value', () {
-        final s = const ChorusSettings(enabled: true, speeds: 'wire_test_alt');
+        const s = ChorusSettings(enabled: true, speeds: 'wire_test_alt');
         expect(s.toFilterString(), contains('speeds='));
       });
 
@@ -7421,7 +7414,7 @@ void main() {
           'param `in_gain` const `in_gainDefault` is accepted by toFilterString',
           () {
         final s = ChorusSettings(
-            enabled: true, in_gain: ChorusSettings.in_gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7443,13 +7436,13 @@ void main() {
           'param `out_gain` const `out_gainDefault` is accepted by toFilterString',
           () {
         final s = ChorusSettings(
-            enabled: true, out_gain: ChorusSettings.out_gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('CompandSettings (compand)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(compand: CompandSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -7459,42 +7452,42 @@ void main() {
       });
 
       test('param `attacks` lands in wire when set to a non-default value', () {
-        final s =
-            const CompandSettings(enabled: true, attacks: 'wire_test_alt');
+        const s =
+            CompandSettings(enabled: true, attacks: 'wire_test_alt');
         expect(s.toFilterString(), contains('attacks='));
       });
 
       test('param `decays` lands in wire when set to a non-default value', () {
-        final s = const CompandSettings(enabled: true, decays: 'wire_test_alt');
+        const s = CompandSettings(enabled: true, decays: 'wire_test_alt');
         expect(s.toFilterString(), contains('decays='));
       });
 
       test('param `delay` lands in wire when set to a non-default value', () {
-        final s = const CompandSettings(enabled: true, delay: 20.0);
+        const s = CompandSettings(enabled: true, delay: 20.0);
         expect(s.toFilterString(), contains('delay='));
         expect(s.toFilterString(), contains('delay=20.000'));
       });
 
       test('param `gain` lands in wire when set to a non-default value', () {
-        final s = const CompandSettings(enabled: true, gain: 900.0);
+        const s = CompandSettings(enabled: true, gain: 900.0);
         expect(s.toFilterString(), contains('gain='));
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
       test('param `points` lands in wire when set to a non-default value', () {
-        final s = const CompandSettings(enabled: true, points: 'wire_test_alt');
+        const s = CompandSettings(enabled: true, points: 'wire_test_alt');
         expect(s.toFilterString(), contains('points='));
       });
 
       test('param `volume` lands in wire when set to a non-default value', () {
-        final s = const CompandSettings(enabled: true, volume: -900.0);
+        const s = CompandSettings(enabled: true, volume: -900.0);
         expect(s.toFilterString(), contains('volume='));
         expect(s.toFilterString(), contains('volume=-900.000'));
       });
 
       test('param `delay` const `delayMin` is accepted by toFilterString', () {
         final s =
-            CompandSettings(enabled: true, delay: CompandSettings.delayMin);
+            CompandSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7507,7 +7500,7 @@ void main() {
       test('param `delay` const `delayDefault` is accepted by toFilterString',
           () {
         final s =
-            CompandSettings(enabled: true, delay: CompandSettings.delayDefault);
+            CompandSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7524,7 +7517,7 @@ void main() {
       test('param `gain` const `gainDefault` is accepted by toFilterString',
           () {
         final s =
-            CompandSettings(enabled: true, gain: CompandSettings.gainDefault);
+            CompandSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7538,184 +7531,184 @@ void main() {
       test('param `volume` const `volumeMax` is accepted by toFilterString',
           () {
         final s =
-            CompandSettings(enabled: true, volume: CompandSettings.volumeMax);
+            CompandSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `volume` const `volumeDefault` is accepted by toFilterString',
           () {
         final s = CompandSettings(
-            enabled: true, volume: CompandSettings.volumeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('digit-prefix param `soft-knee` lands in wire via params map', () {
-        final s =
-            const CompandSettings(enabled: true, params: {'soft-knee': 900.0});
+        const s =
+            CompandSettings(enabled: true, params: {'soft-knee': 900.0});
         expect(s.toFilterString(), contains('soft-knee='));
         expect(s.toFilterString(), contains('soft-knee=900.000'));
       });
     });
     group('CompensationdelaySettings (compensationdelay)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(compensationdelay: CompensationdelaySettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(
-            compensationdelay: CompensationdelaySettings(enabled: true));
+            compensationdelay: CompensationdelaySettings(enabled: true),);
         expect(fx.toAfChain(), 'lavfi-compensationdelay');
       });
 
       test('param `cm` lands in wire when set to a non-default value', () {
-        final s = const CompensationdelaySettings(enabled: true, cm: 100);
+        const s = CompensationdelaySettings(enabled: true, cm: 100);
         expect(s.toFilterString(), contains('cm='));
         expect(s.toFilterString(), contains('cm=100'));
       });
 
       test('param `dry` lands in wire when set to a non-default value', () {
-        final s = const CompensationdelaySettings(enabled: true, dry: 1.0);
+        const s = CompensationdelaySettings(enabled: true, dry: 1.0);
         expect(s.toFilterString(), contains('dry='));
         expect(s.toFilterString(), contains('dry=1.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const CompensationdelaySettings(enabled: true, m: 100);
+        const s = CompensationdelaySettings(enabled: true, m: 100);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=100'));
       });
 
       test('param `mm` lands in wire when set to a non-default value', () {
-        final s = const CompensationdelaySettings(enabled: true, mm: 10);
+        const s = CompensationdelaySettings(enabled: true, mm: 10);
         expect(s.toFilterString(), contains('mm='));
         expect(s.toFilterString(), contains('mm=10'));
       });
 
       test('param `temp` lands in wire when set to a non-default value', () {
-        final s = const CompensationdelaySettings(enabled: true, temp: 50);
+        const s = CompensationdelaySettings(enabled: true, temp: 50);
         expect(s.toFilterString(), contains('temp='));
         expect(s.toFilterString(), contains('temp=50'));
       });
 
       test('param `wet` lands in wire when set to a non-default value', () {
-        final s = const CompensationdelaySettings(enabled: true, wet: 0.0);
+        const s = CompensationdelaySettings(enabled: true, wet: 0.0);
         expect(s.toFilterString(), contains('wet='));
         expect(s.toFilterString(), contains('wet=0.000'));
       });
 
       test('param `cm` const `cmMin` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, cm: CompensationdelaySettings.cmMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `cm` const `cmMax` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, cm: CompensationdelaySettings.cmMax);
+            enabled: true, cm: CompensationdelaySettings.cmMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `cm` const `cmDefault` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, cm: CompensationdelaySettings.cmDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `dry` const `dryMin` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, dry: CompensationdelaySettings.dryMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `dry` const `dryMax` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, dry: CompensationdelaySettings.dryMax);
+            enabled: true, dry: CompensationdelaySettings.dryMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `dry` const `dryDefault` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, dry: CompensationdelaySettings.dryDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mMin` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, m: CompensationdelaySettings.mMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, m: CompensationdelaySettings.mMax);
+            enabled: true, m: CompensationdelaySettings.mMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, m: CompensationdelaySettings.mDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mm` const `mmMin` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, mm: CompensationdelaySettings.mmMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mm` const `mmMax` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, mm: CompensationdelaySettings.mmMax);
+            enabled: true, mm: CompensationdelaySettings.mmMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mm` const `mmDefault` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, mm: CompensationdelaySettings.mmDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `temp` const `tempMin` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, temp: CompensationdelaySettings.tempMin);
+            enabled: true, temp: CompensationdelaySettings.tempMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `temp` const `tempMax` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, temp: CompensationdelaySettings.tempMax);
+            enabled: true, temp: CompensationdelaySettings.tempMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `temp` const `tempDefault` is accepted by toFilterString',
           () {
         final s = CompensationdelaySettings(
-            enabled: true, temp: CompensationdelaySettings.tempDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `wet` const `wetMin` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, wet: CompensationdelaySettings.wetMin);
+            enabled: true, wet: CompensationdelaySettings.wetMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `wet` const `wetMax` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, wet: CompensationdelaySettings.wetMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `wet` const `wetDefault` is accepted by toFilterString', () {
         final s = CompensationdelaySettings(
-            enabled: true, wet: CompensationdelaySettings.wetDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('CrossfeedSettings (crossfeed)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(crossfeed: CrossfeedSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -7726,40 +7719,40 @@ void main() {
 
       test('param `block_size` lands in wire when set to a non-default value',
           () {
-        final s = const CrossfeedSettings(enabled: true, block_size: 32768);
+        const s = CrossfeedSettings(enabled: true, block_size: 32768);
         expect(s.toFilterString(), contains('block_size='));
         expect(s.toFilterString(), contains('block_size=32768'));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const CrossfeedSettings(enabled: true, level_in: 1.0);
+        const s = CrossfeedSettings(enabled: true, level_in: 1.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=1.000'));
       });
 
       test('param `level_out` lands in wire when set to a non-default value',
           () {
-        final s = const CrossfeedSettings(enabled: true, level_out: 0.0);
+        const s = CrossfeedSettings(enabled: true, level_out: 0.0);
         expect(s.toFilterString(), contains('level_out='));
         expect(s.toFilterString(), contains('level_out=0.000'));
       });
 
       test('param `range` lands in wire when set to a non-default value', () {
-        final s = const CrossfeedSettings(enabled: true, range: 1.0);
+        const s = CrossfeedSettings(enabled: true, range: 1.0);
         expect(s.toFilterString(), contains('range='));
         expect(s.toFilterString(), contains('range=1.000'));
       });
 
       test('param `slope` lands in wire when set to a non-default value', () {
-        final s = const CrossfeedSettings(enabled: true, slope: 1.0);
+        const s = CrossfeedSettings(enabled: true, slope: 1.0);
         expect(s.toFilterString(), contains('slope='));
         expect(s.toFilterString(), contains('slope=1.000'));
       });
 
       test('param `strength` lands in wire when set to a non-default value',
           () {
-        final s = const CrossfeedSettings(enabled: true, strength: 1.0);
+        const s = CrossfeedSettings(enabled: true, strength: 1.0);
         expect(s.toFilterString(), contains('strength='));
         expect(s.toFilterString(), contains('strength=1.000'));
       });
@@ -7768,7 +7761,7 @@ void main() {
           'param `block_size` const `block_sizeMin` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, block_size: CrossfeedSettings.block_sizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7776,7 +7769,7 @@ void main() {
           'param `block_size` const `block_sizeMax` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, block_size: CrossfeedSettings.block_sizeMax);
+            enabled: true, block_size: CrossfeedSettings.block_sizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7784,21 +7777,21 @@ void main() {
           'param `block_size` const `block_sizeDefault` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, block_size: CrossfeedSettings.block_sizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMin` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, level_in: CrossfeedSettings.level_inMin);
+            enabled: true, level_in: CrossfeedSettings.level_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMax` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, level_in: CrossfeedSettings.level_inMax);
+            enabled: true, level_in: CrossfeedSettings.level_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7806,7 +7799,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, level_in: CrossfeedSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7814,7 +7807,7 @@ void main() {
           'param `level_out` const `level_outMin` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, level_out: CrossfeedSettings.level_outMin);
+            enabled: true, level_out: CrossfeedSettings.level_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7822,7 +7815,7 @@ void main() {
           'param `level_out` const `level_outMax` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, level_out: CrossfeedSettings.level_outMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7830,7 +7823,7 @@ void main() {
           'param `level_out` const `level_outDefault` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, level_out: CrossfeedSettings.level_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7849,7 +7842,7 @@ void main() {
       test('param `range` const `rangeDefault` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, range: CrossfeedSettings.rangeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7868,21 +7861,21 @@ void main() {
       test('param `slope` const `slopeDefault` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, slope: CrossfeedSettings.slopeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `strength` const `strengthMin` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, strength: CrossfeedSettings.strengthMin);
+            enabled: true, strength: CrossfeedSettings.strengthMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `strength` const `strengthMax` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, strength: CrossfeedSettings.strengthMax);
+            enabled: true, strength: CrossfeedSettings.strengthMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7890,13 +7883,13 @@ void main() {
           'param `strength` const `strengthDefault` is accepted by toFilterString',
           () {
         final s = CrossfeedSettings(
-            enabled: true, strength: CrossfeedSettings.strengthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('CrystalizerSettings (crystalizer)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(crystalizer: CrystalizerSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -7907,12 +7900,12 @@ void main() {
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const CrystalizerSettings(enabled: true, c: false);
+        const s = CrystalizerSettings(enabled: true, c: false);
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `i` lands in wire when set to a non-default value', () {
-        final s = const CrystalizerSettings(enabled: true, i: 10.0);
+        const s = CrystalizerSettings(enabled: true, i: 10.0);
         expect(s.toFilterString(), contains('i='));
         expect(s.toFilterString(), contains('i=10.000'));
       });
@@ -7931,13 +7924,13 @@ void main() {
 
       test('param `i` const `iDefault` is accepted by toFilterString', () {
         final s =
-            CrystalizerSettings(enabled: true, i: CrystalizerSettings.iDefault);
+            CrystalizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('DcshiftSettings (dcshift)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(dcshift: DcshiftSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -7948,13 +7941,13 @@ void main() {
 
       test('param `limitergain` lands in wire when set to a non-default value',
           () {
-        final s = const DcshiftSettings(enabled: true, limitergain: 1.0);
+        const s = DcshiftSettings(enabled: true, limitergain: 1.0);
         expect(s.toFilterString(), contains('limitergain='));
         expect(s.toFilterString(), contains('limitergain=1.000'));
       });
 
       test('param `shift` lands in wire when set to a non-default value', () {
-        final s = const DcshiftSettings(enabled: true, shift: 1.0);
+        const s = DcshiftSettings(enabled: true, shift: 1.0);
         expect(s.toFilterString(), contains('shift='));
         expect(s.toFilterString(), contains('shift=1.000'));
       });
@@ -7963,7 +7956,7 @@ void main() {
           'param `limitergain` const `limitergainMin` is accepted by toFilterString',
           () {
         final s = DcshiftSettings(
-            enabled: true, limitergain: DcshiftSettings.limitergainMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7971,7 +7964,7 @@ void main() {
           'param `limitergain` const `limitergainMax` is accepted by toFilterString',
           () {
         final s = DcshiftSettings(
-            enabled: true, limitergain: DcshiftSettings.limitergainMax);
+            enabled: true, limitergain: DcshiftSettings.limitergainMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7979,7 +7972,7 @@ void main() {
           'param `limitergain` const `limitergainDefault` is accepted by toFilterString',
           () {
         final s = DcshiftSettings(
-            enabled: true, limitergain: DcshiftSettings.limitergainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -7998,13 +7991,13 @@ void main() {
       test('param `shift` const `shiftDefault` is accepted by toFilterString',
           () {
         final s =
-            DcshiftSettings(enabled: true, shift: DcshiftSettings.shiftDefault);
+            DcshiftSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('DeesserSettings (deesser)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(deesser: DeesserSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -8014,25 +8007,25 @@ void main() {
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const DeesserSettings(enabled: true, f: 1.0);
+        const s = DeesserSettings(enabled: true, f: 1.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=1.000'));
       });
 
       test('param `i` lands in wire when set to a non-default value', () {
-        final s = const DeesserSettings(enabled: true, i: 1.0);
+        const s = DeesserSettings(enabled: true, i: 1.0);
         expect(s.toFilterString(), contains('i='));
         expect(s.toFilterString(), contains('i=1.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const DeesserSettings(enabled: true, m: 1.0);
+        const s = DeesserSettings(enabled: true, m: 1.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=1.000'));
       });
 
       test('param `s` lands in wire when set to a non-default value', () {
-        final s = const DeesserSettings(enabled: true, s: DeesserMode.i);
+        const s = DeesserSettings(enabled: true, s: DeesserMode.i);
         expect(s.toFilterString(), contains('s='));
         expect(s.toFilterString(), contains('s=i'));
       });
@@ -8048,12 +8041,12 @@ void main() {
       });
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
-        final s = DeesserSettings(enabled: true, f: DeesserSettings.fDefault);
+        final s = DeesserSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `i` const `iMin` is accepted by toFilterString', () {
-        final s = DeesserSettings(enabled: true, i: DeesserSettings.iMin);
+        final s = DeesserSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8063,7 +8056,7 @@ void main() {
       });
 
       test('param `i` const `iDefault` is accepted by toFilterString', () {
-        final s = DeesserSettings(enabled: true, i: DeesserSettings.iDefault);
+        final s = DeesserSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8078,13 +8071,13 @@ void main() {
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
-        final s = DeesserSettings(enabled: true, m: DeesserSettings.mDefault);
+        final s = DeesserSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('DialoguenhanceSettings (dialoguenhance)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(dialoguenhance: DialoguenhanceSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -8095,20 +8088,20 @@ void main() {
       });
 
       test('param `enhance` lands in wire when set to a non-default value', () {
-        final s = const DialoguenhanceSettings(enabled: true, enhance: 3.0);
+        const s = DialoguenhanceSettings(enabled: true, enhance: 3.0);
         expect(s.toFilterString(), contains('enhance='));
         expect(s.toFilterString(), contains('enhance=3.000'));
       });
 
       test('param `original` lands in wire when set to a non-default value',
           () {
-        final s = const DialoguenhanceSettings(enabled: true, original: 0.0);
+        const s = DialoguenhanceSettings(enabled: true, original: 0.0);
         expect(s.toFilterString(), contains('original='));
         expect(s.toFilterString(), contains('original=0.000'));
       });
 
       test('param `voice` lands in wire when set to a non-default value', () {
-        final s = const DialoguenhanceSettings(enabled: true, voice: 32.0);
+        const s = DialoguenhanceSettings(enabled: true, voice: 32.0);
         expect(s.toFilterString(), contains('voice='));
         expect(s.toFilterString(), contains('voice=32.000'));
       });
@@ -8116,14 +8109,14 @@ void main() {
       test('param `enhance` const `enhanceMin` is accepted by toFilterString',
           () {
         final s = DialoguenhanceSettings(
-            enabled: true, enhance: DialoguenhanceSettings.enhanceMin);
+            enabled: true, enhance: DialoguenhanceSettings.enhanceMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `enhance` const `enhanceMax` is accepted by toFilterString',
           () {
         final s = DialoguenhanceSettings(
-            enabled: true, enhance: DialoguenhanceSettings.enhanceMax);
+            enabled: true, enhance: DialoguenhanceSettings.enhanceMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8131,21 +8124,21 @@ void main() {
           'param `enhance` const `enhanceDefault` is accepted by toFilterString',
           () {
         final s = DialoguenhanceSettings(
-            enabled: true, enhance: DialoguenhanceSettings.enhanceDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `original` const `originalMin` is accepted by toFilterString',
           () {
         final s = DialoguenhanceSettings(
-            enabled: true, original: DialoguenhanceSettings.originalMin);
+            enabled: true, original: DialoguenhanceSettings.originalMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `original` const `originalMax` is accepted by toFilterString',
           () {
         final s = DialoguenhanceSettings(
-            enabled: true, original: DialoguenhanceSettings.originalMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8153,32 +8146,32 @@ void main() {
           'param `original` const `originalDefault` is accepted by toFilterString',
           () {
         final s = DialoguenhanceSettings(
-            enabled: true, original: DialoguenhanceSettings.originalDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `voice` const `voiceMin` is accepted by toFilterString', () {
         final s = DialoguenhanceSettings(
-            enabled: true, voice: DialoguenhanceSettings.voiceMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `voice` const `voiceMax` is accepted by toFilterString', () {
         final s = DialoguenhanceSettings(
-            enabled: true, voice: DialoguenhanceSettings.voiceMax);
+            enabled: true, voice: DialoguenhanceSettings.voiceMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `voice` const `voiceDefault` is accepted by toFilterString',
           () {
         final s = DialoguenhanceSettings(
-            enabled: true, voice: DialoguenhanceSettings.voiceDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('DrmeterSettings (drmeter)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(drmeter: DrmeterSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -8188,7 +8181,7 @@ void main() {
       });
 
       test('param `length` lands in wire when set to a non-default value', () {
-        final s = const DrmeterSettings(enabled: true, length: 10.0);
+        const s = DrmeterSettings(enabled: true, length: 10.0);
         expect(s.toFilterString(), contains('length='));
         expect(s.toFilterString(), contains('length=10.000'));
       });
@@ -8210,13 +8203,13 @@ void main() {
       test('param `length` const `lengthDefault` is accepted by toFilterString',
           () {
         final s = DrmeterSettings(
-            enabled: true, length: DrmeterSettings.lengthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('DynaudnormSettings (dynaudnorm)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(dynaudnorm: DynaudnormSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -8227,172 +8220,172 @@ void main() {
 
       test('param `altboundary` lands in wire when set to a non-default value',
           () {
-        final s = const DynaudnormSettings(enabled: true, altboundary: true);
+        const s = DynaudnormSettings(enabled: true, altboundary: true);
         expect(s.toFilterString(), contains('altboundary='));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, b: true);
+        const s = DynaudnormSettings(enabled: true, b: true);
         expect(s.toFilterString(), contains('b='));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, c: true);
+        const s = DynaudnormSettings(enabled: true, c: true);
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const DynaudnormSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            DynaudnormSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `compress` lands in wire when set to a non-default value',
           () {
-        final s = const DynaudnormSettings(enabled: true, compress: 30.0);
+        const s = DynaudnormSettings(enabled: true, compress: 30.0);
         expect(s.toFilterString(), contains('compress='));
         expect(s.toFilterString(), contains('compress=30.000'));
       });
 
       test('param `correctdc` lands in wire when set to a non-default value',
           () {
-        final s = const DynaudnormSettings(enabled: true, correctdc: true);
+        const s = DynaudnormSettings(enabled: true, correctdc: true);
         expect(s.toFilterString(), contains('correctdc='));
       });
 
       test('param `coupling` lands in wire when set to a non-default value',
           () {
-        final s = const DynaudnormSettings(enabled: true, coupling: false);
+        const s = DynaudnormSettings(enabled: true, coupling: false);
         expect(s.toFilterString(), contains('coupling='));
       });
 
       test('param `curve` lands in wire when set to a non-default value', () {
-        final s =
-            const DynaudnormSettings(enabled: true, curve: 'wire_test_alt');
+        const s =
+            DynaudnormSettings(enabled: true, curve: 'wire_test_alt');
         expect(s.toFilterString(), contains('curve='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, f: 8000);
+        const s = DynaudnormSettings(enabled: true, f: 8000);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=8000'));
       });
 
       test('param `framelen` lands in wire when set to a non-default value',
           () {
-        final s = const DynaudnormSettings(enabled: true, framelen: 8000);
+        const s = DynaudnormSettings(enabled: true, framelen: 8000);
         expect(s.toFilterString(), contains('framelen='));
         expect(s.toFilterString(), contains('framelen=8000'));
       });
 
       test('param `g` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, g: 301);
+        const s = DynaudnormSettings(enabled: true, g: 301);
         expect(s.toFilterString(), contains('g='));
         expect(s.toFilterString(), contains('g=301'));
       });
 
       test('param `gausssize` lands in wire when set to a non-default value',
           () {
-        final s = const DynaudnormSettings(enabled: true, gausssize: 301);
+        const s = DynaudnormSettings(enabled: true, gausssize: 301);
         expect(s.toFilterString(), contains('gausssize='));
         expect(s.toFilterString(), contains('gausssize=301'));
       });
 
       test('param `h` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, h: 'wire_test_alt');
+        const s = DynaudnormSettings(enabled: true, h: 'wire_test_alt');
         expect(s.toFilterString(), contains('h='));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, m: 100.0);
+        const s = DynaudnormSettings(enabled: true, m: 100.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=100.000'));
       });
 
       test('param `maxgain` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, maxgain: 100.0);
+        const s = DynaudnormSettings(enabled: true, maxgain: 100.0);
         expect(s.toFilterString(), contains('maxgain='));
         expect(s.toFilterString(), contains('maxgain=100.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, n: false);
+        const s = DynaudnormSettings(enabled: true, n: false);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `o` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, o: 1.0);
+        const s = DynaudnormSettings(enabled: true, o: 1.0);
         expect(s.toFilterString(), contains('o='));
         expect(s.toFilterString(), contains('o=1.000'));
       });
 
       test('param `overlap` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, overlap: 1.0);
+        const s = DynaudnormSettings(enabled: true, overlap: 1.0);
         expect(s.toFilterString(), contains('overlap='));
         expect(s.toFilterString(), contains('overlap=1.000'));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, p: 1.0);
+        const s = DynaudnormSettings(enabled: true, p: 1.0);
         expect(s.toFilterString(), contains('p='));
         expect(s.toFilterString(), contains('p=1.000'));
       });
 
       test('param `peak` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, peak: 1.0);
+        const s = DynaudnormSettings(enabled: true, peak: 1.0);
         expect(s.toFilterString(), contains('peak='));
         expect(s.toFilterString(), contains('peak=1.000'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, r: 1.0);
+        const s = DynaudnormSettings(enabled: true, r: 1.0);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=1.000'));
       });
 
       test('param `s` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, s: 30.0);
+        const s = DynaudnormSettings(enabled: true, s: 30.0);
         expect(s.toFilterString(), contains('s='));
         expect(s.toFilterString(), contains('s=30.000'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, t: 1.0);
+        const s = DynaudnormSettings(enabled: true, t: 1.0);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=1.000'));
       });
 
       test('param `targetrms` lands in wire when set to a non-default value',
           () {
-        final s = const DynaudnormSettings(enabled: true, targetrms: 1.0);
+        const s = DynaudnormSettings(enabled: true, targetrms: 1.0);
         expect(s.toFilterString(), contains('targetrms='));
         expect(s.toFilterString(), contains('targetrms=1.000'));
       });
 
       test('param `threshold` lands in wire when set to a non-default value',
           () {
-        final s = const DynaudnormSettings(enabled: true, threshold: 1.0);
+        const s = DynaudnormSettings(enabled: true, threshold: 1.0);
         expect(s.toFilterString(), contains('threshold='));
         expect(s.toFilterString(), contains('threshold=1.000'));
       });
 
       test('param `v` lands in wire when set to a non-default value', () {
-        final s = const DynaudnormSettings(enabled: true, v: 'wire_test_alt');
+        const s = DynaudnormSettings(enabled: true, v: 'wire_test_alt');
         expect(s.toFilterString(), contains('v='));
       });
 
       test('param `compress` const `compressMin` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, compress: DynaudnormSettings.compressMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `compress` const `compressMax` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, compress: DynaudnormSettings.compressMax);
+            enabled: true, compress: DynaudnormSettings.compressMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8400,7 +8393,7 @@ void main() {
           'param `compress` const `compressDefault` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, compress: DynaudnormSettings.compressDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8416,21 +8409,21 @@ void main() {
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
         final s =
-            DynaudnormSettings(enabled: true, f: DynaudnormSettings.fDefault);
+            DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `framelen` const `framelenMin` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, framelen: DynaudnormSettings.framelenMin);
+            enabled: true, framelen: DynaudnormSettings.framelenMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `framelen` const `framelenMax` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, framelen: DynaudnormSettings.framelenMax);
+            enabled: true, framelen: DynaudnormSettings.framelenMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8438,7 +8431,7 @@ void main() {
           'param `framelen` const `framelenDefault` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, framelen: DynaudnormSettings.framelenDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8454,7 +8447,7 @@ void main() {
 
       test('param `g` const `gDefault` is accepted by toFilterString', () {
         final s =
-            DynaudnormSettings(enabled: true, g: DynaudnormSettings.gDefault);
+            DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8462,7 +8455,7 @@ void main() {
           'param `gausssize` const `gausssizeMin` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, gausssize: DynaudnormSettings.gausssizeMin);
+            enabled: true, gausssize: DynaudnormSettings.gausssizeMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8470,7 +8463,7 @@ void main() {
           'param `gausssize` const `gausssizeMax` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, gausssize: DynaudnormSettings.gausssizeMax);
+            enabled: true, gausssize: DynaudnormSettings.gausssizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8478,7 +8471,7 @@ void main() {
           'param `gausssize` const `gausssizeDefault` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, gausssize: DynaudnormSettings.gausssizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8494,21 +8487,21 @@ void main() {
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
         final s =
-            DynaudnormSettings(enabled: true, m: DynaudnormSettings.mDefault);
+            DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `maxgain` const `maxgainMin` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, maxgain: DynaudnormSettings.maxgainMin);
+            enabled: true, maxgain: DynaudnormSettings.maxgainMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `maxgain` const `maxgainMax` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, maxgain: DynaudnormSettings.maxgainMax);
+            enabled: true, maxgain: DynaudnormSettings.maxgainMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8516,12 +8509,12 @@ void main() {
           'param `maxgain` const `maxgainDefault` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, maxgain: DynaudnormSettings.maxgainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `o` const `oMin` is accepted by toFilterString', () {
-        final s = DynaudnormSettings(enabled: true, o: DynaudnormSettings.oMin);
+        final s = DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8532,21 +8525,21 @@ void main() {
 
       test('param `o` const `oDefault` is accepted by toFilterString', () {
         final s =
-            DynaudnormSettings(enabled: true, o: DynaudnormSettings.oDefault);
+            DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `overlap` const `overlapMin` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, overlap: DynaudnormSettings.overlapMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `overlap` const `overlapMax` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, overlap: DynaudnormSettings.overlapMax);
+            enabled: true, overlap: DynaudnormSettings.overlapMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8554,7 +8547,7 @@ void main() {
           'param `overlap` const `overlapDefault` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, overlap: DynaudnormSettings.overlapDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8570,7 +8563,7 @@ void main() {
 
       test('param `p` const `pDefault` is accepted by toFilterString', () {
         final s =
-            DynaudnormSettings(enabled: true, p: DynaudnormSettings.pDefault);
+            DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8589,12 +8582,12 @@ void main() {
       test('param `peak` const `peakDefault` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, peak: DynaudnormSettings.peakDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `r` const `rMin` is accepted by toFilterString', () {
-        final s = DynaudnormSettings(enabled: true, r: DynaudnormSettings.rMin);
+        final s = DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8605,12 +8598,12 @@ void main() {
 
       test('param `r` const `rDefault` is accepted by toFilterString', () {
         final s =
-            DynaudnormSettings(enabled: true, r: DynaudnormSettings.rDefault);
+            DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `s` const `sMin` is accepted by toFilterString', () {
-        final s = DynaudnormSettings(enabled: true, s: DynaudnormSettings.sMin);
+        final s = DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8621,12 +8614,12 @@ void main() {
 
       test('param `s` const `sDefault` is accepted by toFilterString', () {
         final s =
-            DynaudnormSettings(enabled: true, s: DynaudnormSettings.sDefault);
+            DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `t` const `tMin` is accepted by toFilterString', () {
-        final s = DynaudnormSettings(enabled: true, t: DynaudnormSettings.tMin);
+        final s = DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8637,7 +8630,7 @@ void main() {
 
       test('param `t` const `tDefault` is accepted by toFilterString', () {
         final s =
-            DynaudnormSettings(enabled: true, t: DynaudnormSettings.tDefault);
+            DynaudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8645,7 +8638,7 @@ void main() {
           'param `targetrms` const `targetrmsMin` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, targetrms: DynaudnormSettings.targetrmsMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8653,7 +8646,7 @@ void main() {
           'param `targetrms` const `targetrmsMax` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, targetrms: DynaudnormSettings.targetrmsMax);
+            enabled: true, targetrms: DynaudnormSettings.targetrmsMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8661,7 +8654,7 @@ void main() {
           'param `targetrms` const `targetrmsDefault` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, targetrms: DynaudnormSettings.targetrmsDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8669,7 +8662,7 @@ void main() {
           'param `threshold` const `thresholdMin` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, threshold: DynaudnormSettings.thresholdMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8677,7 +8670,7 @@ void main() {
           'param `threshold` const `thresholdMax` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, threshold: DynaudnormSettings.thresholdMax);
+            enabled: true, threshold: DynaudnormSettings.thresholdMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8685,13 +8678,13 @@ void main() {
           'param `threshold` const `thresholdDefault` is accepted by toFilterString',
           () {
         final s = DynaudnormSettings(
-            enabled: true, threshold: DynaudnormSettings.thresholdDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('EarwaxSettings (earwax)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(earwax: EarwaxSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -8702,7 +8695,7 @@ void main() {
     });
     group('Ebur128Settings (ebur128)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(ebur128: Ebur128Settings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -8713,75 +8706,75 @@ void main() {
 
       test('param `dualmono` lands in wire when set to a non-default value',
           () {
-        final s = const Ebur128Settings(enabled: true, dualmono: true);
+        const s = Ebur128Settings(enabled: true, dualmono: true);
         expect(s.toFilterString(), contains('dualmono='));
       });
 
       test('param `framelog` lands in wire when set to a non-default value',
           () {
-        final s =
-            const Ebur128Settings(enabled: true, framelog: Ebur128Level.info);
+        const s =
+            Ebur128Settings(enabled: true, framelog: Ebur128Level.info);
         expect(s.toFilterString(), contains('framelog='));
         expect(s.toFilterString(), contains('framelog=info'));
       });
 
       test('param `gauge` lands in wire when set to a non-default value', () {
-        final s =
-            const Ebur128Settings(enabled: true, gauge: Ebur128Gaugetype.m);
+        const s =
+            Ebur128Settings(enabled: true, gauge: Ebur128Gaugetype.m);
         expect(s.toFilterString(), contains('gauge='));
         expect(s.toFilterString(), contains('gauge=m'));
       });
 
       test('param `metadata` lands in wire when set to a non-default value',
           () {
-        final s = const Ebur128Settings(enabled: true, metadata: true);
+        const s = Ebur128Settings(enabled: true, metadata: true);
         expect(s.toFilterString(), contains('metadata='));
       });
 
       test('param `meter` lands in wire when set to a non-default value', () {
-        final s = const Ebur128Settings(enabled: true, meter: 18);
+        const s = Ebur128Settings(enabled: true, meter: 18);
         expect(s.toFilterString(), contains('meter='));
         expect(s.toFilterString(), contains('meter=18'));
       });
 
       test('param `panlaw` lands in wire when set to a non-default value', () {
-        final s = const Ebur128Settings(enabled: true, panlaw: 0.0);
+        const s = Ebur128Settings(enabled: true, panlaw: 0.0);
         expect(s.toFilterString(), contains('panlaw='));
         expect(s.toFilterString(), contains('panlaw=0.000'));
       });
 
       test('param `peak` lands in wire when set to a non-default value', () {
-        final s = const Ebur128Settings(
-            enabled: true, peak: const {Ebur128Mode.none});
+        const s = Ebur128Settings(
+            enabled: true, peak: const {Ebur128Mode.none},);
         expect(s.toFilterString(), contains('peak='));
       });
 
       test('param `scale` lands in wire when set to a non-default value', () {
-        final s =
-            const Ebur128Settings(enabled: true, scale: Ebur128Scaletype.LUFS);
+        const s =
+            Ebur128Settings(enabled: true, scale: Ebur128Scaletype.LUFS);
         expect(s.toFilterString(), contains('scale='));
         expect(s.toFilterString(), contains('scale=LUFS'));
       });
 
       test('param `size` lands in wire when set to a non-default value', () {
-        final s = const Ebur128Settings(enabled: true, size: 'wire_test_alt');
+        const s = Ebur128Settings(enabled: true, size: 'wire_test_alt');
         expect(s.toFilterString(), contains('size='));
       });
 
       test('param `target` lands in wire when set to a non-default value', () {
-        final s = const Ebur128Settings(enabled: true, target: 0);
+        const s = Ebur128Settings(enabled: true, target: 0);
         expect(s.toFilterString(), contains('target='));
         expect(s.toFilterString(), contains('target=0'));
       });
 
       test('param `video` lands in wire when set to a non-default value', () {
-        final s = const Ebur128Settings(enabled: true, video: true);
+        const s = Ebur128Settings(enabled: true, video: true);
         expect(s.toFilterString(), contains('video='));
       });
 
       test('param `meter` const `meterMin` is accepted by toFilterString', () {
         final s =
-            Ebur128Settings(enabled: true, meter: Ebur128Settings.meterMin);
+            Ebur128Settings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8794,7 +8787,7 @@ void main() {
       test('param `meter` const `meterDefault` is accepted by toFilterString',
           () {
         final s =
-            Ebur128Settings(enabled: true, meter: Ebur128Settings.meterDefault);
+            Ebur128Settings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8815,14 +8808,14 @@ void main() {
       test('param `panlaw` const `panlawDefault` is accepted by toFilterString',
           () {
         final s = Ebur128Settings(
-            enabled: true, panlaw: Ebur128Settings.panlawDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `target` const `targetMin` is accepted by toFilterString',
           () {
         final s =
-            Ebur128Settings(enabled: true, target: Ebur128Settings.targetMin);
+            Ebur128Settings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8836,13 +8829,13 @@ void main() {
       test('param `target` const `targetDefault` is accepted by toFilterString',
           () {
         final s = Ebur128Settings(
-            enabled: true, target: Ebur128Settings.targetDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('EqualizerSettings (equalizer)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(equalizer: EqualizerSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -8852,137 +8845,137 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(
-            enabled: true, a: EqualizerTransformType.dii);
+        const s = EqualizerSettings(
+            enabled: true, a: EqualizerTransformType.dii,);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(enabled: true, b: 32768);
+        const s = EqualizerSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const EqualizerSettings(enabled: true, blocksize: 32768);
+        const s = EqualizerSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(enabled: true, c: 'wire_test_alt');
+        const s = EqualizerSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const EqualizerSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            EqualizerSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(enabled: true, f: 999999.0);
+        const s = EqualizerSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const EqualizerSettings(enabled: true, frequency: 999999.0);
+        const s = EqualizerSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `g` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(enabled: true, g: 900.0);
+        const s = EqualizerSettings(enabled: true, g: 900.0);
         expect(s.toFilterString(), contains('g='));
         expect(s.toFilterString(), contains('g=900.000'));
       });
 
       test('param `gain` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(enabled: true, gain: 900.0);
+        const s = EqualizerSettings(enabled: true, gain: 900.0);
         expect(s.toFilterString(), contains('gain='));
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(enabled: true, m: 0.0);
+        const s = EqualizerSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(enabled: true, mix: 0.0);
+        const s = EqualizerSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(enabled: true, n: true);
+        const s = EqualizerSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const EqualizerSettings(enabled: true, normalize: true);
+        const s = EqualizerSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s = const EqualizerSettings(
-            enabled: true, precision: EqualizerPrecision.s16);
+        const s = EqualizerSettings(
+            enabled: true, precision: EqualizerPrecision.s16,);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s =
-            const EqualizerSettings(enabled: true, r: EqualizerPrecision.s16);
+        const s =
+            EqualizerSettings(enabled: true, r: EqualizerPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s =
-            const EqualizerSettings(enabled: true, t: EqualizerWidthType.h);
+        const s =
+            EqualizerSettings(enabled: true, t: EqualizerWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const EqualizerSettings(
-            enabled: true, transform: EqualizerTransformType.dii);
+        const s = EqualizerSettings(
+            enabled: true, transform: EqualizerTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(enabled: true, w: 99999.0);
+        const s = EqualizerSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const EqualizerSettings(enabled: true, width: 99999.0);
+        const s = EqualizerSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s = const EqualizerSettings(
-            enabled: true, width_type: EqualizerWidthType.h);
+        const s = EqualizerSettings(
+            enabled: true, width_type: EqualizerWidthType.h,);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = EqualizerSettings(enabled: true, b: EqualizerSettings.bMin);
+        final s = EqualizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -8993,7 +8986,7 @@ void main() {
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
         final s =
-            EqualizerSettings(enabled: true, b: EqualizerSettings.bDefault);
+            EqualizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9001,7 +8994,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s = EqualizerSettings(
-            enabled: true, blocksize: EqualizerSettings.blocksizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9009,7 +9002,7 @@ void main() {
           'param `blocksize` const `blocksizeMax` is accepted by toFilterString',
           () {
         final s = EqualizerSettings(
-            enabled: true, blocksize: EqualizerSettings.blocksizeMax);
+            enabled: true, blocksize: EqualizerSettings.blocksizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9017,12 +9010,12 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = EqualizerSettings(
-            enabled: true, blocksize: EqualizerSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `f` const `fMin` is accepted by toFilterString', () {
-        final s = EqualizerSettings(enabled: true, f: EqualizerSettings.fMin);
+        final s = EqualizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9033,7 +9026,7 @@ void main() {
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
         final s =
-            EqualizerSettings(enabled: true, f: EqualizerSettings.fDefault);
+            EqualizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9041,7 +9034,7 @@ void main() {
           'param `frequency` const `frequencyMin` is accepted by toFilterString',
           () {
         final s = EqualizerSettings(
-            enabled: true, frequency: EqualizerSettings.frequencyMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9049,7 +9042,7 @@ void main() {
           'param `frequency` const `frequencyMax` is accepted by toFilterString',
           () {
         final s = EqualizerSettings(
-            enabled: true, frequency: EqualizerSettings.frequencyMax);
+            enabled: true, frequency: EqualizerSettings.frequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9057,7 +9050,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = EqualizerSettings(
-            enabled: true, frequency: EqualizerSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9073,7 +9066,7 @@ void main() {
 
       test('param `g` const `gDefault` is accepted by toFilterString', () {
         final s =
-            EqualizerSettings(enabled: true, g: EqualizerSettings.gDefault);
+            EqualizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9092,7 +9085,7 @@ void main() {
       test('param `gain` const `gainDefault` is accepted by toFilterString',
           () {
         final s = EqualizerSettings(
-            enabled: true, gain: EqualizerSettings.gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9102,13 +9095,13 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = EqualizerSettings(enabled: true, m: EqualizerSettings.mMax);
+        final s = EqualizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
         final s =
-            EqualizerSettings(enabled: true, m: EqualizerSettings.mDefault);
+            EqualizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9120,13 +9113,13 @@ void main() {
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
         final s =
-            EqualizerSettings(enabled: true, mix: EqualizerSettings.mixMax);
+            EqualizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s =
-            EqualizerSettings(enabled: true, mix: EqualizerSettings.mixDefault);
+            EqualizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9142,7 +9135,7 @@ void main() {
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
         final s =
-            EqualizerSettings(enabled: true, w: EqualizerSettings.wDefault);
+            EqualizerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9161,13 +9154,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s = EqualizerSettings(
-            enabled: true, width: EqualizerSettings.widthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('ExtrastereoSettings (extrastereo)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(extrastereo: ExtrastereoSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -9178,12 +9171,12 @@ void main() {
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const ExtrastereoSettings(enabled: true, c: false);
+        const s = ExtrastereoSettings(enabled: true, c: false);
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const ExtrastereoSettings(enabled: true, m: 10.0);
+        const s = ExtrastereoSettings(enabled: true, m: 10.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=10.000'));
       });
@@ -9202,13 +9195,13 @@ void main() {
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
         final s =
-            ExtrastereoSettings(enabled: true, m: ExtrastereoSettings.mDefault);
+            ExtrastereoSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('FirequalizerSettings (firequalizer)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(firequalizer: FirequalizerSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -9220,99 +9213,99 @@ void main() {
 
       test('param `accuracy` lands in wire when set to a non-default value',
           () {
-        final s =
-            const FirequalizerSettings(enabled: true, accuracy: 10000000000.0);
+        const s =
+            FirequalizerSettings(enabled: true, accuracy: 10000000000.0);
         expect(s.toFilterString(), contains('accuracy='));
         expect(s.toFilterString(), contains('accuracy=10000000000.000'));
       });
 
       test('param `delay` lands in wire when set to a non-default value', () {
-        final s =
-            const FirequalizerSettings(enabled: true, delay: 10000000000.0);
+        const s =
+            FirequalizerSettings(enabled: true, delay: 10000000000.0);
         expect(s.toFilterString(), contains('delay='));
         expect(s.toFilterString(), contains('delay=10000000000.000'));
       });
 
       test('param `dumpfile` lands in wire when set to a non-default value',
           () {
-        final s = const FirequalizerSettings(
-            enabled: true, dumpfile: 'wire_test_alt');
+        const s = FirequalizerSettings(
+            enabled: true, dumpfile: 'wire_test_alt',);
         expect(s.toFilterString(), contains('dumpfile='));
       });
 
       test('param `dumpscale` lands in wire when set to a non-default value',
           () {
-        final s = const FirequalizerSettings(
-            enabled: true, dumpscale: FirequalizerScale.linlin);
+        const s = FirequalizerSettings(
+            enabled: true, dumpscale: FirequalizerScale.linlin,);
         expect(s.toFilterString(), contains('dumpscale='));
         expect(s.toFilterString(), contains('dumpscale=linlin'));
       });
 
       test('param `fft2` lands in wire when set to a non-default value', () {
-        final s = const FirequalizerSettings(enabled: true, fft2: true);
+        const s = FirequalizerSettings(enabled: true, fft2: true);
         expect(s.toFilterString(), contains('fft2='));
       });
 
       test('param `fixed` lands in wire when set to a non-default value', () {
-        final s = const FirequalizerSettings(enabled: true, fixed: true);
+        const s = FirequalizerSettings(enabled: true, fixed: true);
         expect(s.toFilterString(), contains('fixed='));
       });
 
       test('param `gain` lands in wire when set to a non-default value', () {
-        final s =
-            const FirequalizerSettings(enabled: true, gain: 'wire_test_alt');
+        const s =
+            FirequalizerSettings(enabled: true, gain: 'wire_test_alt');
         expect(s.toFilterString(), contains('gain='));
       });
 
       test('param `gain_entry` lands in wire when set to a non-default value',
           () {
-        final s = const FirequalizerSettings(
-            enabled: true, gain_entry: 'wire_test_alt');
+        const s = FirequalizerSettings(
+            enabled: true, gain_entry: 'wire_test_alt',);
         expect(s.toFilterString(), contains('gain_entry='));
       });
 
       test('param `min_phase` lands in wire when set to a non-default value',
           () {
-        final s = const FirequalizerSettings(enabled: true, min_phase: true);
+        const s = FirequalizerSettings(enabled: true, min_phase: true);
         expect(s.toFilterString(), contains('min_phase='));
       });
 
       test('param `multi` lands in wire when set to a non-default value', () {
-        final s = const FirequalizerSettings(enabled: true, multi: true);
+        const s = FirequalizerSettings(enabled: true, multi: true);
         expect(s.toFilterString(), contains('multi='));
       });
 
       test('param `scale` lands in wire when set to a non-default value', () {
-        final s = const FirequalizerSettings(
-            enabled: true, scale: FirequalizerScale.linlin);
+        const s = FirequalizerSettings(
+            enabled: true, scale: FirequalizerScale.linlin,);
         expect(s.toFilterString(), contains('scale='));
         expect(s.toFilterString(), contains('scale=linlin'));
       });
 
       test('param `wfunc` lands in wire when set to a non-default value', () {
-        final s = const FirequalizerSettings(
-            enabled: true, wfunc: FirequalizerWfunc.rectangular);
+        const s = FirequalizerSettings(
+            enabled: true, wfunc: FirequalizerWfunc.rectangular,);
         expect(s.toFilterString(), contains('wfunc='));
         expect(s.toFilterString(), contains('wfunc=rectangular'));
       });
 
       test('param `zero_phase` lands in wire when set to a non-default value',
           () {
-        final s = const FirequalizerSettings(enabled: true, zero_phase: true);
+        const s = FirequalizerSettings(enabled: true, zero_phase: true);
         expect(s.toFilterString(), contains('zero_phase='));
       });
 
       test('param `accuracy` const `accuracyMin` is accepted by toFilterString',
           () {
         final s = FirequalizerSettings(
-            enabled: true, accuracy: FirequalizerSettings.accuracyMin);
+            enabled: true, accuracy: FirequalizerSettings.accuracyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `accuracy` const `accuracyMax` is accepted by toFilterString',
           () {
         final s = FirequalizerSettings(
-            enabled: true, accuracy: FirequalizerSettings.accuracyMax);
+            enabled: true, accuracy: FirequalizerSettings.accuracyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9320,32 +9313,32 @@ void main() {
           'param `accuracy` const `accuracyDefault` is accepted by toFilterString',
           () {
         final s = FirequalizerSettings(
-            enabled: true, accuracy: FirequalizerSettings.accuracyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `delay` const `delayMin` is accepted by toFilterString', () {
         final s = FirequalizerSettings(
-            enabled: true, delay: FirequalizerSettings.delayMin);
+            enabled: true, delay: FirequalizerSettings.delayMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `delay` const `delayMax` is accepted by toFilterString', () {
         final s = FirequalizerSettings(
-            enabled: true, delay: FirequalizerSettings.delayMax);
+            enabled: true, delay: FirequalizerSettings.delayMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `delay` const `delayDefault` is accepted by toFilterString',
           () {
         final s = FirequalizerSettings(
-            enabled: true, delay: FirequalizerSettings.delayDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('FlangerSettings (flanger)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(flanger: FlangerSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -9355,58 +9348,58 @@ void main() {
       });
 
       test('param `delay` lands in wire when set to a non-default value', () {
-        final s = const FlangerSettings(enabled: true, delay: 30.0);
+        const s = FlangerSettings(enabled: true, delay: 30.0);
         expect(s.toFilterString(), contains('delay='));
         expect(s.toFilterString(), contains('delay=30.000'));
       });
 
       test('param `depth` lands in wire when set to a non-default value', () {
-        final s = const FlangerSettings(enabled: true, depth: 10.0);
+        const s = FlangerSettings(enabled: true, depth: 10.0);
         expect(s.toFilterString(), contains('depth='));
         expect(s.toFilterString(), contains('depth=10.000'));
       });
 
       test('param `interp` lands in wire when set to a non-default value', () {
-        final s = const FlangerSettings(
-            enabled: true, interp: FlangerItype.quadratic);
+        const s = FlangerSettings(
+            enabled: true, interp: FlangerItype.quadratic,);
         expect(s.toFilterString(), contains('interp='));
         expect(s.toFilterString(), contains('interp=quadratic'));
       });
 
       test('param `phase` lands in wire when set to a non-default value', () {
-        final s = const FlangerSettings(enabled: true, phase: 100.0);
+        const s = FlangerSettings(enabled: true, phase: 100.0);
         expect(s.toFilterString(), contains('phase='));
         expect(s.toFilterString(), contains('phase=100.000'));
       });
 
       test('param `regen` lands in wire when set to a non-default value', () {
-        final s = const FlangerSettings(enabled: true, regen: 95.0);
+        const s = FlangerSettings(enabled: true, regen: 95.0);
         expect(s.toFilterString(), contains('regen='));
         expect(s.toFilterString(), contains('regen=95.000'));
       });
 
       test('param `shape` lands in wire when set to a non-default value', () {
-        final s =
-            const FlangerSettings(enabled: true, shape: FlangerType.triangular);
+        const s =
+            FlangerSettings(enabled: true, shape: FlangerType.triangular);
         expect(s.toFilterString(), contains('shape='));
         expect(s.toFilterString(), contains('shape=triangular'));
       });
 
       test('param `speed` lands in wire when set to a non-default value', () {
-        final s = const FlangerSettings(enabled: true, speed: 10.0);
+        const s = FlangerSettings(enabled: true, speed: 10.0);
         expect(s.toFilterString(), contains('speed='));
         expect(s.toFilterString(), contains('speed=10.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const FlangerSettings(enabled: true, width: 100.0);
+        const s = FlangerSettings(enabled: true, width: 100.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=100.000'));
       });
 
       test('param `delay` const `delayMin` is accepted by toFilterString', () {
         final s =
-            FlangerSettings(enabled: true, delay: FlangerSettings.delayMin);
+            FlangerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9419,7 +9412,7 @@ void main() {
       test('param `delay` const `delayDefault` is accepted by toFilterString',
           () {
         final s =
-            FlangerSettings(enabled: true, delay: FlangerSettings.delayDefault);
+            FlangerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9438,7 +9431,7 @@ void main() {
       test('param `depth` const `depthDefault` is accepted by toFilterString',
           () {
         final s =
-            FlangerSettings(enabled: true, depth: FlangerSettings.depthDefault);
+            FlangerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9457,7 +9450,7 @@ void main() {
       test('param `phase` const `phaseDefault` is accepted by toFilterString',
           () {
         final s =
-            FlangerSettings(enabled: true, phase: FlangerSettings.phaseDefault);
+            FlangerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9476,7 +9469,7 @@ void main() {
       test('param `regen` const `regenDefault` is accepted by toFilterString',
           () {
         final s =
-            FlangerSettings(enabled: true, regen: FlangerSettings.regenDefault);
+            FlangerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9495,7 +9488,7 @@ void main() {
       test('param `speed` const `speedDefault` is accepted by toFilterString',
           () {
         final s =
-            FlangerSettings(enabled: true, speed: FlangerSettings.speedDefault);
+            FlangerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9514,13 +9507,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s =
-            FlangerSettings(enabled: true, width: FlangerSettings.widthDefault);
+            FlangerSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('HaasSettings (haas)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(haas: HaasSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -9531,56 +9524,56 @@ void main() {
 
       test('param `left_balance` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, left_balance: 1.0);
+        const s = HaasSettings(enabled: true, left_balance: 1.0);
         expect(s.toFilterString(), contains('left_balance='));
         expect(s.toFilterString(), contains('left_balance=1.000'));
       });
 
       test('param `left_delay` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, left_delay: 40.0);
+        const s = HaasSettings(enabled: true, left_delay: 40.0);
         expect(s.toFilterString(), contains('left_delay='));
         expect(s.toFilterString(), contains('left_delay=40.000'));
       });
 
       test('param `left_gain` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, left_gain: 64.0);
+        const s = HaasSettings(enabled: true, left_gain: 64.0);
         expect(s.toFilterString(), contains('left_gain='));
         expect(s.toFilterString(), contains('left_gain=64.000'));
       });
 
       test('param `left_phase` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, left_phase: true);
+        const s = HaasSettings(enabled: true, left_phase: true);
         expect(s.toFilterString(), contains('left_phase='));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, level_in: 64.0);
+        const s = HaasSettings(enabled: true, level_in: 64.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=64.000'));
       });
 
       test('param `level_out` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, level_out: 64.0);
+        const s = HaasSettings(enabled: true, level_out: 64.0);
         expect(s.toFilterString(), contains('level_out='));
         expect(s.toFilterString(), contains('level_out=64.000'));
       });
 
       test('param `middle_phase` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, middle_phase: true);
+        const s = HaasSettings(enabled: true, middle_phase: true);
         expect(s.toFilterString(), contains('middle_phase='));
       });
 
       test(
           'param `middle_source` lands in wire when set to a non-default value',
           () {
-        final s =
-            const HaasSettings(enabled: true, middle_source: HaasSource.left);
+        const s =
+            HaasSettings(enabled: true, middle_source: HaasSource.left);
         expect(s.toFilterString(), contains('middle_source='));
         expect(s.toFilterString(), contains('middle_source=left'));
       });
@@ -9588,34 +9581,34 @@ void main() {
       test(
           'param `right_balance` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, right_balance: -1.0);
+        const s = HaasSettings(enabled: true, right_balance: -1.0);
         expect(s.toFilterString(), contains('right_balance='));
         expect(s.toFilterString(), contains('right_balance=-1.000'));
       });
 
       test('param `right_delay` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, right_delay: 40.0);
+        const s = HaasSettings(enabled: true, right_delay: 40.0);
         expect(s.toFilterString(), contains('right_delay='));
         expect(s.toFilterString(), contains('right_delay=40.000'));
       });
 
       test('param `right_gain` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, right_gain: 64.0);
+        const s = HaasSettings(enabled: true, right_gain: 64.0);
         expect(s.toFilterString(), contains('right_gain='));
         expect(s.toFilterString(), contains('right_gain=64.000'));
       });
 
       test('param `right_phase` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, right_phase: false);
+        const s = HaasSettings(enabled: true, right_phase: false);
         expect(s.toFilterString(), contains('right_phase='));
       });
 
       test('param `side_gain` lands in wire when set to a non-default value',
           () {
-        final s = const HaasSettings(enabled: true, side_gain: 64.0);
+        const s = HaasSettings(enabled: true, side_gain: 64.0);
         expect(s.toFilterString(), contains('side_gain='));
         expect(s.toFilterString(), contains('side_gain=64.000'));
       });
@@ -9624,7 +9617,7 @@ void main() {
           'param `left_balance` const `left_balanceMin` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, left_balance: HaasSettings.left_balanceMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9632,7 +9625,7 @@ void main() {
           'param `left_balance` const `left_balanceMax` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, left_balance: HaasSettings.left_balanceMax);
+            enabled: true, left_balance: HaasSettings.left_balanceMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9640,7 +9633,7 @@ void main() {
           'param `left_balance` const `left_balanceDefault` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, left_balance: HaasSettings.left_balanceDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9664,7 +9657,7 @@ void main() {
           'param `left_delay` const `left_delayDefault` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, left_delay: HaasSettings.left_delayDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9688,7 +9681,7 @@ void main() {
           'param `left_gain` const `left_gainDefault` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, left_gain: HaasSettings.left_gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9710,7 +9703,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s =
-            HaasSettings(enabled: true, level_in: HaasSettings.level_inDefault);
+            HaasSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9734,7 +9727,7 @@ void main() {
           'param `level_out` const `level_outDefault` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, level_out: HaasSettings.level_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9742,7 +9735,7 @@ void main() {
           'param `right_balance` const `right_balanceMin` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, right_balance: HaasSettings.right_balanceMin);
+            enabled: true, right_balance: HaasSettings.right_balanceMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9750,7 +9743,7 @@ void main() {
           'param `right_balance` const `right_balanceMax` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, right_balance: HaasSettings.right_balanceMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9758,7 +9751,7 @@ void main() {
           'param `right_balance` const `right_balanceDefault` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, right_balance: HaasSettings.right_balanceDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9766,7 +9759,7 @@ void main() {
           'param `right_delay` const `right_delayMin` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, right_delay: HaasSettings.right_delayMin);
+            enabled: true, right_delay: HaasSettings.right_delayMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9774,7 +9767,7 @@ void main() {
           'param `right_delay` const `right_delayMax` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, right_delay: HaasSettings.right_delayMax);
+            enabled: true, right_delay: HaasSettings.right_delayMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9782,7 +9775,7 @@ void main() {
           'param `right_delay` const `right_delayDefault` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, right_delay: HaasSettings.right_delayDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9806,7 +9799,7 @@ void main() {
           'param `right_gain` const `right_gainDefault` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, right_gain: HaasSettings.right_gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9830,13 +9823,13 @@ void main() {
           'param `side_gain` const `side_gainDefault` is accepted by toFilterString',
           () {
         final s = HaasSettings(
-            enabled: true, side_gain: HaasSettings.side_gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('HdcdSettings (hdcd)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(hdcd: HdcdSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -9847,8 +9840,8 @@ void main() {
 
       test('param `analyze_mode` lands in wire when set to a non-default value',
           () {
-        final s = const HdcdSettings(
-            enabled: true, analyze_mode: HdcdAnalyzeMode.lle);
+        const s = HdcdSettings(
+            enabled: true, analyze_mode: HdcdAnalyzeMode.lle,);
         expect(s.toFilterString(), contains('analyze_mode='));
         expect(s.toFilterString(), contains('analyze_mode=lle'));
       });
@@ -9856,14 +9849,14 @@ void main() {
       test(
           'param `bits_per_sample` lands in wire when set to a non-default value',
           () {
-        final s = const HdcdSettings(
-            enabled: true, bits_per_sample: HdcdBitsPerSample.n20);
+        const s = HdcdSettings(
+            enabled: true, bits_per_sample: HdcdBitsPerSample.n20,);
         expect(s.toFilterString(), contains('bits_per_sample='));
         expect(s.toFilterString(), contains('bits_per_sample=20'));
       });
 
       test('param `cdt_ms` lands in wire when set to a non-default value', () {
-        final s = const HdcdSettings(enabled: true, cdt_ms: 60000);
+        const s = HdcdSettings(enabled: true, cdt_ms: 60000);
         expect(s.toFilterString(), contains('cdt_ms='));
         expect(s.toFilterString(), contains('cdt_ms=60000'));
       });
@@ -9871,20 +9864,20 @@ void main() {
       test(
           'param `disable_autoconvert` lands in wire when set to a non-default value',
           () {
-        final s = const HdcdSettings(enabled: true, disable_autoconvert: false);
+        const s = HdcdSettings(enabled: true, disable_autoconvert: false);
         expect(s.toFilterString(), contains('disable_autoconvert='));
       });
 
       test('param `force_pe` lands in wire when set to a non-default value',
           () {
-        final s = const HdcdSettings(enabled: true, force_pe: true);
+        const s = HdcdSettings(enabled: true, force_pe: true);
         expect(s.toFilterString(), contains('force_pe='));
       });
 
       test(
           'param `process_stereo` lands in wire when set to a non-default value',
           () {
-        final s = const HdcdSettings(enabled: true, process_stereo: true);
+        const s = HdcdSettings(enabled: true, process_stereo: true);
         expect(s.toFilterString(), contains('process_stereo='));
       });
 
@@ -9903,13 +9896,13 @@ void main() {
       test('param `cdt_ms` const `cdt_msDefault` is accepted by toFilterString',
           () {
         final s =
-            HdcdSettings(enabled: true, cdt_ms: HdcdSettings.cdt_msDefault);
+            HdcdSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('HeadphoneSettings (headphone)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(headphone: HeadphoneSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -9919,38 +9912,38 @@ void main() {
       });
 
       test('param `gain` lands in wire when set to a non-default value', () {
-        final s = const HeadphoneSettings(enabled: true, gain: 40.0);
+        const s = HeadphoneSettings(enabled: true, gain: 40.0);
         expect(s.toFilterString(), contains('gain='));
         expect(s.toFilterString(), contains('gain=40.000'));
       });
 
       test('param `hrir` lands in wire when set to a non-default value', () {
-        final s =
-            const HeadphoneSettings(enabled: true, hrir: HeadphoneHrir.multich);
+        const s =
+            HeadphoneSettings(enabled: true, hrir: HeadphoneHrir.multich);
         expect(s.toFilterString(), contains('hrir='));
         expect(s.toFilterString(), contains('hrir=multich'));
       });
 
       test('param `lfe` lands in wire when set to a non-default value', () {
-        final s = const HeadphoneSettings(enabled: true, lfe: 40.0);
+        const s = HeadphoneSettings(enabled: true, lfe: 40.0);
         expect(s.toFilterString(), contains('lfe='));
         expect(s.toFilterString(), contains('lfe=40.000'));
       });
 
       test('param `map` lands in wire when set to a non-default value', () {
-        final s = const HeadphoneSettings(enabled: true, map: 'wire_test_alt');
+        const s = HeadphoneSettings(enabled: true, map: 'wire_test_alt');
         expect(s.toFilterString(), contains('map='));
       });
 
       test('param `size` lands in wire when set to a non-default value', () {
-        final s = const HeadphoneSettings(enabled: true, size: 96000);
+        const s = HeadphoneSettings(enabled: true, size: 96000);
         expect(s.toFilterString(), contains('size='));
         expect(s.toFilterString(), contains('size=96000'));
       });
 
       test('param `type` lands in wire when set to a non-default value', () {
-        final s =
-            const HeadphoneSettings(enabled: true, type: HeadphoneType.time);
+        const s =
+            HeadphoneSettings(enabled: true, type: HeadphoneType.time);
         expect(s.toFilterString(), contains('type='));
         expect(s.toFilterString(), contains('type=time'));
       });
@@ -9970,7 +9963,7 @@ void main() {
       test('param `gain` const `gainDefault` is accepted by toFilterString',
           () {
         final s = HeadphoneSettings(
-            enabled: true, gain: HeadphoneSettings.gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -9988,13 +9981,13 @@ void main() {
 
       test('param `lfe` const `lfeDefault` is accepted by toFilterString', () {
         final s =
-            HeadphoneSettings(enabled: true, lfe: HeadphoneSettings.lfeDefault);
+            HeadphoneSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `size` const `sizeMin` is accepted by toFilterString', () {
         final s =
-            HeadphoneSettings(enabled: true, size: HeadphoneSettings.sizeMin);
+            HeadphoneSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10007,13 +10000,13 @@ void main() {
       test('param `size` const `sizeDefault` is accepted by toFilterString',
           () {
         final s = HeadphoneSettings(
-            enabled: true, size: HeadphoneSettings.sizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('HighpassSettings (highpass)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(highpass: HighpassSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -10023,136 +10016,136 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s =
-            const HighpassSettings(enabled: true, a: HighpassTransformType.dii);
+        const s =
+            HighpassSettings(enabled: true, a: HighpassTransformType.dii);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, b: 32768);
+        const s = HighpassSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const HighpassSettings(enabled: true, blocksize: 32768);
+        const s = HighpassSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, c: 'wire_test_alt');
+        const s = HighpassSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const HighpassSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            HighpassSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, f: 999999.0);
+        const s = HighpassSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const HighpassSettings(enabled: true, frequency: 999999.0);
+        const s = HighpassSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, m: 0.0);
+        const s = HighpassSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, mix: 0.0);
+        const s = HighpassSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, n: true);
+        const s = HighpassSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const HighpassSettings(enabled: true, normalize: true);
+        const s = HighpassSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, p: 1);
+        const s = HighpassSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
         expect(s.toFilterString(), contains('p=1'));
       });
 
       test('param `poles` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, poles: 1);
+        const s = HighpassSettings(enabled: true, poles: 1);
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s = const HighpassSettings(
-            enabled: true, precision: HighpassPrecision.s16);
+        const s = HighpassSettings(
+            enabled: true, precision: HighpassPrecision.s16,);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s =
-            const HighpassSettings(enabled: true, r: HighpassPrecision.s16);
+        const s =
+            HighpassSettings(enabled: true, r: HighpassPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, t: HighpassWidthType.h);
+        const s = HighpassSettings(enabled: true, t: HighpassWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const HighpassSettings(
-            enabled: true, transform: HighpassTransformType.dii);
+        const s = HighpassSettings(
+            enabled: true, transform: HighpassTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, w: 99999.0);
+        const s = HighpassSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const HighpassSettings(enabled: true, width: 99999.0);
+        const s = HighpassSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s = const HighpassSettings(
-            enabled: true, width_type: HighpassWidthType.h);
+        const s = HighpassSettings(
+            enabled: true, width_type: HighpassWidthType.h,);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = HighpassSettings(enabled: true, b: HighpassSettings.bMin);
+        final s = HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10162,7 +10155,7 @@ void main() {
       });
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
-        final s = HighpassSettings(enabled: true, b: HighpassSettings.bDefault);
+        final s = HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10170,7 +10163,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s = HighpassSettings(
-            enabled: true, blocksize: HighpassSettings.blocksizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10178,7 +10171,7 @@ void main() {
           'param `blocksize` const `blocksizeMax` is accepted by toFilterString',
           () {
         final s = HighpassSettings(
-            enabled: true, blocksize: HighpassSettings.blocksizeMax);
+            enabled: true, blocksize: HighpassSettings.blocksizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10186,7 +10179,7 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = HighpassSettings(
-            enabled: true, blocksize: HighpassSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10201,7 +10194,7 @@ void main() {
       });
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
-        final s = HighpassSettings(enabled: true, f: HighpassSettings.fDefault);
+        final s = HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10209,7 +10202,7 @@ void main() {
           'param `frequency` const `frequencyMin` is accepted by toFilterString',
           () {
         final s = HighpassSettings(
-            enabled: true, frequency: HighpassSettings.frequencyMin);
+            enabled: true, frequency: HighpassSettings.frequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10217,7 +10210,7 @@ void main() {
           'param `frequency` const `frequencyMax` is accepted by toFilterString',
           () {
         final s = HighpassSettings(
-            enabled: true, frequency: HighpassSettings.frequencyMax);
+            enabled: true, frequency: HighpassSettings.frequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10225,7 +10218,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = HighpassSettings(
-            enabled: true, frequency: HighpassSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10235,12 +10228,12 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = HighpassSettings(enabled: true, m: HighpassSettings.mMax);
+        final s = HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
-        final s = HighpassSettings(enabled: true, m: HighpassSettings.mDefault);
+        final s = HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10250,13 +10243,13 @@ void main() {
       });
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
-        final s = HighpassSettings(enabled: true, mix: HighpassSettings.mixMax);
+        final s = HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s =
-            HighpassSettings(enabled: true, mix: HighpassSettings.mixDefault);
+            HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10266,12 +10259,12 @@ void main() {
       });
 
       test('param `p` const `pMax` is accepted by toFilterString', () {
-        final s = HighpassSettings(enabled: true, p: HighpassSettings.pMax);
+        final s = HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `p` const `pDefault` is accepted by toFilterString', () {
-        final s = HighpassSettings(enabled: true, p: HighpassSettings.pDefault);
+        final s = HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10283,14 +10276,14 @@ void main() {
 
       test('param `poles` const `polesMax` is accepted by toFilterString', () {
         final s =
-            HighpassSettings(enabled: true, poles: HighpassSettings.polesMax);
+            HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `poles` const `polesDefault` is accepted by toFilterString',
           () {
         final s = HighpassSettings(
-            enabled: true, poles: HighpassSettings.polesDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10305,7 +10298,7 @@ void main() {
       });
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
-        final s = HighpassSettings(enabled: true, w: HighpassSettings.wDefault);
+        final s = HighpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10324,13 +10317,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s = HighpassSettings(
-            enabled: true, width: HighpassSettings.widthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('HighshelfSettings (highshelf)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(highshelf: HighshelfSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -10340,149 +10333,149 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(
-            enabled: true, a: HighshelfTransformType.dii);
+        const s = HighshelfSettings(
+            enabled: true, a: HighshelfTransformType.dii,);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, b: 32768);
+        const s = HighshelfSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const HighshelfSettings(enabled: true, blocksize: 32768);
+        const s = HighshelfSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, c: 'wire_test_alt');
+        const s = HighshelfSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const HighshelfSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            HighshelfSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, f: 999999.0);
+        const s = HighshelfSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const HighshelfSettings(enabled: true, frequency: 999999.0);
+        const s = HighshelfSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `g` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, g: 900.0);
+        const s = HighshelfSettings(enabled: true, g: 900.0);
         expect(s.toFilterString(), contains('g='));
         expect(s.toFilterString(), contains('g=900.000'));
       });
 
       test('param `gain` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, gain: 900.0);
+        const s = HighshelfSettings(enabled: true, gain: 900.0);
         expect(s.toFilterString(), contains('gain='));
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, m: 0.0);
+        const s = HighshelfSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, mix: 0.0);
+        const s = HighshelfSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, n: true);
+        const s = HighshelfSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const HighshelfSettings(enabled: true, normalize: true);
+        const s = HighshelfSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, p: 1);
+        const s = HighshelfSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
         expect(s.toFilterString(), contains('p=1'));
       });
 
       test('param `poles` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, poles: 1);
+        const s = HighshelfSettings(enabled: true, poles: 1);
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s = const HighshelfSettings(
-            enabled: true, precision: HighshelfPrecision.s16);
+        const s = HighshelfSettings(
+            enabled: true, precision: HighshelfPrecision.s16,);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s =
-            const HighshelfSettings(enabled: true, r: HighshelfPrecision.s16);
+        const s =
+            HighshelfSettings(enabled: true, r: HighshelfPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s =
-            const HighshelfSettings(enabled: true, t: HighshelfWidthType.h);
+        const s =
+            HighshelfSettings(enabled: true, t: HighshelfWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const HighshelfSettings(
-            enabled: true, transform: HighshelfTransformType.dii);
+        const s = HighshelfSettings(
+            enabled: true, transform: HighshelfTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, w: 99999.0);
+        const s = HighshelfSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const HighshelfSettings(enabled: true, width: 99999.0);
+        const s = HighshelfSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s = const HighshelfSettings(
-            enabled: true, width_type: HighshelfWidthType.h);
+        const s = HighshelfSettings(
+            enabled: true, width_type: HighshelfWidthType.h,);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = HighshelfSettings(enabled: true, b: HighshelfSettings.bMin);
+        final s = HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10493,7 +10486,7 @@ void main() {
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
         final s =
-            HighshelfSettings(enabled: true, b: HighshelfSettings.bDefault);
+            HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10501,7 +10494,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s = HighshelfSettings(
-            enabled: true, blocksize: HighshelfSettings.blocksizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10509,7 +10502,7 @@ void main() {
           'param `blocksize` const `blocksizeMax` is accepted by toFilterString',
           () {
         final s = HighshelfSettings(
-            enabled: true, blocksize: HighshelfSettings.blocksizeMax);
+            enabled: true, blocksize: HighshelfSettings.blocksizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10517,7 +10510,7 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = HighshelfSettings(
-            enabled: true, blocksize: HighshelfSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10533,7 +10526,7 @@ void main() {
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
         final s =
-            HighshelfSettings(enabled: true, f: HighshelfSettings.fDefault);
+            HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10541,7 +10534,7 @@ void main() {
           'param `frequency` const `frequencyMin` is accepted by toFilterString',
           () {
         final s = HighshelfSettings(
-            enabled: true, frequency: HighshelfSettings.frequencyMin);
+            enabled: true, frequency: HighshelfSettings.frequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10549,7 +10542,7 @@ void main() {
           'param `frequency` const `frequencyMax` is accepted by toFilterString',
           () {
         final s = HighshelfSettings(
-            enabled: true, frequency: HighshelfSettings.frequencyMax);
+            enabled: true, frequency: HighshelfSettings.frequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10557,7 +10550,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = HighshelfSettings(
-            enabled: true, frequency: HighshelfSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10573,7 +10566,7 @@ void main() {
 
       test('param `g` const `gDefault` is accepted by toFilterString', () {
         final s =
-            HighshelfSettings(enabled: true, g: HighshelfSettings.gDefault);
+            HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10592,7 +10585,7 @@ void main() {
       test('param `gain` const `gainDefault` is accepted by toFilterString',
           () {
         final s = HighshelfSettings(
-            enabled: true, gain: HighshelfSettings.gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10602,13 +10595,13 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = HighshelfSettings(enabled: true, m: HighshelfSettings.mMax);
+        final s = HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
         final s =
-            HighshelfSettings(enabled: true, m: HighshelfSettings.mDefault);
+            HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10620,13 +10613,13 @@ void main() {
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
         final s =
-            HighshelfSettings(enabled: true, mix: HighshelfSettings.mixMax);
+            HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s =
-            HighshelfSettings(enabled: true, mix: HighshelfSettings.mixDefault);
+            HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10636,13 +10629,13 @@ void main() {
       });
 
       test('param `p` const `pMax` is accepted by toFilterString', () {
-        final s = HighshelfSettings(enabled: true, p: HighshelfSettings.pMax);
+        final s = HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `p` const `pDefault` is accepted by toFilterString', () {
         final s =
-            HighshelfSettings(enabled: true, p: HighshelfSettings.pDefault);
+            HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10654,14 +10647,14 @@ void main() {
 
       test('param `poles` const `polesMax` is accepted by toFilterString', () {
         final s =
-            HighshelfSettings(enabled: true, poles: HighshelfSettings.polesMax);
+            HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `poles` const `polesDefault` is accepted by toFilterString',
           () {
         final s = HighshelfSettings(
-            enabled: true, poles: HighshelfSettings.polesDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10677,7 +10670,7 @@ void main() {
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
         final s =
-            HighshelfSettings(enabled: true, w: HighshelfSettings.wDefault);
+            HighshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10696,13 +10689,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s = HighshelfSettings(
-            enabled: true, width: HighshelfSettings.widthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('LoudnormSettings (loudnorm)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(loudnorm: LoudnormSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -10712,77 +10705,77 @@ void main() {
       });
 
       test('param `I` lands in wire when set to a non-default value', () {
-        final s = const LoudnormSettings(enabled: true, I: -5.0);
+        const s = LoudnormSettings(enabled: true, I: -5.0);
         expect(s.toFilterString(), contains('I='));
         expect(s.toFilterString(), contains('I=-5.000'));
       });
 
       test('param `LRA` lands in wire when set to a non-default value', () {
-        final s = const LoudnormSettings(enabled: true, LRA: 50.0);
+        const s = LoudnormSettings(enabled: true, LRA: 50.0);
         expect(s.toFilterString(), contains('LRA='));
         expect(s.toFilterString(), contains('LRA=50.000'));
       });
 
       test('param `TP` lands in wire when set to a non-default value', () {
-        final s = const LoudnormSettings(enabled: true, TP: 0.0);
+        const s = LoudnormSettings(enabled: true, TP: 0.0);
         expect(s.toFilterString(), contains('TP='));
         expect(s.toFilterString(), contains('TP=0.000'));
       });
 
       test('param `dual_mono` lands in wire when set to a non-default value',
           () {
-        final s = const LoudnormSettings(enabled: true, dual_mono: true);
+        const s = LoudnormSettings(enabled: true, dual_mono: true);
         expect(s.toFilterString(), contains('dual_mono='));
       });
 
       test('param `i` lands in wire when set to a non-default value', () {
-        final s = const LoudnormSettings(enabled: true, i: -5.0);
+        const s = LoudnormSettings(enabled: true, i: -5.0);
         expect(s.toFilterString(), contains('i='));
         expect(s.toFilterString(), contains('i=-5.000'));
       });
 
       test('param `linear` lands in wire when set to a non-default value', () {
-        final s = const LoudnormSettings(enabled: true, linear: false);
+        const s = LoudnormSettings(enabled: true, linear: false);
         expect(s.toFilterString(), contains('linear='));
       });
 
       test('param `lra` lands in wire when set to a non-default value', () {
-        final s = const LoudnormSettings(enabled: true, lra: 50.0);
+        const s = LoudnormSettings(enabled: true, lra: 50.0);
         expect(s.toFilterString(), contains('lra='));
         expect(s.toFilterString(), contains('lra=50.000'));
       });
 
       test('param `measured_I` lands in wire when set to a non-default value',
           () {
-        final s = const LoudnormSettings(enabled: true, measured_I: -99.0);
+        const s = LoudnormSettings(enabled: true, measured_I: -99.0);
         expect(s.toFilterString(), contains('measured_I='));
         expect(s.toFilterString(), contains('measured_I=-99.000'));
       });
 
       test('param `measured_LRA` lands in wire when set to a non-default value',
           () {
-        final s = const LoudnormSettings(enabled: true, measured_LRA: 99.0);
+        const s = LoudnormSettings(enabled: true, measured_LRA: 99.0);
         expect(s.toFilterString(), contains('measured_LRA='));
         expect(s.toFilterString(), contains('measured_LRA=99.000'));
       });
 
       test('param `measured_TP` lands in wire when set to a non-default value',
           () {
-        final s = const LoudnormSettings(enabled: true, measured_TP: -99.0);
+        const s = LoudnormSettings(enabled: true, measured_TP: -99.0);
         expect(s.toFilterString(), contains('measured_TP='));
         expect(s.toFilterString(), contains('measured_TP=-99.000'));
       });
 
       test('param `measured_i` lands in wire when set to a non-default value',
           () {
-        final s = const LoudnormSettings(enabled: true, measured_i: -99.0);
+        const s = LoudnormSettings(enabled: true, measured_i: -99.0);
         expect(s.toFilterString(), contains('measured_i='));
         expect(s.toFilterString(), contains('measured_i=-99.000'));
       });
 
       test('param `measured_lra` lands in wire when set to a non-default value',
           () {
-        final s = const LoudnormSettings(enabled: true, measured_lra: 99.0);
+        const s = LoudnormSettings(enabled: true, measured_lra: 99.0);
         expect(s.toFilterString(), contains('measured_lra='));
         expect(s.toFilterString(), contains('measured_lra=99.000'));
       });
@@ -10790,41 +10783,41 @@ void main() {
       test(
           'param `measured_thresh` lands in wire when set to a non-default value',
           () {
-        final s = const LoudnormSettings(enabled: true, measured_thresh: 0.0);
+        const s = LoudnormSettings(enabled: true, measured_thresh: 0.0);
         expect(s.toFilterString(), contains('measured_thresh='));
         expect(s.toFilterString(), contains('measured_thresh=0.000'));
       });
 
       test('param `measured_tp` lands in wire when set to a non-default value',
           () {
-        final s = const LoudnormSettings(enabled: true, measured_tp: -99.0);
+        const s = LoudnormSettings(enabled: true, measured_tp: -99.0);
         expect(s.toFilterString(), contains('measured_tp='));
         expect(s.toFilterString(), contains('measured_tp=-99.000'));
       });
 
       test('param `offset` lands in wire when set to a non-default value', () {
-        final s = const LoudnormSettings(enabled: true, offset: 99.0);
+        const s = LoudnormSettings(enabled: true, offset: 99.0);
         expect(s.toFilterString(), contains('offset='));
         expect(s.toFilterString(), contains('offset=99.000'));
       });
 
       test('param `print_format` lands in wire when set to a non-default value',
           () {
-        final s = const LoudnormSettings(
-            enabled: true, print_format: LoudnormPrintFormat.json);
+        const s = LoudnormSettings(
+            enabled: true, print_format: LoudnormPrintFormat.json,);
         expect(s.toFilterString(), contains('print_format='));
         expect(s.toFilterString(), contains('print_format=json'));
       });
 
       test('param `stats_file` lands in wire when set to a non-default value',
           () {
-        final s =
-            const LoudnormSettings(enabled: true, stats_file: 'wire_test_alt');
+        const s =
+            LoudnormSettings(enabled: true, stats_file: 'wire_test_alt');
         expect(s.toFilterString(), contains('stats_file='));
       });
 
       test('param `tp` lands in wire when set to a non-default value', () {
-        final s = const LoudnormSettings(enabled: true, tp: 0.0);
+        const s = LoudnormSettings(enabled: true, tp: 0.0);
         expect(s.toFilterString(), contains('tp='));
         expect(s.toFilterString(), contains('tp=0.000'));
       });
@@ -10840,7 +10833,7 @@ void main() {
       });
 
       test('param `I` const `IDefault` is accepted by toFilterString', () {
-        final s = LoudnormSettings(enabled: true, I: LoudnormSettings.IDefault);
+        final s = LoudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10856,7 +10849,7 @@ void main() {
 
       test('param `LRA` const `LRADefault` is accepted by toFilterString', () {
         final s =
-            LoudnormSettings(enabled: true, LRA: LoudnormSettings.LRADefault);
+            LoudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10872,7 +10865,7 @@ void main() {
 
       test('param `TP` const `TPDefault` is accepted by toFilterString', () {
         final s =
-            LoudnormSettings(enabled: true, TP: LoudnormSettings.TPDefault);
+            LoudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10887,7 +10880,7 @@ void main() {
       });
 
       test('param `i` const `iDefault` is accepted by toFilterString', () {
-        final s = LoudnormSettings(enabled: true, i: LoudnormSettings.iDefault);
+        final s = LoudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10903,7 +10896,7 @@ void main() {
 
       test('param `lra` const `lraDefault` is accepted by toFilterString', () {
         final s =
-            LoudnormSettings(enabled: true, lra: LoudnormSettings.lraDefault);
+            LoudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10911,7 +10904,7 @@ void main() {
           'param `measured_I` const `measured_IMin` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_I: LoudnormSettings.measured_IMin);
+            enabled: true, measured_I: LoudnormSettings.measured_IMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10919,7 +10912,7 @@ void main() {
           'param `measured_I` const `measured_IMax` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_I: LoudnormSettings.measured_IMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10927,7 +10920,7 @@ void main() {
           'param `measured_I` const `measured_IDefault` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_I: LoudnormSettings.measured_IDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10935,7 +10928,7 @@ void main() {
           'param `measured_LRA` const `measured_LRAMin` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_LRA: LoudnormSettings.measured_LRAMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10943,7 +10936,7 @@ void main() {
           'param `measured_LRA` const `measured_LRAMax` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_LRA: LoudnormSettings.measured_LRAMax);
+            enabled: true, measured_LRA: LoudnormSettings.measured_LRAMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10951,7 +10944,7 @@ void main() {
           'param `measured_LRA` const `measured_LRADefault` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_LRA: LoudnormSettings.measured_LRADefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10959,7 +10952,7 @@ void main() {
           'param `measured_TP` const `measured_TPMin` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_TP: LoudnormSettings.measured_TPMin);
+            enabled: true, measured_TP: LoudnormSettings.measured_TPMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10967,7 +10960,7 @@ void main() {
           'param `measured_TP` const `measured_TPMax` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_TP: LoudnormSettings.measured_TPMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10975,7 +10968,7 @@ void main() {
           'param `measured_TP` const `measured_TPDefault` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_TP: LoudnormSettings.measured_TPDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10983,7 +10976,7 @@ void main() {
           'param `measured_i` const `measured_iMin` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_i: LoudnormSettings.measured_iMin);
+            enabled: true, measured_i: LoudnormSettings.measured_iMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10991,7 +10984,7 @@ void main() {
           'param `measured_i` const `measured_iMax` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_i: LoudnormSettings.measured_iMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -10999,7 +10992,7 @@ void main() {
           'param `measured_i` const `measured_iDefault` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_i: LoudnormSettings.measured_iDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11007,7 +11000,7 @@ void main() {
           'param `measured_lra` const `measured_lraMin` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_lra: LoudnormSettings.measured_lraMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11015,7 +11008,7 @@ void main() {
           'param `measured_lra` const `measured_lraMax` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_lra: LoudnormSettings.measured_lraMax);
+            enabled: true, measured_lra: LoudnormSettings.measured_lraMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11023,7 +11016,7 @@ void main() {
           'param `measured_lra` const `measured_lraDefault` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_lra: LoudnormSettings.measured_lraDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11032,7 +11025,7 @@ void main() {
           () {
         final s = LoudnormSettings(
             enabled: true,
-            measured_thresh: LoudnormSettings.measured_threshMin);
+            measured_thresh: LoudnormSettings.measured_threshMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11041,7 +11034,7 @@ void main() {
           () {
         final s = LoudnormSettings(
             enabled: true,
-            measured_thresh: LoudnormSettings.measured_threshMax);
+            measured_thresh: LoudnormSettings.measured_threshMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11049,8 +11042,7 @@ void main() {
           'param `measured_thresh` const `measured_threshDefault` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true,
-            measured_thresh: LoudnormSettings.measured_threshDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11058,7 +11050,7 @@ void main() {
           'param `measured_tp` const `measured_tpMin` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_tp: LoudnormSettings.measured_tpMin);
+            enabled: true, measured_tp: LoudnormSettings.measured_tpMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11066,7 +11058,7 @@ void main() {
           'param `measured_tp` const `measured_tpMax` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_tp: LoudnormSettings.measured_tpMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11074,7 +11066,7 @@ void main() {
           'param `measured_tp` const `measured_tpDefault` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, measured_tp: LoudnormSettings.measured_tpDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11095,7 +11087,7 @@ void main() {
       test('param `offset` const `offsetDefault` is accepted by toFilterString',
           () {
         final s = LoudnormSettings(
-            enabled: true, offset: LoudnormSettings.offsetDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11111,13 +11103,13 @@ void main() {
 
       test('param `tp` const `tpDefault` is accepted by toFilterString', () {
         final s =
-            LoudnormSettings(enabled: true, tp: LoudnormSettings.tpDefault);
+            LoudnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('LowpassSettings (lowpass)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(lowpass: LowpassSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -11127,135 +11119,135 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s =
-            const LowpassSettings(enabled: true, a: LowpassTransformType.dii);
+        const s =
+            LowpassSettings(enabled: true, a: LowpassTransformType.dii);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, b: 32768);
+        const s = LowpassSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const LowpassSettings(enabled: true, blocksize: 32768);
+        const s = LowpassSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, c: 'wire_test_alt');
+        const s = LowpassSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const LowpassSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            LowpassSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, f: 999999.0);
+        const s = LowpassSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const LowpassSettings(enabled: true, frequency: 999999.0);
+        const s = LowpassSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, m: 0.0);
+        const s = LowpassSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, mix: 0.0);
+        const s = LowpassSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, n: true);
+        const s = LowpassSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const LowpassSettings(enabled: true, normalize: true);
+        const s = LowpassSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, p: 1);
+        const s = LowpassSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
         expect(s.toFilterString(), contains('p=1'));
       });
 
       test('param `poles` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, poles: 1);
+        const s = LowpassSettings(enabled: true, poles: 1);
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s = const LowpassSettings(
-            enabled: true, precision: LowpassPrecision.s16);
+        const s = LowpassSettings(
+            enabled: true, precision: LowpassPrecision.s16,);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, r: LowpassPrecision.s16);
+        const s = LowpassSettings(enabled: true, r: LowpassPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, t: LowpassWidthType.h);
+        const s = LowpassSettings(enabled: true, t: LowpassWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const LowpassSettings(
-            enabled: true, transform: LowpassTransformType.dii);
+        const s = LowpassSettings(
+            enabled: true, transform: LowpassTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, w: 99999.0);
+        const s = LowpassSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const LowpassSettings(enabled: true, width: 99999.0);
+        const s = LowpassSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s = const LowpassSettings(
-            enabled: true, width_type: LowpassWidthType.h);
+        const s = LowpassSettings(
+            enabled: true, width_type: LowpassWidthType.h,);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = LowpassSettings(enabled: true, b: LowpassSettings.bMin);
+        final s = LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11265,7 +11257,7 @@ void main() {
       });
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
-        final s = LowpassSettings(enabled: true, b: LowpassSettings.bDefault);
+        final s = LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11273,7 +11265,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s = LowpassSettings(
-            enabled: true, blocksize: LowpassSettings.blocksizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11281,7 +11273,7 @@ void main() {
           'param `blocksize` const `blocksizeMax` is accepted by toFilterString',
           () {
         final s = LowpassSettings(
-            enabled: true, blocksize: LowpassSettings.blocksizeMax);
+            enabled: true, blocksize: LowpassSettings.blocksizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11289,7 +11281,7 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = LowpassSettings(
-            enabled: true, blocksize: LowpassSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11304,7 +11296,7 @@ void main() {
       });
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
-        final s = LowpassSettings(enabled: true, f: LowpassSettings.fDefault);
+        final s = LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11312,7 +11304,7 @@ void main() {
           'param `frequency` const `frequencyMin` is accepted by toFilterString',
           () {
         final s = LowpassSettings(
-            enabled: true, frequency: LowpassSettings.frequencyMin);
+            enabled: true, frequency: LowpassSettings.frequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11320,7 +11312,7 @@ void main() {
           'param `frequency` const `frequencyMax` is accepted by toFilterString',
           () {
         final s = LowpassSettings(
-            enabled: true, frequency: LowpassSettings.frequencyMax);
+            enabled: true, frequency: LowpassSettings.frequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11328,7 +11320,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = LowpassSettings(
-            enabled: true, frequency: LowpassSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11338,12 +11330,12 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = LowpassSettings(enabled: true, m: LowpassSettings.mMax);
+        final s = LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
-        final s = LowpassSettings(enabled: true, m: LowpassSettings.mDefault);
+        final s = LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11353,13 +11345,13 @@ void main() {
       });
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
-        final s = LowpassSettings(enabled: true, mix: LowpassSettings.mixMax);
+        final s = LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s =
-            LowpassSettings(enabled: true, mix: LowpassSettings.mixDefault);
+            LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11369,12 +11361,12 @@ void main() {
       });
 
       test('param `p` const `pMax` is accepted by toFilterString', () {
-        final s = LowpassSettings(enabled: true, p: LowpassSettings.pMax);
+        final s = LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `p` const `pDefault` is accepted by toFilterString', () {
-        final s = LowpassSettings(enabled: true, p: LowpassSettings.pDefault);
+        final s = LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11386,14 +11378,14 @@ void main() {
 
       test('param `poles` const `polesMax` is accepted by toFilterString', () {
         final s =
-            LowpassSettings(enabled: true, poles: LowpassSettings.polesMax);
+            LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `poles` const `polesDefault` is accepted by toFilterString',
           () {
         final s =
-            LowpassSettings(enabled: true, poles: LowpassSettings.polesDefault);
+            LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11408,7 +11400,7 @@ void main() {
       });
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
-        final s = LowpassSettings(enabled: true, w: LowpassSettings.wDefault);
+        final s = LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11427,13 +11419,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s =
-            LowpassSettings(enabled: true, width: LowpassSettings.widthDefault);
+            LowpassSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('LowshelfSettings (lowshelf)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(lowshelf: LowshelfSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -11443,148 +11435,148 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s =
-            const LowshelfSettings(enabled: true, a: LowshelfTransformType.dii);
+        const s =
+            LowshelfSettings(enabled: true, a: LowshelfTransformType.dii);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, b: 32768);
+        const s = LowshelfSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const LowshelfSettings(enabled: true, blocksize: 32768);
+        const s = LowshelfSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, c: 'wire_test_alt');
+        const s = LowshelfSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const LowshelfSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            LowshelfSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, f: 999999.0);
+        const s = LowshelfSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const LowshelfSettings(enabled: true, frequency: 999999.0);
+        const s = LowshelfSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `g` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, g: 900.0);
+        const s = LowshelfSettings(enabled: true, g: 900.0);
         expect(s.toFilterString(), contains('g='));
         expect(s.toFilterString(), contains('g=900.000'));
       });
 
       test('param `gain` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, gain: 900.0);
+        const s = LowshelfSettings(enabled: true, gain: 900.0);
         expect(s.toFilterString(), contains('gain='));
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, m: 0.0);
+        const s = LowshelfSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, mix: 0.0);
+        const s = LowshelfSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, n: true);
+        const s = LowshelfSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const LowshelfSettings(enabled: true, normalize: true);
+        const s = LowshelfSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, p: 1);
+        const s = LowshelfSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
         expect(s.toFilterString(), contains('p=1'));
       });
 
       test('param `poles` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, poles: 1);
+        const s = LowshelfSettings(enabled: true, poles: 1);
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s = const LowshelfSettings(
-            enabled: true, precision: LowshelfPrecision.s16);
+        const s = LowshelfSettings(
+            enabled: true, precision: LowshelfPrecision.s16,);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s =
-            const LowshelfSettings(enabled: true, r: LowshelfPrecision.s16);
+        const s =
+            LowshelfSettings(enabled: true, r: LowshelfPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, t: LowshelfWidthType.h);
+        const s = LowshelfSettings(enabled: true, t: LowshelfWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const LowshelfSettings(
-            enabled: true, transform: LowshelfTransformType.dii);
+        const s = LowshelfSettings(
+            enabled: true, transform: LowshelfTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, w: 99999.0);
+        const s = LowshelfSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const LowshelfSettings(enabled: true, width: 99999.0);
+        const s = LowshelfSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s = const LowshelfSettings(
-            enabled: true, width_type: LowshelfWidthType.h);
+        const s = LowshelfSettings(
+            enabled: true, width_type: LowshelfWidthType.h,);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = LowshelfSettings(enabled: true, b: LowshelfSettings.bMin);
+        final s = LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11594,7 +11586,7 @@ void main() {
       });
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
-        final s = LowshelfSettings(enabled: true, b: LowshelfSettings.bDefault);
+        final s = LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11602,7 +11594,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s = LowshelfSettings(
-            enabled: true, blocksize: LowshelfSettings.blocksizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11610,7 +11602,7 @@ void main() {
           'param `blocksize` const `blocksizeMax` is accepted by toFilterString',
           () {
         final s = LowshelfSettings(
-            enabled: true, blocksize: LowshelfSettings.blocksizeMax);
+            enabled: true, blocksize: LowshelfSettings.blocksizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11618,7 +11610,7 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = LowshelfSettings(
-            enabled: true, blocksize: LowshelfSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11633,7 +11625,7 @@ void main() {
       });
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
-        final s = LowshelfSettings(enabled: true, f: LowshelfSettings.fDefault);
+        final s = LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11641,7 +11633,7 @@ void main() {
           'param `frequency` const `frequencyMin` is accepted by toFilterString',
           () {
         final s = LowshelfSettings(
-            enabled: true, frequency: LowshelfSettings.frequencyMin);
+            enabled: true, frequency: LowshelfSettings.frequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11649,7 +11641,7 @@ void main() {
           'param `frequency` const `frequencyMax` is accepted by toFilterString',
           () {
         final s = LowshelfSettings(
-            enabled: true, frequency: LowshelfSettings.frequencyMax);
+            enabled: true, frequency: LowshelfSettings.frequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11657,7 +11649,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = LowshelfSettings(
-            enabled: true, frequency: LowshelfSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11672,7 +11664,7 @@ void main() {
       });
 
       test('param `g` const `gDefault` is accepted by toFilterString', () {
-        final s = LowshelfSettings(enabled: true, g: LowshelfSettings.gDefault);
+        final s = LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11691,7 +11683,7 @@ void main() {
       test('param `gain` const `gainDefault` is accepted by toFilterString',
           () {
         final s =
-            LowshelfSettings(enabled: true, gain: LowshelfSettings.gainDefault);
+            LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11701,12 +11693,12 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = LowshelfSettings(enabled: true, m: LowshelfSettings.mMax);
+        final s = LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
-        final s = LowshelfSettings(enabled: true, m: LowshelfSettings.mDefault);
+        final s = LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11716,13 +11708,13 @@ void main() {
       });
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
-        final s = LowshelfSettings(enabled: true, mix: LowshelfSettings.mixMax);
+        final s = LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s =
-            LowshelfSettings(enabled: true, mix: LowshelfSettings.mixDefault);
+            LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11732,12 +11724,12 @@ void main() {
       });
 
       test('param `p` const `pMax` is accepted by toFilterString', () {
-        final s = LowshelfSettings(enabled: true, p: LowshelfSettings.pMax);
+        final s = LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `p` const `pDefault` is accepted by toFilterString', () {
-        final s = LowshelfSettings(enabled: true, p: LowshelfSettings.pDefault);
+        final s = LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11749,14 +11741,14 @@ void main() {
 
       test('param `poles` const `polesMax` is accepted by toFilterString', () {
         final s =
-            LowshelfSettings(enabled: true, poles: LowshelfSettings.polesMax);
+            LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `poles` const `polesDefault` is accepted by toFilterString',
           () {
         final s = LowshelfSettings(
-            enabled: true, poles: LowshelfSettings.polesDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11771,7 +11763,7 @@ void main() {
       });
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
-        final s = LowshelfSettings(enabled: true, w: LowshelfSettings.wDefault);
+        final s = LowshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -11790,13 +11782,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s = LowshelfSettings(
-            enabled: true, width: LowshelfSettings.widthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('McompandSettings (mcompand)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(mcompand: McompandSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -11806,13 +11798,13 @@ void main() {
       });
 
       test('param `args` lands in wire when set to a non-default value', () {
-        final s = const McompandSettings(enabled: true, args: 'wire_test_alt');
+        const s = McompandSettings(enabled: true, args: 'wire_test_alt');
         expect(s.toFilterString(), contains('args='));
       });
     });
     group('PanSettings (pan)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(pan: PanSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -11822,13 +11814,13 @@ void main() {
       });
 
       test('param `args` lands in wire when set to a non-default value', () {
-        final s = const PanSettings(enabled: true, args: 'wire_test_alt');
+        const s = PanSettings(enabled: true, args: 'wire_test_alt');
         expect(s.toFilterString(), contains('args='));
       });
     });
     group('RubberbandSettings (rubberband)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(rubberband: RubberbandSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -11839,117 +11831,117 @@ void main() {
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s = const RubberbandSettings(
-            enabled: true, channels: RubberbandChannels.together);
+        const s = RubberbandSettings(
+            enabled: true, channels: RubberbandChannels.together,);
         expect(s.toFilterString(), contains('channels='));
         expect(s.toFilterString(), contains('channels=together'));
       });
 
       test('param `detector` lands in wire when set to a non-default value',
           () {
-        final s = const RubberbandSettings(
-            enabled: true, detector: RubberbandDetector.percussive);
+        const s = RubberbandSettings(
+            enabled: true, detector: RubberbandDetector.percussive,);
         expect(s.toFilterString(), contains('detector='));
         expect(s.toFilterString(), contains('detector=percussive'));
       });
 
       test('param `formant` lands in wire when set to a non-default value', () {
-        final s = const RubberbandSettings(
-            enabled: true, formant: RubberbandFormant.preserved);
+        const s = RubberbandSettings(
+            enabled: true, formant: RubberbandFormant.preserved,);
         expect(s.toFilterString(), contains('formant='));
         expect(s.toFilterString(), contains('formant=preserved'));
       });
 
       test('param `phase` lands in wire when set to a non-default value', () {
-        final s = const RubberbandSettings(
-            enabled: true, phase: RubberbandPhase.independent);
+        const s = RubberbandSettings(
+            enabled: true, phase: RubberbandPhase.independent,);
         expect(s.toFilterString(), contains('phase='));
         expect(s.toFilterString(), contains('phase=independent'));
       });
 
       test('param `pitch` lands in wire when set to a non-default value', () {
-        final s = const RubberbandSettings(enabled: true, pitch: 100.0);
+        const s = RubberbandSettings(enabled: true, pitch: 100.0);
         expect(s.toFilterString(), contains('pitch='));
         expect(s.toFilterString(), contains('pitch=100.000'));
       });
 
       test('param `pitchq` lands in wire when set to a non-default value', () {
-        final s = const RubberbandSettings(
-            enabled: true, pitchq: RubberbandPitch.speed);
+        const s = RubberbandSettings(
+            enabled: true, pitchq: RubberbandPitch.speed,);
         expect(s.toFilterString(), contains('pitchq='));
         expect(s.toFilterString(), contains('pitchq=speed'));
       });
 
       test('param `smoothing` lands in wire when set to a non-default value',
           () {
-        final s = const RubberbandSettings(
-            enabled: true, smoothing: RubberbandSmoothing.on_);
+        const s = RubberbandSettings(
+            enabled: true, smoothing: RubberbandSmoothing.on_,);
         expect(s.toFilterString(), contains('smoothing='));
         expect(s.toFilterString(), contains('smoothing=on'));
       });
 
       test('param `tempo` lands in wire when set to a non-default value', () {
-        final s = const RubberbandSettings(enabled: true, tempo: 100.0);
+        const s = RubberbandSettings(enabled: true, tempo: 100.0);
         expect(s.toFilterString(), contains('tempo='));
         expect(s.toFilterString(), contains('tempo=100.000'));
       });
 
       test('param `transients` lands in wire when set to a non-default value',
           () {
-        final s = const RubberbandSettings(
-            enabled: true, transients: RubberbandTransients.mixed);
+        const s = RubberbandSettings(
+            enabled: true, transients: RubberbandTransients.mixed,);
         expect(s.toFilterString(), contains('transients='));
         expect(s.toFilterString(), contains('transients=mixed'));
       });
 
       test('param `window` lands in wire when set to a non-default value', () {
-        final s = const RubberbandSettings(
-            enabled: true, window: RubberbandWindow.short);
+        const s = RubberbandSettings(
+            enabled: true, window: RubberbandWindow.short,);
         expect(s.toFilterString(), contains('window='));
         expect(s.toFilterString(), contains('window=short'));
       });
 
       test('param `pitch` const `pitchMin` is accepted by toFilterString', () {
         final s = RubberbandSettings(
-            enabled: true, pitch: RubberbandSettings.pitchMin);
+            enabled: true, pitch: RubberbandSettings.pitchMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `pitch` const `pitchMax` is accepted by toFilterString', () {
         final s = RubberbandSettings(
-            enabled: true, pitch: RubberbandSettings.pitchMax);
+            enabled: true, pitch: RubberbandSettings.pitchMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `pitch` const `pitchDefault` is accepted by toFilterString',
           () {
         final s = RubberbandSettings(
-            enabled: true, pitch: RubberbandSettings.pitchDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `tempo` const `tempoMin` is accepted by toFilterString', () {
         final s = RubberbandSettings(
-            enabled: true, tempo: RubberbandSettings.tempoMin);
+            enabled: true, tempo: RubberbandSettings.tempoMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `tempo` const `tempoMax` is accepted by toFilterString', () {
         final s = RubberbandSettings(
-            enabled: true, tempo: RubberbandSettings.tempoMax);
+            enabled: true, tempo: RubberbandSettings.tempoMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `tempo` const `tempoDefault` is accepted by toFilterString',
           () {
         final s = RubberbandSettings(
-            enabled: true, tempo: RubberbandSettings.tempoDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('SilenceremoveSettings (silenceremove)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(silenceremove: SilenceremoveSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -11961,8 +11953,8 @@ void main() {
 
       test('param `detection` lands in wire when set to a non-default value',
           () {
-        final s = const SilenceremoveSettings(
-            enabled: true, detection: SilenceremoveDetection.avg);
+        const s = SilenceremoveSettings(
+            enabled: true, detection: SilenceremoveDetection.avg,);
         expect(s.toFilterString(), contains('detection='));
         expect(s.toFilterString(), contains('detection=avg'));
       });
@@ -11970,16 +11962,16 @@ void main() {
       test(
           'param `start_duration` lands in wire when set to a non-default value',
           () {
-        final s = const SilenceremoveSettings(
+        const s = SilenceremoveSettings(
             enabled: true,
-            start_duration: const Duration(microseconds: 1000000));
+            start_duration: const Duration(microseconds: 1000000),);
         expect(s.toFilterString(), contains('start_duration='));
       });
 
       test('param `start_mode` lands in wire when set to a non-default value',
           () {
-        final s = const SilenceremoveSettings(
-            enabled: true, start_mode: SilenceremoveMode.all);
+        const s = SilenceremoveSettings(
+            enabled: true, start_mode: SilenceremoveMode.all,);
         expect(s.toFilterString(), contains('start_mode='));
         expect(s.toFilterString(), contains('start_mode=all'));
       });
@@ -11987,8 +11979,8 @@ void main() {
       test(
           'param `start_periods` lands in wire when set to a non-default value',
           () {
-        final s =
-            const SilenceremoveSettings(enabled: true, start_periods: 9000);
+        const s =
+            SilenceremoveSettings(enabled: true, start_periods: 9000);
         expect(s.toFilterString(), contains('start_periods='));
         expect(s.toFilterString(), contains('start_periods=9000'));
       });
@@ -11996,17 +11988,17 @@ void main() {
       test(
           'param `start_silence` lands in wire when set to a non-default value',
           () {
-        final s = const SilenceremoveSettings(
+        const s = SilenceremoveSettings(
             enabled: true,
-            start_silence: const Duration(microseconds: 1000000));
+            start_silence: const Duration(microseconds: 1000000),);
         expect(s.toFilterString(), contains('start_silence='));
       });
 
       test(
           'param `start_threshold` lands in wire when set to a non-default value',
           () {
-        final s =
-            const SilenceremoveSettings(enabled: true, start_threshold: 1.0);
+        const s =
+            SilenceremoveSettings(enabled: true, start_threshold: 1.0);
         expect(s.toFilterString(), contains('start_threshold='));
         expect(s.toFilterString(), contains('start_threshold=1.000'));
       });
@@ -12014,55 +12006,55 @@ void main() {
       test(
           'param `stop_duration` lands in wire when set to a non-default value',
           () {
-        final s = const SilenceremoveSettings(
+        const s = SilenceremoveSettings(
             enabled: true,
-            stop_duration: const Duration(microseconds: 1000000));
+            stop_duration: const Duration(microseconds: 1000000),);
         expect(s.toFilterString(), contains('stop_duration='));
       });
 
       test('param `stop_mode` lands in wire when set to a non-default value',
           () {
-        final s = const SilenceremoveSettings(
-            enabled: true, stop_mode: SilenceremoveMode.any);
+        const s = SilenceremoveSettings(
+            enabled: true, stop_mode: SilenceremoveMode.any,);
         expect(s.toFilterString(), contains('stop_mode='));
         expect(s.toFilterString(), contains('stop_mode=any'));
       });
 
       test('param `stop_periods` lands in wire when set to a non-default value',
           () {
-        final s =
-            const SilenceremoveSettings(enabled: true, stop_periods: 9000);
+        const s =
+            SilenceremoveSettings(enabled: true, stop_periods: 9000);
         expect(s.toFilterString(), contains('stop_periods='));
         expect(s.toFilterString(), contains('stop_periods=9000'));
       });
 
       test('param `stop_silence` lands in wire when set to a non-default value',
           () {
-        final s = const SilenceremoveSettings(
-            enabled: true, stop_silence: const Duration(microseconds: 1000000));
+        const s = SilenceremoveSettings(
+            enabled: true, stop_silence: const Duration(microseconds: 1000000),);
         expect(s.toFilterString(), contains('stop_silence='));
       });
 
       test(
           'param `stop_threshold` lands in wire when set to a non-default value',
           () {
-        final s =
-            const SilenceremoveSettings(enabled: true, stop_threshold: 1.0);
+        const s =
+            SilenceremoveSettings(enabled: true, stop_threshold: 1.0);
         expect(s.toFilterString(), contains('stop_threshold='));
         expect(s.toFilterString(), contains('stop_threshold=1.000'));
       });
 
       test('param `timestamp` lands in wire when set to a non-default value',
           () {
-        final s = const SilenceremoveSettings(
-            enabled: true, timestamp: SilenceremoveTimestamp.copy);
+        const s = SilenceremoveSettings(
+            enabled: true, timestamp: SilenceremoveTimestamp.copy,);
         expect(s.toFilterString(), contains('timestamp='));
         expect(s.toFilterString(), contains('timestamp=copy'));
       });
 
       test('param `window` lands in wire when set to a non-default value', () {
-        final s = const SilenceremoveSettings(
-            enabled: true, window: const Duration(microseconds: 1020000));
+        const s = SilenceremoveSettings(
+            enabled: true, window: const Duration(microseconds: 1020000),);
         expect(s.toFilterString(), contains('window='));
       });
 
@@ -12070,8 +12062,7 @@ void main() {
           'param `start_periods` const `start_periodsMin` is accepted by toFilterString',
           () {
         final s = SilenceremoveSettings(
-            enabled: true,
-            start_periods: SilenceremoveSettings.start_periodsMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12080,7 +12071,7 @@ void main() {
           () {
         final s = SilenceremoveSettings(
             enabled: true,
-            start_periods: SilenceremoveSettings.start_periodsMax);
+            start_periods: SilenceremoveSettings.start_periodsMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12088,8 +12079,7 @@ void main() {
           'param `start_periods` const `start_periodsDefault` is accepted by toFilterString',
           () {
         final s = SilenceremoveSettings(
-            enabled: true,
-            start_periods: SilenceremoveSettings.start_periodsDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12097,8 +12087,7 @@ void main() {
           'param `start_threshold` const `start_thresholdMin` is accepted by toFilterString',
           () {
         final s = SilenceremoveSettings(
-            enabled: true,
-            start_threshold: SilenceremoveSettings.start_thresholdMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12107,7 +12096,7 @@ void main() {
           () {
         final s = SilenceremoveSettings(
             enabled: true,
-            start_threshold: SilenceremoveSettings.start_thresholdMax);
+            start_threshold: SilenceremoveSettings.start_thresholdMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12115,8 +12104,7 @@ void main() {
           'param `start_threshold` const `start_thresholdDefault` is accepted by toFilterString',
           () {
         final s = SilenceremoveSettings(
-            enabled: true,
-            start_threshold: SilenceremoveSettings.start_thresholdDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12124,7 +12112,7 @@ void main() {
           'param `stop_periods` const `stop_periodsMin` is accepted by toFilterString',
           () {
         final s = SilenceremoveSettings(
-            enabled: true, stop_periods: SilenceremoveSettings.stop_periodsMin);
+            enabled: true, stop_periods: SilenceremoveSettings.stop_periodsMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12132,7 +12120,7 @@ void main() {
           'param `stop_periods` const `stop_periodsMax` is accepted by toFilterString',
           () {
         final s = SilenceremoveSettings(
-            enabled: true, stop_periods: SilenceremoveSettings.stop_periodsMax);
+            enabled: true, stop_periods: SilenceremoveSettings.stop_periodsMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12140,8 +12128,7 @@ void main() {
           'param `stop_periods` const `stop_periodsDefault` is accepted by toFilterString',
           () {
         final s = SilenceremoveSettings(
-            enabled: true,
-            stop_periods: SilenceremoveSettings.stop_periodsDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12149,8 +12136,7 @@ void main() {
           'param `stop_threshold` const `stop_thresholdMin` is accepted by toFilterString',
           () {
         final s = SilenceremoveSettings(
-            enabled: true,
-            stop_threshold: SilenceremoveSettings.stop_thresholdMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12159,7 +12145,7 @@ void main() {
           () {
         final s = SilenceremoveSettings(
             enabled: true,
-            stop_threshold: SilenceremoveSettings.stop_thresholdMax);
+            stop_threshold: SilenceremoveSettings.stop_thresholdMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12167,14 +12153,13 @@ void main() {
           'param `stop_threshold` const `stop_thresholdDefault` is accepted by toFilterString',
           () {
         final s = SilenceremoveSettings(
-            enabled: true,
-            stop_threshold: SilenceremoveSettings.stop_thresholdDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('SpeechnormSettings (speechnorm)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(speechnorm: SpeechnormSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -12184,120 +12169,120 @@ void main() {
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, c: 50.0);
+        const s = SpeechnormSettings(enabled: true, c: 50.0);
         expect(s.toFilterString(), contains('c='));
         expect(s.toFilterString(), contains('c=50.000'));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const SpeechnormSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            SpeechnormSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `compression` lands in wire when set to a non-default value',
           () {
-        final s = const SpeechnormSettings(enabled: true, compression: 50.0);
+        const s = SpeechnormSettings(enabled: true, compression: 50.0);
         expect(s.toFilterString(), contains('compression='));
         expect(s.toFilterString(), contains('compression=50.000'));
       });
 
       test('param `e` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, e: 50.0);
+        const s = SpeechnormSettings(enabled: true, e: 50.0);
         expect(s.toFilterString(), contains('e='));
         expect(s.toFilterString(), contains('e=50.000'));
       });
 
       test('param `expansion` lands in wire when set to a non-default value',
           () {
-        final s = const SpeechnormSettings(enabled: true, expansion: 50.0);
+        const s = SpeechnormSettings(enabled: true, expansion: 50.0);
         expect(s.toFilterString(), contains('expansion='));
         expect(s.toFilterString(), contains('expansion=50.000'));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, f: 1.0);
+        const s = SpeechnormSettings(enabled: true, f: 1.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=1.000'));
       });
 
       test('param `fall` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, fall: 1.0);
+        const s = SpeechnormSettings(enabled: true, fall: 1.0);
         expect(s.toFilterString(), contains('fall='));
         expect(s.toFilterString(), contains('fall=1.000'));
       });
 
       test('param `h` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, h: 'wire_test_alt');
+        const s = SpeechnormSettings(enabled: true, h: 'wire_test_alt');
         expect(s.toFilterString(), contains('h='));
       });
 
       test('param `i` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, i: true);
+        const s = SpeechnormSettings(enabled: true, i: true);
         expect(s.toFilterString(), contains('i='));
       });
 
       test('param `invert` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, invert: true);
+        const s = SpeechnormSettings(enabled: true, invert: true);
         expect(s.toFilterString(), contains('invert='));
       });
 
       test('param `l` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, l: true);
+        const s = SpeechnormSettings(enabled: true, l: true);
         expect(s.toFilterString(), contains('l='));
       });
 
       test('param `link` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, link: true);
+        const s = SpeechnormSettings(enabled: true, link: true);
         expect(s.toFilterString(), contains('link='));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, m: 1.0);
+        const s = SpeechnormSettings(enabled: true, m: 1.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=1.000'));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, p: 1.0);
+        const s = SpeechnormSettings(enabled: true, p: 1.0);
         expect(s.toFilterString(), contains('p='));
         expect(s.toFilterString(), contains('p=1.000'));
       });
 
       test('param `peak` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, peak: 1.0);
+        const s = SpeechnormSettings(enabled: true, peak: 1.0);
         expect(s.toFilterString(), contains('peak='));
         expect(s.toFilterString(), contains('peak=1.000'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, r: 1.0);
+        const s = SpeechnormSettings(enabled: true, r: 1.0);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=1.000'));
       });
 
       test('param `raise` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, raise: 1.0);
+        const s = SpeechnormSettings(enabled: true, raise: 1.0);
         expect(s.toFilterString(), contains('raise='));
         expect(s.toFilterString(), contains('raise=1.000'));
       });
 
       test('param `rms` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, rms: 1.0);
+        const s = SpeechnormSettings(enabled: true, rms: 1.0);
         expect(s.toFilterString(), contains('rms='));
         expect(s.toFilterString(), contains('rms=1.000'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const SpeechnormSettings(enabled: true, t: 1.0);
+        const s = SpeechnormSettings(enabled: true, t: 1.0);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=1.000'));
       });
 
       test('param `threshold` lands in wire when set to a non-default value',
           () {
-        final s = const SpeechnormSettings(enabled: true, threshold: 1.0);
+        const s = SpeechnormSettings(enabled: true, threshold: 1.0);
         expect(s.toFilterString(), contains('threshold='));
         expect(s.toFilterString(), contains('threshold=1.000'));
       });
@@ -12314,7 +12299,7 @@ void main() {
 
       test('param `c` const `cDefault` is accepted by toFilterString', () {
         final s =
-            SpeechnormSettings(enabled: true, c: SpeechnormSettings.cDefault);
+            SpeechnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12322,7 +12307,7 @@ void main() {
           'param `compression` const `compressionMin` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, compression: SpeechnormSettings.compressionMin);
+            enabled: true, compression: SpeechnormSettings.compressionMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12330,7 +12315,7 @@ void main() {
           'param `compression` const `compressionMax` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, compression: SpeechnormSettings.compressionMax);
+            enabled: true, compression: SpeechnormSettings.compressionMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12338,7 +12323,7 @@ void main() {
           'param `compression` const `compressionDefault` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, compression: SpeechnormSettings.compressionDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12354,7 +12339,7 @@ void main() {
 
       test('param `e` const `eDefault` is accepted by toFilterString', () {
         final s =
-            SpeechnormSettings(enabled: true, e: SpeechnormSettings.eDefault);
+            SpeechnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12362,7 +12347,7 @@ void main() {
           'param `expansion` const `expansionMin` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, expansion: SpeechnormSettings.expansionMin);
+            enabled: true, expansion: SpeechnormSettings.expansionMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12370,7 +12355,7 @@ void main() {
           'param `expansion` const `expansionMax` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, expansion: SpeechnormSettings.expansionMax);
+            enabled: true, expansion: SpeechnormSettings.expansionMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12378,7 +12363,7 @@ void main() {
           'param `expansion` const `expansionDefault` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, expansion: SpeechnormSettings.expansionDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12394,7 +12379,7 @@ void main() {
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
         final s =
-            SpeechnormSettings(enabled: true, f: SpeechnormSettings.fDefault);
+            SpeechnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12413,12 +12398,12 @@ void main() {
       test('param `fall` const `fallDefault` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, fall: SpeechnormSettings.fallDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mMin` is accepted by toFilterString', () {
-        final s = SpeechnormSettings(enabled: true, m: SpeechnormSettings.mMin);
+        final s = SpeechnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12429,7 +12414,7 @@ void main() {
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
         final s =
-            SpeechnormSettings(enabled: true, m: SpeechnormSettings.mDefault);
+            SpeechnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12445,7 +12430,7 @@ void main() {
 
       test('param `p` const `pDefault` is accepted by toFilterString', () {
         final s =
-            SpeechnormSettings(enabled: true, p: SpeechnormSettings.pDefault);
+            SpeechnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12464,7 +12449,7 @@ void main() {
       test('param `peak` const `peakDefault` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, peak: SpeechnormSettings.peakDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12480,32 +12465,32 @@ void main() {
 
       test('param `r` const `rDefault` is accepted by toFilterString', () {
         final s =
-            SpeechnormSettings(enabled: true, r: SpeechnormSettings.rDefault);
+            SpeechnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `raise` const `raiseMin` is accepted by toFilterString', () {
         final s = SpeechnormSettings(
-            enabled: true, raise: SpeechnormSettings.raiseMin);
+            enabled: true, raise: SpeechnormSettings.raiseMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `raise` const `raiseMax` is accepted by toFilterString', () {
         final s = SpeechnormSettings(
-            enabled: true, raise: SpeechnormSettings.raiseMax);
+            enabled: true, raise: SpeechnormSettings.raiseMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `raise` const `raiseDefault` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, raise: SpeechnormSettings.raiseDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `rms` const `rmsMin` is accepted by toFilterString', () {
         final s =
-            SpeechnormSettings(enabled: true, rms: SpeechnormSettings.rmsMin);
+            SpeechnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12517,12 +12502,12 @@ void main() {
 
       test('param `rms` const `rmsDefault` is accepted by toFilterString', () {
         final s = SpeechnormSettings(
-            enabled: true, rms: SpeechnormSettings.rmsDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `t` const `tMin` is accepted by toFilterString', () {
-        final s = SpeechnormSettings(enabled: true, t: SpeechnormSettings.tMin);
+        final s = SpeechnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12533,7 +12518,7 @@ void main() {
 
       test('param `t` const `tDefault` is accepted by toFilterString', () {
         final s =
-            SpeechnormSettings(enabled: true, t: SpeechnormSettings.tDefault);
+            SpeechnormSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12541,7 +12526,7 @@ void main() {
           'param `threshold` const `thresholdMin` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, threshold: SpeechnormSettings.thresholdMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12549,7 +12534,7 @@ void main() {
           'param `threshold` const `thresholdMax` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, threshold: SpeechnormSettings.thresholdMax);
+            enabled: true, threshold: SpeechnormSettings.thresholdMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12557,13 +12542,13 @@ void main() {
           'param `threshold` const `thresholdDefault` is accepted by toFilterString',
           () {
         final s = SpeechnormSettings(
-            enabled: true, threshold: SpeechnormSettings.thresholdDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('StereotoolsSettings (stereotools)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(stereotools: StereotoolsSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -12575,126 +12560,126 @@ void main() {
 
       test('param `balance_in` lands in wire when set to a non-default value',
           () {
-        final s = const StereotoolsSettings(enabled: true, balance_in: 1.0);
+        const s = StereotoolsSettings(enabled: true, balance_in: 1.0);
         expect(s.toFilterString(), contains('balance_in='));
         expect(s.toFilterString(), contains('balance_in=1.000'));
       });
 
       test('param `balance_out` lands in wire when set to a non-default value',
           () {
-        final s = const StereotoolsSettings(enabled: true, balance_out: 1.0);
+        const s = StereotoolsSettings(enabled: true, balance_out: 1.0);
         expect(s.toFilterString(), contains('balance_out='));
         expect(s.toFilterString(), contains('balance_out=1.000'));
       });
 
       test('param `base` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, base: 1.0);
+        const s = StereotoolsSettings(enabled: true, base: 1.0);
         expect(s.toFilterString(), contains('base='));
         expect(s.toFilterString(), contains('base=1.000'));
       });
 
       test('param `bmode_in` lands in wire when set to a non-default value',
           () {
-        final s = const StereotoolsSettings(
-            enabled: true, bmode_in: StereotoolsBmode.amplitude);
+        const s = StereotoolsSettings(
+            enabled: true, bmode_in: StereotoolsBmode.amplitude,);
         expect(s.toFilterString(), contains('bmode_in='));
         expect(s.toFilterString(), contains('bmode_in=amplitude'));
       });
 
       test('param `bmode_out` lands in wire when set to a non-default value',
           () {
-        final s = const StereotoolsSettings(
-            enabled: true, bmode_out: StereotoolsBmode.amplitude);
+        const s = StereotoolsSettings(
+            enabled: true, bmode_out: StereotoolsBmode.amplitude,);
         expect(s.toFilterString(), contains('bmode_out='));
         expect(s.toFilterString(), contains('bmode_out=amplitude'));
       });
 
       test('param `delay` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, delay: 20.0);
+        const s = StereotoolsSettings(enabled: true, delay: 20.0);
         expect(s.toFilterString(), contains('delay='));
         expect(s.toFilterString(), contains('delay=20.000'));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const StereotoolsSettings(enabled: true, level_in: 64.0);
+        const s = StereotoolsSettings(enabled: true, level_in: 64.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=64.000'));
       });
 
       test('param `level_out` lands in wire when set to a non-default value',
           () {
-        final s = const StereotoolsSettings(enabled: true, level_out: 64.0);
+        const s = StereotoolsSettings(enabled: true, level_out: 64.0);
         expect(s.toFilterString(), contains('level_out='));
         expect(s.toFilterString(), contains('level_out=64.000'));
       });
 
       test('param `mlev` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, mlev: 64.0);
+        const s = StereotoolsSettings(enabled: true, mlev: 64.0);
         expect(s.toFilterString(), contains('mlev='));
         expect(s.toFilterString(), contains('mlev=64.000'));
       });
 
       test('param `mode` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(
-            enabled: true, mode: StereotoolsMode.lr_to_ms);
+        const s = StereotoolsSettings(
+            enabled: true, mode: StereotoolsMode.lr_to_ms,);
         expect(s.toFilterString(), contains('mode='));
         expect(s.toFilterString(), contains('mode=lr>ms'));
       });
 
       test('param `mpan` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, mpan: 1.0);
+        const s = StereotoolsSettings(enabled: true, mpan: 1.0);
         expect(s.toFilterString(), contains('mpan='));
         expect(s.toFilterString(), contains('mpan=1.000'));
       });
 
       test('param `mutel` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, mutel: true);
+        const s = StereotoolsSettings(enabled: true, mutel: true);
         expect(s.toFilterString(), contains('mutel='));
       });
 
       test('param `muter` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, muter: true);
+        const s = StereotoolsSettings(enabled: true, muter: true);
         expect(s.toFilterString(), contains('muter='));
       });
 
       test('param `phase` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, phase: 360.0);
+        const s = StereotoolsSettings(enabled: true, phase: 360.0);
         expect(s.toFilterString(), contains('phase='));
         expect(s.toFilterString(), contains('phase=360.000'));
       });
 
       test('param `phasel` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, phasel: true);
+        const s = StereotoolsSettings(enabled: true, phasel: true);
         expect(s.toFilterString(), contains('phasel='));
       });
 
       test('param `phaser` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, phaser: true);
+        const s = StereotoolsSettings(enabled: true, phaser: true);
         expect(s.toFilterString(), contains('phaser='));
       });
 
       test('param `sbal` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, sbal: 1.0);
+        const s = StereotoolsSettings(enabled: true, sbal: 1.0);
         expect(s.toFilterString(), contains('sbal='));
         expect(s.toFilterString(), contains('sbal=1.000'));
       });
 
       test('param `sclevel` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, sclevel: 100.0);
+        const s = StereotoolsSettings(enabled: true, sclevel: 100.0);
         expect(s.toFilterString(), contains('sclevel='));
         expect(s.toFilterString(), contains('sclevel=100.000'));
       });
 
       test('param `slev` lands in wire when set to a non-default value', () {
-        final s = const StereotoolsSettings(enabled: true, slev: 64.0);
+        const s = StereotoolsSettings(enabled: true, slev: 64.0);
         expect(s.toFilterString(), contains('slev='));
         expect(s.toFilterString(), contains('slev=64.000'));
       });
 
       test('param `softclip` lands in wire when set to a non-default value',
           () {
-        final s = const StereotoolsSettings(enabled: true, softclip: true);
+        const s = StereotoolsSettings(enabled: true, softclip: true);
         expect(s.toFilterString(), contains('softclip='));
       });
 
@@ -12702,7 +12687,7 @@ void main() {
           'param `balance_in` const `balance_inMin` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, balance_in: StereotoolsSettings.balance_inMin);
+            enabled: true, balance_in: StereotoolsSettings.balance_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12710,7 +12695,7 @@ void main() {
           'param `balance_in` const `balance_inMax` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, balance_in: StereotoolsSettings.balance_inMax);
+            enabled: true, balance_in: StereotoolsSettings.balance_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12718,7 +12703,7 @@ void main() {
           'param `balance_in` const `balance_inDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, balance_in: StereotoolsSettings.balance_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12726,7 +12711,7 @@ void main() {
           'param `balance_out` const `balance_outMin` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, balance_out: StereotoolsSettings.balance_outMin);
+            enabled: true, balance_out: StereotoolsSettings.balance_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12734,7 +12719,7 @@ void main() {
           'param `balance_out` const `balance_outMax` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, balance_out: StereotoolsSettings.balance_outMax);
+            enabled: true, balance_out: StereotoolsSettings.balance_outMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12742,59 +12727,59 @@ void main() {
           'param `balance_out` const `balance_outDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, balance_out: StereotoolsSettings.balance_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `base` const `baseMin` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, base: StereotoolsSettings.baseMin);
+            enabled: true, base: StereotoolsSettings.baseMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `base` const `baseMax` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, base: StereotoolsSettings.baseMax);
+            enabled: true, base: StereotoolsSettings.baseMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `base` const `baseDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, base: StereotoolsSettings.baseDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `delay` const `delayMin` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, delay: StereotoolsSettings.delayMin);
+            enabled: true, delay: StereotoolsSettings.delayMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `delay` const `delayMax` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, delay: StereotoolsSettings.delayMax);
+            enabled: true, delay: StereotoolsSettings.delayMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `delay` const `delayDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, delay: StereotoolsSettings.delayDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMin` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, level_in: StereotoolsSettings.level_inMin);
+            enabled: true, level_in: StereotoolsSettings.level_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMax` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, level_in: StereotoolsSettings.level_inMax);
+            enabled: true, level_in: StereotoolsSettings.level_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12802,7 +12787,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, level_in: StereotoolsSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12810,7 +12795,7 @@ void main() {
           'param `level_out` const `level_outMin` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, level_out: StereotoolsSettings.level_outMin);
+            enabled: true, level_out: StereotoolsSettings.level_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12818,7 +12803,7 @@ void main() {
           'param `level_out` const `level_outMax` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, level_out: StereotoolsSettings.level_outMax);
+            enabled: true, level_out: StereotoolsSettings.level_outMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12826,97 +12811,97 @@ void main() {
           'param `level_out` const `level_outDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, level_out: StereotoolsSettings.level_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mlev` const `mlevMin` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, mlev: StereotoolsSettings.mlevMin);
+            enabled: true, mlev: StereotoolsSettings.mlevMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mlev` const `mlevMax` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, mlev: StereotoolsSettings.mlevMax);
+            enabled: true, mlev: StereotoolsSettings.mlevMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mlev` const `mlevDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, mlev: StereotoolsSettings.mlevDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mpan` const `mpanMin` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, mpan: StereotoolsSettings.mpanMin);
+            enabled: true, mpan: StereotoolsSettings.mpanMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mpan` const `mpanMax` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, mpan: StereotoolsSettings.mpanMax);
+            enabled: true, mpan: StereotoolsSettings.mpanMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mpan` const `mpanDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, mpan: StereotoolsSettings.mpanDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `phase` const `phaseMin` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, phase: StereotoolsSettings.phaseMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `phase` const `phaseMax` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, phase: StereotoolsSettings.phaseMax);
+            enabled: true, phase: StereotoolsSettings.phaseMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `phase` const `phaseDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, phase: StereotoolsSettings.phaseDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `sbal` const `sbalMin` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, sbal: StereotoolsSettings.sbalMin);
+            enabled: true, sbal: StereotoolsSettings.sbalMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `sbal` const `sbalMax` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, sbal: StereotoolsSettings.sbalMax);
+            enabled: true, sbal: StereotoolsSettings.sbalMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `sbal` const `sbalDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, sbal: StereotoolsSettings.sbalDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `sclevel` const `sclevelMin` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, sclevel: StereotoolsSettings.sclevelMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `sclevel` const `sclevelMax` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, sclevel: StereotoolsSettings.sclevelMax);
+            enabled: true, sclevel: StereotoolsSettings.sclevelMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12924,32 +12909,32 @@ void main() {
           'param `sclevel` const `sclevelDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, sclevel: StereotoolsSettings.sclevelDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `slev` const `slevMin` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, slev: StereotoolsSettings.slevMin);
+            enabled: true, slev: StereotoolsSettings.slevMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `slev` const `slevMax` is accepted by toFilterString', () {
         final s = StereotoolsSettings(
-            enabled: true, slev: StereotoolsSettings.slevMax);
+            enabled: true, slev: StereotoolsSettings.slevMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `slev` const `slevDefault` is accepted by toFilterString',
           () {
         final s = StereotoolsSettings(
-            enabled: true, slev: StereotoolsSettings.slevDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('StereowidenSettings (stereowiden)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(stereowiden: StereowidenSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -12961,26 +12946,26 @@ void main() {
 
       test('param `crossfeed` lands in wire when set to a non-default value',
           () {
-        final s = const StereowidenSettings(enabled: true, crossfeed: 0.8);
+        const s = StereowidenSettings(enabled: true, crossfeed: 0.8);
         expect(s.toFilterString(), contains('crossfeed='));
         expect(s.toFilterString(), contains('crossfeed=0.800'));
       });
 
       test('param `delay` lands in wire when set to a non-default value', () {
-        final s = const StereowidenSettings(enabled: true, delay: 100.0);
+        const s = StereowidenSettings(enabled: true, delay: 100.0);
         expect(s.toFilterString(), contains('delay='));
         expect(s.toFilterString(), contains('delay=100.000'));
       });
 
       test('param `drymix` lands in wire when set to a non-default value', () {
-        final s = const StereowidenSettings(enabled: true, drymix: 1.0);
+        const s = StereowidenSettings(enabled: true, drymix: 1.0);
         expect(s.toFilterString(), contains('drymix='));
         expect(s.toFilterString(), contains('drymix=1.000'));
       });
 
       test('param `feedback` lands in wire when set to a non-default value',
           () {
-        final s = const StereowidenSettings(enabled: true, feedback: 0.9);
+        const s = StereowidenSettings(enabled: true, feedback: 0.9);
         expect(s.toFilterString(), contains('feedback='));
         expect(s.toFilterString(), contains('feedback=0.900'));
       });
@@ -12989,7 +12974,7 @@ void main() {
           'param `crossfeed` const `crossfeedMin` is accepted by toFilterString',
           () {
         final s = StereowidenSettings(
-            enabled: true, crossfeed: StereowidenSettings.crossfeedMin);
+            enabled: true, crossfeed: StereowidenSettings.crossfeedMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -12997,7 +12982,7 @@ void main() {
           'param `crossfeed` const `crossfeedMax` is accepted by toFilterString',
           () {
         final s = StereowidenSettings(
-            enabled: true, crossfeed: StereowidenSettings.crossfeedMax);
+            enabled: true, crossfeed: StereowidenSettings.crossfeedMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13005,61 +12990,61 @@ void main() {
           'param `crossfeed` const `crossfeedDefault` is accepted by toFilterString',
           () {
         final s = StereowidenSettings(
-            enabled: true, crossfeed: StereowidenSettings.crossfeedDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `delay` const `delayMin` is accepted by toFilterString', () {
         final s = StereowidenSettings(
-            enabled: true, delay: StereowidenSettings.delayMin);
+            enabled: true, delay: StereowidenSettings.delayMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `delay` const `delayMax` is accepted by toFilterString', () {
         final s = StereowidenSettings(
-            enabled: true, delay: StereowidenSettings.delayMax);
+            enabled: true, delay: StereowidenSettings.delayMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `delay` const `delayDefault` is accepted by toFilterString',
           () {
         final s = StereowidenSettings(
-            enabled: true, delay: StereowidenSettings.delayDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `drymix` const `drymixMin` is accepted by toFilterString',
           () {
         final s = StereowidenSettings(
-            enabled: true, drymix: StereowidenSettings.drymixMin);
+            enabled: true, drymix: StereowidenSettings.drymixMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `drymix` const `drymixMax` is accepted by toFilterString',
           () {
         final s = StereowidenSettings(
-            enabled: true, drymix: StereowidenSettings.drymixMax);
+            enabled: true, drymix: StereowidenSettings.drymixMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `drymix` const `drymixDefault` is accepted by toFilterString',
           () {
         final s = StereowidenSettings(
-            enabled: true, drymix: StereowidenSettings.drymixDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `feedback` const `feedbackMin` is accepted by toFilterString',
           () {
         final s = StereowidenSettings(
-            enabled: true, feedback: StereowidenSettings.feedbackMin);
+            enabled: true, feedback: StereowidenSettings.feedbackMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `feedback` const `feedbackMax` is accepted by toFilterString',
           () {
         final s = StereowidenSettings(
-            enabled: true, feedback: StereowidenSettings.feedbackMax);
+            enabled: true, feedback: StereowidenSettings.feedbackMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13067,13 +13052,13 @@ void main() {
           'param `feedback` const `feedbackDefault` is accepted by toFilterString',
           () {
         final s = StereowidenSettings(
-            enabled: true, feedback: StereowidenSettings.feedbackDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('SuperequalizerSettings (superequalizer)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(superequalizer: SuperequalizerSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -13084,134 +13069,134 @@ void main() {
       });
 
       test('digit-prefix param `10b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'10b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'10b': 20.0});
         expect(s.toFilterString(), contains('10b='));
         expect(s.toFilterString(), contains('10b=20.000'));
       });
 
       test('digit-prefix param `11b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'11b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'11b': 20.0});
         expect(s.toFilterString(), contains('11b='));
         expect(s.toFilterString(), contains('11b=20.000'));
       });
 
       test('digit-prefix param `12b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'12b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'12b': 20.0});
         expect(s.toFilterString(), contains('12b='));
         expect(s.toFilterString(), contains('12b=20.000'));
       });
 
       test('digit-prefix param `13b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'13b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'13b': 20.0});
         expect(s.toFilterString(), contains('13b='));
         expect(s.toFilterString(), contains('13b=20.000'));
       });
 
       test('digit-prefix param `14b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'14b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'14b': 20.0});
         expect(s.toFilterString(), contains('14b='));
         expect(s.toFilterString(), contains('14b=20.000'));
       });
 
       test('digit-prefix param `15b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'15b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'15b': 20.0});
         expect(s.toFilterString(), contains('15b='));
         expect(s.toFilterString(), contains('15b=20.000'));
       });
 
       test('digit-prefix param `16b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'16b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'16b': 20.0});
         expect(s.toFilterString(), contains('16b='));
         expect(s.toFilterString(), contains('16b=20.000'));
       });
 
       test('digit-prefix param `17b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'17b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'17b': 20.0});
         expect(s.toFilterString(), contains('17b='));
         expect(s.toFilterString(), contains('17b=20.000'));
       });
 
       test('digit-prefix param `18b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'18b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'18b': 20.0});
         expect(s.toFilterString(), contains('18b='));
         expect(s.toFilterString(), contains('18b=20.000'));
       });
 
       test('digit-prefix param `1b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'1b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'1b': 20.0});
         expect(s.toFilterString(), contains('1b='));
         expect(s.toFilterString(), contains('1b=20.000'));
       });
 
       test('digit-prefix param `2b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'2b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'2b': 20.0});
         expect(s.toFilterString(), contains('2b='));
         expect(s.toFilterString(), contains('2b=20.000'));
       });
 
       test('digit-prefix param `3b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'3b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'3b': 20.0});
         expect(s.toFilterString(), contains('3b='));
         expect(s.toFilterString(), contains('3b=20.000'));
       });
 
       test('digit-prefix param `4b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'4b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'4b': 20.0});
         expect(s.toFilterString(), contains('4b='));
         expect(s.toFilterString(), contains('4b=20.000'));
       });
 
       test('digit-prefix param `5b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'5b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'5b': 20.0});
         expect(s.toFilterString(), contains('5b='));
         expect(s.toFilterString(), contains('5b=20.000'));
       });
 
       test('digit-prefix param `6b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'6b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'6b': 20.0});
         expect(s.toFilterString(), contains('6b='));
         expect(s.toFilterString(), contains('6b=20.000'));
       });
 
       test('digit-prefix param `7b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'7b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'7b': 20.0});
         expect(s.toFilterString(), contains('7b='));
         expect(s.toFilterString(), contains('7b=20.000'));
       });
 
       test('digit-prefix param `8b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'8b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'8b': 20.0});
         expect(s.toFilterString(), contains('8b='));
         expect(s.toFilterString(), contains('8b=20.000'));
       });
 
       test('digit-prefix param `9b` lands in wire via params map', () {
-        final s =
-            const SuperequalizerSettings(enabled: true, params: {'9b': 20.0});
+        const s =
+            SuperequalizerSettings(enabled: true, params: {'9b': 20.0});
         expect(s.toFilterString(), contains('9b='));
         expect(s.toFilterString(), contains('9b=20.000'));
       });
     });
     group('SurroundSettings (surround)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(surround: SurroundSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -13221,315 +13206,315 @@ void main() {
       });
 
       test('param `allx` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, allx: 15.0);
+        const s = SurroundSettings(enabled: true, allx: 15.0);
         expect(s.toFilterString(), contains('allx='));
         expect(s.toFilterString(), contains('allx=15.000'));
       });
 
       test('param `ally` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, ally: 15.0);
+        const s = SurroundSettings(enabled: true, ally: 15.0);
         expect(s.toFilterString(), contains('ally='));
         expect(s.toFilterString(), contains('ally=15.000'));
       });
 
       test('param `angle` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, angle: 360.0);
+        const s = SurroundSettings(enabled: true, angle: 360.0);
         expect(s.toFilterString(), contains('angle='));
         expect(s.toFilterString(), contains('angle=360.000'));
       });
 
       test('param `bc_in` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, bc_in: 10.0);
+        const s = SurroundSettings(enabled: true, bc_in: 10.0);
         expect(s.toFilterString(), contains('bc_in='));
         expect(s.toFilterString(), contains('bc_in=10.000'));
       });
 
       test('param `bc_out` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, bc_out: 10.0);
+        const s = SurroundSettings(enabled: true, bc_out: 10.0);
         expect(s.toFilterString(), contains('bc_out='));
         expect(s.toFilterString(), contains('bc_out=10.000'));
       });
 
       test('param `bcx` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, bcx: 15.0);
+        const s = SurroundSettings(enabled: true, bcx: 15.0);
         expect(s.toFilterString(), contains('bcx='));
         expect(s.toFilterString(), contains('bcx=15.000'));
       });
 
       test('param `bcy` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, bcy: 15.0);
+        const s = SurroundSettings(enabled: true, bcy: 15.0);
         expect(s.toFilterString(), contains('bcy='));
         expect(s.toFilterString(), contains('bcy=15.000'));
       });
 
       test('param `bl_in` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, bl_in: 10.0);
+        const s = SurroundSettings(enabled: true, bl_in: 10.0);
         expect(s.toFilterString(), contains('bl_in='));
         expect(s.toFilterString(), contains('bl_in=10.000'));
       });
 
       test('param `bl_out` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, bl_out: 10.0);
+        const s = SurroundSettings(enabled: true, bl_out: 10.0);
         expect(s.toFilterString(), contains('bl_out='));
         expect(s.toFilterString(), contains('bl_out=10.000'));
       });
 
       test('param `blx` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, blx: 15.0);
+        const s = SurroundSettings(enabled: true, blx: 15.0);
         expect(s.toFilterString(), contains('blx='));
         expect(s.toFilterString(), contains('blx=15.000'));
       });
 
       test('param `bly` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, bly: 15.0);
+        const s = SurroundSettings(enabled: true, bly: 15.0);
         expect(s.toFilterString(), contains('bly='));
         expect(s.toFilterString(), contains('bly=15.000'));
       });
 
       test('param `br_in` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, br_in: 10.0);
+        const s = SurroundSettings(enabled: true, br_in: 10.0);
         expect(s.toFilterString(), contains('br_in='));
         expect(s.toFilterString(), contains('br_in=10.000'));
       });
 
       test('param `br_out` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, br_out: 10.0);
+        const s = SurroundSettings(enabled: true, br_out: 10.0);
         expect(s.toFilterString(), contains('br_out='));
         expect(s.toFilterString(), contains('br_out=10.000'));
       });
 
       test('param `brx` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, brx: 15.0);
+        const s = SurroundSettings(enabled: true, brx: 15.0);
         expect(s.toFilterString(), contains('brx='));
         expect(s.toFilterString(), contains('brx=15.000'));
       });
 
       test('param `bry` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, bry: 15.0);
+        const s = SurroundSettings(enabled: true, bry: 15.0);
         expect(s.toFilterString(), contains('bry='));
         expect(s.toFilterString(), contains('bry=15.000'));
       });
 
       test('param `chl_in` lands in wire when set to a non-default value', () {
-        final s =
-            const SurroundSettings(enabled: true, chl_in: 'wire_test_alt');
+        const s =
+            SurroundSettings(enabled: true, chl_in: 'wire_test_alt');
         expect(s.toFilterString(), contains('chl_in='));
       });
 
       test('param `chl_out` lands in wire when set to a non-default value', () {
-        final s =
-            const SurroundSettings(enabled: true, chl_out: 'wire_test_alt');
+        const s =
+            SurroundSettings(enabled: true, chl_out: 'wire_test_alt');
         expect(s.toFilterString(), contains('chl_out='));
       });
 
       test('param `fc_in` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, fc_in: 10.0);
+        const s = SurroundSettings(enabled: true, fc_in: 10.0);
         expect(s.toFilterString(), contains('fc_in='));
         expect(s.toFilterString(), contains('fc_in=10.000'));
       });
 
       test('param `fc_out` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, fc_out: 10.0);
+        const s = SurroundSettings(enabled: true, fc_out: 10.0);
         expect(s.toFilterString(), contains('fc_out='));
         expect(s.toFilterString(), contains('fc_out=10.000'));
       });
 
       test('param `fcx` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, fcx: 15.0);
+        const s = SurroundSettings(enabled: true, fcx: 15.0);
         expect(s.toFilterString(), contains('fcx='));
         expect(s.toFilterString(), contains('fcx=15.000'));
       });
 
       test('param `fcy` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, fcy: 15.0);
+        const s = SurroundSettings(enabled: true, fcy: 15.0);
         expect(s.toFilterString(), contains('fcy='));
         expect(s.toFilterString(), contains('fcy=15.000'));
       });
 
       test('param `fl_in` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, fl_in: 10.0);
+        const s = SurroundSettings(enabled: true, fl_in: 10.0);
         expect(s.toFilterString(), contains('fl_in='));
         expect(s.toFilterString(), contains('fl_in=10.000'));
       });
 
       test('param `fl_out` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, fl_out: 10.0);
+        const s = SurroundSettings(enabled: true, fl_out: 10.0);
         expect(s.toFilterString(), contains('fl_out='));
         expect(s.toFilterString(), contains('fl_out=10.000'));
       });
 
       test('param `flx` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, flx: 15.0);
+        const s = SurroundSettings(enabled: true, flx: 15.0);
         expect(s.toFilterString(), contains('flx='));
         expect(s.toFilterString(), contains('flx=15.000'));
       });
 
       test('param `fly` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, fly: 15.0);
+        const s = SurroundSettings(enabled: true, fly: 15.0);
         expect(s.toFilterString(), contains('fly='));
         expect(s.toFilterString(), contains('fly=15.000'));
       });
 
       test('param `focus` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, focus: 1.0);
+        const s = SurroundSettings(enabled: true, focus: 1.0);
         expect(s.toFilterString(), contains('focus='));
         expect(s.toFilterString(), contains('focus=1.000'));
       });
 
       test('param `fr_in` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, fr_in: 10.0);
+        const s = SurroundSettings(enabled: true, fr_in: 10.0);
         expect(s.toFilterString(), contains('fr_in='));
         expect(s.toFilterString(), contains('fr_in=10.000'));
       });
 
       test('param `fr_out` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, fr_out: 10.0);
+        const s = SurroundSettings(enabled: true, fr_out: 10.0);
         expect(s.toFilterString(), contains('fr_out='));
         expect(s.toFilterString(), contains('fr_out=10.000'));
       });
 
       test('param `frx` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, frx: 15.0);
+        const s = SurroundSettings(enabled: true, frx: 15.0);
         expect(s.toFilterString(), contains('frx='));
         expect(s.toFilterString(), contains('frx=15.000'));
       });
 
       test('param `fry` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, fry: 15.0);
+        const s = SurroundSettings(enabled: true, fry: 15.0);
         expect(s.toFilterString(), contains('fry='));
         expect(s.toFilterString(), contains('fry=15.000'));
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
           () {
-        final s = const SurroundSettings(enabled: true, level_in: 10.0);
+        const s = SurroundSettings(enabled: true, level_in: 10.0);
         expect(s.toFilterString(), contains('level_in='));
         expect(s.toFilterString(), contains('level_in=10.000'));
       });
 
       test('param `level_out` lands in wire when set to a non-default value',
           () {
-        final s = const SurroundSettings(enabled: true, level_out: 10.0);
+        const s = SurroundSettings(enabled: true, level_out: 10.0);
         expect(s.toFilterString(), contains('level_out='));
         expect(s.toFilterString(), contains('level_out=10.000'));
       });
 
       test('param `lfe` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, lfe: false);
+        const s = SurroundSettings(enabled: true, lfe: false);
         expect(s.toFilterString(), contains('lfe='));
       });
 
       test('param `lfe_high` lands in wire when set to a non-default value',
           () {
-        final s = const SurroundSettings(enabled: true, lfe_high: 512);
+        const s = SurroundSettings(enabled: true, lfe_high: 512);
         expect(s.toFilterString(), contains('lfe_high='));
         expect(s.toFilterString(), contains('lfe_high=512'));
       });
 
       test('param `lfe_in` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, lfe_in: 10.0);
+        const s = SurroundSettings(enabled: true, lfe_in: 10.0);
         expect(s.toFilterString(), contains('lfe_in='));
         expect(s.toFilterString(), contains('lfe_in=10.000'));
       });
 
       test('param `lfe_low` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, lfe_low: 256);
+        const s = SurroundSettings(enabled: true, lfe_low: 256);
         expect(s.toFilterString(), contains('lfe_low='));
         expect(s.toFilterString(), contains('lfe_low=256'));
       });
 
       test('param `lfe_mode` lands in wire when set to a non-default value',
           () {
-        final s = const SurroundSettings(
-            enabled: true, lfe_mode: SurroundLfeMode.sub);
+        const s = SurroundSettings(
+            enabled: true, lfe_mode: SurroundLfeMode.sub,);
         expect(s.toFilterString(), contains('lfe_mode='));
         expect(s.toFilterString(), contains('lfe_mode=sub'));
       });
 
       test('param `lfe_out` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, lfe_out: 10.0);
+        const s = SurroundSettings(enabled: true, lfe_out: 10.0);
         expect(s.toFilterString(), contains('lfe_out='));
         expect(s.toFilterString(), contains('lfe_out=10.000'));
       });
 
       test('param `overlap` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, overlap: 1.0);
+        const s = SurroundSettings(enabled: true, overlap: 1.0);
         expect(s.toFilterString(), contains('overlap='));
         expect(s.toFilterString(), contains('overlap=1.000'));
       });
 
       test('param `sl_in` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, sl_in: 10.0);
+        const s = SurroundSettings(enabled: true, sl_in: 10.0);
         expect(s.toFilterString(), contains('sl_in='));
         expect(s.toFilterString(), contains('sl_in=10.000'));
       });
 
       test('param `sl_out` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, sl_out: 10.0);
+        const s = SurroundSettings(enabled: true, sl_out: 10.0);
         expect(s.toFilterString(), contains('sl_out='));
         expect(s.toFilterString(), contains('sl_out=10.000'));
       });
 
       test('param `slx` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, slx: 15.0);
+        const s = SurroundSettings(enabled: true, slx: 15.0);
         expect(s.toFilterString(), contains('slx='));
         expect(s.toFilterString(), contains('slx=15.000'));
       });
 
       test('param `sly` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, sly: 15.0);
+        const s = SurroundSettings(enabled: true, sly: 15.0);
         expect(s.toFilterString(), contains('sly='));
         expect(s.toFilterString(), contains('sly=15.000'));
       });
 
       test('param `smooth` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, smooth: 1.0);
+        const s = SurroundSettings(enabled: true, smooth: 1.0);
         expect(s.toFilterString(), contains('smooth='));
         expect(s.toFilterString(), contains('smooth=1.000'));
       });
 
       test('param `sr_in` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, sr_in: 10.0);
+        const s = SurroundSettings(enabled: true, sr_in: 10.0);
         expect(s.toFilterString(), contains('sr_in='));
         expect(s.toFilterString(), contains('sr_in=10.000'));
       });
 
       test('param `sr_out` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, sr_out: 10.0);
+        const s = SurroundSettings(enabled: true, sr_out: 10.0);
         expect(s.toFilterString(), contains('sr_out='));
         expect(s.toFilterString(), contains('sr_out=10.000'));
       });
 
       test('param `srx` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, srx: 15.0);
+        const s = SurroundSettings(enabled: true, srx: 15.0);
         expect(s.toFilterString(), contains('srx='));
         expect(s.toFilterString(), contains('srx=15.000'));
       });
 
       test('param `sry` lands in wire when set to a non-default value', () {
-        final s = const SurroundSettings(enabled: true, sry: 15.0);
+        const s = SurroundSettings(enabled: true, sry: 15.0);
         expect(s.toFilterString(), contains('sry='));
         expect(s.toFilterString(), contains('sry=15.000'));
       });
 
       test('param `win_func` lands in wire when set to a non-default value',
           () {
-        final s = const SurroundSettings(
-            enabled: true, win_func: SurroundWinFunc.rect);
+        const s = SurroundSettings(
+            enabled: true, win_func: SurroundWinFunc.rect,);
         expect(s.toFilterString(), contains('win_func='));
         expect(s.toFilterString(), contains('win_func=rect'));
       });
 
       test('param `win_size` lands in wire when set to a non-default value',
           () {
-        final s = const SurroundSettings(enabled: true, win_size: 65536);
+        const s = SurroundSettings(enabled: true, win_size: 65536);
         expect(s.toFilterString(), contains('win_size='));
         expect(s.toFilterString(), contains('win_size=65536'));
       });
 
       test('param `allx` const `allxMin` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, allx: SurroundSettings.allxMin);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13542,13 +13527,13 @@ void main() {
       test('param `allx` const `allxDefault` is accepted by toFilterString',
           () {
         final s =
-            SurroundSettings(enabled: true, allx: SurroundSettings.allxDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `ally` const `allyMin` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, ally: SurroundSettings.allyMin);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13561,7 +13546,7 @@ void main() {
       test('param `ally` const `allyDefault` is accepted by toFilterString',
           () {
         final s =
-            SurroundSettings(enabled: true, ally: SurroundSettings.allyDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13580,7 +13565,7 @@ void main() {
       test('param `angle` const `angleDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, angle: SurroundSettings.angleDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13599,7 +13584,7 @@ void main() {
       test('param `bc_in` const `bc_inDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, bc_in: SurroundSettings.bc_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13620,7 +13605,7 @@ void main() {
       test('param `bc_out` const `bc_outDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, bc_out: SurroundSettings.bc_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13636,7 +13621,7 @@ void main() {
 
       test('param `bcx` const `bcxDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, bcx: SurroundSettings.bcxDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13652,7 +13637,7 @@ void main() {
 
       test('param `bcy` const `bcyDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, bcy: SurroundSettings.bcyDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13671,7 +13656,7 @@ void main() {
       test('param `bl_in` const `bl_inDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, bl_in: SurroundSettings.bl_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13692,7 +13677,7 @@ void main() {
       test('param `bl_out` const `bl_outDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, bl_out: SurroundSettings.bl_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13708,7 +13693,7 @@ void main() {
 
       test('param `blx` const `blxDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, blx: SurroundSettings.blxDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13724,7 +13709,7 @@ void main() {
 
       test('param `bly` const `blyDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, bly: SurroundSettings.blyDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13743,7 +13728,7 @@ void main() {
       test('param `br_in` const `br_inDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, br_in: SurroundSettings.br_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13764,7 +13749,7 @@ void main() {
       test('param `br_out` const `br_outDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, br_out: SurroundSettings.br_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13780,7 +13765,7 @@ void main() {
 
       test('param `brx` const `brxDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, brx: SurroundSettings.brxDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13796,7 +13781,7 @@ void main() {
 
       test('param `bry` const `bryDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, bry: SurroundSettings.bryDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13815,7 +13800,7 @@ void main() {
       test('param `fc_in` const `fc_inDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, fc_in: SurroundSettings.fc_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13836,7 +13821,7 @@ void main() {
       test('param `fc_out` const `fc_outDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, fc_out: SurroundSettings.fc_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13852,7 +13837,7 @@ void main() {
 
       test('param `fcx` const `fcxDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, fcx: SurroundSettings.fcxDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13868,7 +13853,7 @@ void main() {
 
       test('param `fcy` const `fcyDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, fcy: SurroundSettings.fcyDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13887,7 +13872,7 @@ void main() {
       test('param `fl_in` const `fl_inDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, fl_in: SurroundSettings.fl_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13908,7 +13893,7 @@ void main() {
       test('param `fl_out` const `fl_outDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, fl_out: SurroundSettings.fl_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13924,7 +13909,7 @@ void main() {
 
       test('param `flx` const `flxDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, flx: SurroundSettings.flxDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13940,7 +13925,7 @@ void main() {
 
       test('param `fly` const `flyDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, fly: SurroundSettings.flyDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13959,7 +13944,7 @@ void main() {
       test('param `focus` const `focusDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, focus: SurroundSettings.focusDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13978,7 +13963,7 @@ void main() {
       test('param `fr_in` const `fr_inDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, fr_in: SurroundSettings.fr_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -13999,7 +13984,7 @@ void main() {
       test('param `fr_out` const `fr_outDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, fr_out: SurroundSettings.fr_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14015,7 +14000,7 @@ void main() {
 
       test('param `frx` const `frxDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, frx: SurroundSettings.frxDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14031,21 +14016,21 @@ void main() {
 
       test('param `fry` const `fryDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, fry: SurroundSettings.fryDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMin` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, level_in: SurroundSettings.level_inMin);
+            enabled: true, level_in: SurroundSettings.level_inMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `level_in` const `level_inMax` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, level_in: SurroundSettings.level_inMax);
+            enabled: true, level_in: SurroundSettings.level_inMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14053,7 +14038,7 @@ void main() {
           'param `level_in` const `level_inDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, level_in: SurroundSettings.level_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14061,7 +14046,7 @@ void main() {
           'param `level_out` const `level_outMin` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, level_out: SurroundSettings.level_outMin);
+            enabled: true, level_out: SurroundSettings.level_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14069,7 +14054,7 @@ void main() {
           'param `level_out` const `level_outMax` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, level_out: SurroundSettings.level_outMax);
+            enabled: true, level_out: SurroundSettings.level_outMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14077,21 +14062,21 @@ void main() {
           'param `level_out` const `level_outDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, level_out: SurroundSettings.level_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `lfe_high` const `lfe_highMin` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, lfe_high: SurroundSettings.lfe_highMin);
+            enabled: true, lfe_high: SurroundSettings.lfe_highMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `lfe_high` const `lfe_highMax` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, lfe_high: SurroundSettings.lfe_highMax);
+            enabled: true, lfe_high: SurroundSettings.lfe_highMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14099,7 +14084,7 @@ void main() {
           'param `lfe_high` const `lfe_highDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, lfe_high: SurroundSettings.lfe_highDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14120,21 +14105,21 @@ void main() {
       test('param `lfe_in` const `lfe_inDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, lfe_in: SurroundSettings.lfe_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `lfe_low` const `lfe_lowMin` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, lfe_low: SurroundSettings.lfe_lowMin);
+            enabled: true, lfe_low: SurroundSettings.lfe_lowMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `lfe_low` const `lfe_lowMax` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, lfe_low: SurroundSettings.lfe_lowMax);
+            enabled: true, lfe_low: SurroundSettings.lfe_lowMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14142,21 +14127,21 @@ void main() {
           'param `lfe_low` const `lfe_lowDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, lfe_low: SurroundSettings.lfe_lowDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `lfe_out` const `lfe_outMin` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, lfe_out: SurroundSettings.lfe_outMin);
+            enabled: true, lfe_out: SurroundSettings.lfe_outMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `lfe_out` const `lfe_outMax` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, lfe_out: SurroundSettings.lfe_outMax);
+            enabled: true, lfe_out: SurroundSettings.lfe_outMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14164,21 +14149,21 @@ void main() {
           'param `lfe_out` const `lfe_outDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, lfe_out: SurroundSettings.lfe_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `overlap` const `overlapMin` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, overlap: SurroundSettings.overlapMin);
+            enabled: true, overlap: SurroundSettings.overlapMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `overlap` const `overlapMax` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, overlap: SurroundSettings.overlapMax);
+            enabled: true, overlap: SurroundSettings.overlapMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14186,7 +14171,7 @@ void main() {
           'param `overlap` const `overlapDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, overlap: SurroundSettings.overlapDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14205,7 +14190,7 @@ void main() {
       test('param `sl_in` const `sl_inDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, sl_in: SurroundSettings.sl_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14226,7 +14211,7 @@ void main() {
       test('param `sl_out` const `sl_outDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, sl_out: SurroundSettings.sl_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14242,7 +14227,7 @@ void main() {
 
       test('param `slx` const `slxDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, slx: SurroundSettings.slxDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14258,14 +14243,14 @@ void main() {
 
       test('param `sly` const `slyDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, sly: SurroundSettings.slyDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `smooth` const `smoothMin` is accepted by toFilterString',
           () {
         final s =
-            SurroundSettings(enabled: true, smooth: SurroundSettings.smoothMin);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14279,7 +14264,7 @@ void main() {
       test('param `smooth` const `smoothDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, smooth: SurroundSettings.smoothDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14298,7 +14283,7 @@ void main() {
       test('param `sr_in` const `sr_inDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, sr_in: SurroundSettings.sr_inDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14319,7 +14304,7 @@ void main() {
       test('param `sr_out` const `sr_outDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, sr_out: SurroundSettings.sr_outDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14335,7 +14320,7 @@ void main() {
 
       test('param `srx` const `srxDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, srx: SurroundSettings.srxDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14351,21 +14336,21 @@ void main() {
 
       test('param `sry` const `sryDefault` is accepted by toFilterString', () {
         final s =
-            SurroundSettings(enabled: true, sry: SurroundSettings.sryDefault);
+            SurroundSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `win_size` const `win_sizeMin` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, win_size: SurroundSettings.win_sizeMin);
+            enabled: true, win_size: SurroundSettings.win_sizeMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `win_size` const `win_sizeMax` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, win_size: SurroundSettings.win_sizeMax);
+            enabled: true, win_size: SurroundSettings.win_sizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14373,13 +14358,13 @@ void main() {
           'param `win_size` const `win_sizeDefault` is accepted by toFilterString',
           () {
         final s = SurroundSettings(
-            enabled: true, win_size: SurroundSettings.win_sizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('TiltshelfSettings (tiltshelf)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(tiltshelf: TiltshelfSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -14389,149 +14374,149 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(
-            enabled: true, a: TiltshelfTransformType.dii);
+        const s = TiltshelfSettings(
+            enabled: true, a: TiltshelfTransformType.dii,);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, b: 32768);
+        const s = TiltshelfSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const TiltshelfSettings(enabled: true, blocksize: 32768);
+        const s = TiltshelfSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, c: 'wire_test_alt');
+        const s = TiltshelfSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const TiltshelfSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            TiltshelfSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, f: 999999.0);
+        const s = TiltshelfSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const TiltshelfSettings(enabled: true, frequency: 999999.0);
+        const s = TiltshelfSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `g` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, g: 900.0);
+        const s = TiltshelfSettings(enabled: true, g: 900.0);
         expect(s.toFilterString(), contains('g='));
         expect(s.toFilterString(), contains('g=900.000'));
       });
 
       test('param `gain` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, gain: 900.0);
+        const s = TiltshelfSettings(enabled: true, gain: 900.0);
         expect(s.toFilterString(), contains('gain='));
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, m: 0.0);
+        const s = TiltshelfSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, mix: 0.0);
+        const s = TiltshelfSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, n: true);
+        const s = TiltshelfSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const TiltshelfSettings(enabled: true, normalize: true);
+        const s = TiltshelfSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, p: 1);
+        const s = TiltshelfSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
         expect(s.toFilterString(), contains('p=1'));
       });
 
       test('param `poles` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, poles: 1);
+        const s = TiltshelfSettings(enabled: true, poles: 1);
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s = const TiltshelfSettings(
-            enabled: true, precision: TiltshelfPrecision.s16);
+        const s = TiltshelfSettings(
+            enabled: true, precision: TiltshelfPrecision.s16,);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s =
-            const TiltshelfSettings(enabled: true, r: TiltshelfPrecision.s16);
+        const s =
+            TiltshelfSettings(enabled: true, r: TiltshelfPrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s =
-            const TiltshelfSettings(enabled: true, t: TiltshelfWidthType.h);
+        const s =
+            TiltshelfSettings(enabled: true, t: TiltshelfWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const TiltshelfSettings(
-            enabled: true, transform: TiltshelfTransformType.dii);
+        const s = TiltshelfSettings(
+            enabled: true, transform: TiltshelfTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, w: 99999.0);
+        const s = TiltshelfSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const TiltshelfSettings(enabled: true, width: 99999.0);
+        const s = TiltshelfSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s = const TiltshelfSettings(
-            enabled: true, width_type: TiltshelfWidthType.h);
+        const s = TiltshelfSettings(
+            enabled: true, width_type: TiltshelfWidthType.h,);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = TiltshelfSettings(enabled: true, b: TiltshelfSettings.bMin);
+        final s = TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14542,7 +14527,7 @@ void main() {
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
         final s =
-            TiltshelfSettings(enabled: true, b: TiltshelfSettings.bDefault);
+            TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14550,7 +14535,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s = TiltshelfSettings(
-            enabled: true, blocksize: TiltshelfSettings.blocksizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14558,7 +14543,7 @@ void main() {
           'param `blocksize` const `blocksizeMax` is accepted by toFilterString',
           () {
         final s = TiltshelfSettings(
-            enabled: true, blocksize: TiltshelfSettings.blocksizeMax);
+            enabled: true, blocksize: TiltshelfSettings.blocksizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14566,7 +14551,7 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = TiltshelfSettings(
-            enabled: true, blocksize: TiltshelfSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14582,7 +14567,7 @@ void main() {
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
         final s =
-            TiltshelfSettings(enabled: true, f: TiltshelfSettings.fDefault);
+            TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14590,7 +14575,7 @@ void main() {
           'param `frequency` const `frequencyMin` is accepted by toFilterString',
           () {
         final s = TiltshelfSettings(
-            enabled: true, frequency: TiltshelfSettings.frequencyMin);
+            enabled: true, frequency: TiltshelfSettings.frequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14598,7 +14583,7 @@ void main() {
           'param `frequency` const `frequencyMax` is accepted by toFilterString',
           () {
         final s = TiltshelfSettings(
-            enabled: true, frequency: TiltshelfSettings.frequencyMax);
+            enabled: true, frequency: TiltshelfSettings.frequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14606,7 +14591,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = TiltshelfSettings(
-            enabled: true, frequency: TiltshelfSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14622,7 +14607,7 @@ void main() {
 
       test('param `g` const `gDefault` is accepted by toFilterString', () {
         final s =
-            TiltshelfSettings(enabled: true, g: TiltshelfSettings.gDefault);
+            TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14641,7 +14626,7 @@ void main() {
       test('param `gain` const `gainDefault` is accepted by toFilterString',
           () {
         final s = TiltshelfSettings(
-            enabled: true, gain: TiltshelfSettings.gainDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14651,13 +14636,13 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = TiltshelfSettings(enabled: true, m: TiltshelfSettings.mMax);
+        final s = TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
         final s =
-            TiltshelfSettings(enabled: true, m: TiltshelfSettings.mDefault);
+            TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14669,13 +14654,13 @@ void main() {
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
         final s =
-            TiltshelfSettings(enabled: true, mix: TiltshelfSettings.mixMax);
+            TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
         final s =
-            TiltshelfSettings(enabled: true, mix: TiltshelfSettings.mixDefault);
+            TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14685,13 +14670,13 @@ void main() {
       });
 
       test('param `p` const `pMax` is accepted by toFilterString', () {
-        final s = TiltshelfSettings(enabled: true, p: TiltshelfSettings.pMax);
+        final s = TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `p` const `pDefault` is accepted by toFilterString', () {
         final s =
-            TiltshelfSettings(enabled: true, p: TiltshelfSettings.pDefault);
+            TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14703,14 +14688,14 @@ void main() {
 
       test('param `poles` const `polesMax` is accepted by toFilterString', () {
         final s =
-            TiltshelfSettings(enabled: true, poles: TiltshelfSettings.polesMax);
+            TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `poles` const `polesDefault` is accepted by toFilterString',
           () {
         final s = TiltshelfSettings(
-            enabled: true, poles: TiltshelfSettings.polesDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14726,7 +14711,7 @@ void main() {
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
         final s =
-            TiltshelfSettings(enabled: true, w: TiltshelfSettings.wDefault);
+            TiltshelfSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14745,13 +14730,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s = TiltshelfSettings(
-            enabled: true, width: TiltshelfSettings.widthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('TrebleSettings (treble)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(treble: TrebleSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -14761,147 +14746,147 @@ void main() {
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
-        final s =
-            const TrebleSettings(enabled: true, a: TrebleTransformType.dii);
+        const s =
+            TrebleSettings(enabled: true, a: TrebleTransformType.dii);
         expect(s.toFilterString(), contains('a='));
         expect(s.toFilterString(), contains('a=dii'));
       });
 
       test('param `b` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, b: 32768);
+        const s = TrebleSettings(enabled: true, b: 32768);
         expect(s.toFilterString(), contains('b='));
         expect(s.toFilterString(), contains('b=32768'));
       });
 
       test('param `blocksize` lands in wire when set to a non-default value',
           () {
-        final s = const TrebleSettings(enabled: true, blocksize: 32768);
+        const s = TrebleSettings(enabled: true, blocksize: 32768);
         expect(s.toFilterString(), contains('blocksize='));
         expect(s.toFilterString(), contains('blocksize=32768'));
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, c: 'wire_test_alt');
+        const s = TrebleSettings(enabled: true, c: 'wire_test_alt');
         expect(s.toFilterString(), contains('c='));
       });
 
       test('param `channels` lands in wire when set to a non-default value',
           () {
-        final s =
-            const TrebleSettings(enabled: true, channels: 'wire_test_alt');
+        const s =
+            TrebleSettings(enabled: true, channels: 'wire_test_alt');
         expect(s.toFilterString(), contains('channels='));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, f: 999999.0);
+        const s = TrebleSettings(enabled: true, f: 999999.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=999999.000'));
       });
 
       test('param `frequency` lands in wire when set to a non-default value',
           () {
-        final s = const TrebleSettings(enabled: true, frequency: 999999.0);
+        const s = TrebleSettings(enabled: true, frequency: 999999.0);
         expect(s.toFilterString(), contains('frequency='));
         expect(s.toFilterString(), contains('frequency=999999.000'));
       });
 
       test('param `g` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, g: 900.0);
+        const s = TrebleSettings(enabled: true, g: 900.0);
         expect(s.toFilterString(), contains('g='));
         expect(s.toFilterString(), contains('g=900.000'));
       });
 
       test('param `gain` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, gain: 900.0);
+        const s = TrebleSettings(enabled: true, gain: 900.0);
         expect(s.toFilterString(), contains('gain='));
         expect(s.toFilterString(), contains('gain=900.000'));
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, m: 0.0);
+        const s = TrebleSettings(enabled: true, m: 0.0);
         expect(s.toFilterString(), contains('m='));
         expect(s.toFilterString(), contains('m=0.000'));
       });
 
       test('param `mix` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, mix: 0.0);
+        const s = TrebleSettings(enabled: true, mix: 0.0);
         expect(s.toFilterString(), contains('mix='));
         expect(s.toFilterString(), contains('mix=0.000'));
       });
 
       test('param `n` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, n: true);
+        const s = TrebleSettings(enabled: true, n: true);
         expect(s.toFilterString(), contains('n='));
       });
 
       test('param `normalize` lands in wire when set to a non-default value',
           () {
-        final s = const TrebleSettings(enabled: true, normalize: true);
+        const s = TrebleSettings(enabled: true, normalize: true);
         expect(s.toFilterString(), contains('normalize='));
       });
 
       test('param `p` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, p: 1);
+        const s = TrebleSettings(enabled: true, p: 1);
         expect(s.toFilterString(), contains('p='));
         expect(s.toFilterString(), contains('p=1'));
       });
 
       test('param `poles` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, poles: 1);
+        const s = TrebleSettings(enabled: true, poles: 1);
         expect(s.toFilterString(), contains('poles='));
         expect(s.toFilterString(), contains('poles=1'));
       });
 
       test('param `precision` lands in wire when set to a non-default value',
           () {
-        final s =
-            const TrebleSettings(enabled: true, precision: TreblePrecision.s16);
+        const s =
+            TrebleSettings(enabled: true, precision: TreblePrecision.s16);
         expect(s.toFilterString(), contains('precision='));
         expect(s.toFilterString(), contains('precision=s16'));
       });
 
       test('param `r` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, r: TreblePrecision.s16);
+        const s = TrebleSettings(enabled: true, r: TreblePrecision.s16);
         expect(s.toFilterString(), contains('r='));
         expect(s.toFilterString(), contains('r=s16'));
       });
 
       test('param `t` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, t: TrebleWidthType.h);
+        const s = TrebleSettings(enabled: true, t: TrebleWidthType.h);
         expect(s.toFilterString(), contains('t='));
         expect(s.toFilterString(), contains('t=h'));
       });
 
       test('param `transform` lands in wire when set to a non-default value',
           () {
-        final s = const TrebleSettings(
-            enabled: true, transform: TrebleTransformType.dii);
+        const s = TrebleSettings(
+            enabled: true, transform: TrebleTransformType.dii,);
         expect(s.toFilterString(), contains('transform='));
         expect(s.toFilterString(), contains('transform=dii'));
       });
 
       test('param `w` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, w: 99999.0);
+        const s = TrebleSettings(enabled: true, w: 99999.0);
         expect(s.toFilterString(), contains('w='));
         expect(s.toFilterString(), contains('w=99999.000'));
       });
 
       test('param `width` lands in wire when set to a non-default value', () {
-        final s = const TrebleSettings(enabled: true, width: 99999.0);
+        const s = TrebleSettings(enabled: true, width: 99999.0);
         expect(s.toFilterString(), contains('width='));
         expect(s.toFilterString(), contains('width=99999.000'));
       });
 
       test('param `width_type` lands in wire when set to a non-default value',
           () {
-        final s =
-            const TrebleSettings(enabled: true, width_type: TrebleWidthType.h);
+        const s =
+            TrebleSettings(enabled: true, width_type: TrebleWidthType.h);
         expect(s.toFilterString(), contains('width_type='));
         expect(s.toFilterString(), contains('width_type=h'));
       });
 
       test('param `b` const `bMin` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, b: TrebleSettings.bMin);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14911,7 +14896,7 @@ void main() {
       });
 
       test('param `b` const `bDefault` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, b: TrebleSettings.bDefault);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14919,7 +14904,7 @@ void main() {
           'param `blocksize` const `blocksizeMin` is accepted by toFilterString',
           () {
         final s = TrebleSettings(
-            enabled: true, blocksize: TrebleSettings.blocksizeMin);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14927,7 +14912,7 @@ void main() {
           'param `blocksize` const `blocksizeMax` is accepted by toFilterString',
           () {
         final s = TrebleSettings(
-            enabled: true, blocksize: TrebleSettings.blocksizeMax);
+            enabled: true, blocksize: TrebleSettings.blocksizeMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14935,7 +14920,7 @@ void main() {
           'param `blocksize` const `blocksizeDefault` is accepted by toFilterString',
           () {
         final s = TrebleSettings(
-            enabled: true, blocksize: TrebleSettings.blocksizeDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14950,7 +14935,7 @@ void main() {
       });
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, f: TrebleSettings.fDefault);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14958,7 +14943,7 @@ void main() {
           'param `frequency` const `frequencyMin` is accepted by toFilterString',
           () {
         final s = TrebleSettings(
-            enabled: true, frequency: TrebleSettings.frequencyMin);
+            enabled: true, frequency: TrebleSettings.frequencyMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14966,7 +14951,7 @@ void main() {
           'param `frequency` const `frequencyMax` is accepted by toFilterString',
           () {
         final s = TrebleSettings(
-            enabled: true, frequency: TrebleSettings.frequencyMax);
+            enabled: true, frequency: TrebleSettings.frequencyMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14974,7 +14959,7 @@ void main() {
           'param `frequency` const `frequencyDefault` is accepted by toFilterString',
           () {
         final s = TrebleSettings(
-            enabled: true, frequency: TrebleSettings.frequencyDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -14989,7 +14974,7 @@ void main() {
       });
 
       test('param `g` const `gDefault` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, g: TrebleSettings.gDefault);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -15006,7 +14991,7 @@ void main() {
       test('param `gain` const `gainDefault` is accepted by toFilterString',
           () {
         final s =
-            TrebleSettings(enabled: true, gain: TrebleSettings.gainDefault);
+            TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -15016,12 +15001,12 @@ void main() {
       });
 
       test('param `m` const `mMax` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, m: TrebleSettings.mMax);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `m` const `mDefault` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, m: TrebleSettings.mDefault);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -15031,12 +15016,12 @@ void main() {
       });
 
       test('param `mix` const `mixMax` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, mix: TrebleSettings.mixMax);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `mix` const `mixDefault` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, mix: TrebleSettings.mixDefault);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -15046,12 +15031,12 @@ void main() {
       });
 
       test('param `p` const `pMax` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, p: TrebleSettings.pMax);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `p` const `pDefault` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, p: TrebleSettings.pDefault);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -15061,14 +15046,14 @@ void main() {
       });
 
       test('param `poles` const `polesMax` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, poles: TrebleSettings.polesMax);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `poles` const `polesDefault` is accepted by toFilterString',
           () {
         final s =
-            TrebleSettings(enabled: true, poles: TrebleSettings.polesDefault);
+            TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -15083,7 +15068,7 @@ void main() {
       });
 
       test('param `w` const `wDefault` is accepted by toFilterString', () {
-        final s = TrebleSettings(enabled: true, w: TrebleSettings.wDefault);
+        final s = TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -15100,13 +15085,13 @@ void main() {
       test('param `width` const `widthDefault` is accepted by toFilterString',
           () {
         final s =
-            TrebleSettings(enabled: true, width: TrebleSettings.widthDefault);
+            TrebleSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('TremoloSettings (tremolo)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(tremolo: TremoloSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -15116,13 +15101,13 @@ void main() {
       });
 
       test('param `d` lands in wire when set to a non-default value', () {
-        final s = const TremoloSettings(enabled: true, d: 1.0);
+        const s = TremoloSettings(enabled: true, d: 1.0);
         expect(s.toFilterString(), contains('d='));
         expect(s.toFilterString(), contains('d=1.000'));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const TremoloSettings(enabled: true, f: 20000.0);
+        const s = TremoloSettings(enabled: true, f: 20000.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=20000.000'));
       });
@@ -15138,7 +15123,7 @@ void main() {
       });
 
       test('param `d` const `dDefault` is accepted by toFilterString', () {
-        final s = TremoloSettings(enabled: true, d: TremoloSettings.dDefault);
+        final s = TremoloSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -15153,13 +15138,13 @@ void main() {
       });
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
-        final s = TremoloSettings(enabled: true, f: TremoloSettings.fDefault);
+        final s = TremoloSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('VibratoSettings (vibrato)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(vibrato: VibratoSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -15169,13 +15154,13 @@ void main() {
       });
 
       test('param `d` lands in wire when set to a non-default value', () {
-        final s = const VibratoSettings(enabled: true, d: 1.0);
+        const s = VibratoSettings(enabled: true, d: 1.0);
         expect(s.toFilterString(), contains('d='));
         expect(s.toFilterString(), contains('d=1.000'));
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
-        final s = const VibratoSettings(enabled: true, f: 20000.0);
+        const s = VibratoSettings(enabled: true, f: 20000.0);
         expect(s.toFilterString(), contains('f='));
         expect(s.toFilterString(), contains('f=20000.000'));
       });
@@ -15191,7 +15176,7 @@ void main() {
       });
 
       test('param `d` const `dDefault` is accepted by toFilterString', () {
-        final s = VibratoSettings(enabled: true, d: VibratoSettings.dDefault);
+        final s = VibratoSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -15206,13 +15191,13 @@ void main() {
       });
 
       test('param `f` const `fDefault` is accepted by toFilterString', () {
-        final s = VibratoSettings(enabled: true, f: VibratoSettings.fDefault);
+        final s = VibratoSettings(enabled: true);
         expect(s.toFilterString, returnsNormally);
       });
     });
     group('VirtualbassSettings (virtualbass)', () {
       test('disabled by default → drops out of toAfChain', () {
-        const fx = AudioEffects(virtualbass: VirtualbassSettings());
+        const fx = AudioEffects();
         expect(fx.toAfChain(), '');
       });
 
@@ -15223,14 +15208,14 @@ void main() {
       });
 
       test('param `cutoff` lands in wire when set to a non-default value', () {
-        final s = const VirtualbassSettings(enabled: true, cutoff: 500.0);
+        const s = VirtualbassSettings(enabled: true, cutoff: 500.0);
         expect(s.toFilterString(), contains('cutoff='));
         expect(s.toFilterString(), contains('cutoff=500.000'));
       });
 
       test('param `strength` lands in wire when set to a non-default value',
           () {
-        final s = const VirtualbassSettings(enabled: true, strength: 0.5);
+        const s = VirtualbassSettings(enabled: true, strength: 0.5);
         expect(s.toFilterString(), contains('strength='));
         expect(s.toFilterString(), contains('strength=0.500'));
       });
@@ -15238,35 +15223,35 @@ void main() {
       test('param `cutoff` const `cutoffMin` is accepted by toFilterString',
           () {
         final s = VirtualbassSettings(
-            enabled: true, cutoff: VirtualbassSettings.cutoffMin);
+            enabled: true, cutoff: VirtualbassSettings.cutoffMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `cutoff` const `cutoffMax` is accepted by toFilterString',
           () {
         final s = VirtualbassSettings(
-            enabled: true, cutoff: VirtualbassSettings.cutoffMax);
+            enabled: true, cutoff: VirtualbassSettings.cutoffMax,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `cutoff` const `cutoffDefault` is accepted by toFilterString',
           () {
         final s = VirtualbassSettings(
-            enabled: true, cutoff: VirtualbassSettings.cutoffDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `strength` const `strengthMin` is accepted by toFilterString',
           () {
         final s = VirtualbassSettings(
-            enabled: true, strength: VirtualbassSettings.strengthMin);
+            enabled: true, strength: VirtualbassSettings.strengthMin,);
         expect(s.toFilterString, returnsNormally);
       });
 
       test('param `strength` const `strengthMax` is accepted by toFilterString',
           () {
         final s = VirtualbassSettings(
-            enabled: true, strength: VirtualbassSettings.strengthMax);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
 
@@ -15274,7 +15259,7 @@ void main() {
           'param `strength` const `strengthDefault` is accepted by toFilterString',
           () {
         final s = VirtualbassSettings(
-            enabled: true, strength: VirtualbassSettings.strengthDefault);
+            enabled: true,);
         expect(s.toFilterString, returnsNormally);
       });
     });
@@ -15291,7 +15276,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AcompressorDetection.fromMpv('this_will_never_match'),
-            AcompressorDetection.peak);
+            AcompressorDetection.peak,);
         expect(AcompressorDetection.fromMpv(null), AcompressorDetection.peak);
       });
     });
@@ -15305,7 +15290,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AcompressorLink.fromMpv('this_will_never_match'),
-            AcompressorLink.average);
+            AcompressorLink.average,);
         expect(AcompressorLink.fromMpv(null), AcompressorLink.average);
       });
     });
@@ -15319,7 +15304,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AcompressorMode.fromMpv('this_will_never_match'),
-            AcompressorMode.downward);
+            AcompressorMode.downward,);
         expect(AcompressorMode.fromMpv(null), AcompressorMode.downward);
       });
     });
@@ -15385,9 +15370,9 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AdynamicequalizerAuto.fromMpv('this_will_never_match'),
-            AdynamicequalizerAuto.disabled);
+            AdynamicequalizerAuto.disabled,);
         expect(AdynamicequalizerAuto.fromMpv(null),
-            AdynamicequalizerAuto.disabled);
+            AdynamicequalizerAuto.disabled,);
       });
     });
     group('AdynamicequalizerDftype (codegen enum)', () {
@@ -15400,9 +15385,9 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AdynamicequalizerDftype.fromMpv('this_will_never_match'),
-            AdynamicequalizerDftype.bandpass);
+            AdynamicequalizerDftype.bandpass,);
         expect(AdynamicequalizerDftype.fromMpv(null),
-            AdynamicequalizerDftype.bandpass);
+            AdynamicequalizerDftype.bandpass,);
       });
     });
     group('AdynamicequalizerMode (codegen enum)', () {
@@ -15415,9 +15400,9 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AdynamicequalizerMode.fromMpv('this_will_never_match'),
-            AdynamicequalizerMode.listen);
+            AdynamicequalizerMode.listen,);
         expect(
-            AdynamicequalizerMode.fromMpv(null), AdynamicequalizerMode.listen);
+            AdynamicequalizerMode.fromMpv(null), AdynamicequalizerMode.listen,);
       });
     });
     group('AdynamicequalizerPrecision (codegen enum)', () {
@@ -15430,9 +15415,9 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AdynamicequalizerPrecision.fromMpv('this_will_never_match'),
-            AdynamicequalizerPrecision.auto);
+            AdynamicequalizerPrecision.auto,);
         expect(AdynamicequalizerPrecision.fromMpv(null),
-            AdynamicequalizerPrecision.auto);
+            AdynamicequalizerPrecision.auto,);
       });
     });
     group('AdynamicequalizerTftype (codegen enum)', () {
@@ -15445,9 +15430,9 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AdynamicequalizerTftype.fromMpv('this_will_never_match'),
-            AdynamicequalizerTftype.bell);
+            AdynamicequalizerTftype.bell,);
         expect(AdynamicequalizerTftype.fromMpv(null),
-            AdynamicequalizerTftype.bell);
+            AdynamicequalizerTftype.bell,);
       });
     });
     group('AemphasisMode (codegen enum)', () {
@@ -15460,7 +15445,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AemphasisMode.fromMpv('this_will_never_match'),
-            AemphasisMode.reproduction);
+            AemphasisMode.reproduction,);
         expect(AemphasisMode.fromMpv(null), AemphasisMode.reproduction);
       });
     });
@@ -15474,7 +15459,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(
-            AemphasisType.fromMpv('this_will_never_match'), AemphasisType.col);
+            AemphasisType.fromMpv('this_will_never_match'), AemphasisType.col,);
         expect(AemphasisType.fromMpv(null), AemphasisType.col);
       });
     });
@@ -15540,7 +15525,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(
-            AfftdnSample.fromMpv('this_will_never_match'), AfftdnSample.none);
+            AfftdnSample.fromMpv('this_will_never_match'), AfftdnSample.none,);
         expect(AfftdnSample.fromMpv(null), AfftdnSample.none);
       });
     });
@@ -15567,7 +15552,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AfftfiltWinFunc.fromMpv('this_will_never_match'),
-            AfftfiltWinFunc.rect);
+            AfftfiltWinFunc.rect,);
         expect(AfftfiltWinFunc.fromMpv(null), AfftfiltWinFunc.rect);
       });
     });
@@ -15594,7 +15579,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AgateDetection.fromMpv('this_will_never_match'),
-            AgateDetection.peak);
+            AgateDetection.peak,);
         expect(AgateDetection.fromMpv(null), AgateDetection.peak);
       });
     });
@@ -15647,7 +15632,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(
-            AiirPrecision.fromMpv('this_will_never_match'), AiirPrecision.dbl);
+            AiirPrecision.fromMpv('this_will_never_match'), AiirPrecision.dbl,);
         expect(AiirPrecision.fromMpv(null), AiirPrecision.dbl);
       });
     });
@@ -15674,7 +15659,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AllpassPrecision.fromMpv('this_will_never_match'),
-            AllpassPrecision.auto);
+            AllpassPrecision.auto,);
         expect(AllpassPrecision.fromMpv(null), AllpassPrecision.auto);
       });
     });
@@ -15688,7 +15673,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AllpassTransformType.fromMpv('this_will_never_match'),
-            AllpassTransformType.di);
+            AllpassTransformType.di,);
         expect(AllpassTransformType.fromMpv(null), AllpassTransformType.di);
       });
     });
@@ -15702,7 +15687,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AllpassWidthType.fromMpv('this_will_never_match'),
-            AllpassWidthType.h);
+            AllpassWidthType.h,);
         expect(AllpassWidthType.fromMpv(null), AllpassWidthType.h);
       });
     });
@@ -15716,7 +15701,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AnequalizerFscale.fromMpv('this_will_never_match'),
-            AnequalizerFscale.lin);
+            AnequalizerFscale.lin,);
         expect(AnequalizerFscale.fromMpv(null), AnequalizerFscale.lin);
       });
     });
@@ -15743,7 +15728,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AphaserType.fromMpv('this_will_never_match'),
-            AphaserType.triangular);
+            AphaserType.triangular,);
         expect(AphaserType.fromMpv(null), AphaserType.triangular);
       });
     });
@@ -15757,7 +15742,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(
-            ApulsatorMode.fromMpv('this_will_never_match'), ApulsatorMode.sine);
+            ApulsatorMode.fromMpv('this_will_never_match'), ApulsatorMode.sine,);
         expect(ApulsatorMode.fromMpv(null), ApulsatorMode.sine);
       });
     });
@@ -15771,7 +15756,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(ApulsatorTiming.fromMpv('this_will_never_match'),
-            ApulsatorTiming.bpm);
+            ApulsatorTiming.bpm,);
         expect(ApulsatorTiming.fromMpv(null), ApulsatorTiming.bpm);
       });
     });
@@ -15785,7 +15770,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(AsoftclipTypes.fromMpv('this_will_never_match'),
-            AsoftclipTypes.hard);
+            AsoftclipTypes.hard,);
         expect(AsoftclipTypes.fromMpv(null), AsoftclipTypes.hard);
       });
     });
@@ -15799,7 +15784,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(BandpassPrecision.fromMpv('this_will_never_match'),
-            BandpassPrecision.auto);
+            BandpassPrecision.auto,);
         expect(BandpassPrecision.fromMpv(null), BandpassPrecision.auto);
       });
     });
@@ -15813,7 +15798,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(BandpassTransformType.fromMpv('this_will_never_match'),
-            BandpassTransformType.di);
+            BandpassTransformType.di,);
         expect(BandpassTransformType.fromMpv(null), BandpassTransformType.di);
       });
     });
@@ -15827,7 +15812,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(BandpassWidthType.fromMpv('this_will_never_match'),
-            BandpassWidthType.h);
+            BandpassWidthType.h,);
         expect(BandpassWidthType.fromMpv(null), BandpassWidthType.h);
       });
     });
@@ -15841,7 +15826,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(BandrejectPrecision.fromMpv('this_will_never_match'),
-            BandrejectPrecision.auto);
+            BandrejectPrecision.auto,);
         expect(BandrejectPrecision.fromMpv(null), BandrejectPrecision.auto);
       });
     });
@@ -15855,9 +15840,9 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(BandrejectTransformType.fromMpv('this_will_never_match'),
-            BandrejectTransformType.di);
+            BandrejectTransformType.di,);
         expect(
-            BandrejectTransformType.fromMpv(null), BandrejectTransformType.di);
+            BandrejectTransformType.fromMpv(null), BandrejectTransformType.di,);
       });
     });
     group('BandrejectWidthType (codegen enum)', () {
@@ -15870,7 +15855,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(BandrejectWidthType.fromMpv('this_will_never_match'),
-            BandrejectWidthType.h);
+            BandrejectWidthType.h,);
         expect(BandrejectWidthType.fromMpv(null), BandrejectWidthType.h);
       });
     });
@@ -15884,7 +15869,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(
-            BassPrecision.fromMpv('this_will_never_match'), BassPrecision.auto);
+            BassPrecision.fromMpv('this_will_never_match'), BassPrecision.auto,);
         expect(BassPrecision.fromMpv(null), BassPrecision.auto);
       });
     });
@@ -15898,7 +15883,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(BassTransformType.fromMpv('this_will_never_match'),
-            BassTransformType.di);
+            BassTransformType.di,);
         expect(BassTransformType.fromMpv(null), BassTransformType.di);
       });
     });
@@ -15925,7 +15910,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(BiquadPrecision.fromMpv('this_will_never_match'),
-            BiquadPrecision.auto);
+            BiquadPrecision.auto,);
         expect(BiquadPrecision.fromMpv(null), BiquadPrecision.auto);
       });
     });
@@ -15939,7 +15924,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(BiquadTransformType.fromMpv('this_will_never_match'),
-            BiquadTransformType.di);
+            BiquadTransformType.di,);
         expect(BiquadTransformType.fromMpv(null), BiquadTransformType.di);
       });
     });
@@ -15966,7 +15951,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(Ebur128Gaugetype.fromMpv('this_will_never_match'),
-            Ebur128Gaugetype.momentary);
+            Ebur128Gaugetype.momentary,);
         expect(Ebur128Gaugetype.fromMpv(null), Ebur128Gaugetype.momentary);
       });
     });
@@ -15980,7 +15965,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(
-            Ebur128Level.fromMpv('this_will_never_match'), Ebur128Level.quiet);
+            Ebur128Level.fromMpv('this_will_never_match'), Ebur128Level.quiet,);
         expect(Ebur128Level.fromMpv(null), Ebur128Level.quiet);
       });
     });
@@ -16007,7 +15992,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(Ebur128Scaletype.fromMpv('this_will_never_match'),
-            Ebur128Scaletype.absolute);
+            Ebur128Scaletype.absolute,);
         expect(Ebur128Scaletype.fromMpv(null), Ebur128Scaletype.absolute);
       });
     });
@@ -16021,7 +16006,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(EqualizerPrecision.fromMpv('this_will_never_match'),
-            EqualizerPrecision.auto);
+            EqualizerPrecision.auto,);
         expect(EqualizerPrecision.fromMpv(null), EqualizerPrecision.auto);
       });
     });
@@ -16035,7 +16020,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(EqualizerTransformType.fromMpv('this_will_never_match'),
-            EqualizerTransformType.di);
+            EqualizerTransformType.di,);
         expect(EqualizerTransformType.fromMpv(null), EqualizerTransformType.di);
       });
     });
@@ -16049,7 +16034,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(EqualizerWidthType.fromMpv('this_will_never_match'),
-            EqualizerWidthType.h);
+            EqualizerWidthType.h,);
         expect(EqualizerWidthType.fromMpv(null), EqualizerWidthType.h);
       });
     });
@@ -16063,7 +16048,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(FirequalizerScale.fromMpv('this_will_never_match'),
-            FirequalizerScale.linlin);
+            FirequalizerScale.linlin,);
         expect(FirequalizerScale.fromMpv(null), FirequalizerScale.linlin);
       });
     });
@@ -16077,7 +16062,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(FirequalizerWfunc.fromMpv('this_will_never_match'),
-            FirequalizerWfunc.rectangular);
+            FirequalizerWfunc.rectangular,);
         expect(FirequalizerWfunc.fromMpv(null), FirequalizerWfunc.rectangular);
       });
     });
@@ -16091,7 +16076,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(
-            FlangerItype.fromMpv('this_will_never_match'), FlangerItype.linear);
+            FlangerItype.fromMpv('this_will_never_match'), FlangerItype.linear,);
         expect(FlangerItype.fromMpv(null), FlangerItype.linear);
       });
     });
@@ -16105,7 +16090,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(FlangerType.fromMpv('this_will_never_match'),
-            FlangerType.triangular);
+            FlangerType.triangular,);
         expect(FlangerType.fromMpv(null), FlangerType.triangular);
       });
     });
@@ -16132,7 +16117,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(HdcdAnalyzeMode.fromMpv('this_will_never_match'),
-            HdcdAnalyzeMode.off);
+            HdcdAnalyzeMode.off,);
         expect(HdcdAnalyzeMode.fromMpv(null), HdcdAnalyzeMode.off);
       });
     });
@@ -16146,7 +16131,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(HdcdBitsPerSample.fromMpv('this_will_never_match'),
-            HdcdBitsPerSample.n16);
+            HdcdBitsPerSample.n16,);
         expect(HdcdBitsPerSample.fromMpv(null), HdcdBitsPerSample.n16);
       });
     });
@@ -16160,7 +16145,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(HeadphoneHrir.fromMpv('this_will_never_match'),
-            HeadphoneHrir.stereo);
+            HeadphoneHrir.stereo,);
         expect(HeadphoneHrir.fromMpv(null), HeadphoneHrir.stereo);
       });
     });
@@ -16174,7 +16159,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(
-            HeadphoneType.fromMpv('this_will_never_match'), HeadphoneType.time);
+            HeadphoneType.fromMpv('this_will_never_match'), HeadphoneType.time,);
         expect(HeadphoneType.fromMpv(null), HeadphoneType.time);
       });
     });
@@ -16188,7 +16173,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(HighpassPrecision.fromMpv('this_will_never_match'),
-            HighpassPrecision.auto);
+            HighpassPrecision.auto,);
         expect(HighpassPrecision.fromMpv(null), HighpassPrecision.auto);
       });
     });
@@ -16202,7 +16187,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(HighpassTransformType.fromMpv('this_will_never_match'),
-            HighpassTransformType.di);
+            HighpassTransformType.di,);
         expect(HighpassTransformType.fromMpv(null), HighpassTransformType.di);
       });
     });
@@ -16216,7 +16201,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(HighpassWidthType.fromMpv('this_will_never_match'),
-            HighpassWidthType.h);
+            HighpassWidthType.h,);
         expect(HighpassWidthType.fromMpv(null), HighpassWidthType.h);
       });
     });
@@ -16230,7 +16215,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(HighshelfPrecision.fromMpv('this_will_never_match'),
-            HighshelfPrecision.auto);
+            HighshelfPrecision.auto,);
         expect(HighshelfPrecision.fromMpv(null), HighshelfPrecision.auto);
       });
     });
@@ -16244,7 +16229,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(HighshelfTransformType.fromMpv('this_will_never_match'),
-            HighshelfTransformType.di);
+            HighshelfTransformType.di,);
         expect(HighshelfTransformType.fromMpv(null), HighshelfTransformType.di);
       });
     });
@@ -16258,7 +16243,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(HighshelfWidthType.fromMpv('this_will_never_match'),
-            HighshelfWidthType.h);
+            HighshelfWidthType.h,);
         expect(HighshelfWidthType.fromMpv(null), HighshelfWidthType.h);
       });
     });
@@ -16272,7 +16257,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(LoudnormPrintFormat.fromMpv('this_will_never_match'),
-            LoudnormPrintFormat.none);
+            LoudnormPrintFormat.none,);
         expect(LoudnormPrintFormat.fromMpv(null), LoudnormPrintFormat.none);
       });
     });
@@ -16286,7 +16271,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(LowpassPrecision.fromMpv('this_will_never_match'),
-            LowpassPrecision.auto);
+            LowpassPrecision.auto,);
         expect(LowpassPrecision.fromMpv(null), LowpassPrecision.auto);
       });
     });
@@ -16300,7 +16285,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(LowpassTransformType.fromMpv('this_will_never_match'),
-            LowpassTransformType.di);
+            LowpassTransformType.di,);
         expect(LowpassTransformType.fromMpv(null), LowpassTransformType.di);
       });
     });
@@ -16314,7 +16299,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(LowpassWidthType.fromMpv('this_will_never_match'),
-            LowpassWidthType.h);
+            LowpassWidthType.h,);
         expect(LowpassWidthType.fromMpv(null), LowpassWidthType.h);
       });
     });
@@ -16328,7 +16313,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(LowshelfPrecision.fromMpv('this_will_never_match'),
-            LowshelfPrecision.auto);
+            LowshelfPrecision.auto,);
         expect(LowshelfPrecision.fromMpv(null), LowshelfPrecision.auto);
       });
     });
@@ -16342,7 +16327,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(LowshelfTransformType.fromMpv('this_will_never_match'),
-            LowshelfTransformType.di);
+            LowshelfTransformType.di,);
         expect(LowshelfTransformType.fromMpv(null), LowshelfTransformType.di);
       });
     });
@@ -16356,7 +16341,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(LowshelfWidthType.fromMpv('this_will_never_match'),
-            LowshelfWidthType.h);
+            LowshelfWidthType.h,);
         expect(LowshelfWidthType.fromMpv(null), LowshelfWidthType.h);
       });
     });
@@ -16370,7 +16355,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(RubberbandChannels.fromMpv('this_will_never_match'),
-            RubberbandChannels.apart);
+            RubberbandChannels.apart,);
         expect(RubberbandChannels.fromMpv(null), RubberbandChannels.apart);
       });
     });
@@ -16384,7 +16369,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(RubberbandDetector.fromMpv('this_will_never_match'),
-            RubberbandDetector.compound);
+            RubberbandDetector.compound,);
         expect(RubberbandDetector.fromMpv(null), RubberbandDetector.compound);
       });
     });
@@ -16398,7 +16383,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(RubberbandFormant.fromMpv('this_will_never_match'),
-            RubberbandFormant.shifted);
+            RubberbandFormant.shifted,);
         expect(RubberbandFormant.fromMpv(null), RubberbandFormant.shifted);
       });
     });
@@ -16412,7 +16397,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(RubberbandPhase.fromMpv('this_will_never_match'),
-            RubberbandPhase.laminar);
+            RubberbandPhase.laminar,);
         expect(RubberbandPhase.fromMpv(null), RubberbandPhase.laminar);
       });
     });
@@ -16426,7 +16411,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(RubberbandPitch.fromMpv('this_will_never_match'),
-            RubberbandPitch.quality);
+            RubberbandPitch.quality,);
         expect(RubberbandPitch.fromMpv(null), RubberbandPitch.quality);
       });
     });
@@ -16440,7 +16425,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(RubberbandSmoothing.fromMpv('this_will_never_match'),
-            RubberbandSmoothing.off);
+            RubberbandSmoothing.off,);
         expect(RubberbandSmoothing.fromMpv(null), RubberbandSmoothing.off);
       });
     });
@@ -16454,7 +16439,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(RubberbandTransients.fromMpv('this_will_never_match'),
-            RubberbandTransients.crisp);
+            RubberbandTransients.crisp,);
         expect(RubberbandTransients.fromMpv(null), RubberbandTransients.crisp);
       });
     });
@@ -16468,7 +16453,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(RubberbandWindow.fromMpv('this_will_never_match'),
-            RubberbandWindow.standard);
+            RubberbandWindow.standard,);
         expect(RubberbandWindow.fromMpv(null), RubberbandWindow.standard);
       });
     });
@@ -16482,9 +16467,9 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(SilenceremoveDetection.fromMpv('this_will_never_match'),
-            SilenceremoveDetection.avg);
+            SilenceremoveDetection.avg,);
         expect(
-            SilenceremoveDetection.fromMpv(null), SilenceremoveDetection.avg);
+            SilenceremoveDetection.fromMpv(null), SilenceremoveDetection.avg,);
       });
     });
     group('SilenceremoveMode (codegen enum)', () {
@@ -16497,7 +16482,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(SilenceremoveMode.fromMpv('this_will_never_match'),
-            SilenceremoveMode.any);
+            SilenceremoveMode.any,);
         expect(SilenceremoveMode.fromMpv(null), SilenceremoveMode.any);
       });
     });
@@ -16511,9 +16496,9 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(SilenceremoveTimestamp.fromMpv('this_will_never_match'),
-            SilenceremoveTimestamp.write);
+            SilenceremoveTimestamp.write,);
         expect(
-            SilenceremoveTimestamp.fromMpv(null), SilenceremoveTimestamp.write);
+            SilenceremoveTimestamp.fromMpv(null), SilenceremoveTimestamp.write,);
       });
     });
     group('StereotoolsBmode (codegen enum)', () {
@@ -16526,7 +16511,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(StereotoolsBmode.fromMpv('this_will_never_match'),
-            StereotoolsBmode.balance);
+            StereotoolsBmode.balance,);
         expect(StereotoolsBmode.fromMpv(null), StereotoolsBmode.balance);
       });
     });
@@ -16540,7 +16525,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(StereotoolsMode.fromMpv('this_will_never_match'),
-            StereotoolsMode.lr_to_lr);
+            StereotoolsMode.lr_to_lr,);
         expect(StereotoolsMode.fromMpv(null), StereotoolsMode.lr_to_lr);
       });
     });
@@ -16554,7 +16539,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(SurroundLfeMode.fromMpv('this_will_never_match'),
-            SurroundLfeMode.add);
+            SurroundLfeMode.add,);
         expect(SurroundLfeMode.fromMpv(null), SurroundLfeMode.add);
       });
     });
@@ -16568,7 +16553,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(SurroundWinFunc.fromMpv('this_will_never_match'),
-            SurroundWinFunc.rect);
+            SurroundWinFunc.rect,);
         expect(SurroundWinFunc.fromMpv(null), SurroundWinFunc.rect);
       });
     });
@@ -16582,7 +16567,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(TiltshelfPrecision.fromMpv('this_will_never_match'),
-            TiltshelfPrecision.auto);
+            TiltshelfPrecision.auto,);
         expect(TiltshelfPrecision.fromMpv(null), TiltshelfPrecision.auto);
       });
     });
@@ -16596,7 +16581,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(TiltshelfTransformType.fromMpv('this_will_never_match'),
-            TiltshelfTransformType.di);
+            TiltshelfTransformType.di,);
         expect(TiltshelfTransformType.fromMpv(null), TiltshelfTransformType.di);
       });
     });
@@ -16610,7 +16595,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(TiltshelfWidthType.fromMpv('this_will_never_match'),
-            TiltshelfWidthType.h);
+            TiltshelfWidthType.h,);
         expect(TiltshelfWidthType.fromMpv(null), TiltshelfWidthType.h);
       });
     });
@@ -16624,7 +16609,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(TreblePrecision.fromMpv('this_will_never_match'),
-            TreblePrecision.auto);
+            TreblePrecision.auto,);
         expect(TreblePrecision.fromMpv(null), TreblePrecision.auto);
       });
     });
@@ -16638,7 +16623,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(TrebleTransformType.fromMpv('this_will_never_match'),
-            TrebleTransformType.di);
+            TrebleTransformType.di,);
         expect(TrebleTransformType.fromMpv(null), TrebleTransformType.di);
       });
     });
@@ -16652,7 +16637,7 @@ void main() {
 
       test('fromMpv unknown / null → first member (safe fallback)', () {
         expect(TrebleWidthType.fromMpv('this_will_never_match'),
-            TrebleWidthType.h);
+            TrebleWidthType.h,);
         expect(TrebleWidthType.fromMpv(null), TrebleWidthType.h);
       });
     });

@@ -9,8 +9,8 @@ library;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 import '../_helpers/setter_test_helpers.dart';
 
@@ -52,5 +52,5 @@ void main() {
     } finally {
       await player.dispose();
     }
-  }, timeout: const Timeout(Duration(seconds: 15)));
+  }, timeout: const Timeout(Duration(seconds: 15)),);
 }

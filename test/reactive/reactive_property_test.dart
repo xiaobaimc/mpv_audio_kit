@@ -2,8 +2,8 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/src/reactive/reactive_property.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('ReactiveProperty<int>', () {
@@ -17,7 +17,7 @@ void main() {
       // landed in the broadcast controller; nothing should have.
       await Future<void>.delayed(Duration.zero);
       expect(received, isEmpty,
-          reason: 'broadcast streams must not replay the seed value');
+          reason: 'broadcast streams must not replay the seed value',);
     });
 
     test('update emits and mutates value when value changes', () async {
@@ -40,7 +40,7 @@ void main() {
 
       expect(prop.update(1), isTrue);
       expect(prop.update(1), isFalse,
-          reason: 'second write of equal value must dedup');
+          reason: 'second write of equal value must dedup',);
       expect(prop.update(1), isFalse);
       expect(prop.update(2), isTrue);
 
@@ -76,7 +76,7 @@ void main() {
       await prop.close();
       expect(prop.update(99), isFalse);
       expect(prop.value, 0,
-          reason: 'closed property must not mutate its cached value');
+          reason: 'closed property must not mutate its cached value',);
     });
 
     test('multi-listener: each listener sees every change', () async {
@@ -122,7 +122,7 @@ void main() {
       prop.stream.listen(received.add);
 
       prop.update(const Duration(seconds: 1));
-      prop.update(Duration(milliseconds: 1000)); // == const Duration(seconds:1)
+      prop.update(const Duration(milliseconds: 1000)); // == const Duration(seconds:1)
 
       await Future<void>.delayed(Duration.zero);
       expect(received, [const Duration(seconds: 1)]);

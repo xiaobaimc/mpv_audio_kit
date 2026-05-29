@@ -2,23 +2,24 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:mpv_audio_kit/src/types/enums/loop.dart';
-import 'package:mpv_audio_kit/src/models/playlist.dart';
-import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
-import 'package:mpv_audio_kit/src/models/device.dart';
-import 'package:mpv_audio_kit/src/types/enums/format.dart';
-import 'package:mpv_audio_kit/src/models/audio_params.dart';
-import 'package:mpv_audio_kit/src/models/cover_art.dart';
-import 'package:mpv_audio_kit/src/types/enums/spdif.dart';
-import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
-import 'package:mpv_audio_kit/src/types/enums/cover.dart';
-import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
 import 'package:mpv_audio_kit/src/generated/audio_effects_settings.dart';
-import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
-import 'package:mpv_audio_kit/src/models/chapter.dart';
-import 'package:mpv_audio_kit/src/models/mpv_track.dart';
 import 'package:mpv_audio_kit/src/internals/unset_sentinel.dart';
+import 'package:mpv_audio_kit/src/models/audio_params.dart';
+import 'package:mpv_audio_kit/src/models/chapter.dart';
+import 'package:mpv_audio_kit/src/models/cover_art.dart';
+import 'package:mpv_audio_kit/src/models/device.dart';
+import 'package:mpv_audio_kit/src/models/media_session.dart';
+import 'package:mpv_audio_kit/src/models/mpv_track.dart';
+import 'package:mpv_audio_kit/src/models/playlist.dart';
+import 'package:mpv_audio_kit/src/types/enums/cover.dart';
+import 'package:mpv_audio_kit/src/types/enums/format.dart';
+import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
+import 'package:mpv_audio_kit/src/types/enums/loop.dart';
+import 'package:mpv_audio_kit/src/types/enums/spdif.dart';
+import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
+import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/replay_gain_settings.dart';
+import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
 
 const _kEmptyPlaylist = Playlist.empty;
 const _kAutoDevice = Device(name: 'auto', description: 'Auto');
@@ -67,12 +68,31 @@ final class PlayerState {
   /// The currently loaded playlist and active track index.
   final Playlist playlist;
 
-  /// Whether the player is currently playing (not paused and not buffering).
+  /// Whether the player is currently producing output (not paused, not
+  /// buffering, not mid-seek). Mirrors mpv's `core-idle` (inverted) —
+  /// the *actual-output* axis. It toggles transiently during seeks and
+  /// buffering; for a stable play/pause indicator bind to [playWhenReady]
+  /// instead.
   final bool playing;
+
+  /// User intent to play — the play/pause axis, set by [Player.play] /
+  /// [Player.pause] / [Player.open] / [Player.stop] (and released at the
+  /// natural end of content). Unlike [playing], it does NOT flip during a
+  /// seek or while buffering, so it is the correct signal to drive a
+  /// play/pause button (including the OS media-session control). "Actually
+  /// emitting audio" is `playWhenReady && playing`.
+  final bool playWhenReady;
 
   /// Whether the current track has played to its end.
   ///
-  /// Resets to `false` on the next [Player.play] or [Player.open] call.
+  /// Becomes `true` at the natural end of a track: at the end of every
+  /// finished entry during a playlist, and — crucially under the shipped
+  /// `keep-open` policy, where mpv parks paused on the last frame instead
+  /// of emitting an end-of-file event — at the end of a single track or the
+  /// last playlist entry. Resets to `false` when a new track starts (a fresh
+  /// [Player.open] / [Player.openAll] or a playlist advance) or when you
+  /// seek back into the track. Pairs with [eofReached] (the raw mpv signal);
+  /// drives [MpvPlaybackState.completed].
   final bool completed;
 
   /// Current playback position.
@@ -412,13 +432,22 @@ final class PlayerState {
   /// [Player]. Mirrors mpv's `mpv-version`.
   final String mpvVersion;
 
-  /// Version of FFmpeg linked into the current mpv build. 
+  /// Version of FFmpeg linked into the current mpv build.
   /// Read once at first observe. Mirrors mpv's `ffmpeg-version`.
   final String ffmpegVersion;
 
+  /// Active OS media-session config + metadata override, or `null`
+  /// when no media session is currently published to the lockscreen /
+  /// SMTC / MPRIS. Set via [Player.setMediaSession]; pass `null` to
+  /// disable. See [MediaSession] for the full field semantics.
+  final MediaSession? mediaSession;
+
+  /// Creates a state snapshot; every field defaults to the player's
+  /// at-rest value before any property has been observed.
   const PlayerState({
     this.playlist = _kEmptyPlaylist,
     this.playing = false,
+    this.playWhenReady = false,
     this.completed = false,
     this.position = Duration.zero,
     this.duration = Duration.zero,
@@ -500,11 +529,15 @@ final class PlayerState {
     this.chapterMetadata = const <String, String>{},
     this.mpvVersion = '',
     this.ffmpegVersion = '',
+    this.mediaSession,
   });
 
+  /// Returns a copy of this state with the given fields replaced; omitted
+  /// fields keep their current value.
   PlayerState copyWith({
     Playlist? playlist,
     bool? playing,
+    bool? playWhenReady,
     bool? completed,
     Duration? position,
     Duration? duration,
@@ -586,10 +619,12 @@ final class PlayerState {
     Map<String, String>? chapterMetadata,
     String? mpvVersion,
     String? ffmpegVersion,
+    Object? mediaSession = unset,
   }) =>
       PlayerState(
         playlist: playlist ?? this.playlist,
         playing: playing ?? this.playing,
+        playWhenReady: playWhenReady ?? this.playWhenReady,
         completed: completed ?? this.completed,
         position: position ?? this.position,
         duration: duration ?? this.duration,
@@ -684,6 +719,9 @@ final class PlayerState {
         chapterMetadata: chapterMetadata ?? this.chapterMetadata,
         mpvVersion: mpvVersion ?? this.mpvVersion,
         ffmpegVersion: ffmpegVersion ?? this.ffmpegVersion,
+        mediaSession: identical(mediaSession, unset)
+            ? this.mediaSession
+            : mediaSession as MediaSession?,
       );
 
   @override
@@ -692,6 +730,7 @@ final class PlayerState {
       (other is PlayerState &&
           other.playlist == playlist &&
           other.playing == playing &&
+          other.playWhenReady == playWhenReady &&
           other.completed == completed &&
           other.position == position &&
           other.duration == duration &&
@@ -772,12 +811,14 @@ final class PlayerState {
           other.demuxerStartTime == demuxerStartTime &&
           _mapEq(chapterMetadata, other.chapterMetadata) &&
           other.mpvVersion == mpvVersion &&
-          other.ffmpegVersion == ffmpegVersion);
+          other.ffmpegVersion == ffmpegVersion &&
+          other.mediaSession == mediaSession);
 
   @override
   int get hashCode => Object.hashAll([
         playlist,
         playing,
+        playWhenReady,
         completed,
         position,
         duration,
@@ -798,7 +839,7 @@ final class PlayerState {
         audioDelay,
         pitchCorrection,
         Object.hashAllUnordered(
-            metadata.entries.map((e) => Object.hash(e.key, e.value))),
+            metadata.entries.map((e) => Object.hash(e.key, e.value)),),
         gapless,
         replayGain,
         volumeGain,
@@ -858,12 +899,13 @@ final class PlayerState {
         currentAo,
         demuxerStartTime,
         Object.hashAllUnordered(
-            chapterMetadata.entries.map((e) => Object.hash(e.key, e.value))),
+            chapterMetadata.entries.map((e) => Object.hash(e.key, e.value)),),
         mpvVersion,
         ffmpegVersion,
+        mediaSession,
       ]);
 
   @override
   String toString() =>
-      'PlayerState(playing: $playing, position: $position, duration: $duration, volume: $volume, mediaTitle: $mediaTitle)';
+      'PlayerState(playing: $playing, playWhenReady: $playWhenReady, position: $position, duration: $duration, volume: $volume, mediaTitle: $mediaTitle)';
 }

@@ -29,9 +29,21 @@ Pod::Spec.new do |s|
   s.author           = { 'mpv_audio_kit' => 'ales.drnz@gmail.com' }
 
   s.source           = { :path => '.' }
+  # Swift sources are physically under `darwin/Sources/mpv_audio_kit/`
+  # and exposed in this Pod via symlinks. We can't reference them as
+  # `'../darwin/...'` directly because SwiftPM (the other distribution
+  # channel for this plugin) rejects `path:` values that escape the
+  # package root, so the symlinks are the canonical way to keep both
+  # build systems happy with one set of Swift sources.
   s.source_files     = 'mpv_audio_kit/Sources/mpv_audio_kit/**/*'
 
   s.dependency 'FlutterMacOS'
+
+  # MediaPlayer is the system framework that hosts MPNowPlayingInfoCenter
+  # and MPRemoteCommandCenter — the macOS lockscreen / Control Center /
+  # menu-bar Now Playing entry and the play/pause/seek targets that
+  # respond to Bluetooth headsets, the keyboard media keys, and Siri.
+  s.frameworks = 'MediaPlayer'
 
   s.platform              = :osx, '12.0'
   s.swift_version         = '5.0'

@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'screens/home/home_page.dart';
-import 'services/audio_handler.dart';
 import 'services/settings_service.dart';
 import 'theme/app_theme.dart';
 
@@ -41,24 +39,20 @@ void main() async {
     ),
   );
 
-  final audioHandler = await AudioService.init(
-    builder: () => MpvAudioHandler(player),
-    config: const AudioServiceConfig(
-      androidNotificationChannelId: 'com.alesdrnz.mpvaudiokit.channel.audio',
-      androidNotificationChannelName: 'Audio playback',
-      androidNotificationOngoing: true,
-      androidShowNotificationBadge: false,
-      androidStopForegroundOnPause: true,
-      notificationColor: AppTheme.notificationColor,
-    ),
-  );
+  // Enable the native OS media session — lockscreen / Control Center
+  // entry on macOS, MPRIS on Linux, SMTC on Windows, MediaSession
+  // notification on Android, lockscreen on iOS. Metadata (title /
+  // artist / album / artwork / duration) is derived from mpv's own
+  // properties; the consumer doesn't have to push anything. To
+  // override individual fields, build a MediaSession with explicit
+  // values: `MediaSession(title: 'My title', ...)`.
+  await player.setMediaSession(const MediaSession());
 
   await settingsService.wire(player);
 
   runApp(
     MyApp(
       player: player,
-      audioHandler: audioHandler,
       settingsService: settingsService,
     ),
   );
@@ -66,13 +60,11 @@ void main() async {
 
 class MyApp extends StatefulWidget {
   final Player player;
-  final MpvAudioHandler audioHandler;
   final SettingsService settingsService;
 
   const MyApp({
     super.key,
     required this.player,
-    required this.audioHandler,
     required this.settingsService,
   });
 
@@ -84,10 +76,11 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
     // Root teardown. Consumers first (they observe the player), the
-    // Player last. Fires only on process teardown, but exercises the
-    // documented disposal path so this example shows correct lifecycle.
+    // Player last. Player.dispose() releases the media session
+    // automatically before tearing down libmpv. Fires only on process
+    // teardown, but exercises the documented disposal path so this
+    // example shows correct lifecycle.
     unawaited(widget.settingsService.dispose());
-    widget.audioHandler.dispose();
     unawaited(widget.player.dispose());
     super.dispose();
   }
@@ -104,7 +97,6 @@ class _MyAppState extends State<MyApp> {
       home: ExcludeSemantics(
         child: HomePage(
           player: widget.player,
-          audioHandler: widget.audioHandler,
           settingsService: widget.settingsService,
         ),
       ),

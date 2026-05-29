@@ -7,8 +7,9 @@ library;
 
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 /// End-to-end coverage for [PlayerStream.tap], backed by the
@@ -40,7 +41,7 @@ void main() {
         // a "is the tap actually wired" probe.
         await player.setAudioEffects(const AudioEffects(
           equalizer: EqualizerSettings(enabled: true),
-        ));
+        ),);
 
         await openAndWaitForLoad(player, fixturePath);
 
@@ -67,7 +68,7 @@ void main() {
           // Sine-440 fixture: at least one sample must carry signal.
           final hasSignal = frame.samples.any((s) => s.abs() > 1e-4);
           expect(hasSignal, isTrue,
-              reason: 'Post-tap should expose the actual filtered PCM');
+              reason: 'Post-tap should expose the actual filtered PCM',);
         } finally {
           await sub.cancel();
           await player.pause();
@@ -75,7 +76,7 @@ void main() {
       } finally {
         await player.dispose();
       }
-    }, timeout: const Timeout(Duration(seconds: 10)));
+    }, timeout: const Timeout(Duration(seconds: 10)),);
 
     test('refcount: cancelling all subscribers clears analyzer-taps',
         () async {
@@ -126,6 +127,6 @@ void main() {
       } finally {
         await player.dispose();
       }
-    }, timeout: const Timeout(Duration(seconds: 10)));
+    }, timeout: const Timeout(Duration(seconds: 10)),);
   });
 }

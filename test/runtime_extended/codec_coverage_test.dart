@@ -8,8 +8,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/codec.dart';
 import '../_helpers/setter_test_helpers.dart';
 
@@ -62,8 +63,8 @@ void main() {
       expect(c.contains('flac') || cn.contains('flac'), isTrue,
           reason: 'at least one of (codec, codecName) must carry the '
               'flac family hint; got codec="${result.params.codec}", '
-              'codecName="${result.params.codecName}"');
-    }, timeout: const Timeout(Duration(seconds: 30)));
+              'codecName="${result.params.codecName}"',);
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     for (final entry in codecMatrix) {
       final filename = entry.$1;
@@ -72,18 +73,18 @@ void main() {
         final path = '$fixturesDir/$filename';
         if (!File(path).existsSync()) {
           markTestSkipped(
-              'Fixture missing: run scripts/generate_codec_fixtures.sh');
+              'Fixture missing: run scripts/generate_codec_fixtures.sh',);
           return;
         }
         final result = await verifyCodec(player, path, expected);
 
         expect(result.params.sampleRate, expected.sampleRate,
-            reason: 'sample rate must match the fixture for ${expected.label}');
+            reason: 'sample rate must match the fixture for ${expected.label}',);
         expect(result.params.channelCount, expected.channels,
             reason:
-                'channel count must match the fixture for ${expected.label}');
+                'channel count must match the fixture for ${expected.label}',);
         expect(result.duration.inMilliseconds, greaterThan(0),
-            reason: 'duration must be reported by the demuxer');
+            reason: 'duration must be reported by the demuxer',);
 
         // Codec id varies between mpv builds (mp3 vs mp3float, aac vs aac_lc,
         // pcm_s16le vs pcm_s32le, etc.) and the short form lives in either
@@ -102,7 +103,7 @@ void main() {
                 'codecName="${result.params.codecName}"',
           );
         }
-      }, timeout: const Timeout(Duration(seconds: 30)));
+      }, timeout: const Timeout(Duration(seconds: 30)),);
     }
   });
 }

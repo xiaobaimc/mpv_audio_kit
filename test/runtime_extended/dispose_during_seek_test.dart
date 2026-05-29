@@ -44,5 +44,5 @@ void main() {
     // — the cosmetic flutter_test "did not complete" flake is sensitive
     // to threads still alive at subprocess kill time.
     await Future.delayed(const Duration(seconds: 1));
-  }, timeout: const Timeout(Duration(seconds: 30)));
+  }, timeout: const Timeout(Duration(seconds: 30)),);
 }

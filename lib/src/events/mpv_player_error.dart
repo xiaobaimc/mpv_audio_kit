@@ -54,6 +54,7 @@ final class MpvEndFileError extends MpvPlayerError {
   @override
   final String message;
 
+  /// Creates a playback-failure error from an mpv end-file event.
   const MpvEndFileError({
     required this.reason,
     required this.code,
@@ -92,6 +93,7 @@ final class MpvLogError extends MpvPlayerError {
   /// Raw log text from the mpv subsystem.
   final String text;
 
+  /// Creates a log-derived error from an `error` or `fatal` mpv log line.
   const MpvLogError({
     required this.prefix,
     required this.level,
@@ -153,6 +155,7 @@ final class MpvFileEndedEvent {
   /// mpv error code. Non-zero only when [reason] is [MpvEndFileReason.error].
   final int error;
 
+  /// Creates a file-ended event with the given [reason] and [error] code.
   const MpvFileEndedEvent({required this.reason, required this.error});
 
   @override

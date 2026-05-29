@@ -43,12 +43,12 @@ void main() {
         final result = await verifyCodec(player, path, expected);
 
         expect(result.params.sampleRate, expected.sampleRate,
-            reason: 'sample rate must match the fixture for ${expected.label}');
+            reason: 'sample rate must match the fixture for ${expected.label}',);
         expect(result.params.channelCount, expected.channels,
             reason:
-                'channel count must match the fixture for ${expected.label}');
+                'channel count must match the fixture for ${expected.label}',);
         expect(result.duration.inMilliseconds, greaterThan(0),
-            reason: 'duration must be reported by the demuxer');
+            reason: 'duration must be reported by the demuxer',);
 
         if (expected.codecHint != null) {
           final h = expected.codecHint!.toLowerCase();
@@ -62,7 +62,7 @@ void main() {
                 'codecName="${result.params.codecName}"',
           );
         }
-      }, timeout: const Timeout(Duration(seconds: 30)));
+      }, timeout: const Timeout(Duration(seconds: 30)),);
     }
   });
 }

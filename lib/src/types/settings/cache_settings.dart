@@ -30,6 +30,8 @@ final class CacheSettings {
   /// 1 second mirrors mpv's `--cache-pause-wait=1.0`.
   final Duration pauseWait;
 
+  /// Creates a cache configuration. Each default mirrors the
+  /// corresponding mpv property default.
   const CacheSettings({
     this.mode = Cache.auto,
     this.secs = const Duration(hours: 1),
@@ -38,6 +40,8 @@ final class CacheSettings {
     this.pauseWait = const Duration(seconds: 1),
   });
 
+  /// Returns a copy with the given fields replaced. Omitted fields keep
+  /// their current value.
   CacheSettings copyWith({
     Cache? mode,
     Duration? secs,

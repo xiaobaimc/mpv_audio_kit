@@ -19,8 +19,8 @@
 // `audio_effects_extensions_runtime_test.dart` covers ffmpeg
 // acceptance.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('AnequalizerBandsX', () {
@@ -31,11 +31,10 @@ void main() {
 
     test('single band round-trips', () {
       const s = AnequalizerSettings();
-      final mid = AnequalizerBand(
+      const mid = AnequalizerBand(
         frequency: 1000,
         bandwidth: 500,
         gain: 6,
-        type: AnequalizerBandType.butterworth,
       );
       final next = s.withBands([mid]);
       expect(next.bands.length, 1);
@@ -69,7 +68,7 @@ void main() {
       final round = s.withBands([band, band]).bands;
       expect(round.length, 2,
           reason: 'identical bands must not collapse — a value-based '
-              'dedup would drop the second');
+              'dedup would drop the second',);
     });
 
     test('every band-type round-trips', () {
@@ -78,7 +77,7 @@ void main() {
           AnequalizerBand(frequency: 500, bandwidth: 200, gain: 2, type: t),
         ]);
         expect(s.bands.first.type, t,
-            reason: 'AnequalizerBandType.$t did not round-trip');
+            reason: 'AnequalizerBandType.$t did not round-trip',);
       }
     });
   });
@@ -154,7 +153,7 @@ void main() {
       ]);
       expect(next.args, isNotEmpty);
       expect(next.args.split(' ').length, 4,
-          reason: 'compact form: attack,decay knee points crossover');
+          reason: 'compact form: attack,decay knee points crossover',);
     });
   });
 
@@ -273,7 +272,7 @@ void main() {
         speeds: '0.5|0.4|0.3|0.2',
       );
       expect(s.voices.length, 1,
-          reason: 'shortest CSV (depths, length 1) wins');
+          reason: 'shortest CSV (depths, length 1) wins',);
     });
   });
 

@@ -5,8 +5,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 /// Permanent guard: verifies that the file-split workaround for the
@@ -61,6 +62,6 @@ void main() {
       // happens during the setter and would have already passed.)
       await player.setVolume(72.0);
       expect(player.state.volume, 72.0);
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
   });
 }

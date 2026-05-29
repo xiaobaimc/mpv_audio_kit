@@ -8,7 +8,9 @@ package com.alesdrnz.mpv_audio_kit
 import android.content.Context
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -35,6 +37,9 @@ class MpvAudioKitPlugin :
     }
 
     private lateinit var channel: MethodChannel
+    private lateinit var mediaSessionMethodChannel: MethodChannel
+    private lateinit var mediaSessionEventChannel: EventChannel
+    private val mediaSessionHandler = MediaSessionStubHandler()
     private lateinit var context: Context
 
     /**
@@ -44,6 +49,21 @@ class MpvAudioKitPlugin :
         context = flutterPluginBinding.applicationContext
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "mpv_audio_kit")
         channel.setMethodCallHandler(this)
+
+        // Media-session sub-channels. Stubs for now — Phase 6 wires
+        // the real MediaSessionCompat + foreground service + audio
+        // focus integration.
+        mediaSessionMethodChannel = MethodChannel(
+            flutterPluginBinding.binaryMessenger,
+            "mpv_audio_kit/media_session"
+        )
+        mediaSessionMethodChannel.setMethodCallHandler(mediaSessionHandler)
+
+        mediaSessionEventChannel = EventChannel(
+            flutterPluginBinding.binaryMessenger,
+            "mpv_audio_kit/media_session/commands"
+        )
+        mediaSessionEventChannel.setStreamHandler(mediaSessionHandler)
     }
 
     /**
@@ -107,5 +127,47 @@ class MpvAudioKitPlugin :
      */
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+        mediaSessionMethodChannel.setMethodCallHandler(null)
+        mediaSessionEventChannel.setStreamHandler(null)
+    }
+}
+
+/**
+ * Stub handler for the OS media-session method + event channels.
+ *
+ * Logs every Dart→native call via android.util.Log and acks success
+ * on the known method names. The actual MediaSessionCompat +
+ * NotificationCompat.MediaStyle + foreground service + AudioFocus
+ * integration lands in Phase 6. This stub exists so the Dart-side
+ * MediaSessionController doesn't surface MissingPluginException on
+ * Android builds while the native implementation is in flight.
+ */
+private class MediaSessionStubHandler :
+    MethodChannel.MethodCallHandler,
+    EventChannel.StreamHandler {
+
+    companion object {
+        private const val TAG = "mpv_audio_kit/media_session"
+    }
+
+    private var eventSink: EventChannel.EventSink? = null
+
+    override fun onMethodCall(call: MethodCall, result: Result) {
+        Log.i(TAG, "stub call: ${call.method}")
+        when (call.method) {
+            "enable", "updateConfig", "updateMetadata", "updatePlayback", "disable" ->
+                result.success(null)
+            else -> result.notImplemented()
+        }
+    }
+
+    override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
+        eventSink = events
+        Log.i(TAG, "commands stream listener attached")
+    }
+
+    override fun onCancel(arguments: Any?) {
+        Log.i(TAG, "commands stream listener cancelled")
+        eventSink = null
     }
 }

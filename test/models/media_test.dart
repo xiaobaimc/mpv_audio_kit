@@ -2,8 +2,8 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Media construction', () {
@@ -15,10 +15,10 @@ void main() {
     });
 
     test('full constructor with extras + headers', () {
-      final media = Media(
+      const media = Media(
         'https://example.com/a.mp3',
-        extras: const {'title': 'Song', 'artist': 'Artist'},
-        httpHeaders: const {'X-Token': 'abc'},
+        extras: {'title': 'Song', 'artist': 'Artist'},
+        httpHeaders: {'X-Token': 'abc'},
       );
       expect(media.extras, {'title': 'Song', 'artist': 'Artist'});
       expect(media.httpHeaders, {'X-Token': 'abc'});
@@ -33,13 +33,13 @@ void main() {
 
     test('extras participate in equality', () {
       const a = Media('a');
-      final b = Media('a', extras: const {'cover': 'data'});
+      const b = Media('a', extras: {'cover': 'data'});
       expect(a, isNot(b));
     });
 
     test('httpHeaders participate in equality', () {
       const a = Media('a');
-      final b = Media('a', httpHeaders: const {'X-Token': 'foo'});
+      const b = Media('a', httpHeaders: {'X-Token': 'foo'});
       expect(a, isNot(b));
     });
   });

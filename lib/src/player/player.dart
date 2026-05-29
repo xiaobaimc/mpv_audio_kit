@@ -9,79 +9,88 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
+import '../events/mpv_exception.dart';
+import '../events/mpv_hook_event.dart';
+import '../events/mpv_log_entry.dart';
+import '../events/mpv_player_error.dart';
+import '../generated/audio_effects_settings.dart';
 import '../internals/cover_art_extractor.dart';
+import '../internals/duration_seconds.dart';
+import '../internals/event_isolate.dart';
 import '../internals/filter_tap_pipeline.dart';
+import '../internals/library_loader.dart';
+import '../internals/orphan_handle_tracker.dart';
 import '../internals/player_finalizer.dart';
 import '../internals/spectrum_pipeline.dart';
-import '../internals/waveform_pipeline.dart';
-import '../models/fft_frame.dart';
-import '../models/pcm_frame.dart';
-import '../models/waveform_data.dart';
-import '../models/cover_art.dart';
-import '../internals/event_isolate.dart';
-import '../events/mpv_exception.dart';
-import 'audio_output_error.dart';
-import 'lifecycle_transitions.dart';
-import '../reactive/node_parsers.dart';
-import '../internals/library_loader.dart';
-import '../mpv_bindings.dart' hide MpvEndFileReason;
-import '../internals/orphan_handle_tracker.dart';
-import '../reactive/default_specs.dart';
-import '../reactive/property_registry.dart';
-import '../reactive/reactive_property.dart';
-import '../internals/duration_seconds.dart';
 import '../internals/tls_ca_bundle.dart';
 import '../internals/uri_resolver.dart';
-
-import '../types/sealed/track.dart';
-import '../types/enums/loop.dart';
+import '../internals/waveform_pipeline.dart';
+import '../media_session/media_session_controller.dart';
+import '../media_session/media_session_inputs.dart';
 import '../models/chapter.dart';
-import '../models/media.dart';
-import '../models/playlist.dart';
-import '../types/sealed/channels.dart';
+import '../models/cover_art.dart';
 import '../models/device.dart';
-import '../types/enums/format.dart';
+import '../models/fft_frame.dart';
+import '../models/media.dart';
+import '../models/media_session.dart';
+import '../models/pcm_frame.dart';
+import '../models/playlist.dart';
+import '../models/waveform_data.dart';
+import '../mpv_bindings.dart' hide MpvEndFileReason;
+import '../reactive/default_specs.dart';
+import '../reactive/node_parsers.dart';
+import '../reactive/property_registry.dart';
+import '../reactive/reactive_property.dart';
 import '../types/enums/cover.dart';
+import '../types/enums/format.dart';
 import '../types/enums/gapless.dart';
-import '../types/enums/tap_side.dart';
 import '../types/enums/hook.dart';
 import '../types/enums/log_level.dart';
-import '../generated/audio_effects_settings.dart';
+import '../types/enums/loop.dart';
+import '../types/enums/spdif.dart';
+import '../types/enums/tap_side.dart';
+import '../types/sealed/channels.dart';
+import '../types/sealed/media_session_command.dart';
+import '../types/sealed/track.dart';
 import '../types/settings/cache_settings.dart';
+import '../types/settings/replay_gain_settings.dart';
 import '../types/settings/spectrum_settings.dart';
-import '../events/mpv_log_entry.dart';
-import '../events/mpv_hook_event.dart';
-import '../events/mpv_player_error.dart';
+import 'audio_output_error.dart';
+import 'lifecycle_transitions.dart';
 import 'player_api.dart';
 import 'player_configuration.dart';
 import 'player_state.dart';
-import '../types/settings/replay_gain_settings.dart';
-import '../types/enums/spdif.dart';
 import 'player_stream.dart';
 
-export '../models/cover_art.dart';
-export '../types/enums/loop.dart';
-export '../models/media.dart';
-export '../models/playlist.dart';
-export '../types/sealed/channels.dart';
-export '../models/device.dart';
-export '../types/enums/format.dart';
-export '../models/audio_params.dart';
-export '../types/sealed/track.dart';
+export '../events/mpv_hook_event.dart';
+export '../events/mpv_log_entry.dart';
 export '../generated/audio_effects.dart';
 export '../generated/audio_effects_settings.dart';
-export '../events/mpv_log_entry.dart';
-export '../events/mpv_hook_event.dart';
+export '../models/audio_params.dart';
+export '../models/cover_art.dart';
+export '../models/device.dart';
+export '../models/media.dart';
+export '../models/media_session.dart';
+export '../models/playlist.dart';
+export '../types/enums/format.dart';
+export '../types/enums/interruption_policy.dart';
+export '../types/enums/loop.dart';
+export '../types/enums/media_action.dart';
+export '../types/sealed/channels.dart';
+export '../types/sealed/media_session_artwork.dart';
+export '../types/sealed/media_session_command.dart';
+export '../types/sealed/track.dart';
 export '../types/settings/spectrum_settings.dart';
 export 'player_configuration.dart';
 export 'player_state.dart';
 export 'player_stream.dart';
 
+part 'player_audio.part.dart';
+part 'player_hooks.part.dart';
+part 'player_media_session.part.dart';
+part 'player_network.part.dart';
 part 'player_playback.part.dart';
 part 'player_playlist.part.dart';
-part 'player_audio.part.dart';
-part 'player_network.part.dart';
-part 'player_hooks.part.dart';
 
 /// A high-performance audio player powered by libmpv.
 ///
@@ -94,21 +103,28 @@ class Player extends _PlayerBase
         _PlaylistModule,
         _AudioModule,
         _NetworkModule,
-        _HooksModule
+        _HooksModule,
+        _MediaSessionModule
     implements PlayerApi {
   /// Creates a [Player] instance with optional [configuration].
   Player({super.configuration});
+
+  /// Process-wide single-instance guard for the OS media session.
+  /// SMTC (Windows) and MPNowPlayingInfoCenter (Apple) are
+  /// single-instance per process — enabling on a second [Player]
+  /// would silently steal the first one's lockscreen entry. Linux
+  /// MPRIS could support multiple instances via `instance<PID>`
+  /// suffixing, but we ban it universally for cross-OS consistency.
+  /// Cleared on `dispose()` and on `setMediaSession(null)`.
+  static Player? _mediaSessionOwner;
 
   /// Test-only. The event isolate writes to [wakeupCounterAddress] on
   /// every wakeup — a bogus value corrupts process memory.
   @visibleForTesting
   Player.testInstrumented({
-    PlayerConfiguration configuration = const PlayerConfiguration(),
-    required int wakeupCounterAddress,
-  }) : super(
-          configuration: configuration,
-          wakeupCounterAddress: wakeupCounterAddress,
-        );
+    super.configuration,
+    required int super.wakeupCounterAddress,
+  });
 
   // --- Public Specialized API ---
 
@@ -119,10 +135,20 @@ class Player extends _PlayerBase
   /// (a per-file option can skip the `PROPERTY_CHANGE` emit).
   /// Rapid back-to-back `open()` calls don't race: `loadfile replace`
   /// aborts the previous load, so the last `(pause, loadfile)` pair wins.
+  @override
   Future<void> open(Media media, {bool? play}) async {
     _checkNotDisposed();
     await _ready;
     _validateHttpHeaders(media.httpHeaders);
+    final shouldPlay = play ?? configuration.autoPlay;
+    // Optimistic intent (the play/pause axis), written at the call point —
+    // BEFORE the `resolveUri` / trust-bundle awaits below — so a play() /
+    // pause() issued right after open() (without awaiting it) wins by call
+    // order instead of racing this write past the I/O hops. mpv leaves
+    // `pause` at `no` and fires no PROPERTY_CHANGE on the first autoplay
+    // load, so the observer alone would never surface this intent.
+    _updateField((s) => s.copyWith(playWhenReady: shouldPlay),
+        _reactives.playWhenReady, shouldPlay,);
     _mediaCache.clear();
     _mediaCache[media.uri] = media;
     // Gate on the trust-bundle Future so the first HTTPS load always
@@ -137,7 +163,6 @@ class Player extends _PlayerBase
       return;
     }
     _mediaCache[resolved.uri] = media;
-    final shouldPlay = play ?? configuration.autoPlay;
     // Drop visible per-track state synchronously — cover art, chapter
     // list and current chapter index — so a UI that reads the state
     // immediately after `open()` returns doesn't briefly render the
@@ -161,6 +186,7 @@ class Player extends _PlayerBase
   /// Multi-media counterpart of [open]. [index] is clamped to
   /// `[0, medias.length - 1]`. When non-zero the first item is loaded
   /// briefly, then mpv jumps to the requested position.
+  @override
   Future<void> openAll(List<Media> medias, {bool? play, int index = 0}) async {
     _checkNotDisposed();
     await _ready;
@@ -174,6 +200,10 @@ class Player extends _PlayerBase
     }
     final clampedIndex = index.clamp(0, medias.length - 1);
     final shouldPlay = play ?? configuration.autoPlay;
+    // Optimistic intent written at the call point, before the resolve / tls
+    // awaits below — see [open] for the rationale.
+    _updateField((s) => s.copyWith(playWhenReady: shouldPlay),
+        _reactives.playWhenReady, shouldPlay,);
     _mediaCache.clear();
     // Gate on the trust-bundle Future so HTTPS items in the playlist
     // see `tls-ca-file` populated by the time `loadfile` fires.
@@ -238,6 +268,7 @@ class Player extends _PlayerBase
   ///
   /// Returns `null` if the property doesn't exist or the FFI call
   /// fails. Throws [StateError] if the player has been disposed.
+  @override
   Future<String?> getRawProperty(String name) async {
     _checkNotDisposed();
     await _ready;
@@ -257,7 +288,7 @@ class Player extends _PlayerBase
   ///
   /// **Warning:** this is an escape hatch for properties the typed API
   /// doesn't yet cover. If [name] is one of the registry-observed
-  /// properties (volume, pause, cache-*, replaygain*, ao, …), the
+  /// properties (volume, cache-*, replaygain*, ao, …), the
   /// resulting state mutation will *also* flow through the property
   /// observer on mpv's side, so `player.state` and `player.stream` will
   /// stay consistent — but expect a one-event-loop-tick delay between
@@ -265,14 +296,21 @@ class Player extends _PlayerBase
   /// typed setters (`setVolume`, `setCache`, `setReplayGain`, …) when
   /// they exist, both for type-safety and for synchronous state update.
   ///
-  /// `af` is reserved: the typed [AudioEffects] bundle owns it
-  /// (including raw passthroughs via [AudioEffects.custom]), and a
-  /// raw write would silently desync `state.audioEffects`. Use
-  /// [setAudioEffects] / [updateAudioEffects] instead.
+  /// Two properties are reserved and rejected:
+  /// - `af` — owned by the typed [AudioEffects] bundle (including raw
+  ///   passthroughs via [AudioEffects.custom]); a raw write would silently
+  ///   desync `state.audioEffects`. Use [setAudioEffects] /
+  ///   [updateAudioEffects].
+  /// - `pause` — owned by the transport intent axis. It is deliberately not
+  ///   observed (see [PlayerState.playWhenReady]), so a raw write would
+  ///   change actual playback while leaving `state.playWhenReady` (and the
+  ///   OS play/pause button bound to it) reporting the old intent. Use
+  ///   [play] / [pause].
   ///
   /// Throws [StateError] if the player has been disposed,
   /// [ArgumentError] if [name] is reserved, or [MpvException] if mpv
   /// rejects the property write (unknown name, out-of-range value, etc.).
+  @override
   Future<void> setRawProperty(String name, String value) async {
     _checkNotDisposed();
     await _ready;
@@ -284,6 +322,16 @@ class Player extends _PlayerBase
             'Use Player.setAudioEffects / updateAudioEffects, and pass '
             'experimental or expression-based filters via '
             'AudioEffects.custom.',
+      );
+    }
+    if (name == 'pause') {
+      throw ArgumentError.value(
+        name,
+        'name',
+        'Property `pause` is owned by the transport intent axis and is not '
+            'observed, so a raw write would desync state.playWhenReady (and '
+            'the OS play/pause button) from actual playback. '
+            'Use Player.play() / Player.pause() instead.',
       );
     }
     _prop(name, value);
@@ -300,6 +348,7 @@ class Player extends _PlayerBase
   /// invalid argument, etc.). A successful return guarantees mpv
   /// accepted the command; the actual side-effect on playback state
   /// is observed asynchronously via [Player.stream].
+  @override
   Future<void> sendRawCommand(List<String> args) async {
     _checkNotDisposed();
     await _ready;
@@ -330,6 +379,18 @@ class Player extends _PlayerBase
 
   @override
   Future<void> dispose() async {
+    // Release the OS media session BEFORE tearing libmpv down. After
+    // super.dispose() the FFI handle is gone — leaving the native
+    // session published would surface a stale lockscreen entry
+    // pointing at a dead Player, and incoming commands (play from
+    // the lockscreen) would land on disposed state.
+    if (identical(Player._mediaSessionOwner, this)) {
+      try {
+        await setMediaSession(null);
+      } catch (_) {
+        // Best effort — session teardown must never block disposal.
+      }
+    }
     _cancelHookTimers();
     await super.dispose();
   }
@@ -361,6 +422,17 @@ abstract class _PlayerBase {
   final MpvEventIsolate _eventIsolate = MpvEventIsolate();
   bool _disposed = false;
 
+  // Latched true on the first MPV_EVENT_START_FILE. Gates the idle-active
+  // intent reset: the initial observe burst delivers `idle-active=true`
+  // (the player starts idle) BEFORE any file load is attempted, and that
+  // stale value must not clear a `playWhenReady` intent set by an
+  // open(play: true) that is still settling. Port delivery is FIFO, so the
+  // startup idle-active always precedes the first START_FILE. Latching on
+  // START_FILE (which fires even for a load that fails to open) rather than
+  // FILE_LOADED means a failed first open() still arms the reset, so its
+  // intent doesn't stick true.
+  bool _hasLoadedFile = false;
+
   // `_activeHookIds` is authoritative for [Player.continueHook]: mpv's
   // behaviour on stale ids is undefined across versions, so duplicate
   // continues are rejected here before they reach FFI.
@@ -389,11 +461,22 @@ abstract class _PlayerBase {
   final ReactiveProperty<Loop> _loop = ReactiveProperty<Loop>(Loop.off);
   final ReactiveProperty<List<Device>> _audioDevices =
       ReactiveProperty<List<Device>>(
-          const [Device(name: 'auto', description: 'Auto')]);
+          const [Device(name: 'auto', description: 'Auto')],);
   final ReactiveProperty<Map<String, String>> _metadata =
       ReactiveProperty<Map<String, String>>(const <String, String>{});
   final ReactiveProperty<double> _bufferingPercentage =
       ReactiveProperty<double>(0.0);
+  // OS media-session config + metadata override. Null = disabled.
+  // Updated synchronously by [_MediaSessionModule.setMediaSession].
+  final ReactiveProperty<MediaSession?> _mediaSession =
+      ReactiveProperty<MediaSession?>(null);
+
+  // Dart-side orchestrator that ferries state from `PlayerStream` to
+  // the native media-session channel and routes inbound OS commands
+  // back. Null while the session is disabled; lazily allocated on
+  // first `setMediaSession(non-null)` and torn down on disable or
+  // on `dispose()`.
+  MediaSessionController? _mediaSessionController;
 
   // ── Pure event streams (no current value) ───────────────────────────────
   final StreamController<MpvFileEndedEvent> _endFileCtrl =
@@ -419,6 +502,12 @@ abstract class _PlayerBase {
   // against a separate file-transition signal.
   final StreamController<CoverArt?> _coverArtCtrl =
       StreamController<CoverArt?>.broadcast();
+  // Incoming commands from the OS media session (lockscreen, BT
+  // headset, Siri / Assistant). Plumbed by the per-platform native
+  // implementation in later commits; for now the controller exists
+  // so consumers can subscribe even with no native push wired.
+  final StreamController<MediaSessionCommand> _mediaSessionCommandsCtrl =
+      StreamController<MediaSessionCommand>.broadcast();
 
   // Real-time FFT + raw PCM pipeline. Lazy: the poll loop starts only
   // when something subscribes to `stream.spectrum` or `stream.pcm`.
@@ -449,13 +538,54 @@ abstract class _PlayerBase {
       ..registerAll(buildDefaultSpecs(
         _reactives,
         onIdleActive: (idle) {
-          if (idle) _updateLifecycle(playing: false, buffering: false);
+          if (idle) {
+            _updateLifecycle(playing: false, buffering: false);
+            // mpv has entered its idle loop (nothing loaded) → the
+            // play/pause intent is spent; settle the OS button on "play".
+            // Gated on [_hasLoadedFile] so the startup idle-active burst
+            // can't clear a fresh open(play: true) intent. mpv reaches idle
+            // after a `stop`, or after a load that ends with no next entry
+            // and is NOT held by keep-open (e.g. a failed first open). The
+            // natural end of playable content under the shipped
+            // `keep-open: yes` does NOT fire idle-active — that path is
+            // handled by [onEofReached] instead. A mid-playlist advance
+            // also doesn't fire idle-active, so this never flickers.
+            if (_hasLoadedFile) {
+              _updateField((s) => s.copyWith(playWhenReady: false),
+                  _reactives.playWhenReady, false,);
+            }
+          }
         },
         onAudioOutputState: (state) {
           final err = buildAudioOutputError(state);
           if (err != null) _errorCtrl.add(err);
         },
-      ));
+        onEofReached: (eof) {
+          // `keep-open: yes` (shipped pre-init option) makes mpv park
+          // paused on the last frame at end-of-content and withhold BOTH
+          // MPV_EVENT_END_FILE and idle-active, so the two writers that
+          // normally settle the transport (the EndFile completed flag and
+          // the idle-active intent reset) never fire for a single track or
+          // the last playlist entry. The `eof-reached` rising edge is the
+          // signal that DOES fire there.
+          if (!_hasLoadedFile) return;
+          if (eof) {
+            // Only at the GENUINE end of content — not a gapless
+            // mid-playlist boundary (where eof-reached can blip) and not
+            // while looping (where the file/playlist restarts). Otherwise
+            // the OS play/pause button would flicker.
+            if (_isEndOfContent()) {
+              _updateLifecycle(completed: true);
+              _updateField((s) => s.copyWith(playWhenReady: false),
+                  _reactives.playWhenReady, false,);
+            }
+          } else if (_state.completed) {
+            // Left the end (a seek back into the track, or a new file):
+            // the track is no longer completed.
+            _updateLifecycle(completed: false);
+          }
+        },
+      ),);
 
     // Streams that don't need _lib/_handle can be wired immediately —
     // a consumer subscribing right after `Player()` sees no events
@@ -485,6 +615,7 @@ abstract class _PlayerBase {
       metadata: _metadata,
       bufferingPercentage: _bufferingPercentage,
       audioEffects: _reactives.audioEffects,
+      mediaSession: _mediaSession,
       endFile: _endFileCtrl.stream,
       error: _errorCtrl.stream,
       log: _logCtrl.stream,
@@ -500,6 +631,7 @@ abstract class _PlayerBase {
         TapSide.pre => _filterTapPipeline.tapPre(filter.filterName),
         TapSide.post => _filterTapPipeline.tapPost(filter.filterName),
       },
+      mediaSessionCommands: _mediaSessionCommandsCtrl.stream,
     );
 
     // Build the recipe and hand it to the event isolate. All heavy
@@ -586,7 +718,7 @@ abstract class _PlayerBase {
       // wire operations (property set + state update) inline.
       _prop('tls-ca-file', path);
       _updateField(
-          (s) => s.copyWith(tlsCaFile: path), _reactives.tlsCaFile, path);
+          (s) => s.copyWith(tlsCaFile: path), _reactives.tlsCaFile, path,);
     } catch (e, st) {
       // Surface to the internal-log stream; do NOT throw — the player
       // still works for non-HTTPS streams or for consumers that bring
@@ -595,7 +727,7 @@ abstract class _PlayerBase {
         level: LogLevel.warn,
         prefix: 'mpv_audio_kit',
         text: 'Failed to auto-configure tls-ca-file: $e\n$st',
-      ));
+      ),);
     }
   }
 
@@ -665,6 +797,14 @@ abstract class _PlayerBase {
     if (_disposed) return;
     switch (event) {
       case MpvEventStartFile():
+        // Latch "a file load has been attempted" HERE, not on FILE_LOADED:
+        // START_FILE fires for every load attempt — including one that will
+        // fail to open — so a failed first open() still arms the
+        // idle-active intent reset (otherwise its intent would stick true
+        // forever). START_FILE is always delivered AFTER the cold-start
+        // idle-active burst (FIFO), so the latch still can't be tripped by
+        // the startup burst.
+        _hasLoadedFile = true;
         _updateLifecycle(buffering: true, completed: false);
       case MpvEventFileLoaded():
         // `state.playing` is driven by the `core-idle` observer; here we
@@ -675,8 +815,8 @@ abstract class _PlayerBase {
         _extractEmbeddedCover();
         if (_bringUpCompleted) _waveformPipeline.reset();
       case MpvEventPlaybackSeek():
-        // No-op: mutating position here would flash 0 before the
-        // post-restart poll lands.
+        // No-op: a seek's landing is observed via PLAYBACK_RESTART
+        // (`seekCompleted`); nothing needs the SEEK event itself.
         break;
       case MpvEventPlaybackRestart():
         _pollPosition();
@@ -686,13 +826,13 @@ abstract class _PlayerBase {
         _endFileCtrl.add(MpvFileEndedEvent(
           reason: typedReason,
           error: error,
-        ));
+        ),);
         if (error < 0) {
           _errorCtrl.add(MpvEndFileError(
             reason: typedReason,
             code: error,
             message: _errorString(error),
-          ));
+          ),);
         }
         final isEof = reason == MpvEndFileReason.eof.value;
         _updateLifecycle(playing: false, buffering: false, completed: isEof);
@@ -716,7 +856,7 @@ abstract class _PlayerBase {
             prefix: prefix,
             level: typedLevel,
             text: text,
-          ));
+          ),);
         }
       case MpvEventHookFired(:final id, :final name):
         final hook = Hook.fromMpv(name);
@@ -752,9 +892,12 @@ abstract class _PlayerBase {
   /// (parser, reducer) pair (JSON parsing with player-side context, derived
   /// fields aggregating multiple mpv properties, etc.).
   void _dispatchProperty(String name, dynamic raw) {
-    final next = _registry.dispatch(name, raw, _state);
+    // `commit` assigns the reduced state to `_state` BEFORE the spec's
+    // onChange fires, so a hook that reads + mutates `_state` (the
+    // idle-active / eof-reached hooks settling the transport) builds on the
+    // reduced state and isn't clobbered by a late assignment here.
+    final next = _registry.dispatch(name, raw, _state, commit: (s) => _state = s);
     if (next != null) {
-      _state = next;
       return;
     }
     if (_registry.specFor(name) != null) {
@@ -803,7 +946,7 @@ abstract class _PlayerBase {
     return using((arena) => _lib.mpvSetPropertyString(
         _handle,
         name.toNativeUtf8(allocator: arena),
-        value.toNativeUtf8(allocator: arena)));
+        value.toNativeUtf8(allocator: arena),),);
   }
 
   int _command(List<String> args) {
@@ -891,14 +1034,14 @@ abstract class _PlayerBase {
     }
     if (_kForbiddenInHeaderKey.hasMatch(key)) {
       throw ArgumentError.value(
-          key, 'header name', 'must not contain CR, LF, NUL, comma, or colon');
+          key, 'header name', 'must not contain CR, LF, NUL, comma, or colon',);
     }
   }
 
   void _validateHeaderValue(String value) {
     if (_kForbiddenInHeaderValue.hasMatch(value)) {
       throw ArgumentError.value(value, 'header value',
-          'must not contain CR, LF, NUL, or comma (would split or inject the HTTP request)');
+          'must not contain CR, LF, NUL, or comma (would split or inject the HTTP request)',);
     }
   }
 
@@ -916,7 +1059,7 @@ abstract class _PlayerBase {
   void _checkFinite(double value, String paramName) {
     if (!value.isFinite) {
       throw ArgumentError.value(
-          value, paramName, 'Expected a finite double (got NaN/Infinity)');
+          value, paramName, 'Expected a finite double (got NaN/Infinity)',);
     }
   }
 
@@ -984,6 +1127,17 @@ abstract class _PlayerBase {
     if (result.completedDidChange) _completed.update(completed!);
   }
 
+  /// Whether an `eof-reached` rising edge marks the genuine end of all
+  /// playable content — the last (or only) playlist entry, with no active
+  /// loop that will restart it. Used by the `eof-reached` hook to settle the
+  /// transport without firing at a gapless mid-playlist boundary or on every
+  /// loop wrap (either of which would flicker the play/pause button).
+  bool _isEndOfContent() {
+    if (_state.loop != Loop.off) return false;
+    final items = _state.playlist.items;
+    return items.isEmpty || _state.playlist.index >= items.length - 1;
+  }
+
   // --- Custom property handlers (JSON / derived) ---
 
   void _updateLoopFromMpv(String name, String value) {
@@ -1034,7 +1188,7 @@ abstract class _PlayerBase {
     try {
       final devices = parseDeviceListNode(raw);
       _updateField(
-          (s) => s.copyWith(audioDevices: devices), _audioDevices, devices);
+          (s) => s.copyWith(audioDevices: devices), _audioDevices, devices,);
     } catch (e) {
       _internalLog('Failed to parse audio devices: $e', level: LogLevel.warn);
     }
@@ -1054,7 +1208,7 @@ abstract class _PlayerBase {
     try {
       final pct = parseDemuxerCacheStateNode(raw, _state.cache.secs);
       _updateField((s) => s.copyWith(bufferingPercentage: pct),
-          _bufferingPercentage, pct);
+          _bufferingPercentage, pct,);
     } catch (e) {
       _internalLog('Failed to parse cache state: $e', level: LogLevel.warn);
     }
@@ -1068,11 +1222,11 @@ abstract class _PlayerBase {
       final n = 'time-pos'.toNativeUtf8(allocator: arena);
       final buf = arena<Double>();
       final rc = _lib.mpvGetProperty(
-          _handle, n, MpvFormat.mpvFormatDouble, buf.cast());
+          _handle, n, MpvFormat.mpvFormatDouble, buf.cast(),);
       if (rc == MpvError.mpvErrorSuccess) {
         final pos = Duration(microseconds: (buf.value * 1e6).round());
         _updateField(
-            (s) => s.copyWith(position: pos), _reactives.position, pos);
+            (s) => s.copyWith(position: pos), _reactives.position, pos,);
       }
     });
   }
@@ -1099,7 +1253,7 @@ abstract class _PlayerBase {
         // mpv exposes -1 / -2 etc. as "no chapter active"; surface as null.
         final idx = buf.value < 0 ? null : buf.value.toInt();
         _updateField((s) => s.copyWith(currentChapter: idx),
-            _reactives.currentChapter, idx);
+            _reactives.currentChapter, idx,);
       }
     });
     // chapter-list — NODE_ARRAY. Allocate, read, decode, dispatch
@@ -1108,7 +1262,7 @@ abstract class _PlayerBase {
       final n = 'chapter-list'.toNativeUtf8(allocator: arena);
       final nodePtr = arena<MpvNode>();
       final rc = _lib.mpvGetProperty(
-          _handle, n, MpvFormat.mpvFormatNode, nodePtr.cast());
+          _handle, n, MpvFormat.mpvFormatNode, nodePtr.cast(),);
       if (rc == MpvError.mpvErrorSuccess) {
         final decoded = decodeMpvNode(nodePtr.ref);
         try {
@@ -1125,7 +1279,7 @@ abstract class _PlayerBase {
   /// stream ([PlayerStream.log]).
   void _internalLog(String message, {LogLevel level = LogLevel.info}) =>
       _internalLogCtrl.add(
-          MpvLogEntry(prefix: 'mpv_audio_kit', level: level, text: message));
+          MpvLogEntry(prefix: 'mpv_audio_kit', level: level, text: message),);
 
   void _extractEmbeddedCover() {
     if (_disposed) return;
@@ -1198,6 +1352,23 @@ abstract class _PlayerBase {
       } catch (_) {}
     }
 
+    // Tear down the media-session controller before closing the
+    // backing reactives — its subscriptions need live streams to
+    // cancel cleanly, and its final `disable()` call to native
+    // needs the controller still wired. `Player.dispose()` already
+    // calls `setMediaSession(null)` (which tears the controller
+    // down) before reaching here, but we double-check for safety in
+    // case a future code path skips that step.
+    final controller = _mediaSessionController;
+    _mediaSessionController = null;
+    if (controller != null) {
+      try {
+        await controller.dispose();
+      } catch (_) {
+        // Best effort — never block disposal on session teardown.
+      }
+    }
+
     // Close registry-backed reactives, then standalone ones, then
     // pure-event controllers. Order is for auditability — close() is
     // safe with attached listeners.
@@ -1210,6 +1381,7 @@ abstract class _PlayerBase {
       _audioDevices.close(),
       _metadata.close(),
       _bufferingPercentage.close(),
+      _mediaSession.close(),
     ]);
     await Future.wait<void>([
       _endFileCtrl.close(),
@@ -1219,6 +1391,7 @@ abstract class _PlayerBase {
       _hookCtrl.close(),
       _seekCompletedCtrl.close(),
       _coverArtCtrl.close(),
+      _mediaSessionCommandsCtrl.close(),
     ]);
   }
 }

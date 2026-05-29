@@ -40,7 +40,7 @@ void main() {
         await player.stream.seekCompleted.first
             .timeout(const Duration(seconds: 5));
         expect(player.state.playlist.items, isNotEmpty,
-            reason: 'precondition: playlist must be populated');
+            reason: 'precondition: playlist must be populated',);
 
         await player.clearPlaylist();
 
@@ -65,6 +65,6 @@ void main() {
       } finally {
         await player.dispose();
       }
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
   });
 }

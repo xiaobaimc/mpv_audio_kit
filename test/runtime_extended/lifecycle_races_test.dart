@@ -8,8 +8,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -47,7 +48,7 @@ void main() {
       // emitting any property change because there's nothing playing.
       await player.pause();
       expect(player.state.playing, isFalse);
-    }, timeout: const Timeout(Duration(seconds: 5)));
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test('seek() before any open() is a no-op (no crash)', () async {
       // mpv silently ignores seek when no file is loaded. The wrapper
@@ -55,7 +56,7 @@ void main() {
       // the position observer simply never fires.
       await player.seek(const Duration(seconds: 5));
       expect(player.state.position, Duration.zero);
-    }, timeout: const Timeout(Duration(seconds: 5)));
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test('open() while a previous seek is in flight settles on the new file',
         () async {
@@ -91,7 +92,7 @@ void main() {
 
       await backNearZero;
       expect(player.state.position.inMilliseconds, lessThan(500));
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test('stop() immediately followed by open() loads the new file', () async {
       // stop() unloads the demuxer; open() must successfully load again
@@ -103,8 +104,8 @@ void main() {
       await player.open(Media(fixturePath), play: false);
       await loaded;
       expect(player.state.duration.inMilliseconds, greaterThan(2500),
-          reason: 'with_chapters.mka has duration > 2.5s once demuxed');
-    }, timeout: const Timeout(Duration(seconds: 30)));
+          reason: 'with_chapters.mka has duration > 2.5s once demuxed',);
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test('20 sequential open() cycles on the same Player remain stable',
         () async {
@@ -119,9 +120,9 @@ void main() {
         await loaded;
       }
       expect(player.state.duration.inMilliseconds, greaterThan(2500),
-          reason: 'after 20 cycles, duration must still match the fixture');
+          reason: 'after 20 cycles, duration must still match the fixture',);
       expect(player.state.audioParams.sampleRate, isNotNull,
-          reason: 'audio-params must be populated after the final load');
-    }, timeout: const Timeout(Duration(seconds: 120)));
+          reason: 'audio-params must be populated after the final load',);
+    }, timeout: const Timeout(Duration(seconds: 120)),);
   });
 }

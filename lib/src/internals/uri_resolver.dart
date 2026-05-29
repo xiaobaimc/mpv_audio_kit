@@ -14,9 +14,11 @@
 // All other URIs (`file://`, `http(s)://`, `smb2://`, plain
 // filesystem paths, …) pass through unchanged.
 
+import 'dart:async';
 import 'dart:io';
-import 'package:flutter/services.dart';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 const MethodChannel _channel = MethodChannel('mpv_audio_kit');
 final Map<String, String> _assetCache = {};
@@ -40,6 +42,8 @@ final Map<String, Future<String>> _assetInflight = {};
 /// For URIs that don't allocate platform resources (asset://, plain
 /// paths, network URLs) [dispose] is `null`.
 class ResolvedUri {
+  /// Wraps a libmpv-loadable [uri] with an optional [dispose] callback
+  /// that releases any platform resources the resolution allocated.
   const ResolvedUri(this.uri, [this.dispose]);
 
   /// The URI as libmpv accepts it (`fd://N`, an absolute filesystem
@@ -131,7 +135,7 @@ Future<String> _doCopyAsset(String uri) async {
     final safeName =
         assetPath.replaceAll(Platform.pathSeparator, '_').replaceAll('/', '_');
     final file = File(
-        '${Directory.systemTemp.path}${Platform.pathSeparator}mpv_asset_$safeName');
+        '${Directory.systemTemp.path}${Platform.pathSeparator}mpv_asset_$safeName',);
 
     // Slice the asset's view explicitly: rootBundle bundles can pack
     // multiple assets into one backing buffer, and the no-arg
@@ -145,6 +149,8 @@ Future<String> _doCopyAsset(String uri) async {
     _assetCache[uri] = file.path;
     return file.path;
   } finally {
-    _assetInflight.remove(uri);
+    // `remove` returns the in-flight Future we are currently completing;
+    // discard it — awaiting our own pending Future here would deadlock.
+    unawaited(_assetInflight.remove(uri));
   }
 }

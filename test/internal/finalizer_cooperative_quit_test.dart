@@ -39,15 +39,15 @@ void main() {
 
       expect(spy.terminateDestroyCalls, 0,
           reason: 'finalizer must not race the live event isolate by '
-              'calling mpv_terminate_destroy on the handle');
+              'calling mpv_terminate_destroy on the handle',);
       expect(spy.commandStringCalls, 1,
-          reason: 'finalizer should issue exactly one cooperative quit');
+          reason: 'finalizer should issue exactly one cooperative quit',);
       expect(spy.lastCommand, equals('quit'),
-          reason: 'cooperative quit must be the literal "quit" command');
+          reason: 'cooperative quit must be the literal "quit" command',);
       expect(spy.lastHandle?.address, equals(fakeHandle.address));
       expect(res.disposed, isTrue,
           reason: 'PlayerNativeResources.disposed must flip so a late '
-              'second finalize() (after the GC late-fires) is a no-op');
+              'second finalize() (after the GC late-fires) is a no-op',);
     });
 
     test('finalizer is idempotent — already-disposed resource is a no-op', () {
@@ -78,7 +78,7 @@ void main() {
       expect(res.disposed, isTrue,
           reason: 'finalizer must mark the resource disposed even on '
               'cleanup failure, otherwise a retry on a stale handle '
-              'could fire later');
+              'could fire later',);
     });
   });
 }

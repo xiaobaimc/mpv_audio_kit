@@ -7,8 +7,8 @@ import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 
-import '../mpv_bindings.dart';
 import '../models/cover_art.dart';
+import '../mpv_bindings.dart';
 
 /// Pure-FFI helper that captures the embedded cover art of the
 /// currently loaded file as a [CoverArt] (codec bytes + MIME type).
@@ -35,7 +35,7 @@ abstract final class CoverArtExtractor {
         final propName =
             'embedded-cover-art-data'.toNativeUtf8(allocator: arena);
         final rc = lib.mpvGetProperty(
-            handle, propName, MpvFormat.mpvFormatNode, result.cast());
+            handle, propName, MpvFormat.mpvFormatNode, result.cast(),);
         if (rc < 0) return null;
         if (result.ref.format != MpvFormat.mpvFormatByteArray) return null;
         final ba = result.ref.u.ba.ref;
@@ -55,7 +55,7 @@ abstract final class CoverArtExtractor {
   }
 
   static String? _getPropString(
-      MpvLibrary lib, Pointer<MpvHandle> handle, String name) {
+      MpvLibrary lib, Pointer<MpvHandle> handle, String name,) {
     return using<String?>((arena) {
       final n = name.toNativeUtf8(allocator: arena);
       final ptr = lib.mpvGetPropertyString(handle, n);

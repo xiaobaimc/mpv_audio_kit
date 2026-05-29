@@ -2,8 +2,8 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('MpvPrefetchState.fromMpv', () {
@@ -20,7 +20,7 @@ void main() {
       };
       for (final entry in cases.entries) {
         expect(MpvPrefetchState.fromMpv(entry.key), entry.value,
-            reason: 'parse("${entry.key}") should be ${entry.value}');
+            reason: 'parse("${entry.key}") should be ${entry.value}',);
       }
     });
 
@@ -32,7 +32,7 @@ void main() {
       expect(MpvPrefetchState.fromMpv('totally-bogus'), MpvPrefetchState.idle);
       expect(MpvPrefetchState.fromMpv(''), MpvPrefetchState.idle);
       expect(MpvPrefetchState.fromMpv('IDLE'), MpvPrefetchState.idle,
-          reason: 'parse is case-sensitive (mpv emits lowercase)');
+          reason: 'parse is case-sensitive (mpv emits lowercase)',);
     });
 
     test('every variant is reachable via parse', () {

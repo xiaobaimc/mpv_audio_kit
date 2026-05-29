@@ -8,8 +8,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -48,10 +49,10 @@ void main() {
       final state = await playingEmit;
       expect(state, MpvPlaybackState.playing,
           reason: 'aggregate stream must emit `playing` once core-idle '
-              'flips to false on the first play() call');
+              'flips to false on the first play() call',);
     } finally {
       await player.stop();
       await player.dispose();
     }
-  }, timeout: const Timeout(Duration(seconds: 30)));
+  }, timeout: const Timeout(Duration(seconds: 30)),);
 }

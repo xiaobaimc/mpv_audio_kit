@@ -1,21 +1,15 @@
 PODS:
   - FlutterMacOS (1.0.0)
-  - mpv_audio_kit (0.1.1):
-    - FlutterMacOS
 
 DEPENDENCIES:
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - mpv_audio_kit (from `Flutter/ephemeral/.symlinks/plugins/mpv_audio_kit/macos`)
 
 EXTERNAL SOURCES:
   FlutterMacOS:
     :path: Flutter/ephemeral
-  mpv_audio_kit:
-    :path: Flutter/ephemeral/.symlinks/plugins/mpv_audio_kit/macos
 
 SPEC CHECKSUMS:
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  mpv_audio_kit: 0e2ad770547e02e4dafab42af6c93da45c896761
 
 PODFILE CHECKSUM: 1e95c36afbfd1cb6423ceca4de7a8e1b256fb6ac
 

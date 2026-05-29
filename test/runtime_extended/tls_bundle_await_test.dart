@@ -46,7 +46,7 @@ void main() {
       } finally {
         await player.dispose();
       }
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('replace() awaits _tlsBundleReady before issuing loadfile', () async {
       final player = await buildPlayer();
@@ -63,6 +63,6 @@ void main() {
       } finally {
         await player.dispose();
       }
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

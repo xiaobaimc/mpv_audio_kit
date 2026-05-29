@@ -17,9 +17,9 @@ library;
 import 'dart:ffi';
 import 'dart:io';
 
-import 'package:test/test.dart';
-import 'package:mpv_audio_kit/src/mpv_bindings.dart';
 import 'package:mpv_audio_kit/src/internals/orphan_handle_tracker.dart';
+import 'package:mpv_audio_kit/src/mpv_bindings.dart';
+import 'package:test/test.dart';
 
 void main() {
   test('OrphanHandleTracker.ensureInitialized + add + remove smoke', () {
@@ -30,9 +30,9 @@ void main() {
 
     // The tmp file should exist after the first init — keyed by pid.
     final expected = File(
-        '${Directory.systemTemp.path}${Platform.pathSeparator}mpv_audio_kit_refs_$pid.txt');
+        '${Directory.systemTemp.path}${Platform.pathSeparator}mpv_audio_kit_refs_$pid.txt',);
     expect(expected.existsSync(), isTrue,
-        reason: 'tracker writes a per-pid sentinel into systemTemp on init');
+        reason: 'tracker writes a per-pid sentinel into systemTemp on init',);
 
     // add() and remove() of a fake handle pointer must not throw. The
     // tracker is a Future-chained queue internally, so the assertions

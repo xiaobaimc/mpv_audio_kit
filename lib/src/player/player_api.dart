@@ -2,8 +2,10 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
+import '../generated/audio_effects_settings.dart';
 import '../models/device.dart';
 import '../models/media.dart';
+import '../models/media_session.dart';
 import '../types/enums/cover.dart';
 import '../types/enums/format.dart';
 import '../types/enums/gapless.dart';
@@ -12,7 +14,6 @@ import '../types/enums/loop.dart';
 import '../types/enums/spdif.dart';
 import '../types/sealed/channels.dart';
 import '../types/sealed/track.dart';
-import '../generated/audio_effects_settings.dart';
 import '../types/settings/cache_settings.dart';
 import '../types/settings/replay_gain_settings.dart';
 import '../types/settings/spectrum_settings.dart';
@@ -60,85 +61,243 @@ abstract interface class PlayerApi {
 
   // ── Loading ────────────────────────────────────────────────────────
 
+  /// Loads [media] as the sole playlist entry and optionally starts
+  /// playback. When [play] is null the configuration's autoplay value
+  /// decides. Replaces any currently loaded file or playlist.
   Future<void> open(Media media, {bool? play});
 
+  /// Loads [medias] as the new playlist, optionally starting at [index]
+  /// (clamped to the valid range) and optionally starting playback. The
+  /// multi-item counterpart of [open].
   Future<void> openAll(List<Media> medias, {bool? play, int index = 0});
 
   // ── Playback ───────────────────────────────────────────────────────
 
+  /// Starts or resumes playback (sets the play/pause intent to play).
+  /// Idempotent.
   Future<void> play();
+
+  /// Pauses playback, preserving the playhead position. Idempotent.
   Future<void> pause();
+
+  /// Stops playback and unloads the current file; the next track must be
+  /// loaded with [open].
   Future<void> stop();
+
+  /// Seeks within the current file. With [relative] `false` [position] is
+  /// an absolute timestamp; with `true` it is a signed offset from the
+  /// playhead.
   Future<void> seek(Duration position, {bool relative = false});
+
+  /// Jumps to the 0-based chapter [index] in the current file.
   Future<void> setChapter(int index);
+
+  /// Sets the A-B loop start point; `null` disables it.
   Future<void> setAbLoopA(Duration? position);
+
+  /// Sets the A-B loop end point; `null` disables it.
   Future<void> setAbLoopB(Duration? position);
+
+  /// Sets the number of A-B loop repetitions; `null` loops infinitely.
   Future<void> setAbLoopCount(int? count);
 
   // ── Playlist ───────────────────────────────────────────────────────
 
+  /// Appends [media] to the end of the playlist.
   Future<void> add(Media media);
+
+  /// Removes the playlist entry at [index].
   Future<void> remove(int index);
+
+  /// Advances to the next playlist entry.
   Future<void> next();
+
+  /// Returns to the previous playlist entry.
   Future<void> previous();
+
+  /// Jumps to the playlist entry at [index] and plays it.
   Future<void> jump(int index);
+
+  /// Moves the playlist entry from index [from] to index [to].
   Future<void> move(int from, int to);
+
+  /// Replaces the playlist entry at [index] with [media].
   Future<void> replace(int index, Media media);
+
+  /// Removes every entry from the playlist.
   Future<void> clearPlaylist();
+
+  /// Sets the loop policy (off, current file, or whole playlist).
   Future<void> setLoop(Loop loop);
+
+  /// Enables or disables shuffled playlist order.
   Future<void> setShuffle(bool shuffle);
+
+  /// Enables or disables prefetching the next playlist entry during
+  /// playback.
   Future<void> setPrefetchPlaylist(bool enabled);
 
   // ── Audio output ───────────────────────────────────────────────────
 
+  /// Sets the output volume in percent (`100` is unattenuated), clamped to
+  /// the current volume-max.
   Future<void> setVolume(double volume);
+
+  /// Sets the playback rate multiplier (`1.0` is normal speed).
   Future<void> setRate(double rate);
+
+  /// Sets the pitch multiplier (`1.0` leaves pitch unchanged).
   Future<void> setPitch(double pitch);
+
+  /// Mutes or unmutes the output.
   Future<void> setMute(bool mute);
+
+  /// Selects the audio output [device].
   Future<void> setAudioDevice(Device device);
+
+  /// Enables or disables holding pitch constant when the rate changes.
   Future<void> setPitchCorrection(bool enable);
+
+  /// Sets the audio sync offset relative to the playback clock.
   Future<void> setAudioDelay(Duration delay);
+
+  /// Sets the gapless-playback policy across playlist boundaries.
   Future<void> setGapless(Gapless gapless);
+
+  /// Applies the ReplayGain configuration atomically.
   Future<void> setReplayGain(ReplayGainSettings settings);
+
+  /// Sets the decoder-side gain in dB applied on top of the volume.
   Future<void> setVolumeGain(double gainDb);
+
+  /// Sets the upper bound the [setVolume] setter accepts, in percent.
   Future<void> setVolumeMax(double limit);
+
+  /// Opens the audio device in exclusive mode when [exclusive] is true.
   Future<void> setAudioExclusive(bool exclusive);
+
+  /// Sets the set of codecs to pass through as bitstream rather than
+  /// decode.
   Future<void> setAudioSpdif(Set<Spdif> codecs);
+
+  /// Selects the active audio [track].
   Future<void> setAudioTrack(Track track);
+
+  /// Reloads the current audio track, reopening the decoder and output.
   Future<void> reloadAudio();
+
+  /// Replaces the whole DSP rack atomically with [effects].
   Future<void> setAudioEffects(AudioEffects effects);
+
+  /// Mutates the current DSP rack incrementally by applying [mapper] to it
+  /// and reapplying the result.
   Future<void> updateAudioEffects(AudioEffects Function(AudioEffects) mapper);
+
+  /// Sets the policy for scanning sidecar cover-art files.
   Future<void> setCoverArtAuto(Cover cover);
+
+  /// Forces the output sample rate in Hz; pass mpv's auto value to let it
+  /// choose.
   Future<void> setAudioSampleRate(int rate);
+
+  /// Forces the output sample format; [Format.auto] lets mpv choose.
   Future<void> setAudioFormat(Format format);
+
+  /// Forces the output channel layout; [Channels.auto] lets mpv choose.
   Future<void> setAudioChannels(Channels channels);
+
+  /// Sets the client name reported to the audio server.
   Future<void> setAudioClientName(String name);
+
+  /// Selects the audio output driver.
   Future<void> setAudioDriver(String driver);
+
+  /// Applies the spectrum / PCM pipeline configuration atomically.
   Future<void> setSpectrum(SpectrumSettings settings);
+
+  /// Mutates the spectrum configuration incrementally by applying [mapper]
+  /// to it and reapplying the result.
   Future<void> updateSpectrum(
-      SpectrumSettings Function(SpectrumSettings) mapper);
+      SpectrumSettings Function(SpectrumSettings) mapper,);
 
   // ── Cache / network ────────────────────────────────────────────────
 
+  /// Applies the demuxer cache configuration atomically.
   Future<void> setCache(CacheSettings settings);
+
+  /// Sets the output device buffer size.
   Future<void> setAudioBuffer(Duration size);
+
+  /// Streams silence to keep the device open while idle when [enable] is
+  /// true.
   Future<void> setAudioStreamSilence(bool enable);
+
+  /// Sets the network I/O timeout.
   Future<void> setNetworkTimeout(Duration timeout);
+
+  /// Enables or disables TLS server-certificate verification.
   Future<void> setTlsVerify(bool enable);
+
+  /// Sets the path to a custom CA bundle for TLS verification.
   Future<void> setTlsCaFile(String path);
+
+  /// Sets the forward demuxer cache size cap in bytes.
   Future<void> setDemuxerMaxBytes(int bytes);
+
+  /// Sets the backward demuxer cache size cap in bytes.
   Future<void> setDemuxerMaxBackBytes(int bytes);
+
+  /// Sets the minimum read-ahead the demuxer keeps buffered, in seconds.
   Future<void> setDemuxerReadaheadSecs(int seconds);
+
+  /// Runs the null audio output untimed when [enable] is true.
   Future<void> setAudioNullUntimed(bool enable);
+
+  // ── Media session ──────────────────────────────────────────────────
+
+  /// Publishes the [Player] to the OS media session (lockscreen / SMTC
+  /// / MPRIS), wiring up Bluetooth AVRCP, headset buttons, Siri /
+  /// Google Assistant, and the platform's audio-session lifecycle per
+  /// [MediaSession.interruptionPolicy].
+  ///
+  /// Pass `null` to disable the session and remove the entry from the
+  /// system. Only one [Player] per process can have an active session
+  /// at a time; calling this with a non-null [session] on a second
+  /// [Player] throws [StateError].
+  ///
+  /// Incoming OS commands (play/pause from the lockscreen, next track
+  /// from a Bluetooth headset, …) are auto-applied to this [Player]
+  /// and also surfaced on [PlayerStream.mediaSessionCommands] for
+  /// analytics / interception.
+  ///
+  /// `dispose()` automatically calls `setMediaSession(null)` before
+  /// tearing down libmpv, so the OS lockscreen never holds a stale
+  /// entry past the player's lifetime.
+  Future<void> setMediaSession(MediaSession? session);
 
   // ── Hooks ──────────────────────────────────────────────────────────
 
+  /// Registers a libmpv hook. Higher [priority] runs earlier; [timeout]
+  /// caps how long mpv waits before auto-continuing. Hook events surface
+  /// on [PlayerStream.hooks] and must be released with [continueHook].
   Future<void> registerHook(Hook hook, {int priority = 0, Duration? timeout});
+
+  /// Releases the hook stage identified by [id], letting mpv resume the
+  /// gated operation.
   Future<void> continueHook(int id);
 
   // ── Raw escape hatch ───────────────────────────────────────────────
 
+  /// Reads an arbitrary mpv property as a string; `null` if unset or
+  /// unavailable. Escape hatch for properties without a typed accessor.
   Future<String?> getRawProperty(String name);
+
+  /// Writes an arbitrary mpv property from a string. Escape hatch for
+  /// properties without a typed setter; writes to `af` and `pause` are
+  /// rejected because they would desync the typed state.
   Future<void> setRawProperty(String name, String value);
+
+  /// Sends an arbitrary mpv command with its argument list. Escape hatch
+  /// for commands without a typed wrapper.
   Future<void> sendRawCommand(List<String> args);
 }

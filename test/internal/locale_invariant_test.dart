@@ -54,7 +54,7 @@ void main() {
     String? installed;
     for (final c in candidates) {
       final r = using(
-          (arena) => setlocale(lcNumeric, c.toNativeUtf8(allocator: arena)));
+          (arena) => setlocale(lcNumeric, c.toNativeUtf8(allocator: arena)),);
       if (r != nullptr) {
         installed = r.cast<Utf8>().toDartString();
         if (installed != 'C') break;
@@ -70,7 +70,7 @@ void main() {
     // Sanity: precondition met.
     final pre = setlocale(lcNumeric, nullptr).cast<Utf8>().toDartString();
     expect(pre, isNot('C'),
-        reason: 'precondition: must enter the test in a non-C locale');
+        reason: 'precondition: must enter the test in a non-C locale',);
 
     initLibmpvOrSkip();
 

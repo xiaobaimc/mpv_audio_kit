@@ -25,12 +25,16 @@ final class Playlist {
   /// The index of the currently active track. `0` for an empty playlist.
   final int index;
 
+  /// Creates a playlist from an ordered list of [items], with [index]
+  /// marking the active track (defaults to the first).
   const Playlist(this.items, {this.index = 0});
 
   /// The empty playlist — no tracks, index 0. Const-evaluable so it can
   /// seed default fields without runtime allocation.
   static const Playlist empty = Playlist(<Media>[]);
 
+  /// Returns a copy with the given fields replaced. Omitted fields keep
+  /// their current value.
   Playlist copyWith({List<Media>? items, int? index}) => Playlist(
         items ?? this.items,
         index: index ?? this.index,

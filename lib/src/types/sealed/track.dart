@@ -38,15 +38,19 @@ sealed class Track {
       };
 }
 
+/// The [Track.auto] variant — defer to mpv's automatic track choice.
 final class TrackAuto extends Track {
   const TrackAuto._() : super._();
 }
 
+/// The [Track.off] variant — disable audio output entirely.
 final class TrackOff extends Track {
   const TrackOff._() : super._();
 }
 
+/// The [Track.id] variant — select a specific track by mpv track id.
 final class TrackId extends Track {
+  /// The mpv track id to select, matching an entry's `MpvTrack.id`.
   final int trackId;
   const TrackId._(this.trackId) : super._();
 

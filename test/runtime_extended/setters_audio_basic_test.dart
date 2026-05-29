@@ -5,8 +5,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -39,7 +40,7 @@ void main() {
       expect(player.state.mute, isTrue);
       await player.setMute(false);
       expect(player.state.mute, isFalse);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('volumeGain / volumeMax / pitchCorrection round-trip', () async {
       await player.setVolumeGain(-3.5);
@@ -52,7 +53,7 @@ void main() {
       expect(player.state.pitchCorrection, isFalse);
       await player.setPitchCorrection(true);
       expect(player.state.pitchCorrection, isTrue);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('audioDelay (Duration) round-trips', () async {
       await player.setAudioDelay(const Duration(milliseconds: 50));
@@ -60,6 +61,6 @@ void main() {
 
       await player.setAudioDelay(Duration.zero);
       expect(player.state.audioDelay, Duration.zero);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

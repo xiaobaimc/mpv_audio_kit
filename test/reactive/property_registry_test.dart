@@ -2,12 +2,12 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
-import 'package:mpv_audio_kit/src/types/enums/format.dart';
 import 'package:mpv_audio_kit/src/player/player_state.dart';
 import 'package:mpv_audio_kit/src/reactive/mpv_property_spec.dart';
 import 'package:mpv_audio_kit/src/reactive/property_registry.dart';
 import 'package:mpv_audio_kit/src/reactive/reactive_property.dart';
+import 'package:mpv_audio_kit/src/types/enums/format.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('PropertyRegistry.dispatch', () {
@@ -19,7 +19,7 @@ void main() {
           reactive: volume,
           parse: (raw, _) => raw,
           reduce: (v, s) => s.copyWith(volume: v),
-        ));
+        ),);
 
       const initial = PlayerState();
       final next = registry.dispatch('volume', 75.5, initial);
@@ -43,7 +43,7 @@ void main() {
           reactive: volume,
           parse: (raw, _) => raw,
           reduce: (v, s) => s.copyWith(volume: v),
-        ));
+        ),);
 
       const initial = PlayerState(volume: 75.5);
       // First call seeds the reactive at 75.5.
@@ -60,7 +60,7 @@ void main() {
           reactive: playing,
           parse: (raw, _) => !raw,
           reduce: (v, s) => s.copyWith(playing: v),
-        ));
+        ),);
 
       const initial = PlayerState();
 
@@ -83,7 +83,7 @@ void main() {
           reactive: mute,
           parse: (raw, _) => raw,
           reduce: (v, s) => s.copyWith(mute: v),
-        ));
+        ),);
 
       const initial = PlayerState();
       // Event isolate currently forwards flags as Int32; this test ensures
@@ -101,7 +101,7 @@ void main() {
           reactive: audioFormat,
           parse: (raw, _) => Format.fromMpv(raw),
           reduce: (v, s) => s.copyWith(audioFormat: v),
-        ));
+        ),);
 
       const initial = PlayerState();
       final next = registry.dispatch('audio-format', '', initial);
@@ -119,7 +119,7 @@ void main() {
           parse: (raw, _) => raw,
           reduce: (v, s) => s.copyWith(volume: v),
           onChange: calls.add,
-        ));
+        ),);
 
       const initial = PlayerState();
       registry.dispatch('volume', 50.0, initial);
@@ -144,14 +144,14 @@ void main() {
           reactive: readahead,
           parse: (raw, _) => raw,
           reduce: (v, s) => s.copyWith(demuxerReadaheadSecs: v),
-        ));
+        ),);
 
       const initial = PlayerState();
       final next = registry.dispatch('demuxer-readahead-secs', 5, initial);
       expect(next, isNotNull);
       expect(next!.demuxerReadaheadSecs, 5);
       expect(readahead.value, 5,
-          reason: 'reactive must update in lockstep with the state reducer');
+          reason: 'reactive must update in lockstep with the state reducer',);
 
       // Same value → dedup → no state allocation.
       expect(registry.dispatch('demuxer-readahead-secs', 5, next), isNull);
@@ -172,7 +172,7 @@ void main() {
           reactive: position,
           parse: (raw, _) => Duration(microseconds: (raw * 1e6).round()),
           reduce: (v, s) => s.copyWith(position: v),
-        ));
+        ),);
 
       const initial = PlayerState();
       final next = registry.dispatch('time-pos', 1.5, initial);
@@ -192,13 +192,13 @@ void main() {
           reactive: a,
           parse: (raw, _) => raw,
           reduce: (v, s) => s.copyWith(volume: v),
-        ))
+        ),)
         ..register(MpvPropertySpec<bool>.flag(
           name: 'mute',
           reactive: b,
           parse: (raw, _) => raw,
           reduce: (v, s) => s.copyWith(mute: v),
-        ));
+        ),);
 
       await registry.closeAll();
       expect(a.isClosed, isTrue);

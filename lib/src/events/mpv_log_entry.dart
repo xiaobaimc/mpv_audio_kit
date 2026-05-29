@@ -29,6 +29,7 @@ class MpvLogEntry {
   /// so you can concatenate or render entries without per-line trimming.
   final String text;
 
+  /// Creates a log entry from a single mpv log line.
   const MpvLogEntry({
     required this.prefix,
     required this.level,

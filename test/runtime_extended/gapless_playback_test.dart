@@ -6,8 +6,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -58,13 +59,13 @@ void main() {
       await player.openAll([
         Media(fixturePath),
         Media(fixturePath),
-      ], play: true);
+      ], play: true,);
 
       await advanced;
       expect(player.state.playlist.index, 1,
           reason: 'mpv must advance to the second track when the first '
-              'reaches EOF naturally');
+              'reaches EOF naturally',);
       expect(player.state.playlist.items.length, 2);
-    }, timeout: const Timeout(Duration(seconds: 60)));
+    }, timeout: const Timeout(Duration(seconds: 60)),);
   });
 }

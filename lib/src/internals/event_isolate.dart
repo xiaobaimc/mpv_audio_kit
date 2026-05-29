@@ -74,9 +74,17 @@ class _InitMessage {
 /// isolate. [replyId] is opaque user data; the dispatcher matches by
 /// name on the receive side.
 class MpvObserveSpec {
+  /// mpv property name to observe (e.g. `time-pos`, `pause`).
   final String name;
+
+  /// The `MPV_FORMAT_*` constant the property's value is delivered in.
   final int format;
+
+  /// Opaque user-data tag echoed back on each property change; the
+  /// main-side dispatcher matches incoming changes by [name], not this.
   final int replyId;
+
+  /// Describes a single property to register via `mpv_observe_property`.
   const MpvObserveSpec(this.name, this.format, this.replyId);
 }
 
@@ -100,10 +108,16 @@ class _InitFailed {
 
 // ── Events: isolate → main ───────────────────────────────────────────────────
 
+/// Base type for every message the event isolate forwards to the main
+/// isolate after init: one subclass per mpv event the player consumes.
 sealed class MpvIsolateEvent {}
 
+/// mpv fired MPV_EVENT_START_FILE — a `loadfile` began opening the
+/// next entry (fires even if the open ultimately fails).
 class MpvEventStartFile extends MpvIsolateEvent {}
 
+/// mpv fired MPV_EVENT_FILE_LOADED — the current file is open and its
+/// metadata / track list is available.
 class MpvEventFileLoaded extends MpvIsolateEvent {}
 
 /// mpv fired MPV_EVENT_SEEK — a seek request was accepted and playback
@@ -115,29 +129,56 @@ class MpvEventPlaybackSeek extends MpvIsolateEvent {}
 /// This is the authoritative "seek request is finished" signal.
 class MpvEventPlaybackRestart extends MpvIsolateEvent {}
 
+/// mpv fired MPV_EVENT_END_FILE — playback of the current entry ended.
 class MpvEndFileEvent extends MpvIsolateEvent {
-  final int reason; // MpvEndFileReason.*
+  /// The `MPV_END_FILE_REASON_*` code (EOF, stop, error, redirect, …).
+  final int reason;
+
+  /// The mpv error code when [reason] is the error reason, else `0`.
   final int error;
+
+  /// Carries the end-of-file [reason] and [error] codes.
   MpvEndFileEvent(this.reason, this.error);
 }
 
+/// mpv fired MPV_EVENT_SHUTDOWN — the core is tearing down and the
+/// event loop is about to exit.
 class MpvEventShutdown extends MpvIsolateEvent {}
 
+/// A `MPV_FORMAT_DOUBLE` property change (e.g. `time-pos`, `volume`).
 class MpvEventPropertyDouble extends MpvIsolateEvent {
+  /// The mpv property name that changed.
   final String name;
+
+  /// The new value.
   final double value;
+
+  /// Carries the changed property [name] and its new double [value].
   MpvEventPropertyDouble(this.name, this.value);
 }
 
+/// A `MPV_FORMAT_FLAG` or `MPV_FORMAT_INT64` property change, both
+/// delivered as a Dart [int].
 class MpvEventPropertyInt extends MpvIsolateEvent {
+  /// The mpv property name that changed.
   final String name;
+
+  /// The new value (a flag is `0` / `1`).
   final int value;
+
+  /// Carries the changed property [name] and its new int [value].
   MpvEventPropertyInt(this.name, this.value);
 }
 
+/// A `MPV_FORMAT_STRING` property change.
 class MpvEventPropertyString extends MpvIsolateEvent {
+  /// The mpv property name that changed.
   final String name;
+
+  /// The new value.
   final String value;
+
+  /// Carries the changed property [name] and its new string [value].
   MpvEventPropertyString(this.name, this.value);
 }
 
@@ -147,21 +188,43 @@ class MpvEventPropertyString extends MpvIsolateEvent {
 /// `double`, `bool`), `Uint8List` for `MPV_FORMAT_BYTE_ARRAY`, or `null` for
 /// `MPV_FORMAT_NONE`.
 class MpvEventPropertyNode extends MpvIsolateEvent {
+  /// The mpv property name that changed.
   final String name;
+
+  /// The recursively-decoded node tree (see the class doc for the
+  /// possible Dart shapes).
   final dynamic value;
+
+  /// Carries the changed property [name] and its decoded [value] tree.
   MpvEventPropertyNode(this.name, this.value);
 }
 
+/// mpv emitted a log line (MPV_EVENT_LOG_MESSAGE) at or above the
+/// requested log level.
 class MpvEventLog extends MpvIsolateEvent {
+  /// The mpv module that produced the line (e.g. `ao`, `ffmpeg`).
   final String prefix;
+
+  /// The mpv log level (`error`, `warn`, `info`, …).
   final String level;
+
+  /// The message text, trailing whitespace stripped.
   final String text;
+
+  /// Carries a single log line's [prefix], [level] and [text].
   MpvEventLog(this.prefix, this.level, this.text);
 }
 
+/// mpv reached a hook (MPV_EVENT_HOOK) the player registered. The main
+/// isolate must acknowledge it via `mpv_hook_continue` so mpv proceeds.
 class MpvEventHookFired extends MpvIsolateEvent {
+  /// The hook id to pass back to `mpv_hook_continue`.
   final int id;
+
+  /// The hook name (e.g. `on_load`, `on_unload`).
   final String name;
+
+  /// Carries the fired hook's [id] and [name].
   MpvEventHookFired(this.id, this.name);
 }
 
@@ -549,6 +612,10 @@ class MpvEventIsolate {
   // state partially populated.
   final _events = StreamController<MpvIsolateEvent>();
 
+  /// The post-init event stream. Single-subscription so the initial
+  /// property-change burst (one per observed property, emitted the
+  /// moment the isolate starts polling) is buffered until the main-side
+  /// listener attaches, rather than dropped.
   Stream<MpvIsolateEvent> get events => _events.stream;
 
   /// Spawns the event isolate, runs the heavy mpv init recipe inside
@@ -622,7 +689,7 @@ class MpvEventIsolate {
       observes: observes,
       logLevel: logLevel,
       wakeupCounterAddress: wakeupCounterAddress,
-    ));
+    ),);
 
     return initDone.future;
   }
@@ -648,7 +715,10 @@ class MpvEventIsolate {
   Future<void> stop() async {
     _fromIsolate?.close();
     _fromIsolate = null;
-    if (!_events.isClosed) _events.close();
+    // Fire-and-forget: closing the controller flushes any buffered
+    // events to the (already-cancelled) subscriber; the load-bearing
+    // wait is the isolate-exit await below, not this close.
+    if (!_events.isClosed) unawaited(_events.close());
 
     final exitPort = _exitPort;
     final isolate = _isolate;

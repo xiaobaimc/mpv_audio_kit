@@ -46,7 +46,7 @@ Add `mpv_audio_kit` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mpv_audio_kit: ^0.2.3
+  mpv_audio_kit: ^0.3.0
 ```
 
 ### ⚠️ 0.1.x is a big release!
@@ -224,6 +224,17 @@ bundle, and the escape hatches are now async. See the
     * [13.5 Waveform](#135-waveform)
 
     </details>
+
+    <details>
+    <summary><a href="#14-os-media-session"><b>14. OS media session</b></a></summary>
+
+    * [14.1 Enabling the session](#141-enabling-the-session)
+    * [14.2 Overriding metadata](#142-overriding-metadata)
+    * [14.3 Reacting to OS commands](#143-reacting-to-os-commands)
+    * [14.4 Capabilities, intervals and speeds](#144-capabilities-intervals-and-speeds)
+    * [14.5 Audio interruptions](#145-audio-interruptions)
+
+    </details>
 *   [Migration](#migration)
 *   [Permissions](#permissions)
 *   [Troubleshooting](#troubleshooting)
@@ -354,8 +365,10 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        // Bind the button to the intent axis (`playWhenReady`), not
+        // `playing` — `playing` toggles transiently during seeks.
         onPressed: () =>
-            player.state.playing ? player.pause() : player.play(),
+            player.state.playWhenReady ? player.pause() : player.play(),
         child: const Icon(Icons.play_arrow),
       ),
     );
@@ -603,8 +616,9 @@ await player.play();    // Start or resume
 await player.pause();   // Pause
 await player.stop();    // Stop and unload current file
 
-// Toggle pattern
-player.state.playing ? await player.pause() : await player.play();
+// Toggle pattern — bind to `playWhenReady` (the intent axis), not
+// `playing`, so the button stays stable while seeking/buffering.
+player.state.playWhenReady ? await player.pause() : await player.play();
 ```
 
 #### 4.2 Seeking
@@ -1405,11 +1419,12 @@ local-file player that wants disk-side artwork.
 #### 9.1 Core streams
 
 <details>
-<summary><b>16 streams</b> (click to expand)</summary>
+<summary><b>17 streams</b> (click to expand)</summary>
 
 | Stream | Type | Notes |
 | :--- | :--- | :--- |
-| `playing` | `bool` | `true` when audio is being produced; tracks mpv's `core-idle` (inverted). |
+| `playWhenReady` | `bool` | User intent to play (the play/pause axis). Set by `play` / `pause` / `open` / `stop`; **stable across seeks and buffering** — bind your play/pause button (and the OS media controls already do) to this, not to `playing`. |
+| `playing` | `bool` | `true` only while audio is actually being produced; tracks mpv's `core-idle` (inverted). **Toggles transiently during seeks/buffering** — use for a spinner, not a play/pause button. "Actually emitting audio" is `playWhenReady && playing`. |
 | `completed` | `bool` | `true` once the current track reaches natural EOF. |
 | `eofReached` | `bool` | mpv's `eof-reached`; `true` while paused at the end of a file with `keep-open=yes`. |
 | `position` | `Duration` | Current playhead, throttled to ~30 Hz. |
@@ -2199,6 +2214,112 @@ player.stream.waveform.listen((wave) {
   }
 });
 ```
+
+---
+
+### 14. OS media session
+
+Publish the player to the operating system's media controls — the
+**Now Playing** panel, Control Center and lockscreen on iOS and macOS,
+MPRIS on Linux, SMTC on Windows, and the media notification on Android —
+and receive the transport commands the OS sends back (lockscreen
+buttons, a Bluetooth headset, Siri, CarPlay, keyboard media keys).
+
+Everything goes through one setter, `Player.setMediaSession`. Pass
+`null` to remove the entry. Only one `Player` per process may own the
+session at a time (enabling a second throws `StateError`); `dispose()`
+releases it automatically.
+
+#### 14.1 Enabling the session
+
+Title, artist, album, artwork and duration are derived from the playing
+file automatically — you don't have to push anything.
+
+```dart
+await player.setMediaSession(const MediaSession());  // enable
+await player.setMediaSession(null);                  // remove
+```
+
+#### 14.2 Overriding metadata
+
+Each metadata field is an override: `null` keeps mpv's value, a value
+takes over, an empty string forces a blank. Use `copyWith` to change one
+field on the fly.
+
+```dart
+await player.setMediaSession(
+  (player.state.mediaSession ?? const MediaSession())
+      .copyWith(title: 'Custom title', artist: 'Custom artist'),
+);
+```
+
+Artwork is a typed choice on the `artwork` field:
+
+```dart
+MediaSessionArtwork.embedded            // default — the file's embedded cover
+MediaSessionArtwork.custom(myCoverArt)  // your own image, ignoring the file cover
+MediaSessionArtwork.none                // no artwork
+```
+
+#### 14.3 Reacting to OS commands
+
+Commands are **auto-applied** to the player (lockscreen play → `play()`,
+scrub → `seek()`, …) and also surfaced on
+`Player.stream.mediaSessionCommands` for analytics or interception:
+
+```dart
+player.stream.mediaSessionCommands.listen((command) {
+  switch (command) {
+    case MediaSessionCommandSeekTo(:final position):
+      log('scrubbed to $position');
+    case MediaSessionCommandNext():
+      // next / previous drive mpv's playlist when one is loaded; with a
+      // single track they only emit here, so advance your own queue.
+      myQueue.next();
+    case _:
+      break;
+  }
+});
+```
+
+#### 14.4 Capabilities, intervals and speeds
+
+`actions` advertises the controls the OS may surface — it shows the
+subset that fits each space (a lockscreen typically shows 3–4):
+
+```dart
+const MediaSession(
+  actions: {
+    MediaAction.play, MediaAction.pause, MediaAction.playPause,
+    MediaAction.next, MediaAction.previous, MediaAction.seek,
+    MediaAction.setRepeatMode, MediaAction.setShuffle,
+  },
+  fastForwardInterval: Duration(seconds: 30),     // skip-forward button
+  rewindInterval: Duration(seconds: 15),          // skip-back button
+  supportedPlaybackRates: [1.0, 1.25, 1.5, 2.0],  // speed picker
+);
+```
+
+#### 14.5 Audio interruptions
+
+`interruptionPolicy` decides what happens on a phone call, Siri, or
+another app taking audio focus:
+
+```dart
+InterruptionPolicy.pauseAndResume // default — pause, resume when the OS allows
+InterruptionPolicy.pauseOnly      // pause, never auto-resume
+InterruptionPolicy.keepPlaying    // stay at full volume, never auto-pause
+```
+
+`keepPlaying` is the "focused listening / always max" mode. Honest
+limits: on iOS an accepted phone / FaceTime call or Siri still takes the
+audio route (OS-enforced — it can't be overridden), and on Android 12+
+the system may fade the app out when another app gains focus. A
+headphone unplug always pauses, even in `keepPlaying` (Apple HIG). The
+policy is a no-op on macOS / Linux / Windows (no per-app audio session).
+
+> **iOS:** background playback also needs the host app's `Info.plist` to
+> declare `UIBackgroundModes` → `audio`.
 
 ---
 

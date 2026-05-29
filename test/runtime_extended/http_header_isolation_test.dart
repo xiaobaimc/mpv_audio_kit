@@ -6,8 +6,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -60,10 +61,10 @@ void main() {
       // so the merged value should contain both headers verbatim.
       final effective = await player.getRawProperty('http-header-fields') ?? '';
       expect(effective, contains('X-Test-Token: leak-canary-12345'),
-          reason: 'first header must be applied for the active entry');
+          reason: 'first header must be applied for the active entry',);
       expect(effective, contains('X-Other: nope'),
-          reason: 'second header must be applied for the active entry');
-    }, timeout: const Timeout(Duration(seconds: 30)));
+          reason: 'second header must be applied for the active entry',);
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test(
         'open(headers=A) followed by open(no headers) does not load the '
@@ -89,7 +90,7 @@ void main() {
       final global = await player.getRawProperty('http-header-fields');
       expect(global == null || global.isEmpty, isTrue,
           reason: 'consecutive open() calls must not pollute the global '
-              'http-header-fields option');
-    }, timeout: const Timeout(Duration(seconds: 30)));
+              'http-header-fields option',);
+    }, timeout: const Timeout(Duration(seconds: 30)),);
   });
 }

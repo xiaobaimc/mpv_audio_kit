@@ -58,8 +58,7 @@ void main() {
       // warn surfaces mpv's certificate-verification error on stream.log.
       player = await buildPlayer(
         configuration: const PlayerConfiguration(
-          autoPlay: false,
-          logLevel: LogLevel.warn,
+          
         ),
       );
     });
@@ -85,7 +84,7 @@ void main() {
         if (!ended.isCompleted) ended.complete();
       });
       try {
-        await player.open(Media(badCertUrl), play: false);
+        await player.open(const Media(badCertUrl), play: false);
         await ended.future
             .timeout(const Duration(seconds: 20), onTimeout: () {});
         // Grace window so a trailing error log line is still captured.
@@ -106,8 +105,8 @@ void main() {
       final certErrors = await openAndCollectCertErrors();
       expect(certErrors, isNotEmpty,
           reason: 'with tls-verify on, mpv must reject the self-signed '
-              'certificate and log a verification failure');
-    }, timeout: const Timeout(Duration(seconds: 45)));
+              'certificate and log a verification failure',);
+    }, timeout: const Timeout(Duration(seconds: 45)),);
 
     test('tls-verify off → the handshake is not rejected at the TLS layer',
         () async {
@@ -120,7 +119,7 @@ void main() {
       expect(certErrors, isEmpty,
           reason: 'with tls-verify off, the handshake completes — any '
               'failure is at the demuxer, not a certificate rejection: '
-              '$certErrors');
-    }, timeout: const Timeout(Duration(seconds: 45)));
+              '$certErrors',);
+    }, timeout: const Timeout(Duration(seconds: 45)),);
   });
 }

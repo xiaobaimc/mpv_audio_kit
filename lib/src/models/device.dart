@@ -12,6 +12,7 @@ final class Device {
   /// Human-readable description shown in system mixer / device pickers.
   final String description;
 
+  /// Creates a device descriptor from its mpv [name] and [description].
   const Device({required this.name, required this.description});
 
   /// The default automatic device selection.

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
-import '../../services/audio_handler.dart';
 import 'widgets/cover_artwork.dart';
 import 'widgets/seeker.dart';
 import 'widgets/spectrum_visualizer.dart';
@@ -17,12 +16,10 @@ import 'widgets/volume_control.dart';
 /// keeping the listener here avoids duplicating it.
 class PlayerPage extends StatefulWidget {
   final Player player;
-  final MpvAudioHandler audioHandler;
 
   const PlayerPage({
     super.key,
     required this.player,
-    required this.audioHandler,
   });
 
   @override
@@ -41,11 +38,12 @@ class _PlayerPageState extends State<PlayerPage> {
   @override
   void initState() {
     super.initState();
-    // Bootstrap from the audio handler: the mpv coverArt stream is
-    // broadcast (no replay), so without this the cover would disappear
-    // every time this widget gets rebuilt mid-session — e.g. when the
-    // player page swaps its layout between mobile and desktop.
-    final bootstrap = widget.audioHandler.lastCover;
+    // Bootstrap from the player's current state snapshot: the mpv
+    // coverArt stream is broadcast (no replay), so without this the
+    // cover would disappear every time this widget gets rebuilt
+    // mid-session — e.g. when the player page swaps its layout
+    // between mobile and desktop.
+    final bootstrap = widget.player.state.coverArt;
     if (bootstrap != null) {
       _cover = bootstrap;
       _decodeDimensions(bootstrap);

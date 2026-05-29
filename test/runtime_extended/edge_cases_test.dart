@@ -7,8 +7,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -44,7 +45,7 @@ void main() {
           .firstWhere((fmt) => fmt.isNotEmpty)
           .timeout(const Duration(seconds: 5));
       expect(player.state.duration.inMilliseconds, lessThan(200));
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('88.2 kHz sample rate fixture decodes with correct audio-params',
         () async {
@@ -64,8 +65,8 @@ void main() {
           .timeout(const Duration(seconds: 5));
       expect(params.sampleRate, 88200,
           reason: 'fixture is encoded at 88.2 kHz; '
-              'NODE_MAP int64 must preserve the value');
-    }, timeout: const Timeout(Duration(seconds: 15)));
+              'NODE_MAP int64 must preserve the value',);
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('openAll([]) is a no-op (does not throw)', () async {
       // Empty playlist passed to openAll: documented as a no-op (returns
@@ -73,8 +74,8 @@ void main() {
       final initialPlaylist = player.state.playlist;
       await player.openAll(const <Media>[], play: false);
       expect(player.state.playlist, initialPlaylist,
-          reason: 'empty list must not mutate the playlist');
-    }, timeout: const Timeout(Duration(seconds: 5)));
+          reason: 'empty list must not mutate the playlist',);
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test('openAll(index out-of-range) clamps to last entry', () async {
       final fixturePath =
@@ -98,7 +99,7 @@ void main() {
           .firstWhere((p) => p.items.length == 2 && p.index == 1)
           .timeout(const Duration(seconds: 5));
       expect(player.state.playlist.index, 1);
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test('rapid sequential setVolume calls converge to the last value',
         () async {
@@ -112,8 +113,8 @@ void main() {
       }
       await Future.wait(futures);
       expect(player.state.volume, 69.0,
-          reason: 'last setVolume(20 + 49 = 69) wins');
-    }, timeout: const Timeout(Duration(seconds: 15)));
+          reason: 'last setVolume(20 + 49 = 69) wins',);
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test(
         'concurrent open() calls — last one wins (replace aborts the '
@@ -141,8 +142,8 @@ void main() {
       expect(params.sampleRate, 88200,
           reason: 'open(B) was issued after open(A) without await between '
               "them; replace must abort A's in-flight load and the "
-              "audio-params observer must settle on B's 88.2 kHz value");
-    }, timeout: const Timeout(Duration(seconds: 30)));
+              "audio-params observer must settle on B's 88.2 kHz value",);
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     // ── Numeric boundary contracts ─────────────────────────────────────
     //
@@ -159,8 +160,8 @@ void main() {
       await player.setVolume(150.0);
       expect(player.state.volume, 150.0,
           reason: 'wrapper writes the requested value optimistically; mpv '
-              'clamps to volume-max (130 by default) on its side');
-    }, timeout: const Timeout(Duration(seconds: 5)));
+              'clamps to volume-max (130 by default) on its side',);
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test('setRate at the M_RANGE boundaries passes through', () async {
       // mpv's M_RANGE for speed is (0.01, 100.0). Values inside the
@@ -173,7 +174,7 @@ void main() {
 
       // Restore a normal rate so subsequent tests aren't disturbed.
       await player.setRate(1.0);
-    }, timeout: const Timeout(Duration(seconds: 5)));
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test(
         'setRate above 100.0 throws MpvException (mpv hard-rejects the '
@@ -189,8 +190,8 @@ void main() {
         throwsA(isA<MpvException>().having((e) => e.name, 'name', 'speed')),
       );
       expect(player.state.rate, priorRate,
-          reason: 'optimistic state must not advance past a rejected write');
-    }, timeout: const Timeout(Duration(seconds: 5)));
+          reason: 'optimistic state must not advance past a rejected write',);
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test(
         'setRate below 0.01 throws MpvException (mpv hard-rejects sub-0.01 '
@@ -201,8 +202,8 @@ void main() {
         throwsA(isA<MpvException>().having((e) => e.name, 'name', 'speed')),
       );
       expect(player.state.rate, priorRate,
-          reason: 'optimistic state must not advance past a rejected write');
-    }, timeout: const Timeout(Duration(seconds: 5)));
+          reason: 'optimistic state must not advance past a rejected write',);
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test('setDemuxerMaxBytes preserves sub-MiB precision (no MiB rounding)',
         () async {
@@ -215,7 +216,7 @@ void main() {
 
       // Restore to default so subsequent tests aren't disturbed.
       await player.setDemuxerMaxBytes(150 * 1024 * 1024);
-    }, timeout: const Timeout(Duration(seconds: 5)));
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test('setAbLoopCount rejects negative ints', () {
       // null / non-negative int are valid; negative values are an error

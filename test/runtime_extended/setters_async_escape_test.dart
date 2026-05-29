@@ -5,8 +5,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -44,7 +45,7 @@ void main() {
       // Roundtrip back via getRawProperty.
       final after = await player.getRawProperty('volume');
       expect(double.parse(after!), 50.0);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('setRawProperty surfaces mpv errors as MpvException', () async {
       // Typo in the property name — mpv returns
@@ -54,9 +55,9 @@ void main() {
         () => player.setRawProperty('voluem', '50'),
         throwsA(isA<MpvException>()
             .having((e) => e.name, 'name', 'voluem')
-            .having((e) => e.code, 'code', lessThan(0))),
+            .having((e) => e.code, 'code', lessThan(0)),),
       );
-    }, timeout: const Timeout(Duration(seconds: 5)));
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test('sendRawCommand surfaces mpv errors as MpvException', () async {
       // Unknown command — mpv returns MPV_ERROR_INVALID_PARAMETER.
@@ -64,8 +65,8 @@ void main() {
         () => player.sendRawCommand(['this-command-does-not-exist']),
         throwsA(isA<MpvException>()
             .having((e) => e.name, 'name', 'this-command-does-not-exist')
-            .having((e) => e.code, 'code', lessThan(0))),
+            .having((e) => e.code, 'code', lessThan(0)),),
       );
-    }, timeout: const Timeout(Duration(seconds: 5)));
+    }, timeout: const Timeout(Duration(seconds: 5)),);
   });
 }

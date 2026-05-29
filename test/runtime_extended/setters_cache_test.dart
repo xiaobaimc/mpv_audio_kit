@@ -5,8 +5,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -39,6 +40,6 @@ void main() {
       expect(player.state.cache.onDisk, isTrue);
       expect(player.state.cache.pause, isFalse);
       expect(player.state.cache.pauseWait, const Duration(seconds: 2));
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
   });
 }

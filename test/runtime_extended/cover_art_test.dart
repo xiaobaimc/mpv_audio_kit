@@ -8,8 +8,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -48,14 +49,14 @@ void main() {
       final cover = await coverFuture;
       expect(cover, isNotNull);
       expect(cover!.bytes.isNotEmpty, isTrue,
-          reason: 'fixture has a 64×64 PNG attached_pic; bytes must arrive');
+          reason: 'fixture has a 64×64 PNG attached_pic; bytes must arrive',);
       expect(cover.mimeType, 'image/png',
-          reason: 'fixture is muxed with a PNG cover');
+          reason: 'fixture is muxed with a PNG cover',);
 
       // README contract: state.coverArt mirrors the latest stream emit
       // synchronously. Pin it.
       expect(player.state.coverArt, isNotNull,
-          reason: 'state.coverArt must mirror the latest stream emit');
+          reason: 'state.coverArt must mirror the latest stream emit',);
       expect(player.state.coverArt!.bytes, equals(cover.bytes));
       expect(player.state.coverArt!.mimeType, equals(cover.mimeType));
 
@@ -76,12 +77,12 @@ void main() {
       final cleared = await clearedFuture;
       expect(cleared, isNull,
           reason: 'opening a file without attached art must emit `null` so '
-              'UIs can clear stale artwork on track change');
+              'UIs can clear stale artwork on track change',);
       expect(player.state.coverArt, isNull,
-          reason: 'state.coverArt must mirror the cleared stream emit');
+          reason: 'state.coverArt must mirror the cleared stream emit',);
     } finally {
       await player.stop();
       await player.dispose();
     }
-  }, timeout: const Timeout(Duration(seconds: 30)));
+  }, timeout: const Timeout(Duration(seconds: 30)),);
 }

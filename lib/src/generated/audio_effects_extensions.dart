@@ -22,8 +22,10 @@ final class AechoTap {
   /// half-amplitude.
   final double decay;
 
+  /// Creates an [AechoTap].
   const AechoTap({required this.delayMs, required this.decay});
 
+  /// Returns a copy of this tap with the given fields replaced.
   AechoTap copyWith({double? delayMs, double? decay}) =>
       AechoTap(delayMs: delayMs ?? this.delayMs, decay: decay ?? this.decay);
 
@@ -89,6 +91,7 @@ final class ChorusVoice {
   /// LFO modulation rate in Hz (typical chorus range: 0.1..1 Hz).
   final double speedHz;
 
+  /// Creates a [ChorusVoice].
   const ChorusVoice({
     required this.delayMs,
     required this.decay,
@@ -96,6 +99,7 @@ final class ChorusVoice {
     required this.speedHz,
   });
 
+  /// Returns a copy of this voice with the given fields replaced.
   ChorusVoice copyWith({
     double? delayMs,
     double? decay,
@@ -184,8 +188,10 @@ final class CompandPoint {
   /// Output level in dB.
   final double outDb;
 
+  /// Creates a [CompandPoint].
   const CompandPoint({required this.inDb, required this.outDb});
 
+  /// Returns a copy of this point with the given fields replaced.
   CompandPoint copyWith({double? inDb, double? outDb}) =>
       CompandPoint(inDb: inDb ?? this.inDb, outDb: outDb ?? this.outDb);
 
@@ -230,7 +236,7 @@ extension CompandPointsX on CompandSettings {
     return copyWith(
       points: sorted
           .map((p) =>
-              '${p.inDb.toStringAsFixed(1)}/${p.outDb.toStringAsFixed(1)}')
+              '${p.inDb.toStringAsFixed(1)}/${p.outDb.toStringAsFixed(1)}',)
           .join(' '),
     );
   }
@@ -251,11 +257,13 @@ final class CompandEnvelope {
   /// Seconds. Decay time-constant (level detector fall).
   final double decaySeconds;
 
+  /// Creates a [CompandEnvelope].
   const CompandEnvelope({
     required this.attackSeconds,
     required this.decaySeconds,
   });
 
+  /// Returns a copy of this envelope with the given fields replaced.
   CompandEnvelope copyWith({double? attackSeconds, double? decaySeconds}) =>
       CompandEnvelope(
         attackSeconds: attackSeconds ?? this.attackSeconds,
@@ -356,11 +364,13 @@ final class FirequalizerEntry {
   /// Gain in dB at [frequencyHz].
   final double gainDb;
 
+  /// Creates a [FirequalizerEntry].
   const FirequalizerEntry({
     required this.frequencyHz,
     required this.gainDb,
   });
 
+  /// Returns a copy of this entry with the given fields replaced.
   FirequalizerEntry copyWith({double? frequencyHz, double? gainDb}) =>
       FirequalizerEntry(
         frequencyHz: frequencyHz ?? this.frequencyHz,
@@ -409,7 +419,7 @@ extension FirequalizerEntriesX on FirequalizerSettings {
     return copyWith(
       gain_entry: sorted
           .map((e) =>
-              'entry(${e.frequencyHz.toStringAsFixed(1)},${e.gainDb.toStringAsFixed(2)})')
+              'entry(${e.frequencyHz.toStringAsFixed(1)},${e.gainDb.toStringAsFixed(2)})',)
           .join(';'),
     );
   }
@@ -492,6 +502,7 @@ final class AnequalizerBand {
   /// matches the lavfi `t=0` default.
   final AnequalizerBandType type;
 
+  /// Creates an [AnequalizerBand].
   const AnequalizerBand({
     required this.frequency,
     required this.bandwidth,
@@ -506,6 +517,7 @@ final class AnequalizerBand {
   AnequalizerBand withQ(double q) =>
       copyWith(bandwidth: frequency / q.clamp(0.001, 1000.0));
 
+  /// Returns a copy of this band with the given fields replaced.
   AnequalizerBand copyWith({
     double? frequency,
     double? bandwidth,
@@ -539,13 +551,23 @@ final class AnequalizerBand {
 
 /// lavfi `anequalizer` filter shape. Matches `t=0|1|2` on the wire.
 enum AnequalizerBandType {
+  /// Butterworth response (`t=0`) — maximally flat passband.
   butterworth(0),
+
+  /// Chebyshev type-1 response (`t=1`) — passband ripple, steeper rolloff.
   chebyshev1(1),
+
+  /// Chebyshev type-2 response (`t=2`) — stopband ripple, steeper rolloff.
   chebyshev2(2);
 
+  /// Wire-side integer consumed by lavfi's `t=` option.
   final int wireValue;
+
+  /// Binds each shape to its lavfi `t=` integer.
   const AnequalizerBandType(this.wireValue);
 
+  /// Parses a lavfi `t=` integer back into a shape; unknown values
+  /// fall back to [butterworth].
   static AnequalizerBandType fromWire(int v) => switch (v) {
         1 => chebyshev1,
         2 => chebyshev2,
@@ -610,7 +632,7 @@ List<AnequalizerBand> _parseAnequalizerBands(String params) {
       bandwidth: w,
       gain: g,
       type: AnequalizerBandType.fromWire(t),
-    ));
+    ),);
   }
   if (byChannel.isEmpty) return const [];
   final lowest = byChannel.keys.reduce((a, b) => a < b ? a : b);
@@ -657,12 +679,14 @@ final class AiirChannel {
   /// Denominator (A / "poles" / ladder) polynomial coefficients.
   final List<double> poles;
 
+  /// Creates an [AiirChannel].
   const AiirChannel({
     required this.gain,
     required this.zeros,
     required this.poles,
   });
 
+  /// Returns a copy of this channel with the given fields replaced.
   AiirChannel copyWith({
     double? gain,
     List<double>? zeros,
@@ -827,6 +851,7 @@ final class McompandBand {
   /// band in `mcompand`'s filter chain.
   final double crossoverHz;
 
+  /// Creates a [McompandBand].
   const McompandBand({
     required this.thresholdDb,
     required this.ratio,
@@ -837,6 +862,7 @@ final class McompandBand {
     required this.crossoverHz,
   });
 
+  /// Returns a copy of this band with the given fields replaced.
   McompandBand copyWith({
     double? thresholdDb,
     double? ratio,
@@ -870,7 +896,7 @@ final class McompandBand {
 
   @override
   int get hashCode => Object.hash(thresholdDb, ratio, attackSeconds,
-      releaseSeconds, kneeDb, makeupDb, crossoverHz);
+      releaseSeconds, kneeDb, makeupDb, crossoverHz,);
 
   @override
   String toString() => 'McompandBand(threshold: $thresholdDb dB, '
@@ -958,7 +984,7 @@ List<McompandBand> _parseMcompandBands(String? args) {
       kneeDb: knee,
       makeupDb: gain,
       crossoverHz: crossover,
-    ));
+    ),);
   }
   out.sort((a, b) => a.crossoverHz.compareTo(b.crossoverHz));
   return out;

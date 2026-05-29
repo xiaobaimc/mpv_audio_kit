@@ -17,12 +17,12 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
-import '../generated/audio_filter_names.dart';
 import '../_helpers/libmpv_resolver.dart';
 import '../_helpers/mpv_error_capture.dart';
+import '../generated/audio_filter_names.dart';
 
 void main() {
   final fixturePath =
@@ -72,7 +72,6 @@ void main() {
     // grep for. Default helper builds with 'no'.
     player = Player(
       configuration: const PlayerConfiguration(
-        autoPlay: false,
         logLevel: LogLevel.error,
       ),
     );

@@ -5,37 +5,38 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-
-import 'package:mpv_audio_kit/src/models/cover_art.dart';
-import 'package:mpv_audio_kit/src/models/fft_frame.dart';
-import 'package:mpv_audio_kit/src/models/pcm_frame.dart';
-import 'package:mpv_audio_kit/src/models/waveform_data.dart';
-import 'package:mpv_audio_kit/src/types/enums/loop.dart';
-import 'package:mpv_audio_kit/src/models/playlist.dart';
-import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
-import 'package:mpv_audio_kit/src/models/device.dart';
-import 'package:mpv_audio_kit/src/types/enums/format.dart';
-import 'package:mpv_audio_kit/src/models/audio_params.dart';
-import 'package:mpv_audio_kit/src/types/enums/spdif.dart';
-import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
-import 'package:mpv_audio_kit/src/types/enums/cover.dart';
-import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
-import 'package:mpv_audio_kit/src/generated/audio_effects_settings.dart';
-import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
-import 'package:mpv_audio_kit/src/generated/audio_effects.dart';
-import 'package:mpv_audio_kit/src/types/enums/tap_side.dart';
-import 'package:mpv_audio_kit/src/types/settings/spectrum_settings.dart';
-import 'package:mpv_audio_kit/src/models/chapter.dart';
-import 'package:mpv_audio_kit/src/types/state/mpv_playback_state.dart';
-import 'package:mpv_audio_kit/src/models/mpv_track.dart';
-import 'package:mpv_audio_kit/src/types/settings/replay_gain_settings.dart';
-import 'package:mpv_audio_kit/src/events/mpv_log_entry.dart';
 import 'package:mpv_audio_kit/src/events/mpv_hook_event.dart';
-import 'package:mpv_audio_kit/src/types/state/mpv_prefetch_state.dart';
+import 'package:mpv_audio_kit/src/events/mpv_log_entry.dart';
 import 'package:mpv_audio_kit/src/events/mpv_player_error.dart';
+import 'package:mpv_audio_kit/src/generated/audio_effects.dart';
+import 'package:mpv_audio_kit/src/generated/audio_effects_settings.dart';
+import 'package:mpv_audio_kit/src/models/audio_params.dart';
+import 'package:mpv_audio_kit/src/models/chapter.dart';
+import 'package:mpv_audio_kit/src/models/cover_art.dart';
+import 'package:mpv_audio_kit/src/models/device.dart';
+import 'package:mpv_audio_kit/src/models/fft_frame.dart';
+import 'package:mpv_audio_kit/src/models/media_session.dart';
+import 'package:mpv_audio_kit/src/models/mpv_track.dart';
+import 'package:mpv_audio_kit/src/models/pcm_frame.dart';
+import 'package:mpv_audio_kit/src/models/playlist.dart';
+import 'package:mpv_audio_kit/src/models/waveform_data.dart';
 import 'package:mpv_audio_kit/src/player/mpv_playback_state_derive.dart';
 import 'package:mpv_audio_kit/src/reactive/default_specs.dart';
 import 'package:mpv_audio_kit/src/reactive/reactive_property.dart';
+import 'package:mpv_audio_kit/src/types/enums/cover.dart';
+import 'package:mpv_audio_kit/src/types/enums/format.dart';
+import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
+import 'package:mpv_audio_kit/src/types/enums/loop.dart';
+import 'package:mpv_audio_kit/src/types/enums/spdif.dart';
+import 'package:mpv_audio_kit/src/types/enums/tap_side.dart';
+import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
+import 'package:mpv_audio_kit/src/types/sealed/media_session_command.dart';
+import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
+import 'package:mpv_audio_kit/src/types/settings/replay_gain_settings.dart';
+import 'package:mpv_audio_kit/src/types/settings/spectrum_settings.dart';
+import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
+import 'package:mpv_audio_kit/src/types/state/mpv_playback_state.dart';
+import 'package:mpv_audio_kit/src/types/state/mpv_prefetch_state.dart';
 
 /// Typed event streams for subscribing to individual [Player] state changes.
 ///
@@ -64,6 +65,7 @@ class PlayerStream {
     required ReactiveProperty<Map<String, String>> metadata,
     required ReactiveProperty<double> bufferingPercentage,
     required ReactiveProperty<AudioEffects> audioEffects,
+    required ReactiveProperty<MediaSession?> mediaSession,
     required this.endFile,
     required this.error,
     required this.log,
@@ -76,7 +78,9 @@ class PlayerStream {
     required this.spectrum,
     required this.waveform,
     required this.tap,
+    required this.mediaSessionCommands,
   })  : playing = reactives.playing.stream,
+        playWhenReady = reactives.playWhenReady.stream,
         position = reactives.position.stream,
         duration = reactives.duration.stream,
         buffer = reactives.buffer.stream,
@@ -161,7 +165,8 @@ class PlayerStream {
         audioDevices = audioDevices.stream,
         metadata = metadata.stream,
         bufferingPercentage = bufferingPercentage.stream,
-        audioEffects = audioEffects.stream;
+        audioEffects = audioEffects.stream,
+        mediaSession = mediaSession.stream;
 
   /// Aggregate [MpvPlaybackState] derived from the 5 underlying signals
   /// the library already tracks (`playing`, `buffering`, `completed`,
@@ -242,10 +247,22 @@ class PlayerStream {
   /// Emits whenever the active playlist changes (adds, removes, reorders).
   final Stream<Playlist> playlist;
 
-  /// Emits `true` when playback starts, `false` when paused or stopped.
+  /// Emits when actual audio output starts/stops — mpv's `core-idle`
+  /// (inverted). Toggles transiently during seeks and buffering. For a
+  /// stable play/pause button, listen to [playWhenReady] instead.
   final Stream<bool> playing;
 
-  /// Emits `true` when the current track finishes playing to its end.
+  /// Emits the user-intent-to-play axis, driven by [Player.play] /
+  /// [Player.pause] / [Player.open] / [Player.stop] (and released at the
+  /// natural end of content). Stable across seeks and buffering — this is
+  /// the signal to bind a play/pause button to. See
+  /// [PlayerState.playWhenReady].
+  final Stream<bool> playWhenReady;
+
+  /// Emits `true` when the current track finishes playing to its end —
+  /// including a single track or the last playlist entry, where the shipped
+  /// `keep-open` policy makes mpv park paused on the last frame rather than
+  /// emit an end-of-file event. See [PlayerState.completed].
   final Stream<bool> completed;
 
   /// Emits the current playback position as a [Duration].
@@ -661,4 +678,33 @@ class PlayerStream {
   /// polls only while a listener is attached; the cost of a waveform
   /// nobody is listening to is zero.
   final Stream<WaveformData?> waveform;
+
+  // ── Media session ──────────────────────────────────────────────────
+
+  /// Current OS media-session config + metadata, or `null` when the
+  /// session is disabled. Emits on every [Player.setMediaSession] call
+  /// — `null` on disable, a fresh [MediaSession] on enable or
+  /// reconfigure.
+  ///
+  /// To check just "enabled or not" without subscribing to every
+  /// reconfigure, map and distinct:
+  /// `stream.mediaSession.map((s) => s != null).distinct()`.
+  final Stream<MediaSession?> mediaSession;
+
+  /// Incoming commands issued by the OS media session — taps on the
+  /// lockscreen, Bluetooth headset button presses, Siri / Google
+  /// Assistant playback requests, Android Auto / CarPlay actions.
+  ///
+  /// By default these are auto-applied to the [Player]: play →
+  /// [Player.play], pause → [Player.pause], seekTo → [Player.seek],
+  /// etc. Subscribing here is for analytics, logging, or intercepting
+  /// edge cases — the stream emits *after* the optimistic state
+  /// update, so observing it from a UI is safe and ordered.
+  ///
+  /// For [MediaSessionCommandNext] / [MediaSessionCommandPrevious]:
+  /// the package routes them to mpv's `playlist-next` /
+  /// `playlist-prev` when a playlist is loaded; otherwise the command
+  /// arrives here unhandled, for the consumer's queue logic to act
+  /// on.
+  final Stream<MediaSessionCommand> mediaSessionCommands;
 }

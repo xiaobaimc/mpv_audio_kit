@@ -6,9 +6,9 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/src/internals/event_isolate.dart';
 import 'package:mpv_audio_kit/src/mpv_bindings.dart';
+import 'package:test/test.dart';
 
 /// Allocates an [MpvNode] tree on the native heap and returns a typed
 /// pointer plus a `dispose` thunk that frees every allocation. Each helper

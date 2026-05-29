@@ -6,8 +6,12 @@
 // AUTO-GENERATED — do not edit by hand.
 // ignore_for_file: constant_identifier_names, camel_case_types, non_constant_identifier_names
 
+/// Values for the `detection` option of the `acompressor` audio filter.
 enum AcompressorDetection {
+  /// The `peak` option value.
   peak,
+
+  /// The `rms` option value.
   rms,
   ;
 
@@ -35,8 +39,12 @@ enum AcompressorDetection {
   }
 }
 
+/// Values for the `link` option of the `acompressor` audio filter.
 enum AcompressorLink {
+  /// The `average` option value.
   average,
+
+  /// The `maximum` option value.
   maximum,
   ;
 
@@ -64,8 +72,12 @@ enum AcompressorLink {
   }
 }
 
+/// Values for the `mode` option of the `acompressor` audio filter.
 enum AcompressorMode {
+  /// The `downward` option value.
   downward,
+
+  /// The `upward` option value.
   upward,
   ;
 
@@ -93,6 +105,7 @@ enum AcompressorMode {
   }
 }
 
+/// Values for the `mode` option of the `acrusher` audio filter.
 enum AcrusherMode {
   /// linear
   lin,
@@ -125,6 +138,7 @@ enum AcrusherMode {
   }
 }
 
+/// Values for the `m` option of the `adeclick` audio filter.
 enum AdeclickM {
   /// overlap-add
   add,
@@ -171,6 +185,7 @@ enum AdeclickM {
   }
 }
 
+/// Values for the `m` option of the `adeclip` audio filter.
 enum AdeclipM {
   /// overlap-add
   add,
@@ -217,10 +232,18 @@ enum AdeclipM {
   }
 }
 
+/// Values for the `type` option of the `adenorm` audio filter.
 enum AdenormType {
+  /// The `dc` option value.
   dc,
+
+  /// The `ac` option value.
   ac,
+
+  /// The `square` option value.
   square,
+
+  /// The `pulse` option value.
   pulse,
   ;
 
@@ -256,10 +279,18 @@ enum AdenormType {
   }
 }
 
+/// Values for the `auto` option of the `adynamicequalizer` audio filter.
 enum AdynamicequalizerAuto {
+  /// The `disabled` option value.
   disabled,
+
+  /// The `off` option value.
   off,
+
+  /// The `on` option value.
   on_,
+
+  /// The `adaptive` option value.
   adaptive,
   ;
 
@@ -295,10 +326,18 @@ enum AdynamicequalizerAuto {
   }
 }
 
+/// Values for the `dftype` option of the `adynamicequalizer` audio filter.
 enum AdynamicequalizerDftype {
+  /// The `bandpass` option value.
   bandpass,
+
+  /// The `lowpass` option value.
   lowpass,
+
+  /// The `highpass` option value.
   highpass,
+
+  /// The `peak` option value.
   peak,
   ;
 
@@ -334,11 +373,21 @@ enum AdynamicequalizerDftype {
   }
 }
 
+/// Values for the `mode` option of the `adynamicequalizer` audio filter.
 enum AdynamicequalizerMode {
+  /// The `listen` option value.
   listen,
+
+  /// The `cutbelow` option value.
   cutbelow,
+
+  /// The `cutabove` option value.
   cutabove,
+
+  /// The `boostbelow` option value.
   boostbelow,
+
+  /// The `boostabove` option value.
   boostabove,
   ;
 
@@ -378,6 +427,7 @@ enum AdynamicequalizerMode {
   }
 }
 
+/// Values for the `precision` option of the `adynamicequalizer` audio filter.
 enum AdynamicequalizerPrecision {
   /// set auto processing precision
   auto,
@@ -417,9 +467,15 @@ enum AdynamicequalizerPrecision {
   }
 }
 
+/// Values for the `tftype` option of the `adynamicequalizer` audio filter.
 enum AdynamicequalizerTftype {
+  /// The `bell` option value.
   bell,
+
+  /// The `lowshelf` option value.
   lowshelf,
+
+  /// The `highshelf` option value.
   highshelf,
   ;
 
@@ -451,8 +507,12 @@ enum AdynamicequalizerTftype {
   }
 }
 
+/// Values for the `mode` option of the `aemphasis` audio filter.
 enum AemphasisMode {
+  /// The `reproduction` option value.
   reproduction,
+
+  /// The `production` option value.
   production,
   ;
 
@@ -480,6 +540,7 @@ enum AemphasisMode {
   }
 }
 
+/// Values for the `type` option of the `aemphasis` audio filter.
 enum AemphasisType {
   /// Columbia
   col,
@@ -561,6 +622,7 @@ enum AemphasisType {
   }
 }
 
+/// Values for the `c` option of the `afade` audio filter.
 enum AfadeCurve {
   /// no fade; keep audio as-is
   nofade,
@@ -747,6 +809,7 @@ enum AfadeCurve {
   }
 }
 
+/// Values for the `t` option of the `afade` audio filter.
 enum AfadeType {
   /// fade-in
   in_,
@@ -779,6 +842,7 @@ enum AfadeType {
   }
 }
 
+/// Values for the `nl` option of the `afftdn` audio filter.
 enum AfftdnLink {
   /// none
   none,
@@ -825,6 +889,7 @@ enum AfftdnLink {
   }
 }
 
+/// Values for the `om` option of the `afftdn` audio filter.
 enum AfftdnMode {
   /// input
   input,
@@ -885,6 +950,7 @@ enum AfftdnMode {
   }
 }
 
+/// Values for the `sample_noise` option of the `afftdn` audio filter.
 enum AfftdnSample {
   /// none
   none,
@@ -938,6 +1004,7 @@ enum AfftdnSample {
   }
 }
 
+/// Values for the `noise_type` option of the `afftdn` audio filter.
 enum AfftdnType {
   /// white noise
   white,
@@ -1012,6 +1079,7 @@ enum AfftdnType {
   }
 }
 
+/// Values for the `win_func` option of the `afftfilt` audio filter.
 enum AfftfiltWinFunc {
   /// Rectangular
   rect,
@@ -1184,6 +1252,7 @@ enum AfftfiltWinFunc {
   }
 }
 
+/// Values for the `wavet` option of the `afwtdn` audio filter.
 enum AfwtdnWavet {
   /// sym2
   sym2,
@@ -1251,8 +1320,12 @@ enum AfwtdnWavet {
   }
 }
 
+/// Values for the `detection` option of the `agate` audio filter.
 enum AgateDetection {
+  /// The `peak` option value.
   peak,
+
+  /// The `rms` option value.
   rms,
   ;
 
@@ -1280,8 +1353,12 @@ enum AgateDetection {
   }
 }
 
+/// Values for the `link` option of the `agate` audio filter.
 enum AgateLink {
+  /// The `average` option value.
   average,
+
+  /// The `maximum` option value.
   maximum,
   ;
 
@@ -1309,8 +1386,12 @@ enum AgateLink {
   }
 }
 
+/// Values for the `mode` option of the `agate` audio filter.
 enum AgateMode {
+  /// The `downward` option value.
   downward,
+
+  /// The `upward` option value.
   upward,
   ;
 
@@ -1338,6 +1419,7 @@ enum AgateMode {
   }
 }
 
+/// Values for the `f` option of the `aiir` audio filter.
 enum AiirFormat {
   /// lattice-ladder function
   ll,
@@ -1405,6 +1487,7 @@ enum AiirFormat {
   }
 }
 
+/// Values for the `e` option of the `aiir` audio filter.
 enum AiirPrecision {
   /// double-precision floating-point
   dbl,
@@ -1451,6 +1534,7 @@ enum AiirPrecision {
   }
 }
 
+/// Values for the `process` option of the `aiir` audio filter.
 enum AiirProcess {
   /// direct
   d,
@@ -1490,6 +1574,7 @@ enum AiirProcess {
   }
 }
 
+/// Values for the `precision` option of the `allpass` audio filter.
 enum AllpassPrecision {
   /// automatic
   auto,
@@ -1543,6 +1628,7 @@ enum AllpassPrecision {
   }
 }
 
+/// Values for the `a` option of the `allpass` audio filter.
 enum AllpassTransformType {
   /// direct form I
   di,
@@ -1610,6 +1696,7 @@ enum AllpassTransformType {
   }
 }
 
+/// Values for the `t` option of the `allpass` audio filter.
 enum AllpassWidthType {
   /// Hz
   h,
@@ -1663,6 +1750,7 @@ enum AllpassWidthType {
   }
 }
 
+/// Values for the `fscale` option of the `anequalizer` audio filter.
 enum AnequalizerFscale {
   /// linear
   lin,
@@ -1695,6 +1783,7 @@ enum AnequalizerFscale {
   }
 }
 
+/// Values for the `o` option of the `anlmdn` audio filter.
 enum AnlmdnMode {
   /// input
   i,
@@ -1734,10 +1823,18 @@ enum AnlmdnMode {
   }
 }
 
+/// Values for the `type` option of the `aphaser` audio filter.
 enum AphaserType {
+  /// The `triangular` option value.
   triangular,
+
+  /// The `t` option value.
   t,
+
+  /// The `sinusoidal` option value.
   sinusoidal,
+
+  /// The `s` option value.
   s,
   ;
 
@@ -1773,11 +1870,21 @@ enum AphaserType {
   }
 }
 
+/// Values for the `mode` option of the `apulsator` audio filter.
 enum ApulsatorMode {
+  /// The `sine` option value.
   sine,
+
+  /// The `triangle` option value.
   triangle,
+
+  /// The `square` option value.
   square,
+
+  /// The `sawup` option value.
   sawup,
+
+  /// The `sawdown` option value.
   sawdown,
   ;
 
@@ -1817,9 +1924,15 @@ enum ApulsatorMode {
   }
 }
 
+/// Values for the `timing` option of the `apulsator` audio filter.
 enum ApulsatorTiming {
+  /// The `bpm` option value.
   bpm,
+
+  /// The `ms` option value.
   ms,
+
+  /// The `hz` option value.
   hz,
   ;
 
@@ -1851,15 +1964,33 @@ enum ApulsatorTiming {
   }
 }
 
+/// Values for the `type` option of the `asoftclip` audio filter.
 enum AsoftclipTypes {
+  /// The `hard` option value.
   hard,
+
+  /// The `tanh` option value.
   tanh,
+
+  /// The `atan` option value.
   atan,
+
+  /// The `cubic` option value.
   cubic,
+
+  /// The `exp` option value.
   exp,
+
+  /// The `alg` option value.
   alg,
+
+  /// The `quintic` option value.
   quintic,
+
+  /// The `sin` option value.
   sin,
+
+  /// The `erf` option value.
   erf,
   ;
 
@@ -1915,6 +2046,7 @@ enum AsoftclipTypes {
   }
 }
 
+/// Values for the `precision` option of the `bandpass` audio filter.
 enum BandpassPrecision {
   /// automatic
   auto,
@@ -1968,6 +2100,7 @@ enum BandpassPrecision {
   }
 }
 
+/// Values for the `a` option of the `bandpass` audio filter.
 enum BandpassTransformType {
   /// direct form I
   di,
@@ -2035,6 +2168,7 @@ enum BandpassTransformType {
   }
 }
 
+/// Values for the `t` option of the `bandpass` audio filter.
 enum BandpassWidthType {
   /// Hz
   h,
@@ -2088,6 +2222,7 @@ enum BandpassWidthType {
   }
 }
 
+/// Values for the `precision` option of the `bandreject` audio filter.
 enum BandrejectPrecision {
   /// automatic
   auto,
@@ -2141,6 +2276,7 @@ enum BandrejectPrecision {
   }
 }
 
+/// Values for the `a` option of the `bandreject` audio filter.
 enum BandrejectTransformType {
   /// direct form I
   di,
@@ -2208,6 +2344,7 @@ enum BandrejectTransformType {
   }
 }
 
+/// Values for the `t` option of the `bandreject` audio filter.
 enum BandrejectWidthType {
   /// Hz
   h,
@@ -2261,6 +2398,7 @@ enum BandrejectWidthType {
   }
 }
 
+/// Values for the `precision` option of the `bass` audio filter.
 enum BassPrecision {
   /// automatic
   auto,
@@ -2314,6 +2452,7 @@ enum BassPrecision {
   }
 }
 
+/// Values for the `a` option of the `bass` audio filter.
 enum BassTransformType {
   /// direct form I
   di,
@@ -2381,6 +2520,7 @@ enum BassTransformType {
   }
 }
 
+/// Values for the `t` option of the `bass` audio filter.
 enum BassWidthType {
   /// Hz
   h,
@@ -2434,6 +2574,7 @@ enum BassWidthType {
   }
 }
 
+/// Values for the `precision` option of the `biquad` audio filter.
 enum BiquadPrecision {
   /// automatic
   auto,
@@ -2487,6 +2628,7 @@ enum BiquadPrecision {
   }
 }
 
+/// Values for the `a` option of the `biquad` audio filter.
 enum BiquadTransformType {
   /// direct form I
   di,
@@ -2554,6 +2696,7 @@ enum BiquadTransformType {
   }
 }
 
+/// Values for the `s` option of the `deesser` audio filter.
 enum DeesserMode {
   /// input
   i,
@@ -2593,6 +2736,7 @@ enum DeesserMode {
   }
 }
 
+/// Values for the `gauge` option of the `ebur128` audio filter.
 enum Ebur128Gaugetype {
   /// display momentary value
   momentary,
@@ -2639,6 +2783,7 @@ enum Ebur128Gaugetype {
   }
 }
 
+/// Values for the `framelog` option of the `ebur128` audio filter.
 enum Ebur128Level {
   /// logging disabled
   quiet,
@@ -2678,6 +2823,7 @@ enum Ebur128Level {
   }
 }
 
+/// Values for the `peak` option of the `ebur128` audio filter.
 enum Ebur128Mode {
   /// disable any peak mode
   none,
@@ -2717,6 +2863,7 @@ enum Ebur128Mode {
   }
 }
 
+/// Values for the `scale` option of the `ebur128` audio filter.
 enum Ebur128Scaletype {
   /// display absolute values (LUFS)
   absolute,
@@ -2763,6 +2910,7 @@ enum Ebur128Scaletype {
   }
 }
 
+/// Values for the `precision` option of the `equalizer` audio filter.
 enum EqualizerPrecision {
   /// automatic
   auto,
@@ -2816,6 +2964,7 @@ enum EqualizerPrecision {
   }
 }
 
+/// Values for the `a` option of the `equalizer` audio filter.
 enum EqualizerTransformType {
   /// direct form I
   di,
@@ -2883,6 +3032,7 @@ enum EqualizerTransformType {
   }
 }
 
+/// Values for the `t` option of the `equalizer` audio filter.
 enum EqualizerWidthType {
   /// Hz
   h,
@@ -2936,6 +3086,7 @@ enum EqualizerWidthType {
   }
 }
 
+/// Values for the `dumpscale` option of the `firequalizer` audio filter.
 enum FirequalizerScale {
   /// linear-freq linear-gain
   linlin,
@@ -2982,6 +3133,7 @@ enum FirequalizerScale {
   }
 }
 
+/// Values for the `wfunc` option of the `firequalizer` audio filter.
 enum FirequalizerWfunc {
   /// rectangular window
   rectangular,
@@ -3070,8 +3222,12 @@ enum FirequalizerWfunc {
   }
 }
 
+/// Values for the `interp` option of the `flanger` audio filter.
 enum FlangerItype {
+  /// The `linear` option value.
   linear,
+
+  /// The `quadratic` option value.
   quadratic,
   ;
 
@@ -3099,10 +3255,18 @@ enum FlangerItype {
   }
 }
 
+/// Values for the `shape` option of the `flanger` audio filter.
 enum FlangerType {
+  /// The `triangular` option value.
   triangular,
+
+  /// The `t` option value.
   t,
+
+  /// The `sinusoidal` option value.
   sinusoidal,
+
+  /// The `s` option value.
   s,
   ;
 
@@ -3138,8 +3302,12 @@ enum FlangerType {
   }
 }
 
+/// Values for the `middle_source` option of the `haas` audio filter.
 enum HaasSource {
+  /// The `left` option value.
   left,
+
+  /// The `right` option value.
   right,
 
   /// L+R
@@ -3181,11 +3349,21 @@ enum HaasSource {
   }
 }
 
+/// Values for the `analyze_mode` option of the `hdcd` audio filter.
 enum HdcdAnalyzeMode {
+  /// The `off` option value.
   off,
+
+  /// The `lle` option value.
   lle,
+
+  /// The `pe` option value.
   pe,
+
+  /// The `cdt` option value.
   cdt,
+
+  /// The `tgm` option value.
   tgm,
   ;
 
@@ -3225,6 +3403,7 @@ enum HdcdAnalyzeMode {
   }
 }
 
+/// Values for the `bits_per_sample` option of the `hdcd` audio filter.
 enum HdcdBitsPerSample {
   /// 16-bit (in s32 or s16)
   n16,
@@ -3264,6 +3443,7 @@ enum HdcdBitsPerSample {
   }
 }
 
+/// Values for the `hrir` option of the `headphone` audio filter.
 enum HeadphoneHrir {
   /// hrir files have exactly 2 channels
   stereo,
@@ -3296,6 +3476,7 @@ enum HeadphoneHrir {
   }
 }
 
+/// Values for the `type` option of the `headphone` audio filter.
 enum HeadphoneType {
   /// time domain
   time,
@@ -3328,6 +3509,7 @@ enum HeadphoneType {
   }
 }
 
+/// Values for the `precision` option of the `highpass` audio filter.
 enum HighpassPrecision {
   /// automatic
   auto,
@@ -3381,6 +3563,7 @@ enum HighpassPrecision {
   }
 }
 
+/// Values for the `a` option of the `highpass` audio filter.
 enum HighpassTransformType {
   /// direct form I
   di,
@@ -3448,6 +3631,7 @@ enum HighpassTransformType {
   }
 }
 
+/// Values for the `t` option of the `highpass` audio filter.
 enum HighpassWidthType {
   /// Hz
   h,
@@ -3501,6 +3685,7 @@ enum HighpassWidthType {
   }
 }
 
+/// Values for the `precision` option of the `highshelf` audio filter.
 enum HighshelfPrecision {
   /// automatic
   auto,
@@ -3554,6 +3739,7 @@ enum HighshelfPrecision {
   }
 }
 
+/// Values for the `a` option of the `highshelf` audio filter.
 enum HighshelfTransformType {
   /// direct form I
   di,
@@ -3621,6 +3807,7 @@ enum HighshelfTransformType {
   }
 }
 
+/// Values for the `t` option of the `highshelf` audio filter.
 enum HighshelfWidthType {
   /// Hz
   h,
@@ -3674,9 +3861,15 @@ enum HighshelfWidthType {
   }
 }
 
+/// Values for the `print_format` option of the `loudnorm` audio filter.
 enum LoudnormPrintFormat {
+  /// The `none` option value.
   none,
+
+  /// The `json` option value.
   json,
+
+  /// The `summary` option value.
   summary,
   ;
 
@@ -3708,6 +3901,7 @@ enum LoudnormPrintFormat {
   }
 }
 
+/// Values for the `precision` option of the `lowpass` audio filter.
 enum LowpassPrecision {
   /// automatic
   auto,
@@ -3761,6 +3955,7 @@ enum LowpassPrecision {
   }
 }
 
+/// Values for the `a` option of the `lowpass` audio filter.
 enum LowpassTransformType {
   /// direct form I
   di,
@@ -3828,6 +4023,7 @@ enum LowpassTransformType {
   }
 }
 
+/// Values for the `t` option of the `lowpass` audio filter.
 enum LowpassWidthType {
   /// Hz
   h,
@@ -3881,6 +4077,7 @@ enum LowpassWidthType {
   }
 }
 
+/// Values for the `precision` option of the `lowshelf` audio filter.
 enum LowshelfPrecision {
   /// automatic
   auto,
@@ -3934,6 +4131,7 @@ enum LowshelfPrecision {
   }
 }
 
+/// Values for the `a` option of the `lowshelf` audio filter.
 enum LowshelfTransformType {
   /// direct form I
   di,
@@ -4001,6 +4199,7 @@ enum LowshelfTransformType {
   }
 }
 
+/// Values for the `t` option of the `lowshelf` audio filter.
 enum LowshelfWidthType {
   /// Hz
   h,
@@ -4054,8 +4253,12 @@ enum LowshelfWidthType {
   }
 }
 
+/// Values for the `channels` option of the `rubberband` audio filter.
 enum RubberbandChannels {
+  /// The `apart` option value.
   apart,
+
+  /// The `together` option value.
   together,
   ;
 
@@ -4083,9 +4286,15 @@ enum RubberbandChannels {
   }
 }
 
+/// Values for the `detector` option of the `rubberband` audio filter.
 enum RubberbandDetector {
+  /// The `compound` option value.
   compound,
+
+  /// The `percussive` option value.
   percussive,
+
+  /// The `soft` option value.
   soft,
   ;
 
@@ -4117,8 +4326,12 @@ enum RubberbandDetector {
   }
 }
 
+/// Values for the `formant` option of the `rubberband` audio filter.
 enum RubberbandFormant {
+  /// The `shifted` option value.
   shifted,
+
+  /// The `preserved` option value.
   preserved,
   ;
 
@@ -4146,8 +4359,12 @@ enum RubberbandFormant {
   }
 }
 
+/// Values for the `phase` option of the `rubberband` audio filter.
 enum RubberbandPhase {
+  /// The `laminar` option value.
   laminar,
+
+  /// The `independent` option value.
   independent,
   ;
 
@@ -4175,9 +4392,15 @@ enum RubberbandPhase {
   }
 }
 
+/// Values for the `pitchq` option of the `rubberband` audio filter.
 enum RubberbandPitch {
+  /// The `quality` option value.
   quality,
+
+  /// The `speed` option value.
   speed,
+
+  /// The `consistency` option value.
   consistency,
   ;
 
@@ -4209,8 +4432,12 @@ enum RubberbandPitch {
   }
 }
 
+/// Values for the `smoothing` option of the `rubberband` audio filter.
 enum RubberbandSmoothing {
+  /// The `off` option value.
   off,
+
+  /// The `on` option value.
   on_,
   ;
 
@@ -4238,9 +4465,15 @@ enum RubberbandSmoothing {
   }
 }
 
+/// Values for the `transients` option of the `rubberband` audio filter.
 enum RubberbandTransients {
+  /// The `crisp` option value.
   crisp,
+
+  /// The `mixed` option value.
   mixed,
+
+  /// The `smooth` option value.
   smooth,
   ;
 
@@ -4272,9 +4505,15 @@ enum RubberbandTransients {
   }
 }
 
+/// Values for the `window` option of the `rubberband` audio filter.
 enum RubberbandWindow {
+  /// The `standard` option value.
   standard,
+
+  /// The `short` option value.
   short,
+
+  /// The `long` option value.
   long,
   ;
 
@@ -4306,6 +4545,7 @@ enum RubberbandWindow {
   }
 }
 
+/// Values for the `detection` option of the `silenceremove` audio filter.
 enum SilenceremoveDetection {
   /// use mean absolute values of samples
   avg,
@@ -4366,8 +4606,12 @@ enum SilenceremoveDetection {
   }
 }
 
+/// Values for the `start_mode` option of the `silenceremove` audio filter.
 enum SilenceremoveMode {
+  /// The `any` option value.
   any,
+
+  /// The `all` option value.
   all,
   ;
 
@@ -4395,6 +4639,7 @@ enum SilenceremoveMode {
   }
 }
 
+/// Values for the `timestamp` option of the `silenceremove` audio filter.
 enum SilenceremoveTimestamp {
   /// full timestamps rewrite, keep only the start time
   write,
@@ -4427,9 +4672,15 @@ enum SilenceremoveTimestamp {
   }
 }
 
+/// Values for the `bmode_in` option of the `stereotools` audio filter.
 enum StereotoolsBmode {
+  /// The `balance` option value.
   balance,
+
+  /// The `amplitude` option value.
   amplitude,
+
+  /// The `power` option value.
   power,
   ;
 
@@ -4461,17 +4712,39 @@ enum StereotoolsBmode {
   }
 }
 
+/// Values for the `mode` option of the `stereotools` audio filter.
 enum StereotoolsMode {
+  /// The `lr>lr` option value.
   lr_to_lr,
+
+  /// The `lr>ms` option value.
   lr_to_ms,
+
+  /// The `ms>lr` option value.
   ms_to_lr,
+
+  /// The `lr>ll` option value.
   lr_to_ll,
+
+  /// The `lr>rr` option value.
   lr_to_rr,
+
+  /// The `lr>l+r` option value.
   lr_to_l_plus_r,
+
+  /// The `lr>rl` option value.
   lr_to_rl,
+
+  /// The `ms>ll` option value.
   ms_to_ll,
+
+  /// The `ms>rr` option value.
   ms_to_rr,
+
+  /// The `ms>rl` option value.
   ms_to_rl,
+
+  /// The `lr>l-r` option value.
   lr_to_l_minus_r,
   ;
 
@@ -4535,6 +4808,7 @@ enum StereotoolsMode {
   }
 }
 
+/// Values for the `lfe_mode` option of the `surround` audio filter.
 enum SurroundLfeMode {
   /// just add LFE channel
   add,
@@ -4567,6 +4841,7 @@ enum SurroundLfeMode {
   }
 }
 
+/// Values for the `win_func` option of the `surround` audio filter.
 enum SurroundWinFunc {
   /// Rectangular
   rect,
@@ -4739,6 +5014,7 @@ enum SurroundWinFunc {
   }
 }
 
+/// Values for the `precision` option of the `tiltshelf` audio filter.
 enum TiltshelfPrecision {
   /// automatic
   auto,
@@ -4792,6 +5068,7 @@ enum TiltshelfPrecision {
   }
 }
 
+/// Values for the `a` option of the `tiltshelf` audio filter.
 enum TiltshelfTransformType {
   /// direct form I
   di,
@@ -4859,6 +5136,7 @@ enum TiltshelfTransformType {
   }
 }
 
+/// Values for the `t` option of the `tiltshelf` audio filter.
 enum TiltshelfWidthType {
   /// Hz
   h,
@@ -4912,6 +5190,7 @@ enum TiltshelfWidthType {
   }
 }
 
+/// Values for the `precision` option of the `treble` audio filter.
 enum TreblePrecision {
   /// automatic
   auto,
@@ -4965,6 +5244,7 @@ enum TreblePrecision {
   }
 }
 
+/// Values for the `a` option of the `treble` audio filter.
 enum TrebleTransformType {
   /// direct form I
   di,
@@ -5032,6 +5312,7 @@ enum TrebleTransformType {
   }
 }
 
+/// Values for the `t` option of the `treble` audio filter.
 enum TrebleWidthType {
   /// Hz
   h,
@@ -5094,91 +5375,262 @@ enum TrebleWidthType {
 /// that pick a single filter slot, e.g.
 /// `player.stream.tap(AudioEffect.equalizer, side: TapSide.post)`.
 enum AudioEffect {
+  /// The `acompressor` audio filter.
   acompressor,
+
+  /// The `acontrast` audio filter.
   acontrast,
+
+  /// The `acrusher` audio filter.
   acrusher,
+
+  /// The `adeclick` audio filter.
   adeclick,
+
+  /// The `adeclip` audio filter.
   adeclip,
+
+  /// The `adecorrelate` audio filter.
   adecorrelate,
+
+  /// The `adelay` audio filter.
   adelay,
+
+  /// The `adenorm` audio filter.
   adenorm,
+
+  /// The `aderivative` audio filter.
   aderivative,
+
+  /// The `adrc` audio filter.
   adrc,
+
+  /// The `adynamicequalizer` audio filter.
   adynamicequalizer,
+
+  /// The `adynamicsmooth` audio filter.
   adynamicsmooth,
+
+  /// The `aecho` audio filter.
   aecho,
+
+  /// The `aemphasis` audio filter.
   aemphasis,
+
+  /// The `aeval` audio filter.
   aeval,
+
+  /// The `aexciter` audio filter.
   aexciter,
+
+  /// The `afade` audio filter.
   afade,
+
+  /// The `afftdn` audio filter.
   afftdn,
+
+  /// The `afftfilt` audio filter.
   afftfilt,
+
+  /// The `aformat` audio filter.
   aformat,
+
+  /// The `afreqshift` audio filter.
   afreqshift,
+
+  /// The `afwtdn` audio filter.
   afwtdn,
+
+  /// The `agate` audio filter.
   agate,
+
+  /// The `aiir` audio filter.
   aiir,
+
+  /// The `alimiter` audio filter.
   alimiter,
+
+  /// The `allpass` audio filter.
   allpass,
+
+  /// The `anequalizer` audio filter.
   anequalizer,
+
+  /// The `anlmdn` audio filter.
   anlmdn,
+
+  /// The `apad` audio filter.
   apad,
+
+  /// The `aphaser` audio filter.
   aphaser,
+
+  /// The `aphaseshift` audio filter.
   aphaseshift,
+
+  /// The `apsyclip` audio filter.
   apsyclip,
+
+  /// The `apulsator` audio filter.
   apulsator,
+
+  /// The `aresample` audio filter.
   aresample,
+
+  /// The `arnndn` audio filter.
   arnndn,
+
+  /// The `asoftclip` audio filter.
   asoftclip,
+
+  /// The `asubboost` audio filter.
   asubboost,
+
+  /// The `asubcut` audio filter.
   asubcut,
+
+  /// The `asupercut` audio filter.
   asupercut,
+
+  /// The `asuperpass` audio filter.
   asuperpass,
+
+  /// The `asuperstop` audio filter.
   asuperstop,
+
+  /// The `atempo` audio filter.
   atempo,
+
+  /// The `atilt` audio filter.
   atilt,
+
+  /// The `bandpass` audio filter.
   bandpass,
+
+  /// The `bandreject` audio filter.
   bandreject,
+
+  /// The `bass` audio filter.
   bass,
+
+  /// The `biquad` audio filter.
   biquad,
+
+  /// The `channelmap` audio filter.
   channelmap,
+
+  /// The `chorus` audio filter.
   chorus,
+
+  /// The `compand` audio filter.
   compand,
+
+  /// The `compensationdelay` audio filter.
   compensationdelay,
+
+  /// The `crossfeed` audio filter.
   crossfeed,
+
+  /// The `crystalizer` audio filter.
   crystalizer,
+
+  /// The `dcshift` audio filter.
   dcshift,
+
+  /// The `deesser` audio filter.
   deesser,
+
+  /// The `dialoguenhance` audio filter.
   dialoguenhance,
+
+  /// The `drmeter` audio filter.
   drmeter,
+
+  /// The `dynaudnorm` audio filter.
   dynaudnorm,
+
+  /// The `earwax` audio filter.
   earwax,
+
+  /// The `ebur128` audio filter.
   ebur128,
+
+  /// The `equalizer` audio filter.
   equalizer,
+
+  /// The `extrastereo` audio filter.
   extrastereo,
+
+  /// The `firequalizer` audio filter.
   firequalizer,
+
+  /// The `flanger` audio filter.
   flanger,
+
+  /// The `haas` audio filter.
   haas,
+
+  /// The `hdcd` audio filter.
   hdcd,
+
+  /// The `headphone` audio filter.
   headphone,
+
+  /// The `highpass` audio filter.
   highpass,
+
+  /// The `highshelf` audio filter.
   highshelf,
+
+  /// The `loudnorm` audio filter.
   loudnorm,
+
+  /// The `lowpass` audio filter.
   lowpass,
+
+  /// The `lowshelf` audio filter.
   lowshelf,
+
+  /// The `mcompand` audio filter.
   mcompand,
+
+  /// The `pan` audio filter.
   pan,
+
+  /// The `rubberband` audio filter.
   rubberband,
+
+  /// The `silenceremove` audio filter.
   silenceremove,
+
+  /// The `speechnorm` audio filter.
   speechnorm,
+
+  /// The `stereotools` audio filter.
   stereotools,
+
+  /// The `stereowiden` audio filter.
   stereowiden,
+
+  /// The `superequalizer` audio filter.
   superequalizer,
+
+  /// The `surround` audio filter.
   surround,
+
+  /// The `tiltshelf` audio filter.
   tiltshelf,
+
+  /// The `treble` audio filter.
   treble,
+
+  /// The `tremolo` audio filter.
   tremolo,
+
+  /// The `vibrato` audio filter.
   vibrato,
+
+  /// The `virtualbass` audio filter.
   virtualbass,
   ;
 

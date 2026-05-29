@@ -349,6 +349,8 @@ final class _StdChannels extends Channels {
 /// 41 named ones (comma-separated layouts, raw speaker tags, future mpv
 /// additions).
 final class ChannelsCustom extends Channels {
+  /// The raw layout string passed straight to mpv's `audio-channels`
+  /// property (e.g. a comma-separated list or raw speaker tags).
   final String mpvLayout;
 
   const ChannelsCustom._(this.mpvLayout) : super._();

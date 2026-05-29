@@ -4,8 +4,8 @@
 
 import 'dart:typed_data';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('WaveformData', () {

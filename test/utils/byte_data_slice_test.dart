@@ -66,7 +66,7 @@ void main() {
       final naive = viewB.buffer.asUint8List();
       expect(naive.length, 80);
       expect(naive.any((b) => b == 0xAA), isTrue,
-          reason: 'no-arg asUint8List leaks sibling bytes');
+          reason: 'no-arg asUint8List leaks sibling bytes',);
 
       // Fixed: respects the slice boundaries.
       final correct =

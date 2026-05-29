@@ -7,8 +7,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -49,7 +50,7 @@ void main() {
       // verify the value remains stable after the roundtrip window.
       await Future.delayed(const Duration(milliseconds: 200));
       expect(player.state.currentChapter, 1,
-          reason: 'observer roundtrip must not destabilise the value');
-    }, timeout: const Timeout(Duration(seconds: 30)));
+          reason: 'observer roundtrip must not destabilise the value',);
+    }, timeout: const Timeout(Duration(seconds: 30)),);
   });
 }

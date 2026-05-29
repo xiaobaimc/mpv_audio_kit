@@ -5,8 +5,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -30,18 +31,18 @@ void main() {
       expect(() => player.setShuffle(true), throwsStateError);
       expect(() => player.setRate(1.5), throwsStateError);
       expect(() => player.setReplayGain(const ReplayGainSettings()),
-          throwsStateError);
+          throwsStateError,);
       expect(() => player.setCache(const CacheSettings()), throwsStateError);
       expect(() => player.play(), throwsStateError);
       expect(() => player.pause(), throwsStateError);
       expect(() => player.stop(), throwsStateError);
-      expect(() => player.add(Media('/tmp/x.wav')), throwsStateError);
+      expect(() => player.add(const Media('/tmp/x.wav')), throwsStateError);
       expect(() => player.next(), throwsStateError);
       expect(() => player.clearPlaylist(), throwsStateError);
 
       // Let libmpv's background threads wind down (see
       // dispose_safety_test.dart for the rationale).
       await Future.delayed(const Duration(seconds: 1));
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

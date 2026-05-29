@@ -33,12 +33,7 @@ void main() {
     setUp(() async {
       tlsErrors.clear();
       player = Player(
-        configuration: const PlayerConfiguration(
-          autoPlay: false,
-          // Surface mpv's own log lines so we can assert no TLS-related
-          // error appears during the handshake window.
-          logLevel: LogLevel.warn,
-        ),
+        
       );
       await player.setRawProperty('ao', 'null');
       logSub = player.stream.log.listen((entry) {
@@ -78,18 +73,18 @@ void main() {
             .firstWhere((v) => v == true)
             .timeout(const Duration(seconds: 15), onTimeout: () => false);
 
-        await player.open(Media(httpsUrl), play: false);
+        await player.open(const Media(httpsUrl), play: false);
 
         // tlsCaFile must be wired up by the time open() returns.
         expect(player.state.tlsCaFile, isNotEmpty,
-            reason: 'Auto-extraction of the bundled cacert.pem failed.');
+            reason: 'Auto-extraction of the bundled cacert.pem failed.',);
 
         final ok = await demuxerOk;
         expect(tlsErrors, isEmpty,
-            reason: 'mpv reported a TLS error: $tlsErrors');
+            reason: 'mpv reported a TLS error: $tlsErrors',);
         expect(ok, isTrue,
             reason: 'Demuxer never came up — TLS handshake likely failed '
-                'silently or the stream is unreachable.');
+                'silently or the stream is unreachable.',);
       },
       // Extra slack on the test timeout itself: handshake + first audio
       // packet on a 128 kbps stream typically lands in 2-4 s, but emulators

@@ -2,12 +2,12 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 // Import via the public entry library so we get the typed `MpvEndFileReason`
 // from `models/events/mpv_player_error.dart` (and not the duplicate raw FFI enum
 // of the same name from `mpv_bindings.dart`, which the public `library`
 // intentionally hides).
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('MpvPlayerError sealed switch', () {
@@ -114,7 +114,7 @@ void main() {
 
       const error = MpvFileEndedEvent(
           reason: MpvEndFileReason.error,
-          error: MpvError.mpvErrorLoadingFailed);
+          error: MpvError.mpvErrorLoadingFailed,);
       expect(error.reachedNaturalEnd, isFalse);
 
       const redirect =

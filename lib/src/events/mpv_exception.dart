@@ -10,6 +10,7 @@
 /// constants) and [message] for the human-readable mpv error string.
 /// [name] identifies the offending property or command for logging.
 class MpvException implements Exception {
+  /// Creates an exception describing a rejected libmpv request.
   const MpvException({
     required this.name,
     required this.code,

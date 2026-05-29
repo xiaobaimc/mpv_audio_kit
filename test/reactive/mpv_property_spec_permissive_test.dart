@@ -3,10 +3,10 @@
 // Use of this source code is governed by BSD 3-Clause license that can be
 // found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 import 'package:mpv_audio_kit/src/reactive/mpv_property_spec.dart';
 import 'package:mpv_audio_kit/src/reactive/reactive_property.dart';
+import 'package:test/test.dart';
 
 void main() {
   // Regression for the rigid-cast bug in 0.0.x: int64 / double specs

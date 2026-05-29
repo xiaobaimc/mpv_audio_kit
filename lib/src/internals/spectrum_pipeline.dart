@@ -9,11 +9,11 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
+import '../dsp/band_processor.dart';
 import '../models/fft_frame.dart';
 import '../models/pcm_frame.dart';
 import '../mpv_bindings.dart';
 import '../types/settings/spectrum_settings.dart';
-import '../dsp/band_processor.dart';
 
 /// Real-time FFT + raw PCM pipeline backed by the mpv `pcm-tap-frame`
 /// property.
@@ -88,7 +88,7 @@ class SpectrumPipeline {
   // Shared FFT / windowing / EMA pipeline — same component the
   // public [BandProcessor] exposes, so global and per-filter
   // spectrum surfaces stay byte-identical when fed equivalent PCM.
-  late BandProcessor _processor = BandProcessor(_settings);
+  late final BandProcessor _processor = BandProcessor(_settings);
   int _lastPolledPtsNs = 0;
 
   /// Replaces the pipeline configuration. Reallocates FFT / window /

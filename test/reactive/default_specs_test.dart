@@ -2,19 +2,19 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
-import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
-import 'package:mpv_audio_kit/src/types/enums/format.dart';
-import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
-import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
-import 'package:mpv_audio_kit/src/types/enums/cache.dart';
-import 'package:mpv_audio_kit/src/types/state/mpv_prefetch_state.dart';
+import 'package:mpv_audio_kit/src/internals/duration_seconds.dart';
 import 'package:mpv_audio_kit/src/player/player_state.dart';
-import 'package:mpv_audio_kit/src/types/settings/replay_gain_settings.dart';
-import 'package:mpv_audio_kit/src/types/enums/replay_gain.dart';
 import 'package:mpv_audio_kit/src/reactive/default_specs.dart';
 import 'package:mpv_audio_kit/src/reactive/property_registry.dart';
-import 'package:mpv_audio_kit/src/internals/duration_seconds.dart';
+import 'package:mpv_audio_kit/src/types/enums/cache.dart';
+import 'package:mpv_audio_kit/src/types/enums/format.dart';
+import 'package:mpv_audio_kit/src/types/enums/replay_gain.dart';
+import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
+import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
+import 'package:mpv_audio_kit/src/types/settings/replay_gain_settings.dart';
+import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
+import 'package:mpv_audio_kit/src/types/state/mpv_prefetch_state.dart';
+import 'package:test/test.dart';
 
 /// End-to-end test of the default registry — every mpv property the public
 /// API surfaces gets dispatched once with a representative payload and the
@@ -36,7 +36,8 @@ void main() {
         reactives,
         onIdleActive: (_) {},
         onAudioOutputState: (_) {},
-      ));
+        onEofReached: (_) {},
+      ),);
   });
 
   PlayerState dispatch(String name, dynamic raw) {
@@ -63,12 +64,9 @@ void main() {
       expect(reactives.shuffle.value, isTrue);
     });
 
-    test('core-idle is inverted into state.playing via the parser', () {
-      // mpv reports `core-idle=false` when actually producing audio.
-      // We bind to `core-idle` (NOT `pause`) because `pause` doesn't
-      // change on the load → playing transition (mpv default is
-      // `pause=no` already). `core-idle` flips reliably on every
-      // start/stop/pause/seek/buffering event.
+    test('core-idle is inverted into state.playing (actual-output axis)', () {
+      // `core-idle=false` means mpv is actually producing audio. This is
+      // the actual-output axis; it flips transiently on every seek.
       dispatch('core-idle', false);
       expect(state.playing, isTrue);
       expect(reactives.playing.value, isTrue);
@@ -135,7 +133,7 @@ void main() {
       expect(state.audioParams.sampleRate, 48000);
       expect(state.audioParams.codec, 'flac',
           reason: 'audio-params node reduce must not reset the codec fields '
-              'populated by audio-codec / audio-codec-name siblings');
+              'populated by audio-codec / audio-codec-name siblings',);
       expect(state.audioParams.codecName, 'FLAC');
     });
 
@@ -219,7 +217,7 @@ void main() {
       dispatch('prefetch-state', 'loading');
       expect(reactives.prefetchState.value, MpvPrefetchState.loading);
       expect(state, equals(initialFingerprint),
-          reason: 'state must not mutate for stream-only properties');
+          reason: 'state must not mutate for stream-only properties',);
 
       dispatch('prefetch-state', 'ready');
       expect(reactives.prefetchState.value, MpvPrefetchState.ready);
@@ -306,7 +304,7 @@ void main() {
       dispatch('chapter', -1);
       expect(state.currentChapter, isNull,
           reason: 'mpv emits chapter=-1 when no chapter is active; the '
-              'parser must surface that as `null`');
+              'parser must surface that as `null`',);
     });
 
     test('ab-loop-a / ab-loop-b ("no" → null, numeric → Duration)', () {
@@ -387,13 +385,13 @@ void main() {
             preamp: -3.0,
             clip: true,
             fallback: 1.5,
-          ));
+          ),);
 
       // Change just preamp; assert the other 3 fields are untouched.
       dispatch('replaygain-preamp', -10.0);
       expect(state.replayGain.preamp, -10.0);
       expect(state.replayGain.mode, ReplayGain.album,
-          reason: 'mode must survive a preamp-only dispatch');
+          reason: 'mode must survive a preamp-only dispatch',);
       expect(state.replayGain.clip, isTrue);
       expect(state.replayGain.fallback, 1.5);
 
@@ -402,7 +400,7 @@ void main() {
       expect(state.replayGain.clip, isFalse);
       expect(state.replayGain.mode, ReplayGain.album);
       expect(state.replayGain.preamp, -10.0,
-          reason: 'preamp from the previous dispatch must survive');
+          reason: 'preamp from the previous dispatch must survive',);
     });
 
     test('cache: dispatching one property preserves the other 4', () {
@@ -420,7 +418,7 @@ void main() {
             onDisk: true,
             pause: false,
             pauseWait: Duration(seconds: 5),
-          ));
+          ),);
 
       dispatch('cache-secs', 60.0);
       expect(state.cache.secs, const Duration(seconds: 60));
@@ -446,7 +444,7 @@ void main() {
       dispatch('replaygain-preamp', 1.0);
       expect(state.replayGain.preamp, 1.0);
       expect(state.replayGain.mode, ReplayGain.no,
-          reason: 'default ReplayGainSettings.mode must survive');
+          reason: 'default ReplayGainSettings.mode must survive',);
     });
   });
 
@@ -459,7 +457,8 @@ void main() {
           reactives,
           onIdleActive: (_) {},
           onAudioOutputState: calls.add,
-        ));
+          onEofReached: (_) {},
+        ),);
       state = const PlayerState();
 
       registry.dispatch('audio-output-state', 'initializing', state);
@@ -482,12 +481,32 @@ void main() {
           reactives,
           onIdleActive: calls.add,
           onAudioOutputState: (_) {},
-        ));
+          onEofReached: (_) {},
+        ),);
       state = const PlayerState();
 
       registry.dispatch('idle-active', true, state);
       registry.dispatch('idle-active', true, state); // dedup
       registry.dispatch('idle-active', false, state);
+
+      expect(calls, [true, false]);
+    });
+
+    test('onEofReached fires on every eof-reached transition', () {
+      final calls = <bool>[];
+      reactives = DefaultPropertyReactives();
+      registry = PropertyRegistry()
+        ..registerAll(buildDefaultSpecs(
+          reactives,
+          onIdleActive: (_) {},
+          onAudioOutputState: (_) {},
+          onEofReached: calls.add,
+        ),);
+      state = const PlayerState();
+
+      registry.dispatch('eof-reached', true, state);
+      registry.dispatch('eof-reached', true, state); // dedup
+      registry.dispatch('eof-reached', false, state);
 
       expect(calls, [true, false]);
     });
@@ -560,7 +579,7 @@ void main() {
               'Missing: ${documented.difference(actual)}. '
               'Extra: ${actual.difference(documented)}. '
               'Update the `documented` set in this test if the change is '
-              'deliberate.');
+              'deliberate.',);
     });
   });
 }

@@ -25,11 +25,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
-import '../generated/audio_filter_names.dart';
 import '../_helpers/setter_test_helpers.dart';
+import '../generated/audio_filter_names.dart';
 
 /// Audio decoders the package contractually supports on every shipped
 /// platform. Each entry MUST be a registered libavcodec decoder in the
@@ -155,7 +155,7 @@ void main() {
       final raw = await player.getRawProperty('decoder-list');
       expect(raw, isNotNull,
           reason: 'mpv must expose decoder-list — if null the binary is '
-              'missing libavcodec');
+              'missing libavcodec',);
       final parsed = jsonDecode(raw!) as List<dynamic>;
       registeredNames = <String>{};
       for (final e in parsed) {
@@ -166,7 +166,7 @@ void main() {
         if (driver != null) registeredNames.add(driver);
       }
       expect(registeredNames, isNotEmpty,
-          reason: 'decoder-list must not be empty');
+          reason: 'decoder-list must not be empty',);
     });
 
     tearDownAll(() async {
@@ -184,7 +184,7 @@ void main() {
       expect(missing, isEmpty,
           reason: 'These core audio decoders are part of the public '
               'contract but NOT registered in the bundled libmpv '
-              'binary:\n  ${missing.join("\n  ")}');
+              'binary:\n  ${missing.join("\n  ")}',);
     });
 
     test(
@@ -200,7 +200,7 @@ void main() {
         expect(missing, isEmpty,
             reason: 'These AudioToolbox-backed decoders should be present '
                 'on the macOS / iOS bundled libmpv but were not '
-                'registered:\n  ${missing.join("\n  ")}');
+                'registered:\n  ${missing.join("\n  ")}',);
       },
       // Apple-only — not meaningful on Linux / Windows.
       skip: Platform.isMacOS
@@ -217,10 +217,7 @@ void main() {
       // Default test player uses LogLevel.off; the filter-not-found
       // surface needs at least 'warn' to observe.
       player = Player(
-        configuration: const PlayerConfiguration(
-          autoPlay: false,
-          logLevel: LogLevel.warn,
-        ),
+        
       );
       await player.setRawProperty('ao', 'null');
       // Filters are only instantiated by libavfilter when a file is
@@ -241,7 +238,7 @@ void main() {
       // Sanity: codegen must have emitted at least one filter name.
       expect(kAudioFilterNames, isNotEmpty,
           reason: 'kAudioFilterNames is empty — the codegen output is '
-              'broken');
+              'broken',);
 
       // Capture log entries that signal a filter wasn't registered.
       final cannotFind = <String>[];
@@ -301,8 +298,8 @@ void main() {
       expect(missing, isEmpty,
           reason: 'These filters are exposed by the typed AudioEffects '
               'bundle but NOT registered in the bundled libmpv '
-              'binary:\n  ${missing.join("\n  ")}');
-    }, timeout: const Timeout(Duration(seconds: 60)));
+              'binary:\n  ${missing.join("\n  ")}',);
+    }, timeout: const Timeout(Duration(seconds: 60)),);
 
     // Meta-test: verifies the detection mechanism. If this stops failing,
     // the filter coverage test above could silently pass when a real
@@ -321,14 +318,14 @@ void main() {
       });
       try {
         await player.setAudioEffects(
-            const AudioEffects(custom: ['lavfi-this-filter-does-not-exist']));
+            const AudioEffects(custom: ['lavfi-this-filter-does-not-exist']),);
       } catch (_) {}
       await Future<void>.delayed(const Duration(milliseconds: 25));
       await logSub.cancel();
       expect(cannotFind, isNotEmpty,
           reason: 'A bogus lavfi-* filter must produce a recognizable log '
               'entry. If this fires, libmpv changed its phrasing — update '
-              'the substrings above.');
+              'the substrings above.',);
       try {
         await player.setAudioEffects(const AudioEffects());
       } catch (_) {}

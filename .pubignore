@@ -1,42 +1,51 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+# pubignore — overrides .gitignore when present; mirror dev-only paths here.
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-.vscode/
-.claude/
-CLAUDE.md
-analysis_options.yaml
-
-# Flutter/Dart/Pub related
-# Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
-/pubspec.lock
-**/doc/api/
+# Dart / Flutter
 .dart_tool/
 .flutter-plugins-dependencies
-/build/
-/coverage/
+**/doc/api/
+build/
+coverage/
+pubspec.lock
 
-# Others
-# Exclude imgs/ except the screenshot files referenced by pubspec.yaml.
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Native build cache
+.build/
+.swiftpm/
+/android/.gradle/
+/android/build/
+
+# Native binaries (downloaded by build)
+/android/src/main/jniLibs/
+/ios/mpv_audio_kit/Frameworks/libmpv.xcframework/
+/ios/mpv_audio_kit/Frameworks/libmpv_xcframework.zip
+/macos/mpv_audio_kit/Frameworks/libmpv.xcframework/
+/macos/mpv_audio_kit/Frameworks/libmpv_xcframework.zip
+/linux/libs/
+/windows/libs/
+
+# Docs
+/docs/
+/scripts/
+
+# AI tooling
+.claude/
+CLAUDE.md
+graphify-out/
+
+# Tests
+/test/
+/test_app/
+
+# Codegen config
+analysis_options.yaml
+
+# Assets — whitelist only the screenshots referenced by pubspec.yaml
 /imgs/*
 !/imgs/mpv_audio_kit.png
 !/imgs/desktop_player_console.gif
@@ -45,17 +54,3 @@ analysis_options.yaml
 !/imgs/mobile_queue.png
 !/imgs/mobile_filters.png
 !/imgs/mobile_audio_hardware.png
-/docs/
-/scripts/
-/test/
-/test_app/
-
-# Libs
-/windows/libs/
-/linux/libs/
-/android/src/main/jniLibs/
-/macos/mpv_audio_kit/Frameworks/libmpv.xcframework/
-/macos/mpv_audio_kit/Frameworks/libmpv_xcframework.zip
-/ios/mpv_audio_kit/Frameworks/libmpv.xcframework/
-/ios/mpv_audio_kit/Frameworks/libmpv_xcframework.zip
-

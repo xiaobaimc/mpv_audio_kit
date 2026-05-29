@@ -44,6 +44,8 @@ final class AudioParams {
   /// given file.
   final String? codecName;
 
+  /// Creates an audio-format descriptor. Every field is nullable because
+  /// mpv reports them only while audio is being decoded or output.
   const AudioParams({
     this.format,
     this.sampleRate,
@@ -54,6 +56,8 @@ final class AudioParams {
     this.codecName,
   });
 
+  /// Returns a copy with the given fields replaced. Pass `null` explicitly
+  /// to clear a field; omitted fields keep their current value.
   AudioParams copyWith({
     Object? format = unset,
     Object? sampleRate = unset,

@@ -52,10 +52,7 @@ void main() {
       // Surface mpv's warn-level log so the test can fail loudly if
       // audiotrack reports a missing JavaVM.
       player = Player(
-        configuration: const PlayerConfiguration(
-          autoPlay: false,
-          logLevel: LogLevel.warn,
-        ),
+        
       );
       logSub = player.stream.log.listen((entry) {
         final lower = entry.text.toLowerCase();
@@ -87,7 +84,7 @@ void main() {
             .timeout(const Duration(seconds: 10));
         expect(d.inMilliseconds, greaterThan(0));
         expect(aoErrors, isEmpty,
-            reason: 'mpv reported an AO init error: $aoErrors');
+            reason: 'mpv reported an AO init error: $aoErrors',);
       },
       timeout: const Timeout(Duration(seconds: 20)),
     );

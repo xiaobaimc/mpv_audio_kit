@@ -58,7 +58,6 @@ class CodecResult {
 Future<Player> createTestPlayer() async {
   final p = Player(
     configuration: const PlayerConfiguration(
-      autoPlay: false,
       logLevel: LogLevel.off,
     ),
   );
@@ -145,7 +144,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'MP3 44.1 kHz stereo',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'mp3')
+        codecHint: 'mp3',)
   ),
   (
     'mp3_48000_mono.mp3',
@@ -153,7 +152,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'MP3 48 kHz mono',
         sampleRate: 48000,
         channels: 1,
-        codecHint: 'mp3')
+        codecHint: 'mp3',)
   ),
   (
     'aac_lc_44100.m4a',
@@ -161,7 +160,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'AAC-LC 44.1 kHz stereo (m4a)',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'aac')
+        codecHint: 'aac',)
   ),
   (
     'aac_adts_44100.aac',
@@ -169,7 +168,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'AAC ADTS 44.1 kHz stereo',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'aac')
+        codecHint: 'aac',)
   ),
 
   // Lossless
@@ -179,7 +178,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'FLAC 44.1 kHz 16-bit',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'flac')
+        codecHint: 'flac',)
   ),
   (
     'flac_88200_24bit.flac',
@@ -187,7 +186,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'FLAC 88.2 kHz 24-bit',
         sampleRate: 88200,
         channels: 2,
-        codecHint: 'flac')
+        codecHint: 'flac',)
   ),
   (
     'flac_192000_24bit.flac',
@@ -195,7 +194,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'FLAC 192 kHz 24-bit',
         sampleRate: 192000,
         channels: 2,
-        codecHint: 'flac')
+        codecHint: 'flac',)
   ),
   (
     'alac_44100.m4a',
@@ -203,7 +202,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'ALAC 44.1 kHz stereo',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'alac')
+        codecHint: 'alac',)
   ),
 
   // Open-source
@@ -213,7 +212,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'Opus 48 kHz stereo',
         sampleRate: 48000,
         channels: 2,
-        codecHint: 'opus')
+        codecHint: 'opus',)
   ),
   (
     'vorbis_44100_stereo.ogg',
@@ -221,7 +220,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'Vorbis 44.1 kHz stereo',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'vorbis')
+        codecHint: 'vorbis',)
   ),
 
   // Dolby
@@ -231,7 +230,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'AC-3 48 kHz stereo',
         sampleRate: 48000,
         channels: 2,
-        codecHint: 'ac3')
+        codecHint: 'ac3',)
   ),
   (
     'eac3_48000_stereo.eac3',
@@ -239,7 +238,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'E-AC-3 48 kHz stereo',
         sampleRate: 48000,
         channels: 2,
-        codecHint: 'eac3')
+        codecHint: 'eac3',)
   ),
 
   // Uncompressed PCM
@@ -249,7 +248,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'WAV PCM s16 44.1 kHz',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'pcm')
+        codecHint: 'pcm',)
   ),
   (
     'wav_pcm_s24_48000.wav',
@@ -257,7 +256,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'WAV PCM s24 48 kHz',
         sampleRate: 48000,
         channels: 2,
-        codecHint: 'pcm')
+        codecHint: 'pcm',)
   ),
   (
     'wav_pcm_s32_96000.wav',
@@ -265,7 +264,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'WAV PCM s32 96 kHz',
         sampleRate: 96000,
         channels: 2,
-        codecHint: 'pcm')
+        codecHint: 'pcm',)
   ),
   (
     'aiff_pcm_44100.aiff',
@@ -273,7 +272,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'AIFF PCM 44.1 kHz',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'pcm')
+        codecHint: 'pcm',)
   ),
 
   // Pro / broadcast / lossless extras
@@ -283,7 +282,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'DTS Coherent Acoustics 48 kHz stereo',
         sampleRate: 48000,
         channels: 2,
-        codecHint: 'dts')
+        codecHint: 'dts',)
   ),
   (
     'mlp_48000_stereo.mlp',
@@ -291,7 +290,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'Dolby MLP 48 kHz stereo',
         sampleRate: 48000,
         channels: 2,
-        codecHint: 'mlp')
+        codecHint: 'mlp',)
   ),
   (
     'truehd_48000_stereo.thd',
@@ -299,7 +298,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'Dolby TrueHD 48 kHz stereo',
         sampleRate: 48000,
         channels: 2,
-        codecHint: 'truehd')
+        codecHint: 'truehd',)
   ),
   (
     'tta_44100.tta',
@@ -307,7 +306,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'TrueAudio (TTA) 44.1 kHz stereo',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'tta')
+        codecHint: 'tta',)
   ),
   (
     'wavpack_44100.wv',
@@ -315,7 +314,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'WavPack 44.1 kHz stereo',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'wavpack')
+        codecHint: 'wavpack',)
   ),
   (
     'mp2_44100.mp2',
@@ -323,7 +322,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'MPEG Audio Layer II 44.1 kHz stereo',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'mp2')
+        codecHint: 'mp2',)
   ),
 
   // WMA family
@@ -333,7 +332,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'WMA v1 44.1 kHz stereo',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'wmav1')
+        codecHint: 'wmav1',)
   ),
   (
     'wma_v2_44100.wma',
@@ -341,7 +340,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'WMA v2 44.1 kHz stereo',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'wmav2')
+        codecHint: 'wmav2',)
   ),
 
   // ADPCM (telephony / legacy)
@@ -351,7 +350,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'ADPCM Microsoft 22.05 kHz stereo',
         sampleRate: 22050,
         channels: 2,
-        codecHint: 'adpcm')
+        codecHint: 'adpcm',)
   ),
   (
     'adpcm_ima_qt_22050.mov',
@@ -359,7 +358,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'ADPCM IMA QuickTime 22.05 kHz stereo',
         sampleRate: 22050,
         channels: 2,
-        codecHint: 'adpcm')
+        codecHint: 'adpcm',)
   ),
 
   // PCM long-tail (μ-law / a-law / float / big-endian)
@@ -369,7 +368,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'PCM A-law 8 kHz stereo',
         sampleRate: 8000,
         channels: 2,
-        codecHint: 'pcm')
+        codecHint: 'pcm',)
   ),
   (
     'pcm_mulaw_8000.wav',
@@ -377,7 +376,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'PCM μ-law 8 kHz stereo',
         sampleRate: 8000,
         channels: 2,
-        codecHint: 'pcm')
+        codecHint: 'pcm',)
   ),
   (
     'pcm_f32le_44100.wav',
@@ -385,7 +384,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'PCM 32-bit float LE 44.1 kHz',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'pcm')
+        codecHint: 'pcm',)
   ),
   (
     'pcm_f64le_44100.wav',
@@ -393,7 +392,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'PCM 64-bit float LE 44.1 kHz',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'pcm')
+        codecHint: 'pcm',)
   ),
   (
     'pcm_s32be_48000.aiff',
@@ -401,7 +400,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'PCM s32 big-endian 48 kHz (AIFF)',
         sampleRate: 48000,
         channels: 2,
-        codecHint: 'pcm')
+        codecHint: 'pcm',)
   ),
   (
     'pcm_s24be_48000.aiff',
@@ -409,7 +408,7 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'PCM s24 big-endian 48 kHz (AIFF)',
         sampleRate: 48000,
         channels: 2,
-        codecHint: 'pcm')
+        codecHint: 'pcm',)
   ),
 
   // Containers
@@ -419,11 +418,11 @@ const codecMatrix = <(String, CodecExpectation)>[
         label: 'Matroska + FLAC',
         sampleRate: 44100,
         channels: 2,
-        codecHint: 'flac')
+        codecHint: 'flac',)
   ),
   (
     'webm_opus.webm',
     CodecExpectation(
-        label: 'WebM + Opus', sampleRate: 48000, channels: 2, codecHint: 'opus')
+        label: 'WebM + Opus', sampleRate: 48000, channels: 2, codecHint: 'opus',)
   ),
 ];

@@ -93,6 +93,8 @@ final class SpectrumSettings {
   /// `fftSize / overlapFactor` is an integer hop.
   final int overlapFactor;
 
+  /// Creates a spectrum-analyzer configuration. Defaults yield the
+  /// [defaults] preset; asserts enforce each field's valid range.
   const SpectrumSettings({
     this.fftSize = 2048,
     this.bandCount = 64,
@@ -106,28 +108,30 @@ final class SpectrumSettings {
     this.maxDb = -30.0,
     this.overlapFactor = 4,
   })  : assert(fftSize >= 256 && fftSize <= 4096,
-            'fftSize must be in [256, 4096]'),
+            'fftSize must be in [256, 4096]',),
         assert(
-            (fftSize & (fftSize - 1)) == 0, 'fftSize must be a power of two'),
+            (fftSize & (fftSize - 1)) == 0, 'fftSize must be a power of two',),
         assert(bandCount > 0, 'bandCount must be positive'),
         assert(bandLowHz > 0, 'bandLowHz must be positive'),
         assert(bandHighHz > bandLowHz,
-            'bandHighHz must be strictly greater than bandLowHz'),
+            'bandHighHz must be strictly greater than bandLowHz',),
         assert(attackSmoothing >= 0 && attackSmoothing <= 1,
-            'attackSmoothing must be in [0, 1]'),
+            'attackSmoothing must be in [0, 1]',),
         assert(releaseSmoothing >= 0 && releaseSmoothing <= 1,
-            'releaseSmoothing must be in [0, 1]'),
+            'releaseSmoothing must be in [0, 1]',),
         assert(maxDb > minDb, 'maxDb must be strictly greater than minDb'),
         assert(overlapFactor >= 1 && overlapFactor <= 16,
-            'overlapFactor must be in [1, 16]'),
+            'overlapFactor must be in [1, 16]',),
         assert((overlapFactor & (overlapFactor - 1)) == 0,
-            'overlapFactor must be a power of two');
+            'overlapFactor must be a power of two',);
 
   /// Default visualizer preset — 2048 Hann FFT at 30 fps with 64
   /// log-spaced bands. Convenience `setSpectrum(SpectrumSettings.defaults)`
   /// to reset.
   static const SpectrumSettings defaults = SpectrumSettings();
 
+  /// Returns a copy with the given fields replaced. Omitted fields keep
+  /// their current value.
   SpectrumSettings copyWith({
     int? fftSize,
     int? bandCount,

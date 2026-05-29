@@ -8,8 +8,8 @@ library;
 
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 import '../_helpers/setter_test_helpers.dart';
 
@@ -29,7 +29,7 @@ void main() {
       print('[T1] Player() ctor took ${ctorUs / 1000} ms');
       await player.dispose();
       expect(ctorUs, lessThan(50000),
-          reason: 'Player() ctor blocked for ${ctorUs / 1000} ms');
+          reason: 'Player() ctor blocked for ${ctorUs / 1000} ms',);
     });
 
     test(
@@ -47,7 +47,7 @@ void main() {
       // 800 / 16 = 50 expected; 50% tolerance → ≥25.
       expect(tickCount, greaterThan(25),
           reason: 'Main isolate fired only $tickCount ticks in 800ms — '
-              'init blocked the event loop');
+              'init blocked the event loop',);
     });
 
     test('T4: 5 cycles all stay under 50ms ctor', () async {
@@ -63,7 +63,7 @@ void main() {
       // ignore: avoid_print
       print('[T4] ctor times across 5 cycles: $ctorTimes ms');
       expect(maxMs, lessThan(50),
-          reason: 'max ctor over 5 cycles: $maxMs ms (all: $ctorTimes)');
+          reason: 'max ctor over 5 cycles: $maxMs ms (all: $ctorTimes)',);
     });
   });
 }

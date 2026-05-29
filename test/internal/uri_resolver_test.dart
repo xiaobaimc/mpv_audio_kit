@@ -6,8 +6,8 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/src/internals/uri_resolver.dart';
+import 'package:test/test.dart';
 
 void main() {
   // Pass-through paths covered here. The `asset://` and Android

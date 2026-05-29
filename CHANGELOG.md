@@ -1,3 +1,17 @@
+## [0.3.0] - WIP
+
+### Added
+- `Player.setMediaSession(MediaSession?)`: publishes the player to the OS media session — the Now Playing entry, Control Center and lockscreen on iOS and macOS, MPRIS on Linux, SMTC on Windows, and the media notification on Android. Title, artist, album, artwork and duration are taken from the playing file automatically, or overridden per field; pass `null` to remove the entry.
+- `Player.stream.mediaSessionCommands`: a stream of `MediaSessionCommand`s the OS sends back — play / pause / next / previous / seek / repeat / shuffle / speed from the lockscreen, a Bluetooth headset, Siri or CarPlay. Commands are auto-applied to the player and surfaced here for analytics or interception.
+- `MediaSession` configures the advertised transport buttons (`MediaAction`), the artwork choice (`MediaSessionArtwork`), the skip-forward / rewind intervals, the supported-speed set, and the audio-interruption response via `InterruptionPolicy` — `pauseAndResume` (default), `pauseOnly`, or `keepPlaying` (focused-listening mode that stays at full volume; iOS / Android, no-op on desktop).
+- `Player.state.playWhenReady` / `Player.stream.playWhenReady`: the play/pause *intent* axis, set by `play` / `pause` / `open` / `stop`. Unlike `playing` (which mirrors actual audio output and toggles transiently while seeking or buffering), it stays stable across seeks — bind your play/pause button to this. "Actually emitting audio" is `playWhenReady && playing`.
+
+### Fixed
+- The OS media-session play/pause button no longer flickers while scrubbing the system Now Playing scrub bar. The button now follows play/pause intent rather than the engine's actual-output state, which momentarily reports "paused" on every seek.
+- When a single track or the whole playlist finishes, the play/pause button now settles back on "play" and `state.completed` / `MpvPlaybackState.completed` now report the end of the track. Previously the button stayed showing the pause icon and `completed` was never reached at the natural end of content.
+- `setRawProperty('pause', …)` is now rejected: writing `pause` directly bypassed the play/pause intent and silently desynced the OS button from what was actually playing. Use `Player.play()` / `Player.pause()`.
+- A failed first `open(play: true)` (e.g. a missing file) no longer leaves the play/pause button stuck on "pause".
+
 ## [0.2.3] - 25-05-2026
 
 ### Docs

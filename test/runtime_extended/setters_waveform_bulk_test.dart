@@ -7,8 +7,9 @@ library;
 
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 /// End-to-end coverage for [PlayerStream.waveform], backed by the
@@ -60,16 +61,16 @@ void main() {
             }
           }
           expect(firstSignalBin, greaterThanOrEqualTo(0),
-              reason: 'Envelope must carry the sine signal');
+              reason: 'Envelope must carry the sine signal',);
           expect(lastSignalBin - firstSignalBin, greaterThan(wave.bins ~/ 2),
-              reason: 'Signal must span more than half the bin axis');
+              reason: 'Signal must span more than half the bin axis',);
         } finally {
           await sub.cancel();
         }
       } finally {
         await player.dispose();
       }
-    }, timeout: const Timeout(Duration(seconds: 10)));
+    }, timeout: const Timeout(Duration(seconds: 10)),);
 
     test('emits null on every track change', () async {
       final player = await buildPlayer();
@@ -94,15 +95,15 @@ void main() {
         // The pipeline emits null on every track-change so a renderer
         // can clear stale data between tracks.
         expect(events.contains(null), isTrue,
-            reason: 'Expected at least one null reset on track change');
+            reason: 'Expected at least one null reset on track change',);
         // And it must eventually reach a real envelope on at least
         // one of the loads.
         expect(events.any((w) => w != null), isTrue,
-            reason: 'Expected at least one settled envelope after a load');
+            reason: 'Expected at least one settled envelope after a load',);
       } finally {
         await player.dispose();
       }
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('listener-gated — no envelope emitted while unsubscribed',
         () async {
@@ -119,7 +120,7 @@ void main() {
         await Future<void>.delayed(const Duration(seconds: 1));
         final flag = await player.getRawProperty('waveform-enabled');
         expect(flag == 'yes', isFalse,
-            reason: 'Analyzer must stay disabled with no listener');
+            reason: 'Analyzer must stay disabled with no listener',);
 
         // Subscribing arms the analyzer and eventually settles an
         // envelope for the already-loaded track.
@@ -137,6 +138,6 @@ void main() {
       } finally {
         await player.dispose();
       }
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

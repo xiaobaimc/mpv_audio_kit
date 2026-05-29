@@ -8,8 +8,8 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 import '../_helpers/setter_test_helpers.dart';
 
@@ -46,7 +46,7 @@ void main() {
     expect(stopwatch.elapsed.inMilliseconds, lessThan(1000),
         reason: 'dispose() must complete in well under 1s when racing an '
             'in-flight open(). If this regresses, the cooperative SHUTDOWN '
-            'path is no longer reaching the event isolate.');
+            'path is no longer reaching the event isolate.',);
 
     // The pending open's future may complete normally or throw; both
     // are valid outcomes. The important property is that dispose
@@ -56,5 +56,5 @@ void main() {
     } catch (_) {
       // Either StateError (post-dispose) or no error — both acceptable.
     }
-  }, timeout: const Timeout(Duration(seconds: 5)));
+  }, timeout: const Timeout(Duration(seconds: 5)),);
 }

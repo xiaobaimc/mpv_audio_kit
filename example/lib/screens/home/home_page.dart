@@ -8,19 +8,16 @@ import '../queue/queue_page.dart';
 import '../logs/logs_page.dart';
 import '../stream/stream_page.dart';
 import '../settings/settings_page.dart';
-import '../../services/audio_handler.dart';
 import '../../services/settings_service.dart';
 import '../../shared/snack_messenger.dart';
 
 class HomePage extends StatefulWidget {
   final Player player;
-  final MpvAudioHandler audioHandler;
   final SettingsService settingsService;
 
   const HomePage({
     super.key,
     required this.player,
-    required this.audioHandler,
     required this.settingsService,
   });
 
@@ -191,10 +188,7 @@ class _HomePageState extends State<HomePage> {
             // Pages that respect the 650px constraint
             // Nav: 0=Player, 1=Queue, 2=Stream, 3=Settings, 4=Logs(optional)
             final constrainedPages = <Widget>[
-              PlayerPage(
-                player: widget.player,
-                audioHandler: widget.audioHandler,
-              ),
+              PlayerPage(player: widget.player),
               QueuePage(player: widget.player),
               StreamPage(player: widget.player),
               if (!showPinned)

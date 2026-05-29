@@ -24,6 +24,8 @@ final class ReplayGainSettings {
   /// Gain in dB applied to files without ReplayGain tags.
   final double fallback;
 
+  /// Creates a ReplayGain configuration. Each default mirrors the
+  /// corresponding mpv property default (normalization off).
   const ReplayGainSettings({
     this.mode = ReplayGain.no,
     this.preamp = 0.0,
@@ -31,6 +33,8 @@ final class ReplayGainSettings {
     this.fallback = 0.0,
   });
 
+  /// Returns a copy with the given fields replaced. Omitted fields keep
+  /// their current value.
   ReplayGainSettings copyWith({
     ReplayGain? mode,
     double? preamp,

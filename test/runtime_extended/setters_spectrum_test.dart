@@ -7,8 +7,9 @@ library;
 
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 /// API-surface tests for the spectrum / PCM streams. End-to-end FFT
@@ -60,7 +61,7 @@ void main() {
         releaseSmoothing: 0.05,
         minDb: -80,
         maxDb: -5,
-      ));
+      ),);
       var s = player.spectrumSettings;
       expect(s.fftSize, 1024);
       expect(s.bandCount, 32);
@@ -93,14 +94,14 @@ void main() {
       final reSub = player.stream.fft.listen((_) {});
       await Future<void>.delayed(const Duration(milliseconds: 60));
       await reSub.cancel();
-    }, timeout: const Timeout(Duration(seconds: 5)));
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test('setSpectrum mid-stream (mutability) does not throw', () async {
       final sub = player.stream.fft.listen((_) {});
       try {
         await player.updateSpectrum(
           (c) => c.copyWith(
-              fftSize: 4096, emitInterval: const Duration(milliseconds: 20)),
+              fftSize: 4096, emitInterval: const Duration(milliseconds: 20),),
         );
         await Future<void>.delayed(const Duration(milliseconds: 80));
         await player.updateSpectrum(
@@ -110,6 +111,6 @@ void main() {
       } finally {
         await sub.cancel();
       }
-    }, timeout: const Timeout(Duration(seconds: 5)));
+    }, timeout: const Timeout(Duration(seconds: 5)),);
   });
 }

@@ -49,8 +49,10 @@ class TransportControls extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           StreamBuilder<bool>(
-            stream: player.stream.playing,
-            initialData: player.state.playing,
+            // Bind to the intent axis so the button stays stable while
+            // seeking/buffering (`playing` toggles transiently then).
+            stream: player.stream.playWhenReady,
+            initialData: player.state.playWhenReady,
             builder: (context, snap) {
               final isPlaying = snap.data ?? false;
               final iconSize = (availableHeight * 0.08)

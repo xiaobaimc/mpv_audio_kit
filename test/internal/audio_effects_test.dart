@@ -16,8 +16,8 @@
 // disabled stages drop out, the chain joins with `,`, and defaults
 // are NOT emitted.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('AudioEffects.toAfChain — empty / disabled', () {
@@ -27,9 +27,7 @@ void main() {
 
     test('every Settings disabled → empty string', () {
       const fx = AudioEffects(
-        acompressor: AcompressorSettings(),
-        loudnorm: LoudnormSettings(),
-        rubberband: RubberbandSettings(),
+        
       );
       expect(fx.toAfChain(), '');
     });
@@ -104,7 +102,7 @@ void main() {
 
     test('aemphasis with typed enum default → omitted from chain', () {
       const fx = AudioEffects(
-        aemphasis: AemphasisSettings(enabled: true, type: AemphasisType.cd),
+        aemphasis: AemphasisSettings(enabled: true),
       );
       // `type=cd` is the ffmpeg default, so it must NOT be emitted.
       expect(fx.toAfChain(), 'lavfi-aemphasis');

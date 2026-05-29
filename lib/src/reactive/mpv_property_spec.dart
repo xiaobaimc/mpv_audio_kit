@@ -163,13 +163,26 @@ class MpvPropertySpec<T> {
   void Function(T next)? get onChange => _onChange;
 
   /// Parses a raw mpv-side value and applies the full update pipeline:
-  /// parse → dedup → reactive update → state reduce → onChange. Returns
-  /// the new [PlayerState], or `null` if the value was deduplicated (no
-  /// change).
-  PlayerState? parseAndDispatch(dynamic raw, PlayerState state) {
+  /// parse → dedup → reactive update → state reduce → [commit] → onChange.
+  /// Returns the new [PlayerState], or `null` if the value was deduplicated
+  /// (no change).
+  ///
+  /// [commit] is invoked with the post-reduce state BEFORE [onChange] fires,
+  /// so a callback that itself reads and mutates the player's committed
+  /// state — the `idle-active` / `eof-reached` hooks that settle the
+  /// transport — builds on the reduced state instead of being overwritten by
+  /// the caller assigning this method's return value afterwards. When
+  /// [commit] is null the behaviour is the historical one (onChange runs
+  /// against the pre-commit state and the caller assigns the result itself).
+  PlayerState? parseAndDispatch(
+    dynamic raw,
+    PlayerState state, {
+    void Function(PlayerState next)? commit,
+  }) {
     final value = _parse(raw, state);
     if (!reactive.update(value)) return null;
     final next = _reduce(value, state);
+    commit?.call(next);
     _onChange?.call(value);
     return next;
   }

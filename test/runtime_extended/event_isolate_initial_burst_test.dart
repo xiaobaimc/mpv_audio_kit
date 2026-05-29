@@ -6,8 +6,8 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 import '../_helpers/setter_test_helpers.dart';
 
@@ -38,7 +38,6 @@ void main() {
   test('initial property burst from libmpv reaches the main isolate', () async {
     final player = Player(
       configuration: const PlayerConfiguration(
-        autoPlay: false,
         logLevel: LogLevel.off,
         initialVolume: 42.5,
       ),
@@ -57,12 +56,12 @@ void main() {
           reason: 'The initial PROPERTY_CHANGE burst from libmpv must '
               'reach the main isolate. If this times out, the event '
               'isolate dropped the seed events between `start()` and '
-              'the main-side listen.');
+              'the main-side listen.',);
       expect(player.state.volume, 42.5,
           reason: 'state.volume must mirror the observed volume '
-              'synchronously after the first emit propagates.');
+              'synchronously after the first emit propagates.',);
     } finally {
       await player.dispose();
     }
-  }, timeout: const Timeout(Duration(seconds: 10)));
+  }, timeout: const Timeout(Duration(seconds: 10)),);
 }

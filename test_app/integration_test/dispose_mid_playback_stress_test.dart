@@ -30,7 +30,6 @@ void main() {
         Future<void> oneCycle() async {
           final player = Player(
             configuration: const PlayerConfiguration(
-              autoPlay: false,
               logLevel: LogLevel.off,
             ),
           );

@@ -5,8 +5,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -52,13 +53,13 @@ void main() {
       );
       expect(player.state.audioEffects.superequalizer.enabled, isFalse);
       expect(player.state.audioEffects.superequalizer.params, bands);
-    }, timeout: const Timeout(Duration(seconds: 5)));
+    }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test('acompressor / loudnorm / rubberband round-trip', () async {
       await player.updateAudioEffects(
         (e) => e.copyWith(
           acompressor: const AcompressorSettings(
-              enabled: true, threshold: 0.1, ratio: 6),
+              enabled: true, threshold: 0.1, ratio: 6,),
         ),
       );
       expect(player.state.audioEffects.acompressor.enabled, isTrue);
@@ -82,7 +83,7 @@ void main() {
       expect(player.state.audioEffects.rubberband.enabled, isTrue);
       expect(player.state.audioEffects.rubberband.pitch, 1.5);
       expect(player.state.audioEffects.rubberband.tempo, 0.8);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('bass + treble round-trip — separate biquad shelves preserved',
         () async {
@@ -108,20 +109,20 @@ void main() {
       );
       expect(player.state.audioEffects.bass.enabled, isFalse);
       expect(player.state.audioEffects.bass.g, 4.5);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('stereotools round-trip — slev (width) + balance_in preserved',
         () async {
       await player.updateAudioEffects(
         (e) => e.copyWith(
           stereotools: const StereotoolsSettings(
-              enabled: true, slev: 1.5, balance_in: -0.3),
+              enabled: true, slev: 1.5, balance_in: -0.3,),
         ),
       );
       expect(player.state.audioEffects.stereotools.enabled, isTrue);
       expect(player.state.audioEffects.stereotools.slev, 1.5);
       expect(player.state.audioEffects.stereotools.balance_in, -0.3);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('crossfeed round-trip — typed strength + range preserved', () async {
       await player.updateAudioEffects(
@@ -133,7 +134,7 @@ void main() {
       expect(player.state.audioEffects.crossfeed.enabled, isTrue);
       expect(player.state.audioEffects.crossfeed.strength, 0.4);
       expect(player.state.audioEffects.crossfeed.range, 0.6);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('silenceremove round-trip — start/stop period flags preserved',
         () async {
@@ -167,7 +168,7 @@ void main() {
       );
       expect(player.state.audioEffects.silenceremove.start_periods, 1);
       expect(player.state.audioEffects.silenceremove.stop_periods, 0);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('setAudioEffects atomic — multiple effects in one write', () async {
       await player.setAudioEffects(const AudioEffects(
@@ -177,7 +178,7 @@ void main() {
         treble: TrebleSettings(enabled: true, g: -1),
         stereotools: StereotoolsSettings(enabled: true, slev: 1.2),
         loudnorm: LoudnormSettings(enabled: true, i: -16),
-      ));
+      ),);
       final fx = player.state.audioEffects;
       expect(fx.acompressor.enabled, isTrue);
       expect(fx.acompressor.threshold, 0.1);
@@ -195,7 +196,7 @@ void main() {
       // Reset the bundle.
       await player.setAudioEffects(const AudioEffects());
       expect(player.state.audioEffects, const AudioEffects());
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('audioEffects.custom round-trip — raw lavfi entries preserved',
         () async {
@@ -217,7 +218,7 @@ void main() {
       // Clear.
       await player.updateAudioEffects((e) => e.copyWith(custom: const []));
       expect(player.state.audioEffects.custom, isEmpty);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('setRawProperty rejects `af` with ArgumentError', () async {
       expect(
@@ -234,6 +235,6 @@ void main() {
 
       await player.setCoverArtAuto(Cover.exact);
       expect(player.state.coverArtAuto, Cover.exact);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

@@ -80,8 +80,13 @@ final class Media {
   /// `file-local-options/http-header-fields` from the handler.
   final Map<String, String>? httpHeaders;
 
+  /// Creates an immutable media item for [uri], with optional consumer
+  /// [extras] and per-request [httpHeaders].
   const Media(this.uri, {this.extras, this.httpHeaders});
 
+  /// Returns a copy with the given fields replaced. Pass `null` for
+  /// [extras] or [httpHeaders] to clear them; omitted fields keep their
+  /// current value.
   Media copyWith({
     String? uri,
     Object? extras = unset,

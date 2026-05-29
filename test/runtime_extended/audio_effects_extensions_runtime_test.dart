@@ -28,8 +28,8 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 import '../_helpers/libmpv_resolver.dart';
 import '../_helpers/mpv_error_capture.dart';
@@ -55,7 +55,6 @@ void main() {
 
     player = Player(
       configuration: const PlayerConfiguration(
-        autoPlay: false,
         logLevel: LogLevel.error,
       ),
     );
@@ -90,10 +89,10 @@ void main() {
             const AnequalizerBand(frequency: 1000, bandwidth: 500, gain: 2),
             const AnequalizerBand(frequency: 5000, bandwidth: 1000, gain: -2),
           ]),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
-          reason: 'AnequalizerBandsX produced unparseable params: $errors');
+          reason: 'AnequalizerBandsX produced unparseable params: $errors',);
     });
 
     test('McompandBandsX — three-band compander accepted by mpv', () async {
@@ -133,11 +132,11 @@ void main() {
               crossoverHz: 8000,
             ),
           ]),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
           reason:
-              'McompandBandsX produced unparseable args: $errors');
+              'McompandBandsX produced unparseable args: $errors',);
     });
 
     test('SuperequalizerBandsX — every band non-unity accepted by mpv',
@@ -149,11 +148,11 @@ void main() {
         await player.setAudioEffects(AudioEffects(
           superequalizer:
               const SuperequalizerSettings(enabled: true).withBands(gains),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
           reason:
-              'SuperequalizerBandsX produced unparseable params: $errors');
+              'SuperequalizerBandsX produced unparseable params: $errors',);
     });
 
     test('AechoTapsX — multi-tap echo accepted by mpv', () async {
@@ -164,10 +163,10 @@ void main() {
             const AechoTap(delayMs: 120, decay: 0.4),
             const AechoTap(delayMs: 240, decay: 0.2),
           ]),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
-          reason: 'AechoTapsX produced unparseable CSVs: $errors');
+          reason: 'AechoTapsX produced unparseable CSVs: $errors',);
     });
 
     test('ChorusVoicesX — two-voice chorus accepted by mpv', () async {
@@ -181,10 +180,10 @@ void main() {
               delayMs: 50, decay: 0.5, depthMs: 2.0, speedHz: 0.4,
             ),
           ]),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
-          reason: 'ChorusVoicesX produced unparseable CSVs: $errors');
+          reason: 'ChorusVoicesX produced unparseable CSVs: $errors',);
     });
 
     test('AdelayChannelsX — per-channel delays accepted by mpv', () async {
@@ -192,10 +191,10 @@ void main() {
         await player.setAudioEffects(AudioEffects(
           adelay: const AdelaySettings(enabled: true)
               .withChannelDelaysMs([100, 250]),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
-          reason: 'AdelayChannelsX produced unparseable delays: $errors');
+          reason: 'AdelayChannelsX produced unparseable delays: $errors',);
     });
 
     test('CompandEnvelopesX — multi-channel envelopes accepted by mpv',
@@ -206,11 +205,11 @@ void main() {
             const CompandEnvelope(attackSeconds: 0.005, decaySeconds: 0.1),
             const CompandEnvelope(attackSeconds: 0.01, decaySeconds: 0.2),
           ]),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
           reason:
-              'CompandEnvelopesX produced unparseable CSVs: $errors');
+              'CompandEnvelopesX produced unparseable CSVs: $errors',);
     });
 
     test('AfftdnBandNoiseX — 15 custom band levels accepted by mpv',
@@ -222,21 +221,21 @@ void main() {
         await player.setAudioEffects(AudioEffects(
           afftdn: const AfftdnSettings(enabled: true)
               .withBandNoiseLevels(levels),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
           reason:
-              'AfftdnBandNoiseX produced unparseable noise profile: $errors');
+              'AfftdnBandNoiseX produced unparseable noise profile: $errors',);
     });
 
     test('CompandSoftKneeX — soft-knee value accepted by mpv', () async {
       final errors = await tryEffects(() async {
         await player.setAudioEffects(AudioEffects(
           compand: const CompandSettings(enabled: true).withSoftKnee(0.5),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
-          reason: 'CompandSoftKneeX produced unparseable params: $errors');
+          reason: 'CompandSoftKneeX produced unparseable params: $errors',);
     });
 
     test('AiirChannelsX — IIR coefficients accepted by mpv', () async {
@@ -253,10 +252,10 @@ void main() {
               poles: [1.0],
             ),
           ]),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
-          reason: 'AiirChannelsX produced unparseable coefficients: $errors');
+          reason: 'AiirChannelsX produced unparseable coefficients: $errors',);
     });
 
     test('CompandPointsX — transfer-function curve accepted by mpv',
@@ -268,10 +267,10 @@ void main() {
             const CompandPoint(inDb: -24, outDb: -24),
             const CompandPoint(inDb: 0, outDb: -12),
           ]),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
-          reason: 'CompandPointsX produced unparseable points: $errors');
+          reason: 'CompandPointsX produced unparseable points: $errors',);
     });
 
     test('FirequalizerEntriesX — FIR curve accepted by mpv', () async {
@@ -284,10 +283,10 @@ void main() {
             const FirequalizerEntry(frequencyHz: 5000, gainDb: 3),
             const FirequalizerEntry(frequencyHz: 15000, gainDb: 0),
           ]),
-        ));
+        ),);
       });
       expect(errors, isEmpty,
-          reason: 'FirequalizerEntriesX produced unparseable entries: $errors');
+          reason: 'FirequalizerEntriesX produced unparseable entries: $errors',);
     });
-  }, timeout: const Timeout(Duration(minutes: 3)));
+  }, timeout: const Timeout(Duration(minutes: 3)),);
 }

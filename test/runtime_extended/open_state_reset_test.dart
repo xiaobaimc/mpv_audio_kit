@@ -7,8 +7,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 /// Per-track state must not leak between an [Player.open] call and the
@@ -52,7 +53,7 @@ void main() {
       await chaptersReady;
       expect(player.state.chapters, isNotEmpty,
           reason:
-              'pre-condition: chapters fixture must populate state.chapters');
+              'pre-condition: chapters fixture must populate state.chapters',);
 
       // 2. Issue the next open() but do NOT await the file-loaded
       //    event. The state must already be blank by the time `open()`
@@ -66,18 +67,18 @@ void main() {
       // 3. Synchronous read — the new file's events have not arrived
       //    yet (the await above only resolves the FFI hand-off).
       expect(player.state.chapters, isEmpty,
-          reason: 'chapters must be cleared by open()');
+          reason: 'chapters must be cleared by open()',);
       expect(player.state.currentChapter, isNull,
-          reason: 'currentChapter must be cleared by open()');
+          reason: 'currentChapter must be cleared by open()',);
       expect(player.state.coverArt, isNull,
-          reason: 'coverArt must be cleared by open()');
+          reason: 'coverArt must be cleared by open()',);
       expect(player.state.position, Duration.zero,
-          reason: 'position must be cleared by open()');
+          reason: 'position must be cleared by open()',);
 
       // 4. Eventually the cover-art for the new file arrives.
       await coverLoaded;
       expect(player.state.coverArt, isNotNull);
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test(
         'state.chapters reflects the current file even when re-loading the same chapters fixture',
@@ -97,7 +98,7 @@ void main() {
       await openAndWaitForLoad(player, chaptersPath);
       final firstSnapshot = List<Chapter>.from(player.state.chapters);
       expect(firstSnapshot, isNotEmpty,
-          reason: 'fixture must populate chapters on first load');
+          reason: 'fixture must populate chapters on first load',);
 
       // Second load of the identical file. mpv's observer would dedup
       // chapter-list because the value is structurally identical;
@@ -105,7 +106,7 @@ void main() {
       await openAndWaitForLoad(player, chaptersPath);
       expect(player.state.chapters, equals(firstSnapshot),
           reason: 'chapters must be re-populated by the FILE_LOADED poll '
-              'even when mpv\'s observer dedups identical values');
-    }, timeout: const Timeout(Duration(seconds: 30)));
+              'even when mpv\'s observer dedups identical values',);
+    }, timeout: const Timeout(Duration(seconds: 30)),);
   });
 }

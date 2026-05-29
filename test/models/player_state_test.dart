@@ -2,8 +2,8 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('PlayerState defaults — coherence with mpv defaults', () {
@@ -37,13 +37,13 @@ void main() {
       expect(s.buffer, Duration.zero);
       expect(s.audioDelay, Duration.zero);
       expect(s.cache.secs, const Duration(hours: 1),
-          reason: 'matches mpv `--cache-secs=3600`');
+          reason: 'matches mpv `--cache-secs=3600`',);
       expect(s.cache.pauseWait, const Duration(seconds: 1),
-          reason: 'matches mpv `--cache-pause-wait=1.0`');
+          reason: 'matches mpv `--cache-pause-wait=1.0`',);
       expect(s.networkTimeout, const Duration(seconds: 60),
-          reason: 'matches mpv `--network-timeout=60`');
+          reason: 'matches mpv `--network-timeout=60`',);
       expect(s.audioBuffer, const Duration(milliseconds: 200),
-          reason: 'matches mpv `--audio-buffer=0.2`');
+          reason: 'matches mpv `--audio-buffer=0.2`',);
     });
 
     test('typed enums start at the documented default variant', () {
@@ -51,12 +51,12 @@ void main() {
       // the previous string defaults' semantics.
       const s = PlayerState();
       expect(s.gapless, Gapless.weak,
-          reason: 'matches mpv default `gapless-audio=weak`');
+          reason: 'matches mpv default `gapless-audio=weak`',);
       expect(s.replayGain.mode, ReplayGain.no);
       expect(s.cache.mode, Cache.auto);
       expect(s.coverArtAuto, Cover.no,
           reason: 'library default is `no` (mpv default would be `exact`); '
-              'we disable to avoid implicit file scanning');
+              'we disable to avoid implicit file scanning',);
     });
 
     test('replayGain + cache config defaults aggregate the granular fields',
@@ -152,17 +152,17 @@ void main() {
       final b = a.copyWith(volume: 75.0);
       expect(b.volume, 75.0);
       expect(b.mute, isTrue,
-          reason: 'unrelated fields must survive a partial copyWith');
+          reason: 'unrelated fields must survive a partial copyWith',);
     });
 
     test('Duration fields participate in equality', () {
-      const a = PlayerState(audioDelay: Duration.zero);
+      const a = PlayerState();
       final b = a.copyWith(audioDelay: const Duration(milliseconds: 50));
       expect(a, isNot(b));
     });
 
     test('enum fields participate in equality', () {
-      const a = PlayerState(gapless: Gapless.weak);
+      const a = PlayerState();
       final b = a.copyWith(gapless: Gapless.yes);
       expect(a, isNot(b));
     });

@@ -7,8 +7,9 @@ library;
 
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -47,7 +48,7 @@ void main() {
           .timeout(const Duration(seconds: 5));
       expect(playlist.items.length, 2);
       expect(playlist.index, 0);
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test('setPrefetchPlaylist(true) flips state.prefetchPlaylist', () async {
       // Default mirrors mpv's own default (false).
@@ -58,7 +59,7 @@ void main() {
 
       await player.setPrefetchPlaylist(false);
       expect(player.state.prefetchPlaylist, isFalse);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('prefetchState stream emits non-idle when prefetch is active',
         () async {
@@ -103,6 +104,6 @@ void main() {
         await player.setPrefetchPlaylist(false);
         await player.stop();
       }
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
   });
 }

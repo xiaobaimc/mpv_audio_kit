@@ -23,6 +23,7 @@ import 'package:flutter/widgets.dart';
 /// does not implement value equality. Use the bytes directly for image
 /// cache keys.
 class CoverArt {
+  /// Creates a cover-art payload from raw image [bytes] and their [mimeType].
   const CoverArt({required this.bytes, required this.mimeType});
 
   /// The raw file content (e.g. PNG bytes starting with `\x89PNG`).

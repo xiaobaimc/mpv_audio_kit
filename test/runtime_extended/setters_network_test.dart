@@ -5,8 +5,9 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -33,7 +34,7 @@ void main() {
       expect(player.state.tlsVerify, isFalse);
       await player.setTlsVerify(true);
       expect(player.state.tlsVerify, isTrue);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test(
         'demuxerMaxBytes / demuxerMaxBackBytes / demuxerReadaheadSecs '
@@ -48,7 +49,7 @@ void main() {
 
       await player.setDemuxerReadaheadSecs(10);
       expect(player.state.demuxerReadaheadSecs, 10);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('audioBuffer / audioStreamSilence / audioNullUntimed round-trip',
         () async {
@@ -64,6 +65,6 @@ void main() {
       expect(player.state.audioNullUntimed, isTrue);
       await player.setAudioNullUntimed(false);
       expect(player.state.audioNullUntimed, isFalse);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

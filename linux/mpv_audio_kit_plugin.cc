@@ -28,10 +28,10 @@ G_DEFINE_TYPE(MpvAudioKitPlugin, mpv_audio_kit_plugin, g_object_get_type())
 
 /**
  * @brief Handles method calls from Dart via the MethodChannel.
- * 
+ *
  * Currently, this plugin primarily works through direct FFI/C bindings to libmpv,
  * so the MethodChannel is used only for platform-specific interactions if needed.
- * 
+ *
  * @param self The plugin instance.
  * @param method_call The method call details.
  */
@@ -44,6 +44,44 @@ static void mpv_audio_kit_plugin_handle_method_call(
   response = FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
 
   fl_method_call_respond(method_call, response, nullptr);
+}
+
+/**
+ * @brief Stub handler for the OS media-session method channel.
+ *
+ * Accepts `enable` / `updateConfig` / `updateMetadata` / `updatePlayback` /
+ * `disable` calls from the Dart MediaSessionController, logs them, and
+ * acks success. The actual MPRIS D-Bus registration lands in Phase 4
+ * (Linux native implementation). This stub exists so the Dart side can
+ * be tested end-to-end without surfacing MissingPluginException on
+ * Linux desktop builds.
+ */
+static void media_session_method_call_cb(FlMethodChannel* channel,
+                                         FlMethodCall* method_call,
+                                         gpointer user_data) {
+  const gchar* method = fl_method_call_get_name(method_call);
+  g_message("[mpv_audio_kit] media_session stub call: %s", method);
+
+  g_autoptr(FlMethodResponse) response =
+      FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  fl_method_call_respond(method_call, response, nullptr);
+}
+
+// Event-channel stub for `mpv_audio_kit/media_session/commands`. No
+// events are emitted until the Phase 4 MPRIS implementation lands —
+// the stream handler simply tracks listener attach/detach for
+// diagnostics.
+
+static FlMethodErrorResponse* media_session_events_listen_cb(
+    FlEventChannel* channel, FlValue* args, gpointer user_data) {
+  g_message("[mpv_audio_kit] media_session commands stream listener attached");
+  return nullptr;
+}
+
+static FlMethodErrorResponse* media_session_events_cancel_cb(
+    FlEventChannel* channel, FlValue* args, gpointer user_data) {
+  g_message("[mpv_audio_kit] media_session commands stream listener cancelled");
+  return nullptr;
 }
 
 /**
@@ -86,10 +124,35 @@ void mpv_audio_kit_plugin_register_with_registrar(FlPluginRegistrar* registrar) 
       fl_method_channel_new(fl_plugin_registrar_get_messenger(registrar),
                             "mpv_audio_kit",
                             FL_METHOD_CODEC(codec));
-                            
+
   fl_method_channel_set_method_call_handler(channel, method_call_cb,
                                             g_object_ref(plugin),
                                             g_object_unref);
+
+  // ── Media-session channels ──────────────────────────────────────────
+  // Separate method + event channels for the OS media-session bridge.
+  // Stubs for now — Phase 4 wires the real MPRIS D-Bus server.
+  g_autoptr(FlStandardMethodCodec) ms_method_codec =
+      fl_standard_method_codec_new();
+  FlMethodChannel* ms_method_channel = fl_method_channel_new(
+      fl_plugin_registrar_get_messenger(registrar),
+      "mpv_audio_kit/media_session", FL_METHOD_CODEC(ms_method_codec));
+  fl_method_channel_set_method_call_handler(
+      ms_method_channel, media_session_method_call_cb, nullptr, nullptr);
+  // Channel object is intentionally leaked for the lifetime of the
+  // plugin — Flutter's GObject API has no plugin-scoped destructor
+  // for these, and the registrar outlives the plugin process anyway.
+
+  g_autoptr(FlStandardMethodCodec) ms_event_codec =
+      fl_standard_method_codec_new();
+  FlEventChannel* ms_event_channel = fl_event_channel_new(
+      fl_plugin_registrar_get_messenger(registrar),
+      "mpv_audio_kit/media_session/commands",
+      FL_METHOD_CODEC(ms_event_codec));
+  fl_event_channel_set_stream_handlers(ms_event_channel,
+                                       media_session_events_listen_cb,
+                                       media_session_events_cancel_cb,
+                                       nullptr, nullptr);
 
   g_object_unref(plugin);
 }

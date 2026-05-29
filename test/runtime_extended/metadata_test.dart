@@ -8,8 +8,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -38,7 +39,7 @@ void main() {
       final path = '$fixturesDir/mp3_with_id3v2.mp3';
       if (!File(path).existsSync()) {
         markTestSkipped(
-            'Fixture missing: run scripts/generate_extra_fixtures.sh');
+            'Fixture missing: run scripts/generate_extra_fixtures.sh',);
         return;
       }
       // Pre-subscribe to metadata before opening — the broadcast emit
@@ -50,29 +51,31 @@ void main() {
       await player.open(Media(path), play: false);
       final md = await mdFuture;
 
-      // mpv normalizes tag keys to a canonical form (e.g. ID3v2's TIT2
-      // becomes "title"). Match case-insensitively to absorb any future
-      // change in the wrapper's key handling, and look for the unicode
-      // payload to confirm encoding round-trips through the FFI bridge.
-      final lower = {
-        for (final e in md.entries) e.key.toLowerCase(): e.value,
-      };
-      expect(lower['title'], isNotNull,
-          reason: 'ID3v2 TIT2 must surface as "title"');
-      expect(lower['title']!, contains('Test Title'),
-          reason: 'tag value must round-trip through the FFI bridge');
-      expect(lower['title']!, contains('ümlaut'),
-          reason: 'unicode characters must survive the bridge');
-      expect(lower['artist'], 'Test Artist');
-      expect(lower['album'], 'Test Album');
-    }, timeout: const Timeout(Duration(seconds: 20)));
+      // mpv normalizes tag keys to LOWERCASE canonical form for every
+      // container (ID3v2's TIT2 → "title"); verified on this real
+      // fixture. The media-session controller looks up lowercase keys
+      // only, so assert on the RAW keys — a future regression to mixed
+      // case fails here instead of silently dropping lockscreen
+      // metadata. The fixture also embeds unicode to catch FFI-bridge
+      // encoding mishandling.
+      expect(md.keys, contains('title'),
+          reason: 'ID3v2 TIT2 must surface as lowercase "title"',);
+      expect(md.keys, isNot(contains('TITLE')),
+          reason: 'mpv must normalize to lowercase, not pass TITLE through',);
+      expect(md['title'], contains('Test Title'),
+          reason: 'tag value must round-trip through the FFI bridge',);
+      expect(md['title'], contains('ümlaut'),
+          reason: 'unicode characters must survive the bridge',);
+      expect(md['artist'], 'Test Artist');
+      expect(md['album'], 'Test Album');
+    }, timeout: const Timeout(Duration(seconds: 20)),);
 
     test('Vorbis comments from a FLAC surface through state.metadata',
         () async {
       final path = '$fixturesDir/flac_with_vorbis_comments.flac';
       if (!File(path).existsSync()) {
         markTestSkipped(
-            'Fixture missing: run scripts/generate_extra_fixtures.sh');
+            'Fixture missing: run scripts/generate_extra_fixtures.sh',);
         return;
       }
       // Open the second fixture — metadata for the new file replaces
@@ -80,17 +83,21 @@ void main() {
       // non-empty (different contents, no dedup).
       final mdFuture = player.stream.metadata
           .firstWhere(
-              (m) => m.isNotEmpty && m.values.any((v) => v.contains('Vorbis')))
+              (m) => m.isNotEmpty && m.values.any((v) => v.contains('Vorbis')),)
           .timeout(const Duration(seconds: 10));
       await player.open(Media(path), play: false);
       final md = await mdFuture;
 
-      final lower = {
-        for (final e in md.entries) e.key.toLowerCase(): e.value,
-      };
-      expect(lower['title'], 'Vorbis Comment Title');
-      expect(lower['artist'], 'Vorbis Artist');
-      expect(lower['album'], 'Vorbis Album');
-    }, timeout: const Timeout(Duration(seconds: 20)));
+      // Vorbis comments are conventionally UPPERCASE (TITLE/ARTIST/…),
+      // but mpv normalizes them to lowercase like every other container
+      // — verified on this real fixture. Assert on the raw keys to
+      // guard the controller's lowercase-only lookup.
+      expect(md.keys, contains('title'));
+      expect(md.keys, isNot(contains('TITLE')),
+          reason: 'mpv must lowercase Vorbis TITLE, not pass it through',);
+      expect(md['title'], 'Vorbis Comment Title');
+      expect(md['artist'], 'Vorbis Artist');
+      expect(md['album'], 'Vorbis Album');
+    }, timeout: const Timeout(Duration(seconds: 20)),);
   });
 }

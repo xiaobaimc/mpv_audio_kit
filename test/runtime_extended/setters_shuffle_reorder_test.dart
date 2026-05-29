@@ -8,8 +8,8 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 import '../_helpers/setter_test_helpers.dart';
 
@@ -57,9 +57,9 @@ void main() {
           .firstWhere((p) =>
               p.items.length == fixtures.length &&
               p.items.map((m) => m.uri).toList().toString() !=
-                  originalOrder.toString())
+                  originalOrder.toString(),)
           .timeout(const Duration(seconds: 5),
-              onTimeout: () => player.state.playlist);
+              onTimeout: () => player.state.playlist,);
 
       await player.setShuffle(true);
       await shuffleStateFuture;
@@ -76,12 +76,12 @@ void main() {
       expect(shuffledOrder.length, originalOrder.length);
       expect(shuffledOrder.toSet(), originalOrder.toSet(),
           reason: 'shuffle must preserve the set of tracks, only the order '
-              'should change');
+              'should change',);
       expect(shuffledOrder.toString(), isNot(originalOrder.toString()),
           reason: 'shuffle must change the playlist order — if this fails, '
-              'setShuffle did not issue the playlist-shuffle command');
+              'setShuffle did not issue the playlist-shuffle command',);
     } finally {
       await player.dispose();
     }
-  }, timeout: const Timeout(Duration(seconds: 30)));
+  }, timeout: const Timeout(Duration(seconds: 30)),);
 }

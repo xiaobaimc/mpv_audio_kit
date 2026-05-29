@@ -7,8 +7,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -50,7 +51,7 @@ void main() {
       await player.seek(const Duration(seconds: 1));
       await waitFor800;
       expect(player.state.position.inMilliseconds, greaterThan(800));
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('seek relative offsets from the current position', () async {
       // Reset to 0 first: the previous seek-absolute test left position
@@ -78,7 +79,7 @@ void main() {
       await player.seek(const Duration(seconds: 1), relative: true);
       await waitFor1700;
       expect(player.state.position.inMilliseconds, greaterThan(1700));
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('play / pause flip state.playing via the core-idle observer',
         () async {
@@ -93,7 +94,7 @@ void main() {
           .firstWhere((p) => !p)
           .timeout(const Duration(seconds: 3));
       expect(player.state.playing, isFalse);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('stop returns the player to an idle lifecycle', () async {
       // The previous test left state.playing == false (after pause), so
@@ -104,7 +105,7 @@ void main() {
       await player.stop();
       await Future.delayed(const Duration(milliseconds: 300));
       expect(player.state.playing, isFalse);
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('setAbLoopA / setAbLoopB round-trip Duration ↔ state', () async {
       // Re-open the fixture: stop() above unloaded the demuxer, and
@@ -149,6 +150,6 @@ void main() {
       await player.setAbLoopB(null);
       await waitBClear;
       expect(player.state.abLoopB, isNull);
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
   });
 }

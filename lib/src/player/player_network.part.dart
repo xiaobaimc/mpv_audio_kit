@@ -54,7 +54,7 @@ mixin _NetworkModule on _PlayerBase {
       rethrow;
     }
     _updateField(
-        (s) => s.copyWith(cache: settings), _reactives.cache, settings);
+        (s) => s.copyWith(cache: settings), _reactives.cache, settings,);
   }
 
   /// Sets the audio output buffer depth.
@@ -68,7 +68,7 @@ mixin _NetworkModule on _PlayerBase {
     await _ready;
     _prop('audio-buffer', durationToSeconds(size).toStringAsFixed(3));
     _updateField(
-        (s) => s.copyWith(audioBuffer: size), _reactives.audioBuffer, size);
+        (s) => s.copyWith(audioBuffer: size), _reactives.audioBuffer, size,);
   }
 
   /// Enables or disables streaming silence when no audio is playing.
@@ -77,7 +77,7 @@ mixin _NetworkModule on _PlayerBase {
     await _ready;
     _prop('audio-stream-silence', enable ? 'yes' : 'no');
     _updateField((s) => s.copyWith(audioStreamSilence: enable),
-        _reactives.audioStreamSilence, enable);
+        _reactives.audioStreamSilence, enable,);
   }
 
   /// Sets the network connection timeout.
@@ -95,7 +95,7 @@ mixin _NetworkModule on _PlayerBase {
     final seconds = timeout.inMicroseconds / 1000000;
     _prop('network-timeout', seconds.toStringAsFixed(6));
     _updateField((s) => s.copyWith(networkTimeout: timeout),
-        _reactives.networkTimeout, timeout);
+        _reactives.networkTimeout, timeout,);
   }
 
   /// Whether to verify TLS/SSL certificates for network streams.
@@ -104,7 +104,7 @@ mixin _NetworkModule on _PlayerBase {
     await _ready;
     _prop('tls-verify', enable ? 'yes' : 'no');
     _updateField(
-        (s) => s.copyWith(tlsVerify: enable), _reactives.tlsVerify, enable);
+        (s) => s.copyWith(tlsVerify: enable), _reactives.tlsVerify, enable,);
   }
 
   /// Sets the absolute filesystem path to a PEM bundle of trusted CA
@@ -122,7 +122,7 @@ mixin _NetworkModule on _PlayerBase {
     final effective = path.isEmpty ? (_autoTlsCaBundlePath ?? '') : path;
     _prop('tls-ca-file', effective);
     _updateField((s) => s.copyWith(tlsCaFile: effective), _reactives.tlsCaFile,
-        effective);
+        effective,);
   }
 
   /// Sets the maximum bytes the demuxer is allowed to cache.
@@ -136,7 +136,7 @@ mixin _NetworkModule on _PlayerBase {
     await _ready;
     _prop('demuxer-max-bytes', bytes.toString());
     _updateField((s) => s.copyWith(demuxerMaxBytes: bytes),
-        _reactives.demuxerMaxBytes, bytes);
+        _reactives.demuxerMaxBytes, bytes,);
   }
 
   /// Sets the maximum seekback buffer size in bytes. Default 50 MiB.
@@ -146,7 +146,7 @@ mixin _NetworkModule on _PlayerBase {
     await _ready;
     _prop('demuxer-max-back-bytes', bytes.toString());
     _updateField((s) => s.copyWith(demuxerMaxBackBytes: bytes),
-        _reactives.demuxerMaxBackBytes, bytes);
+        _reactives.demuxerMaxBackBytes, bytes,);
   }
 
   /// Sets the demuxer readahead time.
@@ -155,7 +155,7 @@ mixin _NetworkModule on _PlayerBase {
     await _ready;
     _prop('demuxer-readahead-secs', seconds.toString());
     _updateField((s) => s.copyWith(demuxerReadaheadSecs: seconds),
-        _reactives.demuxerReadaheadSecs, seconds);
+        _reactives.demuxerReadaheadSecs, seconds,);
   }
 
   /// Whether to fallback to untimed null output if audio output fails.
@@ -164,6 +164,6 @@ mixin _NetworkModule on _PlayerBase {
     await _ready;
     _prop('ao-null-untimed', enable ? 'yes' : 'no');
     _updateField((s) => s.copyWith(audioNullUntimed: enable),
-        _reactives.audioNullUntimed, enable);
+        _reactives.audioNullUntimed, enable,);
   }
 }

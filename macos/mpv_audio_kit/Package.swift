@@ -32,7 +32,19 @@ let package = Package(
                 "libmpv",
                 .product(name: "FlutterFramework", package: "FlutterFramework"),
             ],
-            path: "Sources/mpv_audio_kit"
+            // Swift sources are physically under `darwin/Sources/mpv_audio_kit/`
+            // and exposed here via symlinks. SwiftPM rejects `path:`
+            // values that escape the package root (`outside the package
+            // root` error), so the symlinks are the canonical way to
+            // expose the shared darwin/ tree to both iOS and macOS
+            // SwiftPM packages without duplicating the Swift code.
+            path: "Sources/mpv_audio_kit",
+            linkerSettings: [
+                // MediaPlayer hosts MPNowPlayingInfoCenter +
+                // MPRemoteCommandCenter for the lockscreen / Control
+                // Center Now Playing entry.
+                .linkedFramework("MediaPlayer"),
+            ]
         ),
         .binaryTarget(
             name: "libmpv",

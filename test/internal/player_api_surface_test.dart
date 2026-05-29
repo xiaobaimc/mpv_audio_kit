@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 /// Verifies that every public setter on [Player] is reachable through
 /// [PlayerApi]. The interface exists precisely so consumers can mock the
@@ -178,7 +178,7 @@ class _ApiProbe implements PlayerApi {
 
   @override
   Future<void> updateSpectrum(
-          SpectrumSettings Function(SpectrumSettings) mapper) =>
+          SpectrumSettings Function(SpectrumSettings) mapper,) =>
       _record('updateSpectrum');
 
   @override
@@ -215,6 +215,10 @@ class _ApiProbe implements PlayerApi {
   @override
   Future<void> setAudioNullUntimed(bool enable) =>
       _record('setAudioNullUntimed');
+
+  @override
+  Future<void> setMediaSession(MediaSession? session) =>
+      _record('setMediaSession');
 
   @override
   Future<void> registerHook(Hook hook, {int priority = 0, Duration? timeout}) =>

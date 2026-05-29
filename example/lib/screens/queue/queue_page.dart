@@ -258,25 +258,29 @@ class _QueuePageState extends State<QueuePage> {
                           padding: EdgeInsets.zero,
                           // Remove the default elevation rectangle on the dragged item.
                           proxyDecorator: (child, index, animation) => child,
-                          onReorder: (oldIndex, newIndex) {
+                          // newIndex is already adjusted for the item removed
+                          // at oldIndex (post-removal target position).
+                          onReorderItem: (oldIndex, newIndex) {
                             setState(() {
-                              final adjusted = newIndex > oldIndex
-                                  ? newIndex - 1
-                                  : newIndex;
                               final item = _list.removeAt(oldIndex);
-                              _list.insert(adjusted, item);
+                              _list.insert(newIndex, item);
                               // Keep _currentIndex pointing to the same track.
                               if (_currentIndex == oldIndex) {
-                                _currentIndex = adjusted;
+                                _currentIndex = newIndex;
                               } else if (oldIndex < _currentIndex &&
-                                  adjusted >= _currentIndex) {
+                                  newIndex >= _currentIndex) {
                                 _currentIndex--;
                               } else if (oldIndex > _currentIndex &&
-                                  adjusted <= _currentIndex) {
+                                  newIndex <= _currentIndex) {
                                 _currentIndex++;
                               }
                             });
-                            player.move(oldIndex, newIndex);
+                            // playlist-move takes the pre-removal insertion
+                            // index, so undo onReorderItem's adjustment.
+                            player.move(
+                              oldIndex,
+                              newIndex >= oldIndex ? newIndex + 1 : newIndex,
+                            );
                           },
                           itemCount: _list.length,
                           itemBuilder: (context, i) => QueueItemCard(

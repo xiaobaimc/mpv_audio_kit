@@ -47,7 +47,7 @@ void main() {
         expect(delta, greaterThan(25),
             reason: 'Only $delta frames rendered in ${sw.elapsedMilliseconds} '
                 'ms while Player() was being initialized — main thread '
-                'was likely blocked by synchronous FFI');
+                'was likely blocked by synchronous FFI',);
       },
       timeout: const Timeout(Duration(seconds: 30)),
     );

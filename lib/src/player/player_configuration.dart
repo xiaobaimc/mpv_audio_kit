@@ -23,6 +23,7 @@ class PlayerConfiguration {
   /// Default: [LogLevel.warn] — surfaces warnings, errors, fatals.
   final LogLevel logLevel;
 
+  /// Creates a configuration; every field defaults to its documented value.
   const PlayerConfiguration({
     this.autoPlay = false,
     this.initialVolume = 100.0,

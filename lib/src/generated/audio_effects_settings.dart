@@ -100,48 +100,130 @@ String _wireDouble(double v) {
 /// - [release]: Amount of milliseconds the signal has to fall below the threshold before reduction is decreased again. Default is 250. Range is between 0.01 and 9000. (range 0.01..9000, default 250, runtime-tunable)
 /// - [threshold]: If a signal of stream rises above this level it will affect the gain reduction. By default it is 0.125. Range is between 0.00097563 and 1. (range 0.000976563..1, default 0.125, runtime-tunable)
 final class AcompressorSettings {
+  /// Default value for [attack].
   static const double attackDefault = 20.0;
+
+  /// Minimum value for [attack].
   static const double attackMin = 0.01;
+
+  /// Maximum value for [attack].
   static const double attackMax = 2000.0;
+
+  /// Default value for [knee].
   static const double kneeDefault = 2.82843;
+
+  /// Minimum value for [knee].
   static const double kneeMin = 1.0;
+
+  /// Maximum value for [knee].
   static const double kneeMax = 8.0;
+
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = 0.015625;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 64.0;
+
+  /// Default value for [level_sc].
   static const double level_scDefault = 1.0;
+
+  /// Minimum value for [level_sc].
   static const double level_scMin = 0.015625;
+
+  /// Maximum value for [level_sc].
   static const double level_scMax = 64.0;
+
+  /// Default value for [makeup].
   static const double makeupDefault = 1.0;
+
+  /// Minimum value for [makeup].
   static const double makeupMin = 1.0;
+
+  /// Maximum value for [makeup].
   static const double makeupMax = 64.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [ratio].
   static const double ratioDefault = 2.0;
+
+  /// Minimum value for [ratio].
   static const double ratioMin = 1.0;
+
+  /// Maximum value for [ratio].
   static const double ratioMax = 20.0;
+
+  /// Default value for [release].
   static const double releaseDefault = 250.0;
+
+  /// Minimum value for [release].
   static const double releaseMin = 0.01;
+
+  /// Maximum value for [release].
   static const double releaseMax = 9000.0;
+
+  /// Default value for [threshold].
   static const double thresholdDefault = 0.125;
+
+  /// Minimum value for [threshold].
   static const double thresholdMin = 0.000976563;
+
+  /// Maximum value for [threshold].
   static const double thresholdMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set attack
   final double attack;
+
+  /// set detection
   final AcompressorDetection detection;
+
+  /// set knee
   final double knee;
+
+  /// set input gain
   final double level_in;
+
+  /// set sidechain gain
   final double level_sc;
+
+  /// set link type
   final AcompressorLink link;
+
+  /// set make up gain
   final double makeup;
+
+  /// set mix
   final double mix;
+
+  /// set mode
   final AcompressorMode mode;
+
+  /// set ratio
   final double ratio;
+
+  /// set release
   final double release;
+
+  /// set threshold
   final double threshold;
 
+  /// Creates an [AcompressorSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AcompressorSettings({
     this.enabled = false,
     this.attack = 20.0,
@@ -158,6 +240,7 @@ final class AcompressorSettings {
     this.threshold = 0.125,
   });
 
+  /// Returns a copy of this [AcompressorSettings] with the given fields replaced.
   AcompressorSettings copyWith({
     bool? enabled,
     double? attack,
@@ -209,7 +292,7 @@ final class AcompressorSettings {
 
   @override
   int get hashCode => Object.hash(enabled, attack, detection, knee, level_in,
-      level_sc, link, makeup, mix, mode, ratio, release, threshold);
+      level_sc, link, makeup, mix, mode, ratio, release, threshold,);
 
   @override
   String toString() =>
@@ -235,7 +318,7 @@ final class AcompressorSettings {
     assert(release >= releaseMin, 'acompressor.release must be >= 0.01');
     assert(release <= releaseMax, 'acompressor.release must be <= 9000');
     assert(threshold >= thresholdMin,
-        'acompressor.threshold must be >= 0.000976563');
+        'acompressor.threshold must be >= 0.000976563',);
     assert(threshold <= thresholdMax, 'acompressor.threshold must be <= 1');
     final parts = <String>[];
     if (attack != 20.0) parts.add('attack=' + _wireDouble(attack));
@@ -266,18 +349,31 @@ final class AcompressorSettings {
 /// Parameters:
 /// - [contrast]: Set contrast. Default is 33. Allowed range is between 0 and 100. (range 0..100, default 33)
 final class AcontrastSettings {
+  /// Default value for [contrast].
   static const double contrastDefault = 33.0;
+
+  /// Minimum value for [contrast].
   static const double contrastMin = 0.0;
+
+  /// Maximum value for [contrast].
   static const double contrastMax = 100.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set contrast
   final double contrast;
 
+  /// Creates an [AcontrastSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AcontrastSettings({
     this.enabled = false,
     this.contrast = 33.0,
   });
 
+  /// Returns a copy of this [AcontrastSettings] with the given fields replaced.
   AcontrastSettings copyWith({
     bool? enabled,
     double? contrast,
@@ -350,47 +446,127 @@ final class AcontrastSettings {
 /// - [mode]: Can be linear: `lin` or logarithmic: `log`. (range 0..1, default 0, runtime-tunable)
 /// - [samples]: Set sample reduction. (range 1..250, default 1, runtime-tunable)
 final class AcrusherSettings {
+  /// Default value for [aa].
   static const double aaDefault = .5;
+
+  /// Minimum value for [aa].
   static const double aaMin = 0.0;
+
+  /// Maximum value for [aa].
   static const double aaMax = 1.0;
+
+  /// Default value for [bits].
   static const double bitsDefault = 8.0;
+
+  /// Minimum value for [bits].
   static const double bitsMin = 1.0;
+
+  /// Maximum value for [bits].
   static const double bitsMax = 64.0;
+
+  /// Default value for [dc].
   static const double dcDefault = 1.0;
+
+  /// Minimum value for [dc].
   static const double dcMin = .25;
+
+  /// Maximum value for [dc].
   static const double dcMax = 4.0;
+
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = 0.015625;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 64.0;
+
+  /// Default value for [level_out].
   static const double level_outDefault = 1.0;
+
+  /// Minimum value for [level_out].
   static const double level_outMin = 0.015625;
+
+  /// Maximum value for [level_out].
   static const double level_outMax = 64.0;
+
+  /// Default value for [lforange].
   static const double lforangeDefault = 20.0;
+
+  /// Minimum value for [lforange].
   static const double lforangeMin = 1.0;
+
+  /// Maximum value for [lforange].
   static const double lforangeMax = 250.0;
+
+  /// Default value for [lforate].
   static const double lforateDefault = .3;
+
+  /// Minimum value for [lforate].
   static const double lforateMin = .01;
+
+  /// Maximum value for [lforate].
   static const double lforateMax = 200.0;
+
+  /// Default value for [mix].
   static const double mixDefault = .5;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [samples].
   static const double samplesDefault = 1.0;
+
+  /// Minimum value for [samples].
   static const double samplesMin = 1.0;
+
+  /// Maximum value for [samples].
   static const double samplesMax = 250.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set anti-aliasing
   final double aa;
+
+  /// set bit reduction
   final double bits;
+
+  /// set DC
   final double dc;
+
+  /// set level in
   final double level_in;
+
+  /// set level out
   final double level_out;
+
+  /// enable LFO
   final bool lfo;
+
+  /// set LFO depth
   final double lforange;
+
+  /// set LFO rate
   final double lforate;
+
+  /// set mix
   final double mix;
+
+  /// set mode
   final AcrusherMode mode;
+
+  /// set sample reduction
   final double samples;
 
+  /// Creates an [AcrusherSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AcrusherSettings({
     this.enabled = false,
     this.aa = .5,
@@ -406,6 +582,7 @@ final class AcrusherSettings {
     this.samples = 1.0,
   });
 
+  /// Returns a copy of this [AcrusherSettings] with the given fields replaced.
   AcrusherSettings copyWith({
     bool? enabled,
     double? aa,
@@ -454,7 +631,7 @@ final class AcrusherSettings {
 
   @override
   int get hashCode => Object.hash(enabled, aa, bits, dc, level_in, level_out,
-      lfo, lforange, lforate, mix, mode, samples);
+      lfo, lforange, lforate, mix, mode, samples,);
 
   @override
   String toString() =>
@@ -518,51 +695,139 @@ final class AcrusherSettings {
 /// - [w]: Set window size, in milliseconds. Allowed range is from `10` to `100`. Default value is `55` milliseconds. This sets size of window which will be processed at once. (range 10..100, default 55)
 /// - [window]: Set window size, in milliseconds. Allowed range is from `10` to `100`. Default value is `55` milliseconds. This sets size of window which will be processed at once. (range 10..100, default 55)
 final class AdeclickSettings {
+  /// Default value for [a].
   static const double aDefault = 2.0;
+
+  /// Minimum value for [a].
   static const double aMin = 0.0;
+
+  /// Maximum value for [a].
   static const double aMax = 25.0;
+
+  /// Default value for [arorder].
   static const double arorderDefault = 2.0;
+
+  /// Minimum value for [arorder].
   static const double arorderMin = 0.0;
+
+  /// Maximum value for [arorder].
   static const double arorderMax = 25.0;
+
+  /// Default value for [b].
   static const double bDefault = 2.0;
+
+  /// Minimum value for [b].
   static const double bMin = 0.0;
+
+  /// Maximum value for [b].
   static const double bMax = 10.0;
+
+  /// Default value for [burst].
   static const double burstDefault = 2.0;
+
+  /// Minimum value for [burst].
   static const double burstMin = 0.0;
+
+  /// Maximum value for [burst].
   static const double burstMax = 10.0;
+
+  /// Default value for [o].
   static const double oDefault = 75.0;
+
+  /// Minimum value for [o].
   static const double oMin = 50.0;
+
+  /// Maximum value for [o].
   static const double oMax = 95.0;
+
+  /// Default value for [overlap].
   static const double overlapDefault = 75.0;
+
+  /// Minimum value for [overlap].
   static const double overlapMin = 50.0;
+
+  /// Maximum value for [overlap].
   static const double overlapMax = 95.0;
+
+  /// Default value for [t].
   static const double tDefault = 2.0;
+
+  /// Minimum value for [t].
   static const double tMin = 1.0;
+
+  /// Maximum value for [t].
   static const double tMax = 100.0;
+
+  /// Default value for [threshold].
   static const double thresholdDefault = 2.0;
+
+  /// Minimum value for [threshold].
   static const double thresholdMin = 1.0;
+
+  /// Maximum value for [threshold].
   static const double thresholdMax = 100.0;
+
+  /// Default value for [w].
   static const double wDefault = 55.0;
+
+  /// Minimum value for [w].
   static const double wMin = 10.0;
+
+  /// Maximum value for [w].
   static const double wMax = 100.0;
+
+  /// Default value for [window].
   static const double windowDefault = 55.0;
+
+  /// Minimum value for [window].
   static const double windowMin = 10.0;
+
+  /// Maximum value for [window].
   static const double windowMax = 100.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set autoregression order
   final double a;
+
+  /// set autoregression order
   final double arorder;
+
+  /// set burst fusion
   final double b;
+
+  /// set burst fusion
   final double burst;
+
+  /// set overlap method
   final AdeclickM m;
+
+  /// set overlap method
   final AdeclickM method;
+
+  /// set window overlap
   final double o;
+
+  /// set window overlap
   final double overlap;
+
+  /// set threshold
   final double t;
+
+  /// set threshold
   final double threshold;
+
+  /// set window size
   final double w;
+
+  /// set window size
   final double window;
 
+  /// Creates an [AdeclickSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AdeclickSettings({
     this.enabled = false,
     this.a = 2.0,
@@ -579,6 +844,7 @@ final class AdeclickSettings {
     this.window = 55.0,
   });
 
+  /// Returns a copy of this [AdeclickSettings] with the given fields replaced.
   AdeclickSettings copyWith({
     bool? enabled,
     double? a,
@@ -630,7 +896,7 @@ final class AdeclickSettings {
 
   @override
   int get hashCode => Object.hash(enabled, a, arorder, b, burst, m, method, o,
-      overlap, t, threshold, w, window);
+      overlap, t, threshold, w, window,);
 
   @override
   String toString() =>
@@ -699,51 +965,139 @@ final class AdeclickSettings {
 /// - [w]: Set window size, in milliseconds. Allowed range is from `10` to `100`. Default value is `55` milliseconds. This sets size of window which will be processed at once. (range 10..100, default 55)
 /// - [window]: Set window size, in milliseconds. Allowed range is from `10` to `100`. Default value is `55` milliseconds. This sets size of window which will be processed at once. (range 10..100, default 55)
 final class AdeclipSettings {
+  /// Default value for [a].
   static const double aDefault = 8.0;
+
+  /// Minimum value for [a].
   static const double aMin = 0.0;
+
+  /// Maximum value for [a].
   static const double aMax = 25.0;
+
+  /// Default value for [arorder].
   static const double arorderDefault = 8.0;
+
+  /// Minimum value for [arorder].
   static const double arorderMin = 0.0;
+
+  /// Maximum value for [arorder].
   static const double arorderMax = 25.0;
+
+  /// Default value for [hsize].
   static const int hsizeDefault = 1000;
+
+  /// Minimum value for [hsize].
   static const int hsizeMin = 100;
+
+  /// Maximum value for [hsize].
   static const int hsizeMax = 9999;
+
+  /// Default value for [n].
   static const int nDefault = 1000;
+
+  /// Minimum value for [n].
   static const int nMin = 100;
+
+  /// Maximum value for [n].
   static const int nMax = 9999;
+
+  /// Default value for [o].
   static const double oDefault = 75.0;
+
+  /// Minimum value for [o].
   static const double oMin = 50.0;
+
+  /// Maximum value for [o].
   static const double oMax = 95.0;
+
+  /// Default value for [overlap].
   static const double overlapDefault = 75.0;
+
+  /// Minimum value for [overlap].
   static const double overlapMin = 50.0;
+
+  /// Maximum value for [overlap].
   static const double overlapMax = 95.0;
+
+  /// Default value for [t].
   static const double tDefault = 10.0;
+
+  /// Minimum value for [t].
   static const double tMin = 1.0;
+
+  /// Maximum value for [t].
   static const double tMax = 100.0;
+
+  /// Default value for [threshold].
   static const double thresholdDefault = 10.0;
+
+  /// Minimum value for [threshold].
   static const double thresholdMin = 1.0;
+
+  /// Maximum value for [threshold].
   static const double thresholdMax = 100.0;
+
+  /// Default value for [w].
   static const double wDefault = 55.0;
+
+  /// Minimum value for [w].
   static const double wMin = 10.0;
+
+  /// Maximum value for [w].
   static const double wMax = 100.0;
+
+  /// Default value for [window].
   static const double windowDefault = 55.0;
+
+  /// Minimum value for [window].
   static const double windowMin = 10.0;
+
+  /// Maximum value for [window].
   static const double windowMax = 100.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set autoregression order
   final double a;
+
+  /// set autoregression order
   final double arorder;
+
+  /// set histogram size
   final int hsize;
+
+  /// set overlap method
   final AdeclipM m;
+
+  /// set overlap method
   final AdeclipM method;
+
+  /// set histogram size
   final int n;
+
+  /// set window overlap
   final double o;
+
+  /// set window overlap
   final double overlap;
+
+  /// set threshold
   final double t;
+
+  /// set threshold
   final double threshold;
+
+  /// set window size
   final double w;
+
+  /// set window size
   final double window;
 
+  /// Creates an [AdeclipSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AdeclipSettings({
     this.enabled = false,
     this.a = 8.0,
@@ -760,6 +1114,7 @@ final class AdeclipSettings {
     this.window = 55.0,
   });
 
+  /// Returns a copy of this [AdeclipSettings] with the given fields replaced.
   AdeclipSettings copyWith({
     bool? enabled,
     double? a,
@@ -811,7 +1166,7 @@ final class AdeclipSettings {
 
   @override
   int get hashCode => Object.hash(enabled, a, arorder, hsize, m, method, n, o,
-      overlap, t, threshold, w, window);
+      overlap, t, threshold, w, window,);
 
   @override
   String toString() =>
@@ -867,23 +1222,44 @@ final class AdeclipSettings {
 /// - [seed]: Set random seed used for setting delay in samples across channels. (range -1..4294967295, default -1)
 /// - [stages]: Set decorrelation stages of filtering. Allowed range is from 1 to 16. Default value is 6. (range 1..16, default 6)
 final class AdecorrelateSettings {
+  /// Default value for [seed].
   static const int seedDefault = -1;
+
+  /// Minimum value for [seed].
   static const int seedMin = -1;
+
+  /// Maximum value for [seed].
   static const int seedMax = 4294967295;
+
+  /// Default value for [stages].
   static const int stagesDefault = 6;
+
+  /// Minimum value for [stages].
   static const int stagesMin = 1;
+
+  /// Maximum value for [stages].
   static const int stagesMax = 16;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set random seed
   final int seed;
+
+  /// set filtering stages
   final int stages;
 
+  /// Creates an [AdecorrelateSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AdecorrelateSettings({
     this.enabled = false,
     this.seed = -1,
     this.stages = 6,
   });
 
+  /// Returns a copy of this [AdecorrelateSettings] with the given fields replaced.
   AdecorrelateSettings copyWith({
     bool? enabled,
     int? seed,
@@ -938,16 +1314,26 @@ final class AdecorrelateSettings {
 /// - [all]: Use last set delay for all remaining channels. By default is disabled. This option if enabled changes how option `delays` is interpreted. (range 0..1, default 0)
 /// - [delays]: Set list of delays in milliseconds for each channel separated by '|'. Unused delays will be silently ignored. If number of given delays is smaller than number of channels all remaining channels will not be delayed. If you want to delay exact number of samples, append 'S' to number. If you want instead to delay in seconds, append 's' to number. (range 0..0, default "", runtime-tunable)
 final class AdelaySettings {
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// use last available delay for remained channels
   final bool all;
+
+  /// set list of delays for each channel
   final String delays;
 
+  /// Creates an [AdelaySettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AdelaySettings({
     this.enabled = false,
     this.all = false,
     this.delays = '',
   });
 
+  /// Returns a copy of this [AdelaySettings] with the given fields replaced.
   AdelaySettings copyWith({
     bool? enabled,
     bool? all,
@@ -996,20 +1382,35 @@ final class AdelaySettings {
 /// - [level]: Set level of added noise in dB. Default is `-351`. Allowed range is from -451 to -90. (range -451..-90, default -351, runtime-tunable)
 /// - [type]: Set type of added noise. (range 0..3, default DC_TYPE, runtime-tunable)
 final class AdenormSettings {
+  /// Default value for [level].
   static const double levelDefault = -351.0;
+
+  /// Minimum value for [level].
   static const double levelMin = -451.0;
+
+  /// Maximum value for [level].
   static const double levelMax = -90.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set level
   final double level;
+
+  /// set type
   final AdenormType type;
 
+  /// Creates an [AdenormSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AdenormSettings({
     this.enabled = false,
     this.level = -351.0,
     this.type = AdenormType.dc,
   });
 
+  /// Returns a copy of this [AdenormSettings] with the given fields replaced.
   AdenormSettings copyWith({
     bool? enabled,
     double? level,
@@ -1054,12 +1455,18 @@ final class AdenormSettings {
 ///
 /// Applying both filters one after another produces original audio.
 final class AderivativeSettings {
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
 
+  /// Creates an [AderivativeSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AderivativeSettings({
     this.enabled = false,
   });
 
+  /// Returns a copy of this [AderivativeSettings] with the given fields replaced.
   AderivativeSettings copyWith({
     bool? enabled,
   }) =>
@@ -1097,19 +1504,43 @@ final class AderivativeSettings {
 /// - [release]: Set the release in milliseconds. Default is `100` milliseconds. Allowed range is from 5 to 2000 milliseconds. (range 5..2000, default 100., runtime-tunable)
 /// - [transfer]: Set the transfer expression.  The expression can contain the following constants: (range 0..0, default "p", runtime-tunable)
 final class AdrcSettings {
+  /// Default value for [attack].
   static const double attackDefault = 50.0;
+
+  /// Minimum value for [attack].
   static const double attackMin = 1.0;
+
+  /// Maximum value for [attack].
   static const double attackMax = 1000.0;
+
+  /// Default value for [release].
   static const double releaseDefault = 100.0;
+
+  /// Minimum value for [release].
   static const double releaseMin = 5.0;
+
+  /// Maximum value for [release].
   static const double releaseMax = 2000.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set the attack
   final double attack;
+
+  /// set channels to filter
   final String channels;
+
+  /// set the release
   final double release;
+
+  /// set the transfer expression
   final String transfer;
 
+  /// Creates an [AdrcSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AdrcSettings({
     this.enabled = false,
     this.attack = 50.0,
@@ -1118,6 +1549,7 @@ final class AdrcSettings {
     this.transfer = 'p',
   });
 
+  /// Returns a copy of this [AdrcSettings] with the given fields replaced.
   AdrcSettings copyWith({
     bool? enabled,
     double? attack,
@@ -1189,54 +1621,148 @@ final class AdrcSettings {
 /// - [threshold]: Set the detection threshold used to trigger equalization. Threshold detection is using detection filter. Default value is 0. Allowed range is from 0 to 100. (range 0..100, default 0, runtime-tunable)
 /// - [tqfactor]: Set the target resonance factor for target equalization filter. Default value is 1. Allowed range is from 0.001 to 1000. (range 0.001..1000, default 1, runtime-tunable)
 final class AdynamicequalizerSettings {
+  /// Default value for [attack].
   static const double attackDefault = 20.0;
+
+  /// Minimum value for [attack].
   static const double attackMin = 0.01;
+
+  /// Maximum value for [attack].
   static const double attackMax = 2000.0;
+
+  /// Default value for [dfrequency].
   static const double dfrequencyDefault = 1000.0;
+
+  /// Minimum value for [dfrequency].
   static const double dfrequencyMin = 2.0;
+
+  /// Maximum value for [dfrequency].
   static const double dfrequencyMax = 1000000.0;
+
+  /// Default value for [dqfactor].
   static const double dqfactorDefault = 1.0;
+
+  /// Minimum value for [dqfactor].
   static const double dqfactorMin = 0.001;
+
+  /// Maximum value for [dqfactor].
   static const double dqfactorMax = 1000.0;
+
+  /// Default value for [makeup].
   static const double makeupDefault = 0.0;
+
+  /// Minimum value for [makeup].
   static const double makeupMin = 0.0;
+
+  /// Maximum value for [makeup].
   static const double makeupMax = 1000.0;
+
+  /// Default value for [range].
   static const double rangeDefault = 50.0;
+
+  /// Minimum value for [range].
   static const double rangeMin = 1.0;
+
+  /// Maximum value for [range].
   static const double rangeMax = 2000.0;
+
+  /// Default value for [ratio].
   static const double ratioDefault = 1.0;
+
+  /// Minimum value for [ratio].
   static const double ratioMin = 0.0;
+
+  /// Maximum value for [ratio].
   static const double ratioMax = 30.0;
+
+  /// Default value for [release].
   static const double releaseDefault = 200.0;
+
+  /// Minimum value for [release].
   static const double releaseMin = 0.01;
+
+  /// Maximum value for [release].
   static const double releaseMax = 2000.0;
+
+  /// Default value for [tfrequency].
   static const double tfrequencyDefault = 1000.0;
+
+  /// Minimum value for [tfrequency].
   static const double tfrequencyMin = 2.0;
+
+  /// Maximum value for [tfrequency].
   static const double tfrequencyMax = 1000000.0;
+
+  /// Default value for [threshold].
   static const double thresholdDefault = 0.0;
+
+  /// Minimum value for [threshold].
   static const double thresholdMin = 0.0;
+
+  /// Maximum value for [threshold].
   static const double thresholdMax = 100.0;
+
+  /// Default value for [tqfactor].
   static const double tqfactorDefault = 1.0;
+
+  /// Minimum value for [tqfactor].
   static const double tqfactorMin = 0.001;
+
+  /// Maximum value for [tqfactor].
   static const double tqfactorMax = 1000.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set detection attack duration
   final double attack;
+
+  /// set auto threshold
   final AdynamicequalizerAuto auto;
+
+  /// set detection frequency
   final double dfrequency;
+
+  /// set detection filter type
   final AdynamicequalizerDftype dftype;
+
+  /// set detection Q factor
   final double dqfactor;
+
+  /// set makeup gain
   final double makeup;
+
+  /// set mode
   final AdynamicequalizerMode mode;
+
+  /// set processing precision
   final AdynamicequalizerPrecision precision;
+
+  /// set max gain
   final double range;
+
+  /// set ratio factor
   final double ratio;
+
+  /// set detection release duration
   final double release;
+
+  /// set target frequency
   final double tfrequency;
+
+  /// set target filter type
   final AdynamicequalizerTftype tftype;
+
+  /// set detection threshold
   final double threshold;
+
+  /// set target Q factor
   final double tqfactor;
 
+  /// Creates an [AdynamicequalizerSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AdynamicequalizerSettings({
     this.enabled = false,
     this.attack = 20.0,
@@ -1256,6 +1782,7 @@ final class AdynamicequalizerSettings {
     this.tqfactor = 1.0,
   });
 
+  /// Returns a copy of this [AdynamicequalizerSettings] with the given fields replaced.
   AdynamicequalizerSettings copyWith({
     bool? enabled,
     double? attack,
@@ -1331,7 +1858,7 @@ final class AdynamicequalizerSettings {
       tfrequency,
       tftype,
       threshold,
-      tqfactor);
+      tqfactor,);
 
   @override
   String toString() =>
@@ -1343,13 +1870,13 @@ final class AdynamicequalizerSettings {
     assert(attack >= attackMin, 'adynamicequalizer.attack must be >= 0.01');
     assert(attack <= attackMax, 'adynamicequalizer.attack must be <= 2000');
     assert(dfrequency >= dfrequencyMin,
-        'adynamicequalizer.dfrequency must be >= 2');
+        'adynamicequalizer.dfrequency must be >= 2',);
     assert(dfrequency <= dfrequencyMax,
-        'adynamicequalizer.dfrequency must be <= 1000000');
+        'adynamicequalizer.dfrequency must be <= 1000000',);
     assert(
-        dqfactor >= dqfactorMin, 'adynamicequalizer.dqfactor must be >= 0.001');
+        dqfactor >= dqfactorMin, 'adynamicequalizer.dqfactor must be >= 0.001',);
     assert(
-        dqfactor <= dqfactorMax, 'adynamicequalizer.dqfactor must be <= 1000');
+        dqfactor <= dqfactorMax, 'adynamicequalizer.dqfactor must be <= 1000',);
     assert(makeup >= makeupMin, 'adynamicequalizer.makeup must be >= 0');
     assert(makeup <= makeupMax, 'adynamicequalizer.makeup must be <= 1000');
     assert(range >= rangeMin, 'adynamicequalizer.range must be >= 1');
@@ -1359,17 +1886,17 @@ final class AdynamicequalizerSettings {
     assert(release >= releaseMin, 'adynamicequalizer.release must be >= 0.01');
     assert(release <= releaseMax, 'adynamicequalizer.release must be <= 2000');
     assert(tfrequency >= tfrequencyMin,
-        'adynamicequalizer.tfrequency must be >= 2');
+        'adynamicequalizer.tfrequency must be >= 2',);
     assert(tfrequency <= tfrequencyMax,
-        'adynamicequalizer.tfrequency must be <= 1000000');
+        'adynamicequalizer.tfrequency must be <= 1000000',);
     assert(
-        threshold >= thresholdMin, 'adynamicequalizer.threshold must be >= 0');
+        threshold >= thresholdMin, 'adynamicequalizer.threshold must be >= 0',);
     assert(threshold <= thresholdMax,
-        'adynamicequalizer.threshold must be <= 100');
+        'adynamicequalizer.threshold must be <= 100',);
     assert(
-        tqfactor >= tqfactorMin, 'adynamicequalizer.tqfactor must be >= 0.001');
+        tqfactor >= tqfactorMin, 'adynamicequalizer.tqfactor must be >= 0.001',);
     assert(
-        tqfactor <= tqfactorMax, 'adynamicequalizer.tqfactor must be <= 1000');
+        tqfactor <= tqfactorMax, 'adynamicequalizer.tqfactor must be <= 1000',);
     final parts = <String>[];
     if (attack != 20.0) parts.add('attack=' + _wireDouble(attack));
     if (auto != AdynamicequalizerAuto.off) parts.add('auto=' + auto.mpvValue);
@@ -1408,23 +1935,44 @@ final class AdynamicequalizerSettings {
 /// - [basefreq]: Set a base frequency for smoothing. Default value is 22050. Allowed range is from 2 to 1e+06. (range 2..1000000, default 22050, runtime-tunable)
 /// - [sensitivity]: Set an amount of sensitivity to frequency fluctations. Default is 2. Allowed range is from 0 to 1e+06. (range 0..1000000, default 2, runtime-tunable)
 final class AdynamicsmoothSettings {
+  /// Default value for [basefreq].
   static const double basefreqDefault = 22050.0;
+
+  /// Minimum value for [basefreq].
   static const double basefreqMin = 2.0;
+
+  /// Maximum value for [basefreq].
   static const double basefreqMax = 1000000.0;
+
+  /// Default value for [sensitivity].
   static const double sensitivityDefault = 2.0;
+
+  /// Minimum value for [sensitivity].
   static const double sensitivityMin = 0.0;
+
+  /// Maximum value for [sensitivity].
   static const double sensitivityMax = 1000000.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set base frequency
   final double basefreq;
+
+  /// set smooth sensitivity
   final double sensitivity;
 
+  /// Creates an [AdynamicsmoothSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AdynamicsmoothSettings({
     this.enabled = false,
     this.basefreq = 22050.0,
     this.sensitivity = 2.0,
   });
 
+  /// Returns a copy of this [AdynamicsmoothSettings] with the given fields replaced.
   AdynamicsmoothSettings copyWith({
     bool? enabled,
     double? basefreq,
@@ -1456,11 +2004,11 @@ final class AdynamicsmoothSettings {
   String toFilterString() {
     assert(basefreq >= basefreqMin, 'adynamicsmooth.basefreq must be >= 2');
     assert(
-        basefreq <= basefreqMax, 'adynamicsmooth.basefreq must be <= 1000000');
+        basefreq <= basefreqMax, 'adynamicsmooth.basefreq must be <= 1000000',);
     assert(sensitivity >= sensitivityMin,
-        'adynamicsmooth.sensitivity must be >= 0');
+        'adynamicsmooth.sensitivity must be >= 0',);
     assert(sensitivity <= sensitivityMax,
-        'adynamicsmooth.sensitivity must be <= 1000000');
+        'adynamicsmooth.sensitivity must be <= 1000000',);
     final parts = <String>[];
     if (basefreq != 22050.0) parts.add('basefreq=' + _wireDouble(basefreq));
     if (sensitivity != 2.0)
@@ -1491,19 +2039,43 @@ final class AdynamicsmoothSettings {
 /// - [in_gain]: Set input gain of reflected signal. Default is `0.6`. (range 0..1, default 0.6)
 /// - [out_gain]: Set output gain of reflected signal. Default is `0.3`. (range 0..1, default 0.3)
 final class AechoSettings {
+  /// Default value for [in_gain].
   static const double in_gainDefault = 0.6;
+
+  /// Minimum value for [in_gain].
   static const double in_gainMin = 0.0;
+
+  /// Maximum value for [in_gain].
   static const double in_gainMax = 1.0;
+
+  /// Default value for [out_gain].
   static const double out_gainDefault = 0.3;
+
+  /// Minimum value for [out_gain].
   static const double out_gainMin = 0.0;
+
+  /// Maximum value for [out_gain].
   static const double out_gainMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set list of signal decays
   final String decays;
+
+  /// set list of signal delays
   final String delays;
+
+  /// set signal input gain
   final double in_gain;
+
+  /// set signal output gain
   final double out_gain;
 
+  /// Creates an [AechoSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AechoSettings({
     this.enabled = false,
     this.decays = '0.5',
@@ -1512,6 +2084,7 @@ final class AechoSettings {
     this.out_gain = 0.3,
   });
 
+  /// Returns a copy of this [AechoSettings] with the given fields replaced.
   AechoSettings copyWith({
     bool? enabled,
     String? decays,
@@ -1577,19 +2150,43 @@ final class AechoSettings {
 /// - [mode]: Set filter mode. For restoring material use `reproduction` mode, otherwise use `production` mode. Default is `reproduction` mode. (range 0..1, default 0, runtime-tunable)
 /// - [type]: Set filter type. Selects medium. Can be one of the following: (range 0..8, default 4, runtime-tunable)
 final class AemphasisSettings {
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = 0.0;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 64.0;
+
+  /// Default value for [level_out].
   static const double level_outDefault = 1.0;
+
+  /// Minimum value for [level_out].
   static const double level_outMin = 0.0;
+
+  /// Maximum value for [level_out].
   static const double level_outMax = 64.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set input gain
   final double level_in;
+
+  /// set output gain
   final double level_out;
+
+  /// set filter mode
   final AemphasisMode mode;
+
+  /// set filter type
   final AemphasisType type;
 
+  /// Creates an [AemphasisSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AemphasisSettings({
     this.enabled = false,
     this.level_in = 1.0,
@@ -1598,6 +2195,7 @@ final class AemphasisSettings {
     this.type = AemphasisType.cd,
   });
 
+  /// Returns a copy of this [AemphasisSettings] with the given fields replaced.
   AemphasisSettings copyWith({
     bool? enabled,
     double? level_in,
@@ -1662,11 +2260,22 @@ final class AemphasisSettings {
 /// - [channel_layout]: Set output channel layout. If not specified, the channel layout is specified by the number of expressions. If set to `same`, it will use by default the same input channel layout. (range 0..0, default "")
 /// - [exprs]: Set the '|'-separated expressions list for each separate channel. If the number of input channels is greater than the number of expressions, the last specified expression is used for the remaining output channels. (default "")
 final class AevalSettings {
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set channel layout
   final String c;
+
+  /// set channel layout
   final String channel_layout;
+
+  /// set the '|'-separated list of channels expressions
   final String exprs;
 
+  /// Creates an [AevalSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AevalSettings({
     this.enabled = false,
     this.c = '',
@@ -1674,6 +2283,7 @@ final class AevalSettings {
     this.exprs = '',
   });
 
+  /// Returns a copy of this [AevalSettings] with the given fields replaced.
   AevalSettings copyWith({
     bool? enabled,
     String? c,
@@ -1736,38 +2346,100 @@ final class AevalSettings {
 /// - [level_out]: Set output level after processing of signal. Allowed range is from 0 to 64. Default value is 1. (range 0..64, default 1, runtime-tunable)
 /// - [listen]: Mute the original signal and output only added harmonics. By default is disabled. (range 0..1, default 0, runtime-tunable)
 final class AexciterSettings {
+  /// Default value for [amount].
   static const double amountDefault = 1.0;
+
+  /// Minimum value for [amount].
   static const double amountMin = 0.0;
+
+  /// Maximum value for [amount].
   static const double amountMax = 64.0;
+
+  /// Default value for [blend].
   static const double blendDefault = 0.0;
+
+  /// Minimum value for [blend].
   static const double blendMin = -10.0;
+
+  /// Maximum value for [blend].
   static const double blendMax = 10.0;
+
+  /// Default value for [ceil].
   static const double ceilDefault = 9999.0;
+
+  /// Minimum value for [ceil].
   static const double ceilMin = 9999.0;
+
+  /// Maximum value for [ceil].
   static const double ceilMax = 20000.0;
+
+  /// Default value for [drive].
   static const double driveDefault = 8.5;
+
+  /// Minimum value for [drive].
   static const double driveMin = 0.1;
+
+  /// Maximum value for [drive].
   static const double driveMax = 10.0;
+
+  /// Default value for [freq].
   static const double freqDefault = 7500.0;
+
+  /// Minimum value for [freq].
   static const double freqMin = 2000.0;
+
+  /// Maximum value for [freq].
   static const double freqMax = 12000.0;
+
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = 0.0;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 64.0;
+
+  /// Default value for [level_out].
   static const double level_outDefault = 1.0;
+
+  /// Minimum value for [level_out].
   static const double level_outMin = 0.0;
+
+  /// Maximum value for [level_out].
   static const double level_outMax = 64.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set amount
   final double amount;
+
+  /// set blend harmonics
   final double blend;
+
+  /// set ceiling
   final double ceil;
+
+  /// set harmonics
   final double drive;
+
+  /// set scope
   final double freq;
+
+  /// set level in
   final double level_in;
+
+  /// set level out
   final double level_out;
+
+  /// enable listen mode
   final bool listen;
 
+  /// Creates an [AexciterSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AexciterSettings({
     this.enabled = false,
     this.amount = 1.0,
@@ -1780,6 +2452,7 @@ final class AexciterSettings {
     this.listen = false,
   });
 
+  /// Returns a copy of this [AexciterSettings] with the given fields replaced.
   AexciterSettings copyWith({
     bool? enabled,
     double? amount,
@@ -1819,7 +2492,7 @@ final class AexciterSettings {
 
   @override
   int get hashCode => Object.hash(
-      enabled, amount, blend, ceil, drive, freq, level_in, level_out, listen);
+      enabled, amount, blend, ceil, drive, freq, level_in, level_out, listen,);
 
   @override
   String toString() =>
@@ -1879,59 +2552,128 @@ final class AexciterSettings {
 /// - [type]: Specify the effect type, can be either `in` for fade-in, or `out` for a fade-out effect. Default is `in`. (range 0..1, default 0, runtime-tunable)
 /// - [unity]: Set the initial gain for fade-out or final gain for fade-in. Default value is `1.0`. (range 0..1, default 1, runtime-tunable)
 final class AfadeSettings {
+  /// Default value for [nb_samples].
   static const int nb_samplesDefault = 44100;
+
+  /// Minimum value for [nb_samples].
   static const int nb_samplesMin = 1;
+
+  /// Maximum value for [nb_samples].
   static const int nb_samplesMax = 9223372036854775807;
+
+  /// Default value for [ns].
   static const int nsDefault = 44100;
+
+  /// Minimum value for [ns].
   static const int nsMin = 1;
+
+  /// Maximum value for [ns].
   static const int nsMax = 9223372036854775807;
+
+  /// Default value for [silence].
   static const double silenceDefault = 0.0;
+
+  /// Minimum value for [silence].
   static const double silenceMin = 0.0;
+
+  /// Maximum value for [silence].
   static const double silenceMax = 1.0;
+
+  /// Default value for [ss].
   static const int ssDefault = 0;
+
+  /// Minimum value for [ss].
   static const int ssMin = 0;
+
+  /// Maximum value for [ss].
   static const int ssMax = 9223372036854775807;
+
+  /// Default value for [start_sample].
   static const int start_sampleDefault = 0;
+
+  /// Minimum value for [start_sample].
   static const int start_sampleMin = 0;
+
+  /// Maximum value for [start_sample].
   static const int start_sampleMax = 9223372036854775807;
+
+  /// Default value for [unity].
   static const double unityDefault = 1.0;
+
+  /// Minimum value for [unity].
   static const double unityMin = 0.0;
+
+  /// Maximum value for [unity].
   static const double unityMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set fade curve type
   final AfadeCurve c;
+
+  /// set fade curve type
   final AfadeCurve curve;
+
+  /// set fade duration
   final Duration d;
+
+  /// set fade duration
   final Duration duration;
+
+  /// set number of samples for fade duration
   final int nb_samples;
+
+  /// set number of samples for fade duration
   final int ns;
+
+  /// set the silence gain
   final double silence;
+
+  /// set number of first sample to start fading
   final int ss;
+
+  /// set time to start fading
   final Duration st;
+
+  /// set number of first sample to start fading
   final int start_sample;
+
+  /// set time to start fading
   final Duration start_time;
+
+  /// set the fade direction
   final AfadeType t;
+
+  /// set the fade direction
   final AfadeType type;
+
+  /// set the unity gain
   final double unity;
 
+  /// Creates an [AfadeSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AfadeSettings({
     this.enabled = false,
     this.c = AfadeCurve.tri,
     this.curve = AfadeCurve.tri,
-    this.d = const Duration(microseconds: 0),
-    this.duration = const Duration(microseconds: 0),
+    this.d = Duration.zero,
+    this.duration = Duration.zero,
     this.nb_samples = 44100,
     this.ns = 44100,
     this.silence = 0.0,
     this.ss = 0,
-    this.st = const Duration(microseconds: 0),
+    this.st = Duration.zero,
     this.start_sample = 0,
-    this.start_time = const Duration(microseconds: 0),
+    this.start_time = Duration.zero,
     this.t = AfadeType.in_,
     this.type = AfadeType.in_,
     this.unity = 1.0,
   });
 
+  /// Returns a copy of this [AfadeSettings] with the given fields replaced.
   AfadeSettings copyWith({
     bool? enabled,
     AfadeCurve? c,
@@ -1989,7 +2731,7 @@ final class AfadeSettings {
 
   @override
   int get hashCode => Object.hash(enabled, c, curve, d, duration, nb_samples,
-      ns, silence, ss, st, start_sample, start_time, t, type, unity);
+      ns, silence, ss, st, start_sample, start_time, t, type, unity,);
 
   @override
   String toString() =>
@@ -2000,7 +2742,7 @@ final class AfadeSettings {
   String toFilterString() {
     assert(nb_samples >= nb_samplesMin, 'afade.nb_samples must be >= 1');
     assert(nb_samples <= nb_samplesMax,
-        'afade.nb_samples must be <= 9223372036854775807');
+        'afade.nb_samples must be <= 9223372036854775807',);
     assert(ns >= nsMin, 'afade.ns must be >= 1');
     assert(ns <= nsMax, 'afade.ns must be <= 9223372036854775807');
     assert(silence >= silenceMin, 'afade.silence must be >= 0');
@@ -2009,24 +2751,24 @@ final class AfadeSettings {
     assert(ss <= ssMax, 'afade.ss must be <= 9223372036854775807');
     assert(start_sample >= start_sampleMin, 'afade.start_sample must be >= 0');
     assert(start_sample <= start_sampleMax,
-        'afade.start_sample must be <= 9223372036854775807');
+        'afade.start_sample must be <= 9223372036854775807',);
     assert(unity >= unityMin, 'afade.unity must be >= 0');
     assert(unity <= unityMax, 'afade.unity must be <= 1');
     final parts = <String>[];
     if (c != AfadeCurve.tri) parts.add('c=' + c.mpvValue);
     if (curve != AfadeCurve.tri) parts.add('curve=' + curve.mpvValue);
-    if (d != const Duration(microseconds: 0))
+    if (d != Duration.zero)
       parts.add('d=' + _wireDouble(d.inMicroseconds / 1e6));
-    if (duration != const Duration(microseconds: 0))
+    if (duration != Duration.zero)
       parts.add('duration=' + _wireDouble(duration.inMicroseconds / 1e6));
     if (nb_samples != 44100) parts.add('nb_samples=' + nb_samples.toString());
     if (ns != 44100) parts.add('ns=' + ns.toString());
     if (silence != 0.0) parts.add('silence=' + _wireDouble(silence));
     if (ss != 0) parts.add('ss=' + ss.toString());
-    if (st != const Duration(microseconds: 0))
+    if (st != Duration.zero)
       parts.add('st=' + _wireDouble(st.inMicroseconds / 1e6));
     if (start_sample != 0) parts.add('start_sample=' + start_sample.toString());
-    if (start_time != const Duration(microseconds: 0))
+    if (start_time != Duration.zero)
       parts.add('start_time=' + _wireDouble(start_time.inMicroseconds / 1e6));
     if (t != AfadeType.in_) parts.add('t=' + t.mpvValue);
     if (type != AfadeType.in_) parts.add('type=' + type.mpvValue);
@@ -2071,79 +2813,223 @@ final class AfadeSettings {
 /// - [track_noise]: Enable noise floor tracking. By default is disabled. With this enabled, noise floor is automatically adjusted. (range 0..1, default 0, runtime-tunable)
 /// - [track_residual]: Enable residual tracking. By default is disabled. (range 0..1, default 0, runtime-tunable)
 final class AfftdnSettings {
+  /// Default value for [ad].
   static const double adDefault = 0.5;
+
+  /// Minimum value for [ad].
   static const double adMin = 0.0;
+
+  /// Maximum value for [ad].
   static const double adMax = 1.0;
+
+  /// Default value for [adaptivity].
   static const double adaptivityDefault = 0.5;
+
+  /// Minimum value for [adaptivity].
   static const double adaptivityMin = 0.0;
+
+  /// Maximum value for [adaptivity].
   static const double adaptivityMax = 1.0;
+
+  /// Default value for [band_multiplier].
   static const double band_multiplierDefault = 1.25;
+
+  /// Minimum value for [band_multiplier].
   static const double band_multiplierMin = 0.2;
+
+  /// Maximum value for [band_multiplier].
   static const double band_multiplierMax = 5.0;
+
+  /// Default value for [bm].
   static const double bmDefault = 1.25;
+
+  /// Minimum value for [bm].
   static const double bmMin = 0.2;
+
+  /// Maximum value for [bm].
   static const double bmMax = 5.0;
+
+  /// Default value for [floor_offset].
   static const double floor_offsetDefault = 1.0;
+
+  /// Minimum value for [floor_offset].
   static const double floor_offsetMin = -2.0;
+
+  /// Maximum value for [floor_offset].
   static const double floor_offsetMax = 2.0;
+
+  /// Default value for [fo].
   static const double foDefault = 1.0;
+
+  /// Minimum value for [fo].
   static const double foMin = -2.0;
+
+  /// Maximum value for [fo].
   static const double foMax = 2.0;
+
+  /// Default value for [gain_smooth].
   static const int gain_smoothDefault = 0;
+
+  /// Minimum value for [gain_smooth].
   static const int gain_smoothMin = 0;
+
+  /// Maximum value for [gain_smooth].
   static const int gain_smoothMax = 50;
+
+  /// Default value for [gs].
   static const int gsDefault = 0;
+
+  /// Minimum value for [gs].
   static const int gsMin = 0;
+
+  /// Maximum value for [gs].
   static const int gsMax = 50;
+
+  /// Default value for [nf].
   static const double nfDefault = -50.0;
+
+  /// Minimum value for [nf].
   static const double nfMin = -80.0;
+
+  /// Maximum value for [nf].
   static const double nfMax = -20.0;
+
+  /// Default value for [noise_floor].
   static const double noise_floorDefault = -50.0;
+
+  /// Minimum value for [noise_floor].
   static const double noise_floorMin = -80.0;
+
+  /// Maximum value for [noise_floor].
   static const double noise_floorMax = -20.0;
+
+  /// Default value for [noise_reduction].
   static const double noise_reductionDefault = 12.0;
+
+  /// Minimum value for [noise_reduction].
   static const double noise_reductionMin = .01;
+
+  /// Maximum value for [noise_reduction].
   static const double noise_reductionMax = 97.0;
+
+  /// Default value for [nr].
   static const double nrDefault = 12.0;
+
+  /// Minimum value for [nr].
   static const double nrMin = .01;
+
+  /// Maximum value for [nr].
   static const double nrMax = 97.0;
+
+  /// Default value for [residual_floor].
   static const double residual_floorDefault = -38.0;
+
+  /// Minimum value for [residual_floor].
   static const double residual_floorMin = -80.0;
+
+  /// Maximum value for [residual_floor].
   static const double residual_floorMax = -20.0;
+
+  /// Default value for [rf].
   static const double rfDefault = -38.0;
+
+  /// Minimum value for [rf].
   static const double rfMin = -80.0;
+
+  /// Maximum value for [rf].
   static const double rfMax = -20.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set adaptivity factor
   final double ad;
+
+  /// set adaptivity factor
   final double adaptivity;
+
+  /// set band multiplier
   final double band_multiplier;
+
+  /// set the custom bands noise
   final String band_noise;
+
+  /// set band multiplier
   final double bm;
+
+  /// set the custom bands noise
   final String bn;
+
+  /// set noise floor offset factor
   final double floor_offset;
+
+  /// set noise floor offset factor
   final double fo;
+
+  /// set gain smooth radius
   final int gain_smooth;
+
+  /// set gain smooth radius
   final int gs;
+
+  /// set the noise floor
   final double nf;
+
+  /// set the noise floor link
   final AfftdnLink nl;
+
+  /// set the noise floor
   final double noise_floor;
+
+  /// set the noise floor link
   final AfftdnLink noise_link;
+
+  /// set the noise reduction
   final double noise_reduction;
+
+  /// set the noise type
   final AfftdnType noise_type;
+
+  /// set the noise reduction
   final double nr;
+
+  /// set the noise type
   final AfftdnType nt;
+
+  /// set output mode
   final AfftdnMode om;
+
+  /// set output mode
   final AfftdnMode output_mode;
+
+  /// set the residual floor
   final double residual_floor;
+
+  /// set the residual floor
   final double rf;
+
+  /// set sample noise mode
   final AfftdnSample sample_noise;
+
+  /// set sample noise mode
   final AfftdnSample sn;
+
+  /// track noise
   final bool tn;
+
+  /// track residual
   final bool tr;
+
+  /// track noise
   final bool track_noise;
+
+  /// track residual
   final bool track_residual;
 
+  /// Creates an [AfftdnSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AfftdnSettings({
     this.enabled = false,
     this.ad = 0.5,
@@ -2176,6 +3062,7 @@ final class AfftdnSettings {
     this.track_residual = false,
   });
 
+  /// Returns a copy of this [AfftdnSettings] with the given fields replaced.
   AfftdnSettings copyWith({
     bool? enabled,
     double? ad,
@@ -2303,7 +3190,7 @@ final class AfftdnSettings {
         tn,
         tr,
         track_noise,
-        track_residual
+        track_residual,
       ]);
 
   @override
@@ -2318,13 +3205,13 @@ final class AfftdnSettings {
     assert(adaptivity >= adaptivityMin, 'afftdn.adaptivity must be >= 0');
     assert(adaptivity <= adaptivityMax, 'afftdn.adaptivity must be <= 1');
     assert(band_multiplier >= band_multiplierMin,
-        'afftdn.band_multiplier must be >= 0.2');
+        'afftdn.band_multiplier must be >= 0.2',);
     assert(band_multiplier <= band_multiplierMax,
-        'afftdn.band_multiplier must be <= 5');
+        'afftdn.band_multiplier must be <= 5',);
     assert(bm >= bmMin, 'afftdn.bm must be >= 0.2');
     assert(bm <= bmMax, 'afftdn.bm must be <= 5');
     assert(
-        floor_offset >= floor_offsetMin, 'afftdn.floor_offset must be >= -2');
+        floor_offset >= floor_offsetMin, 'afftdn.floor_offset must be >= -2',);
     assert(floor_offset <= floor_offsetMax, 'afftdn.floor_offset must be <= 2');
     assert(fo >= foMin, 'afftdn.fo must be >= -2');
     assert(fo <= foMax, 'afftdn.fo must be <= 2');
@@ -2337,15 +3224,15 @@ final class AfftdnSettings {
     assert(noise_floor >= noise_floorMin, 'afftdn.noise_floor must be >= -80');
     assert(noise_floor <= noise_floorMax, 'afftdn.noise_floor must be <= -20');
     assert(noise_reduction >= noise_reductionMin,
-        'afftdn.noise_reduction must be >= .01');
+        'afftdn.noise_reduction must be >= .01',);
     assert(noise_reduction <= noise_reductionMax,
-        'afftdn.noise_reduction must be <= 97');
+        'afftdn.noise_reduction must be <= 97',);
     assert(nr >= nrMin, 'afftdn.nr must be >= .01');
     assert(nr <= nrMax, 'afftdn.nr must be <= 97');
     assert(residual_floor >= residual_floorMin,
-        'afftdn.residual_floor must be >= -80');
+        'afftdn.residual_floor must be >= -80',);
     assert(residual_floor <= residual_floorMax,
-        'afftdn.residual_floor must be <= -20');
+        'afftdn.residual_floor must be <= -20',);
     assert(rf >= rfMin, 'afftdn.rf must be >= -80');
     assert(rf <= rfMax, 'afftdn.rf must be <= -20');
     final parts = <String>[];
@@ -2403,20 +3290,46 @@ final class AfftdnSettings {
 /// - [win_func]: Set window function.  It accepts the following values: (default WFUNC_HANNING)
 /// - [win_size]: Set window size. Allowed range is from 16 to 131072. Default is `4096` (range 16..131072, default 4096)
 final class AfftfiltSettings {
+  /// Default value for [overlap].
   static const double overlapDefault = 0.75;
+
+  /// Minimum value for [overlap].
   static const double overlapMin = 0.0;
+
+  /// Maximum value for [overlap].
   static const double overlapMax = 1.0;
+
+  /// Default value for [win_size].
   static const int win_sizeDefault = 4096;
+
+  /// Minimum value for [win_size].
   static const int win_sizeMin = 16;
+
+  /// Maximum value for [win_size].
   static const int win_sizeMax = 131072;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set channels imaginary expressions
   final String imag;
+
+  /// set window overlap
   final double overlap;
+
+  /// set channels real expressions
   final String real;
+
+  /// set window function
   final AfftfiltWinFunc win_func;
+
+  /// set window size
   final int win_size;
 
+  /// Creates an [AfftfiltSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AfftfiltSettings({
     this.enabled = false,
     this.imag = 'im',
@@ -2426,6 +3339,7 @@ final class AfftfiltSettings {
     this.win_size = 4096,
   });
 
+  /// Returns a copy of this [AfftfiltSettings] with the given fields replaced.
   AfftfiltSettings copyWith({
     bool? enabled,
     String? imag,
@@ -2497,14 +3411,31 @@ final class AfftfiltSettings {
 /// - [sample_fmts]: A '|'-separated list of requested sample formats. (array, base=AV_OPT_TYPE_SAMPLE_FMT, sep='|')
 /// - [sample_rates]: A '|'-separated list of requested sample rates. (range 1..2147483647, array, base=AV_OPT_TYPE_INT, sep='|')
 final class AformatSettings {
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// A '|'-separated list of channel layouts.
   final String? channel_layouts;
+
+  /// A '|'-separated list of channel layouts.
   final String? cl;
+
+  /// A '|'-separated list of sample formats.
   final String? f;
+
+  /// A '|'-separated list of sample rates.
   final String? r;
+
+  /// A '|'-separated list of sample formats.
   final String? sample_fmts;
+
+  /// A '|'-separated list of sample rates.
   final String? sample_rates;
 
+  /// Creates an [AformatSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AformatSettings({
     this.enabled = false,
     this.channel_layouts,
@@ -2515,6 +3446,7 @@ final class AformatSettings {
     this.sample_rates,
   });
 
+  /// Returns a copy of this [AformatSettings] with the given fields replaced.
   AformatSettings copyWith({
     bool? enabled,
     Object? channel_layouts = unset,
@@ -2554,7 +3486,7 @@ final class AformatSettings {
 
   @override
   int get hashCode => Object.hash(
-      enabled, channel_layouts, cl, f, r, sample_fmts, sample_rates);
+      enabled, channel_layouts, cl, f, r, sample_fmts, sample_rates,);
 
   @override
   String toString() =>
@@ -2588,21 +3520,49 @@ final class AformatSettings {
 /// - [order]: Set filter order used for filtering. Allowed range is from 1 to 16. Default value is 8. (range 1..16, default 8, runtime-tunable)
 /// - [shift]: Specify frequency shift. Allowed range is -INT_MAX to INT_MAX. Default value is 0.0. (range -2147483647..2147483647, default 0, runtime-tunable)
 final class AfreqshiftSettings {
+  /// Default value for [level].
   static const double levelDefault = 1.0;
+
+  /// Minimum value for [level].
   static const double levelMin = 0.0;
+
+  /// Maximum value for [level].
   static const double levelMax = 1.0;
+
+  /// Default value for [order].
   static const int orderDefault = 8;
+
+  /// Minimum value for [order].
   static const int orderMin = 1;
+
+  /// Maximum value for [order].
   static const int orderMax = 16;
+
+  /// Default value for [shift].
   static const double shiftDefault = 0.0;
+
+  /// Minimum value for [shift].
   static const double shiftMin = -2147483647.0;
+
+  /// Maximum value for [shift].
   static const double shiftMax = 2147483647.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set output level
   final double level;
+
+  /// set filter order
   final int order;
+
+  /// set frequency shift
   final double shift;
 
+  /// Creates an [AfreqshiftSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AfreqshiftSettings({
     this.enabled = false,
     this.level = 1.0,
@@ -2610,6 +3570,7 @@ final class AfreqshiftSettings {
     this.shift = 0.0,
   });
 
+  /// Returns a copy of this [AfreqshiftSettings] with the given fields replaced.
   AfreqshiftSettings copyWith({
     bool? enabled,
     double? level,
@@ -2674,32 +3635,82 @@ final class AfreqshiftSettings {
 /// - [softness]: set thresholding softness (range 0..10, default 1, runtime-tunable)
 /// - [wavet]: Set wavelet type for decomposition of input frame. They are sorted by number of coefficients, from lowest to highest. More coefficients means worse filtering speed, but overall better quality. Available wavelets are: (range 0..6, default SYM10)
 final class AfwtdnSettings {
+  /// Default value for [levels].
   static const int levelsDefault = 10;
+
+  /// Minimum value for [levels].
   static const int levelsMin = 1;
+
+  /// Maximum value for [levels].
   static const int levelsMax = 12;
+
+  /// Default value for [percent].
   static const double percentDefault = 85.0;
+
+  /// Minimum value for [percent].
   static const double percentMin = 0.0;
+
+  /// Maximum value for [percent].
   static const double percentMax = 100.0;
+
+  /// Default value for [samples].
   static const int samplesDefault = 8192;
+
+  /// Minimum value for [samples].
   static const int samplesMin = 512;
+
+  /// Maximum value for [samples].
   static const int samplesMax = 65536;
+
+  /// Default value for [sigma].
   static const double sigmaDefault = 0.0;
+
+  /// Minimum value for [sigma].
   static const double sigmaMin = 0.0;
+
+  /// Maximum value for [sigma].
   static const double sigmaMax = 1.0;
+
+  /// Default value for [softness].
   static const double softnessDefault = 1.0;
+
+  /// Minimum value for [softness].
   static const double softnessMin = 0.0;
+
+  /// Maximum value for [softness].
   static const double softnessMax = 10.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// adaptive profiling of noise
   final bool adaptive;
+
+  /// set number of wavelet levels
   final int levels;
+
+  /// set percent of full denoising
   final double percent;
+
+  /// profile noise
   final bool profile;
+
+  /// set frame size in number of samples
   final int samples;
+
+  /// set noise sigma
   final double sigma;
+
+  /// set thresholding softness
   final double softness;
+
+  /// set wavelet type
   final AfwtdnWavet wavet;
 
+  /// Creates an [AfwtdnSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AfwtdnSettings({
     this.enabled = false,
     this.adaptive = false,
@@ -2712,6 +3723,7 @@ final class AfwtdnSettings {
     this.wavet = AfwtdnWavet.sym10,
   });
 
+  /// Returns a copy of this [AfwtdnSettings] with the given fields replaced.
   AfwtdnSettings copyWith({
     bool? enabled,
     bool? adaptive,
@@ -2751,7 +3763,7 @@ final class AfwtdnSettings {
 
   @override
   int get hashCode => Object.hash(enabled, adaptive, levels, percent, profile,
-      samples, sigma, softness, wavet);
+      samples, sigma, softness, wavet,);
 
   @override
   String toString() =>
@@ -2813,48 +3825,130 @@ final class AfwtdnSettings {
 /// - [release]: Amount of milliseconds the signal has to fall below the threshold before the reduction is increased again. Default is 250 milliseconds. Allowed range is from 0.01 to 9000. (range 0.01..9000, default 250, runtime-tunable)
 /// - [threshold]: If a signal rises above this level the gain reduction is released. Default is 0.125. Allowed range is from 0 to 1. (range 0..1, default 0.125, runtime-tunable)
 final class AgateSettings {
+  /// Default value for [attack].
   static const double attackDefault = 20.0;
+
+  /// Minimum value for [attack].
   static const double attackMin = 0.01;
+
+  /// Maximum value for [attack].
   static const double attackMax = 9000.0;
+
+  /// Default value for [knee].
   static const double kneeDefault = 2.828427125;
+
+  /// Minimum value for [knee].
   static const double kneeMin = 1.0;
+
+  /// Maximum value for [knee].
   static const double kneeMax = 8.0;
+
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = 0.015625;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 64.0;
+
+  /// Default value for [level_sc].
   static const double level_scDefault = 1.0;
+
+  /// Minimum value for [level_sc].
   static const double level_scMin = 0.015625;
+
+  /// Maximum value for [level_sc].
   static const double level_scMax = 64.0;
+
+  /// Default value for [makeup].
   static const double makeupDefault = 1.0;
+
+  /// Minimum value for [makeup].
   static const double makeupMin = 1.0;
+
+  /// Maximum value for [makeup].
   static const double makeupMax = 64.0;
+
+  /// Default value for [range].
   static const double rangeDefault = 0.06125;
+
+  /// Minimum value for [range].
   static const double rangeMin = 0.0;
+
+  /// Maximum value for [range].
   static const double rangeMax = 1.0;
+
+  /// Default value for [ratio].
   static const double ratioDefault = 2.0;
+
+  /// Minimum value for [ratio].
   static const double ratioMin = 1.0;
+
+  /// Maximum value for [ratio].
   static const double ratioMax = 9000.0;
+
+  /// Default value for [release].
   static const double releaseDefault = 250.0;
+
+  /// Minimum value for [release].
   static const double releaseMin = 0.01;
+
+  /// Maximum value for [release].
   static const double releaseMax = 9000.0;
+
+  /// Default value for [threshold].
   static const double thresholdDefault = 0.125;
+
+  /// Minimum value for [threshold].
   static const double thresholdMin = 0.0;
+
+  /// Maximum value for [threshold].
   static const double thresholdMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set attack
   final double attack;
+
+  /// set detection
   final AgateDetection detection;
+
+  /// set knee
   final double knee;
+
+  /// set input level
   final double level_in;
+
+  /// set sidechain gain
   final double level_sc;
+
+  /// set link
   final AgateLink link;
+
+  /// set makeup gain
   final double makeup;
+
+  /// set mode
   final AgateMode mode;
+
+  /// set max gain reduction
   final double range;
+
+  /// set ratio
   final double ratio;
+
+  /// set release
   final double release;
+
+  /// set threshold
   final double threshold;
 
+  /// Creates an [AgateSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AgateSettings({
     this.enabled = false,
     this.attack = 20.0,
@@ -2871,6 +3965,7 @@ final class AgateSettings {
     this.threshold = 0.125,
   });
 
+  /// Returns a copy of this [AgateSettings] with the given fields replaced.
   AgateSettings copyWith({
     bool? enabled,
     double? attack,
@@ -2922,7 +4017,7 @@ final class AgateSettings {
 
   @override
   int get hashCode => Object.hash(enabled, attack, detection, knee, level_in,
-      level_sc, link, makeup, mode, range, ratio, release, threshold);
+      level_sc, link, makeup, mode, range, ratio, release, threshold,);
 
   @override
   String toString() =>
@@ -2996,42 +4091,112 @@ final class AgateSettings {
 /// - [z]: Set B/numerator/zeros/reflection coefficients. (range 0..0, default "1+0i 1-0i")
 /// - [zeros]: Set B/numerator/zeros/reflection coefficients. (range 0..0, default "1+0i 1-0i")
 final class AiirSettings {
+  /// Default value for [channel].
   static const int channelDefault = 0;
+
+  /// Minimum value for [channel].
   static const int channelMin = 0;
+
+  /// Maximum value for [channel].
   static const int channelMax = 1024;
+
+  /// Default value for [dry].
   static const double dryDefault = 1.0;
+
+  /// Minimum value for [dry].
   static const double dryMin = 0.0;
+
+  /// Maximum value for [dry].
   static const double dryMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [wet].
   static const double wetDefault = 1.0;
+
+  /// Minimum value for [wet].
   static const double wetMin = 0.0;
+
+  /// Maximum value for [wet].
   static const double wetMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set IR channel to display frequency response
   final int channel;
+
+  /// set dry gain
   final double dry;
+
+  /// set precision
   final AiirPrecision e;
+
+  /// set coefficients format
   final AiirFormat f;
+
+  /// set coefficients format
   final AiirFormat format;
+
+  /// set channels gains
   final String gains;
+
+  /// set channels gains
   final String k;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set A/denominator/poles/ladder coefficients
   final String p;
+
+  /// set A/denominator/poles/ladder coefficients
   final String poles;
+
+  /// set filtering precision
   final AiirPrecision precision;
+
+  /// set kind of processing
   final AiirProcess process;
+
+  /// set kind of processing
   final AiirProcess r;
+
+  /// set video rate
   final String rate;
+
+  /// show IR frequency response
   final bool response;
+
+  /// set video size
   final String size;
+
+  /// set wet gain
   final double wet;
+
+  /// set B/numerator/zeros/reflection coefficients
   final String z;
+
+  /// set B/numerator/zeros/reflection coefficients
   final String zeros;
 
+  /// Creates an [AiirSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AiirSettings({
     this.enabled = false,
     this.channel = 0,
@@ -3057,6 +4222,7 @@ final class AiirSettings {
     this.zeros = '1+0i 1-0i',
   });
 
+  /// Returns a copy of this [AiirSettings] with the given fields replaced.
   AiirSettings copyWith({
     bool? enabled,
     int? channel,
@@ -3156,7 +4322,7 @@ final class AiirSettings {
         size,
         wet,
         z,
-        zeros
+        zeros,
       ]);
 
   @override
@@ -3221,36 +4387,94 @@ final class AiirSettings {
 /// - [limit]: Don't let signals above this level pass the limiter. Default is 1. (range 0.0625..1, default 1, runtime-tunable)
 /// - [release]: Come back from limiting to attenuation 1.0 in this amount of milliseconds. Default is 50 milliseconds. (range 1..8000, default 50, runtime-tunable)
 final class AlimiterSettings {
+  /// Default value for [asc_level].
   static const double asc_levelDefault = 0.5;
+
+  /// Minimum value for [asc_level].
   static const double asc_levelMin = 0.0;
+
+  /// Maximum value for [asc_level].
   static const double asc_levelMax = 1.0;
+
+  /// Default value for [attack].
   static const double attackDefault = 5.0;
+
+  /// Minimum value for [attack].
   static const double attackMin = 0.1;
+
+  /// Maximum value for [attack].
   static const double attackMax = 80.0;
+
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = .015625;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 64.0;
+
+  /// Default value for [level_out].
   static const double level_outDefault = 1.0;
+
+  /// Minimum value for [level_out].
   static const double level_outMin = .015625;
+
+  /// Maximum value for [level_out].
   static const double level_outMax = 64.0;
+
+  /// Default value for [limit].
   static const double limitDefault = 1.0;
+
+  /// Minimum value for [limit].
   static const double limitMin = 0.0625;
+
+  /// Maximum value for [limit].
   static const double limitMax = 1.0;
+
+  /// Default value for [release].
   static const double releaseDefault = 50.0;
+
+  /// Minimum value for [release].
   static const double releaseMin = 1.0;
+
+  /// Maximum value for [release].
   static const double releaseMax = 8000.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// enable asc
   final bool asc;
+
+  /// set asc level
   final double asc_level;
+
+  /// set attack
   final double attack;
+
+  /// compensate delay
   final bool latency;
+
+  /// auto level
   final bool level;
+
+  /// set input level
   final double level_in;
+
+  /// set output level
   final double level_out;
+
+  /// set limit
   final double limit;
+
+  /// set release
   final double release;
 
+  /// Creates an [AlimiterSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AlimiterSettings({
     this.enabled = false,
     this.asc = false,
@@ -3264,6 +4488,7 @@ final class AlimiterSettings {
     this.release = 50.0,
   });
 
+  /// Returns a copy of this [AlimiterSettings] with the given fields replaced.
   AlimiterSettings copyWith({
     bool? enabled,
     bool? asc,
@@ -3306,7 +4531,7 @@ final class AlimiterSettings {
 
   @override
   int get hashCode => Object.hash(enabled, asc, asc_level, attack, latency,
-      level, level_in, level_out, limit, release);
+      level, level_in, level_out, limit, release,);
 
   @override
   String toString() =>
@@ -3372,51 +4597,139 @@ final class AlimiterSettings {
 /// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.707, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class AllpassSettings {
+  /// Default value for [f].
   static const double fDefault = 3000.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 3000.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [o].
   static const int oDefault = 2;
+
+  /// Minimum value for [o].
   static const int oMin = 1;
+
+  /// Maximum value for [o].
   static const int oMax = 2;
+
+  /// Default value for [order].
   static const int orderDefault = 2;
+
+  /// Minimum value for [order].
   static const int orderMin = 1;
+
+  /// Maximum value for [order].
   static const int orderMax = 2;
+
+  /// Default value for [w].
   static const double wDefault = 0.707;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 0.707;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final AllpassTransformType a;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set central frequency
   final double f;
+
+  /// set central frequency
   final double frequency;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set filter order
   final int o;
+
+  /// set filter order
   final int order;
+
+  /// set filtering precision
   final AllpassPrecision precision;
+
+  /// set filtering precision
   final AllpassPrecision r;
+
+  /// set filter-width type
   final AllpassWidthType t;
+
+  /// set transform type
   final AllpassTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final AllpassWidthType width_type;
 
+  /// Creates an [AllpassSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AllpassSettings({
     this.enabled = false,
     this.a = AllpassTransformType.di,
@@ -3439,6 +4752,7 @@ final class AllpassSettings {
     this.width_type = AllpassWidthType.q,
   });
 
+  /// Returns a copy of this [AllpassSettings] with the given fields replaced.
   AllpassSettings copyWith({
     bool? enabled,
     AllpassTransformType? a,
@@ -3508,7 +4822,7 @@ final class AllpassSettings {
 
   @override
   int get hashCode => Object.hash(enabled, a, c, channels, f, frequency, m, mix,
-      n, normalize, o, order, precision, r, t, transform, w, width, width_type);
+      n, normalize, o, order, precision, r, t, transform, w, width, width_type,);
 
   @override
   String toString() =>
@@ -3573,18 +4887,41 @@ final class AllpassSettings {
 /// - [params]: This option string is in format: "c`chn` f=`cf` w=`w` g=`g` t=`f` | ..." Each equalizer band is separated by '|'. (range 0..0, default "")
 /// - [size]: set video size (range 0..0, default "hd720")
 final class AnequalizerSettings {
+  /// Default value for [mgain].
   static const double mgainDefault = 60.0;
+
+  /// Minimum value for [mgain].
   static const double mgainMin = -900.0;
+
+  /// Maximum value for [mgain].
   static const double mgainMax = 900.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set channels curves colors
   final String colors;
+
+  /// draw frequency response curves
   final bool curves;
+
+  /// set frequency scale
   final AnequalizerFscale fscale;
+
+  /// set max gain
   final double mgain;
+
+  /// Raw values for parameters whose names start with a digit,
+  /// keyed by their original ffmpeg option name.
   final String params;
+
+  /// set video size
   final String size;
 
+  /// Creates an [AnequalizerSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AnequalizerSettings({
     this.enabled = false,
     this.colors = 'red|green|blue|yellow|orange|lime|pink|magenta|brown',
@@ -3595,6 +4932,7 @@ final class AnequalizerSettings {
     this.size = 'hd720',
   });
 
+  /// Returns a copy of this [AnequalizerSettings] with the given fields replaced.
   AnequalizerSettings copyWith({
     bool? enabled,
     String? colors,
@@ -3675,31 +5013,79 @@ final class AnequalizerSettings {
 /// - [smooth]: Set smooth factor. Default value is `11`. Allowed range is from `1` to `1000`. (range 1..1000, default 11., runtime-tunable)
 /// - [strength]: Set denoising strength. Allowed range is from 0.00001 to 10000. Default value is 0.00001. (range 0.00001..10000, default 0.00001, runtime-tunable)
 final class AnlmdnSettings {
+  /// Default value for [m].
   static const double mDefault = 11.0;
+
+  /// Minimum value for [m].
   static const double mMin = 1.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1000.0;
+
+  /// Default value for [s].
   static const double sDefault = 0.00001;
+
+  /// Minimum value for [s].
   static const double sMin = 0.00001;
+
+  /// Maximum value for [s].
   static const double sMax = 10000.0;
+
+  /// Default value for [smooth].
   static const double smoothDefault = 11.0;
+
+  /// Minimum value for [smooth].
   static const double smoothMin = 1.0;
+
+  /// Maximum value for [smooth].
   static const double smoothMax = 1000.0;
+
+  /// Default value for [strength].
   static const double strengthDefault = 0.00001;
+
+  /// Minimum value for [strength].
   static const double strengthMin = 0.00001;
+
+  /// Maximum value for [strength].
   static const double strengthMax = 10000.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set smooth factor
   final double m;
+
+  /// set output mode
   final AnlmdnMode o;
+
+  /// set output mode
   final AnlmdnMode output;
+
+  /// set patch duration
   final Duration p;
+
+  /// set patch duration
   final Duration patch;
+
+  /// set research duration
   final Duration r;
+
+  /// set research duration
   final Duration research;
+
+  /// set denoising strength
   final double s;
+
+  /// set smooth factor
   final double smooth;
+
+  /// set denoising strength
   final double strength;
 
+  /// Creates an [AnlmdnSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AnlmdnSettings({
     this.enabled = false,
     this.m = 11.0,
@@ -3714,6 +5100,7 @@ final class AnlmdnSettings {
     this.strength = 0.00001,
   });
 
+  /// Returns a copy of this [AnlmdnSettings] with the given fields replaced.
   AnlmdnSettings copyWith({
     bool? enabled,
     double? m,
@@ -3759,7 +5146,7 @@ final class AnlmdnSettings {
 
   @override
   int get hashCode => Object.hash(
-      enabled, m, o, output, p, patch, r, research, s, smooth, strength);
+      enabled, m, o, output, p, patch, r, research, s, smooth, strength,);
 
   @override
   String toString() =>
@@ -3811,23 +5198,55 @@ final class AnlmdnSettings {
 /// - [whole_dur]: Specify the minimum total duration in the output audio stream. See time duration syntax for the accepted syntax. Used only if set to non-negative value. If the value is longer than the input audio length, silence is added to the end, until the value is reached. This option is mutually exclusive with @option{pad_dur} (range -1..9223372036854775807, default -1)
 /// - [whole_len]: Set the minimum total number of samples in the output audio stream. If the value is longer than the input audio length, silence is added to the end, until the value is reached. This option is mutually exclusive with @option{pad_len}. (range -1..9223372036854775807, default -1)
 final class ApadSettings {
+  /// Default value for [packet_size].
   static const int packet_sizeDefault = 4096;
+
+  /// Minimum value for [packet_size].
   static const int packet_sizeMin = 0;
+
+  /// Maximum value for [packet_size].
   static const int packet_sizeMax = 2147483647;
+
+  /// Default value for [pad_len].
   static const int pad_lenDefault = -1;
+
+  /// Minimum value for [pad_len].
   static const int pad_lenMin = -1;
+
+  /// Maximum value for [pad_len].
   static const int pad_lenMax = 9223372036854775807;
+
+  /// Default value for [whole_len].
   static const int whole_lenDefault = -1;
+
+  /// Minimum value for [whole_len].
   static const int whole_lenMin = -1;
+
+  /// Maximum value for [whole_len].
   static const int whole_lenMax = 9223372036854775807;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set silence packet size
   final int packet_size;
+
+  /// set duration of silence to add
   final Duration pad_dur;
+
+  /// set number of samples of silence to add
   final int pad_len;
+
+  /// set minimum target duration in the audio stream
   final Duration whole_dur;
+
+  /// set minimum target number of samples in the audio stream
   final int whole_len;
 
+  /// Creates an [ApadSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const ApadSettings({
     this.enabled = false,
     this.packet_size = 4096,
@@ -3837,6 +5256,7 @@ final class ApadSettings {
     this.whole_len = -1,
   });
 
+  /// Returns a copy of this [ApadSettings] with the given fields replaced.
   ApadSettings copyWith({
     bool? enabled,
     int? packet_size,
@@ -3878,13 +5298,13 @@ final class ApadSettings {
   String toFilterString() {
     assert(packet_size >= packet_sizeMin, 'apad.packet_size must be >= 0');
     assert(packet_size <= packet_sizeMax,
-        'apad.packet_size must be <= 2147483647');
+        'apad.packet_size must be <= 2147483647',);
     assert(pad_len >= pad_lenMin, 'apad.pad_len must be >= -1');
     assert(
-        pad_len <= pad_lenMax, 'apad.pad_len must be <= 9223372036854775807');
+        pad_len <= pad_lenMax, 'apad.pad_len must be <= 9223372036854775807',);
     assert(whole_len >= whole_lenMin, 'apad.whole_len must be >= -1');
     assert(whole_len <= whole_lenMax,
-        'apad.whole_len must be <= 9223372036854775807');
+        'apad.whole_len must be <= 9223372036854775807',);
     final parts = <String>[];
     if (packet_size != 4096) parts.add('packet_size=' + packet_size.toString());
     if (pad_dur != const Duration(microseconds: -1))
@@ -3914,30 +5334,76 @@ final class ApadSettings {
 /// - [speed]: Set modulation speed in Hz. Default is 0.5. (range .1..2, default .5)
 /// - [type]: Set modulation type. Default is triangular.  It accepts the following values: (default WAVE_TRI)
 final class AphaserSettings {
+  /// Default value for [decay].
   static const double decayDefault = .4;
+
+  /// Minimum value for [decay].
   static const double decayMin = 0.0;
+
+  /// Maximum value for [decay].
   static const double decayMax = .99;
+
+  /// Default value for [delay].
   static const double delayDefault = 3.0;
+
+  /// Minimum value for [delay].
   static const double delayMin = 0.0;
+
+  /// Maximum value for [delay].
   static const double delayMax = 5.0;
+
+  /// Default value for [in_gain].
   static const double in_gainDefault = .4;
+
+  /// Minimum value for [in_gain].
   static const double in_gainMin = 0.0;
+
+  /// Maximum value for [in_gain].
   static const double in_gainMax = 1.0;
+
+  /// Default value for [out_gain].
   static const double out_gainDefault = .74;
+
+  /// Minimum value for [out_gain].
   static const double out_gainMin = 0.0;
+
+  /// Maximum value for [out_gain].
   static const double out_gainMax = 1e9;
+
+  /// Default value for [speed].
   static const double speedDefault = .5;
+
+  /// Minimum value for [speed].
   static const double speedMin = .1;
+
+  /// Maximum value for [speed].
   static const double speedMax = 2.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set decay
   final double decay;
+
+  /// set delay in milliseconds
   final double delay;
+
+  /// set input gain
   final double in_gain;
+
+  /// set output gain
   final double out_gain;
+
+  /// set modulation speed
   final double speed;
+
+  /// set modulation type
   final AphaserType type;
 
+  /// Creates an [AphaserSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AphaserSettings({
     this.enabled = false,
     this.decay = .4,
@@ -3948,6 +5414,7 @@ final class AphaserSettings {
     this.type = AphaserType.triangular,
   });
 
+  /// Returns a copy of this [AphaserSettings] with the given fields replaced.
   AphaserSettings copyWith({
     bool? enabled,
     double? decay,
@@ -4022,21 +5489,49 @@ final class AphaserSettings {
 /// - [order]: Set filter order used for filtering. Allowed range is from 1 to 16. Default value is 8. (range 1..16, default 8, runtime-tunable)
 /// - [shift]: Specify phase shift. Allowed range is from -1.0 to 1.0. Default value is 0.0. (range -1.0..1.0, default 0, runtime-tunable)
 final class AphaseshiftSettings {
+  /// Default value for [level].
   static const double levelDefault = 1.0;
+
+  /// Minimum value for [level].
   static const double levelMin = 0.0;
+
+  /// Maximum value for [level].
   static const double levelMax = 1.0;
+
+  /// Default value for [order].
   static const int orderDefault = 8;
+
+  /// Minimum value for [order].
   static const int orderMin = 1;
+
+  /// Maximum value for [order].
   static const int orderMax = 16;
+
+  /// Default value for [shift].
   static const double shiftDefault = 0.0;
+
+  /// Minimum value for [shift].
   static const double shiftMin = -1.0;
+
+  /// Maximum value for [shift].
   static const double shiftMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set output level
   final double level;
+
+  /// set filter order
   final int order;
+
+  /// set phase shift
   final double shift;
 
+  /// Creates an [AphaseshiftSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AphaseshiftSettings({
     this.enabled = false,
     this.level = 1.0,
@@ -4044,6 +5539,7 @@ final class AphaseshiftSettings {
     this.shift = 0.0,
   });
 
+  /// Returns a copy of this [AphaseshiftSettings] with the given fields replaced.
   AphaseshiftSettings copyWith({
     bool? enabled,
     double? level,
@@ -4107,31 +5603,79 @@ final class AphaseshiftSettings {
 /// - [level_in]: Set input gain. By default it is 1. Range is [0.015625 - 64]. (range .015625..64, default 1, runtime-tunable)
 /// - [level_out]: Set output gain. By default it is 1. Range is [0.015625 - 64]. (range .015625..64, default 1, runtime-tunable)
 final class ApsyclipSettings {
+  /// Default value for [adaptive].
   static const double adaptiveDefault = 0.5;
+
+  /// Minimum value for [adaptive].
   static const double adaptiveMin = 0.0;
+
+  /// Maximum value for [adaptive].
   static const double adaptiveMax = 1.0;
+
+  /// Default value for [clip].
   static const double clipDefault = 1.0;
+
+  /// Minimum value for [clip].
   static const double clipMin = .015625;
+
+  /// Maximum value for [clip].
   static const double clipMax = 1.0;
+
+  /// Default value for [iterations].
   static const int iterationsDefault = 10;
+
+  /// Minimum value for [iterations].
   static const int iterationsMin = 1;
+
+  /// Maximum value for [iterations].
   static const int iterationsMax = 20;
+
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = .015625;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 64.0;
+
+  /// Default value for [level_out].
   static const double level_outDefault = 1.0;
+
+  /// Minimum value for [level_out].
   static const double level_outMin = .015625;
+
+  /// Maximum value for [level_out].
   static const double level_outMax = 64.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set adaptive distortion
   final double adaptive;
+
+  /// set clip level
   final double clip;
+
+  /// enable difference
   final bool diff;
+
+  /// set iterations
   final int iterations;
+
+  /// set auto level
   final bool level;
+
+  /// set input level
   final double level_in;
+
+  /// set output level
   final double level_out;
 
+  /// Creates an [ApsyclipSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const ApsyclipSettings({
     this.enabled = false,
     this.adaptive = 0.5,
@@ -4143,6 +5687,7 @@ final class ApsyclipSettings {
     this.level_out = 1.0,
   });
 
+  /// Returns a copy of this [ApsyclipSettings] with the given fields replaced.
   ApsyclipSettings copyWith({
     bool? enabled,
     double? adaptive,
@@ -4179,7 +5724,7 @@ final class ApsyclipSettings {
 
   @override
   int get hashCode => Object.hash(
-      enabled, adaptive, clip, diff, iterations, level, level_in, level_out);
+      enabled, adaptive, clip, diff, iterations, level, level_in, level_out,);
 
   @override
   String toString() =>
@@ -4243,47 +5788,127 @@ final class ApsyclipSettings {
 /// - [timing]: Set possible timing mode. Can be one of: bpm, ms or hz. Default is hz. (range 0..2, default 2)
 /// - [width]: Set pulse width. Default is 1. Allowed range is [0 - 2]. (range 0..2, default 1)
 final class ApulsatorSettings {
+  /// Default value for [amount].
   static const double amountDefault = 1.0;
+
+  /// Minimum value for [amount].
   static const double amountMin = 0.0;
+
+  /// Maximum value for [amount].
   static const double amountMax = 1.0;
+
+  /// Default value for [bpm].
   static const double bpmDefault = 120.0;
+
+  /// Minimum value for [bpm].
   static const double bpmMin = 30.0;
+
+  /// Maximum value for [bpm].
   static const double bpmMax = 300.0;
+
+  /// Default value for [hz].
   static const double hzDefault = 2.0;
+
+  /// Minimum value for [hz].
   static const double hzMin = 0.01;
+
+  /// Maximum value for [hz].
   static const double hzMax = 100.0;
+
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = 0.015625;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 64.0;
+
+  /// Default value for [level_out].
   static const double level_outDefault = 1.0;
+
+  /// Minimum value for [level_out].
   static const double level_outMin = 0.015625;
+
+  /// Maximum value for [level_out].
   static const double level_outMax = 64.0;
+
+  /// Default value for [ms].
   static const int msDefault = 500;
+
+  /// Minimum value for [ms].
   static const int msMin = 10;
+
+  /// Maximum value for [ms].
   static const int msMax = 2000;
+
+  /// Default value for [offset_l].
   static const double offset_lDefault = 0.0;
+
+  /// Minimum value for [offset_l].
   static const double offset_lMin = 0.0;
+
+  /// Maximum value for [offset_l].
   static const double offset_lMax = 1.0;
+
+  /// Default value for [offset_r].
   static const double offset_rDefault = .5;
+
+  /// Minimum value for [offset_r].
   static const double offset_rMin = 0.0;
+
+  /// Maximum value for [offset_r].
   static const double offset_rMax = 1.0;
+
+  /// Default value for [width].
   static const double widthDefault = 1.0;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 2.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set modulation
   final double amount;
+
+  /// set BPM
   final double bpm;
+
+  /// set frequency
   final double hz;
+
+  /// set input gain
   final double level_in;
+
+  /// set output gain
   final double level_out;
+
+  /// set mode
   final ApulsatorMode mode;
+
+  /// set ms
   final int ms;
+
+  /// set offset L
   final double offset_l;
+
+  /// set offset R
   final double offset_r;
+
+  /// set timing
   final ApulsatorTiming timing;
+
+  /// set pulse width
   final double width;
 
+  /// Creates an [ApulsatorSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const ApulsatorSettings({
     this.enabled = false,
     this.amount = 1.0,
@@ -4299,6 +5924,7 @@ final class ApulsatorSettings {
     this.width = 1.0,
   });
 
+  /// Returns a copy of this [ApulsatorSettings] with the given fields replaced.
   ApulsatorSettings copyWith({
     bool? enabled,
     double? amount,
@@ -4347,7 +5973,7 @@ final class ApulsatorSettings {
 
   @override
   int get hashCode => Object.hash(enabled, amount, bpm, hz, level_in, level_out,
-      mode, ms, offset_l, offset_r, timing, width);
+      mode, ms, offset_l, offset_r, timing, width,);
 
   @override
   String toString() =>
@@ -4365,7 +5991,7 @@ final class ApulsatorSettings {
     assert(level_in >= level_inMin, 'apulsator.level_in must be >= 0.015625');
     assert(level_in <= level_inMax, 'apulsator.level_in must be <= 64');
     assert(
-        level_out >= level_outMin, 'apulsator.level_out must be >= 0.015625');
+        level_out >= level_outMin, 'apulsator.level_out must be >= 0.015625',);
     assert(level_out <= level_outMax, 'apulsator.level_out must be <= 64');
     assert(ms >= msMin, 'apulsator.ms must be >= 10');
     assert(ms <= msMax, 'apulsator.ms must be <= 2000');
@@ -4418,18 +6044,31 @@ final class ApulsatorSettings {
 /// Parameters:
 /// - [sample_rate]:  (range 0..2147483647, default 0)
 final class AresampleSettings {
+  /// Default value for [sample_rate].
   static const int sample_rateDefault = 0;
+
+  /// Minimum value for [sample_rate].
   static const int sample_rateMin = 0;
+
+  /// Maximum value for [sample_rate].
   static const int sample_rateMax = 2147483647;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// The `sample_rate` parameter.
   final int sample_rate;
 
+  /// Creates an [AresampleSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AresampleSettings({
     this.enabled = false,
     this.sample_rate = 0,
   });
 
+  /// Returns a copy of this [AresampleSettings] with the given fields replaced.
   AresampleSettings copyWith({
     bool? enabled,
     int? sample_rate,
@@ -4458,7 +6097,7 @@ final class AresampleSettings {
   String toFilterString() {
     assert(sample_rate >= sample_rateMin, 'aresample.sample_rate must be >= 0');
     assert(sample_rate <= sample_rateMax,
-        'aresample.sample_rate must be <= 2147483647');
+        'aresample.sample_rate must be <= 2147483647',);
     final parts = <String>[];
     if (sample_rate != 0) parts.add('sample_rate=' + sample_rate.toString());
     return parts.isEmpty
@@ -4478,15 +6117,31 @@ final class AresampleSettings {
 /// - [mix]: Set how much to mix filtered samples into final output. Allowed range is from -1 to 1. Default value is 1. Negative values are special, they set how much to keep filtered noise in the final filter output. Set this option to -1 to hear actual noise removed from input signal. (range -1..1, default 1.0, runtime-tunable)
 /// - [model]: Set train model file to load. This option is always required. (range 0..0, default "", runtime-tunable)
 final class ArnndnSettings {
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = -1.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set model name
   final String m;
+
+  /// set output vs input mix
   final double mix;
+
+  /// set model name
   final String model;
 
+  /// Creates an [ArnndnSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const ArnndnSettings({
     this.enabled = false,
     this.m = '',
@@ -4494,6 +6149,7 @@ final class ArnndnSettings {
     this.model = '',
   });
 
+  /// Returns a copy of this [ArnndnSettings] with the given fields replaced.
   ArnndnSettings copyWith({
     bool? enabled,
     String? m,
@@ -4552,26 +6208,64 @@ final class ArnndnSettings {
 /// - [threshold]: Set threshold from where to start clipping. Default value is 0dB or 1. (range 0.000001..1, default 1, runtime-tunable)
 /// - [type]: Set type of soft-clipping.  It accepts the following values: (range -1..7, default 0, runtime-tunable)
 final class AsoftclipSettings {
+  /// Default value for [output].
   static const double outputDefault = 1.0;
+
+  /// Minimum value for [output].
   static const double outputMin = 0.000001;
+
+  /// Maximum value for [output].
   static const double outputMax = 16.0;
+
+  /// Default value for [oversample].
   static const int oversampleDefault = 1;
+
+  /// Minimum value for [oversample].
   static const int oversampleMin = 1;
+
+  /// Maximum value for [oversample].
   static const int oversampleMax = 64;
+
+  /// Default value for [param].
   static const double paramDefault = 1.0;
+
+  /// Minimum value for [param].
   static const double paramMin = 0.01;
+
+  /// Maximum value for [param].
   static const double paramMax = 3.0;
+
+  /// Default value for [threshold].
   static const double thresholdDefault = 1.0;
+
+  /// Minimum value for [threshold].
   static const double thresholdMin = 0.000001;
+
+  /// Maximum value for [threshold].
   static const double thresholdMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set softclip output gain
   final double output;
+
+  /// set oversample factor
   final int oversample;
+
+  /// set softclip parameter
   final double param;
+
+  /// set softclip threshold
   final double threshold;
+
+  /// set softclip type
   final AsoftclipTypes type;
 
+  /// Creates an [AsoftclipSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AsoftclipSettings({
     this.enabled = false,
     this.output = 1.0,
@@ -4581,6 +6275,7 @@ final class AsoftclipSettings {
     this.type = AsoftclipTypes.hard,
   });
 
+  /// Returns a copy of this [AsoftclipSettings] with the given fields replaced.
   AsoftclipSettings copyWith({
     bool? enabled,
     double? output,
@@ -4627,7 +6322,7 @@ final class AsoftclipSettings {
     assert(param >= paramMin, 'asoftclip.param must be >= 0.01');
     assert(param <= paramMax, 'asoftclip.param must be <= 3');
     assert(
-        threshold >= thresholdMin, 'asoftclip.threshold must be >= 0.000001');
+        threshold >= thresholdMin, 'asoftclip.threshold must be >= 0.000001',);
     assert(threshold <= thresholdMax, 'asoftclip.threshold must be <= 1');
     final parts = <String>[];
     if (output != 1.0) parts.add('output=' + _wireDouble(output));
@@ -4658,42 +6353,112 @@ final class AsoftclipSettings {
 /// - [slope]: Set slope amount for cutoff frequency. Allowed range is 0.0001 to 1. Default value is 0.5. (range 0.0001..1, default 0.5, runtime-tunable)
 /// - [wet]: Set wet gain, how much of filtered signal is kept. Allowed range is from 0 to 1. Default value is 1.0. (range 0..1, default 1.0, runtime-tunable)
 final class AsubboostSettings {
+  /// Default value for [boost].
   static const double boostDefault = 2.0;
+
+  /// Minimum value for [boost].
   static const double boostMin = 1.0;
+
+  /// Maximum value for [boost].
   static const double boostMax = 12.0;
+
+  /// Default value for [cutoff].
   static const double cutoffDefault = 100.0;
+
+  /// Minimum value for [cutoff].
   static const double cutoffMin = 50.0;
+
+  /// Maximum value for [cutoff].
   static const double cutoffMax = 900.0;
+
+  /// Default value for [decay].
   static const double decayDefault = 0.0;
+
+  /// Minimum value for [decay].
   static const double decayMin = 0.0;
+
+  /// Maximum value for [decay].
   static const double decayMax = 1.0;
+
+  /// Default value for [delay].
   static const double delayDefault = 20.0;
+
+  /// Minimum value for [delay].
   static const double delayMin = 1.0;
+
+  /// Maximum value for [delay].
   static const double delayMax = 100.0;
+
+  /// Default value for [dry].
   static const double dryDefault = 1.0;
+
+  /// Minimum value for [dry].
   static const double dryMin = 0.0;
+
+  /// Maximum value for [dry].
   static const double dryMax = 1.0;
+
+  /// Default value for [feedback].
   static const double feedbackDefault = 0.9;
+
+  /// Minimum value for [feedback].
   static const double feedbackMin = 0.0;
+
+  /// Maximum value for [feedback].
   static const double feedbackMax = 1.0;
+
+  /// Default value for [slope].
   static const double slopeDefault = 0.5;
+
+  /// Minimum value for [slope].
   static const double slopeMin = 0.0001;
+
+  /// Maximum value for [slope].
   static const double slopeMax = 1.0;
+
+  /// Default value for [wet].
   static const double wetDefault = 1.0;
+
+  /// Minimum value for [wet].
   static const double wetMin = 0.0;
+
+  /// Maximum value for [wet].
   static const double wetMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set max boost
   final double boost;
+
+  /// set channels to filter
   final String channels;
+
+  /// set cutoff
   final double cutoff;
+
+  /// set decay
   final double decay;
+
+  /// set delay
   final double delay;
+
+  /// set dry gain
   final double dry;
+
+  /// set feedback
   final double feedback;
+
+  /// set slope
   final double slope;
+
+  /// set wet gain
   final double wet;
 
+  /// Creates an [AsubboostSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AsubboostSettings({
     this.enabled = false,
     this.boost = 2.0,
@@ -4707,6 +6472,7 @@ final class AsubboostSettings {
     this.wet = 1.0,
   });
 
+  /// Returns a copy of this [AsubboostSettings] with the given fields replaced.
   AsubboostSettings copyWith({
     bool? enabled,
     double? boost,
@@ -4749,7 +6515,7 @@ final class AsubboostSettings {
 
   @override
   int get hashCode => Object.hash(enabled, boost, channels, cutoff, decay,
-      delay, dry, feedback, slope, wet);
+      delay, dry, feedback, slope, wet,);
 
   @override
   String toString() =>
@@ -4805,21 +6571,49 @@ final class AsubboostSettings {
 /// - [level]: Set input gain level. Allowed range is from 0 to 1. Default value is 1. (range 0.0..1.0, default 1., runtime-tunable)
 /// - [order]: Set filter order. Available values are from 3 to 20. Default value is 10. (range 3..20, default 10, runtime-tunable)
 final class AsubcutSettings {
+  /// Default value for [cutoff].
   static const double cutoffDefault = 20.0;
+
+  /// Minimum value for [cutoff].
   static const double cutoffMin = 2.0;
+
+  /// Maximum value for [cutoff].
   static const double cutoffMax = 200.0;
+
+  /// Default value for [level].
   static const double levelDefault = 1.0;
+
+  /// Minimum value for [level].
   static const double levelMin = 0.0;
+
+  /// Maximum value for [level].
   static const double levelMax = 1.0;
+
+  /// Default value for [order].
   static const int orderDefault = 10;
+
+  /// Minimum value for [order].
   static const int orderMin = 3;
+
+  /// Maximum value for [order].
   static const int orderMax = 20;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set cutoff frequency
   final double cutoff;
+
+  /// set input level
   final double level;
+
+  /// set filter order
   final int order;
 
+  /// Creates an [AsubcutSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AsubcutSettings({
     this.enabled = false,
     this.cutoff = 20.0,
@@ -4827,6 +6621,7 @@ final class AsubcutSettings {
     this.order = 10,
   });
 
+  /// Returns a copy of this [AsubcutSettings] with the given fields replaced.
   AsubcutSettings copyWith({
     bool? enabled,
     double? cutoff,
@@ -4884,21 +6679,49 @@ final class AsubcutSettings {
 /// - [level]: Set input gain level. Allowed range is from 0 to 1. Default value is 1. (range 0.0..1.0, default 1., runtime-tunable)
 /// - [order]: Set filter order. Available values are from 3 to 20. Default value is 10. (range 3..20, default 10, runtime-tunable)
 final class AsupercutSettings {
+  /// Default value for [cutoff].
   static const double cutoffDefault = 20000.0;
+
+  /// Minimum value for [cutoff].
   static const double cutoffMin = 20000.0;
+
+  /// Maximum value for [cutoff].
   static const double cutoffMax = 192000.0;
+
+  /// Default value for [level].
   static const double levelDefault = 1.0;
+
+  /// Minimum value for [level].
   static const double levelMin = 0.0;
+
+  /// Maximum value for [level].
   static const double levelMax = 1.0;
+
+  /// Default value for [order].
   static const int orderDefault = 10;
+
+  /// Minimum value for [order].
   static const int orderMin = 3;
+
+  /// Maximum value for [order].
   static const int orderMax = 20;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set cutoff frequency
   final double cutoff;
+
+  /// set input level
   final double level;
+
+  /// set filter order
   final int order;
 
+  /// Creates an [AsupercutSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AsupercutSettings({
     this.enabled = false,
     this.cutoff = 20000.0,
@@ -4906,6 +6729,7 @@ final class AsupercutSettings {
     this.order = 10,
   });
 
+  /// Returns a copy of this [AsupercutSettings] with the given fields replaced.
   AsupercutSettings copyWith({
     bool? enabled,
     double? cutoff,
@@ -4966,25 +6790,61 @@ final class AsupercutSettings {
 /// - [order]: Set filter order. Available values are from 4 to 20. Default value is 4. (range 4..20, default 4, runtime-tunable)
 /// - [qfactor]: Set Q-factor. Allowed range is from 0.01 to 100. Default value is 1. (range 0.01..100.0, default 1., runtime-tunable)
 final class AsuperpassSettings {
+  /// Default value for [centerf].
   static const double centerfDefault = 1000.0;
+
+  /// Minimum value for [centerf].
   static const double centerfMin = 2.0;
+
+  /// Maximum value for [centerf].
   static const double centerfMax = 999999.0;
+
+  /// Default value for [level].
   static const double levelDefault = 1.0;
+
+  /// Minimum value for [level].
   static const double levelMin = 0.0;
+
+  /// Maximum value for [level].
   static const double levelMax = 2.0;
+
+  /// Default value for [order].
   static const int orderDefault = 4;
+
+  /// Minimum value for [order].
   static const int orderMin = 4;
+
+  /// Maximum value for [order].
   static const int orderMax = 20;
+
+  /// Default value for [qfactor].
   static const double qfactorDefault = 1.0;
+
+  /// Minimum value for [qfactor].
   static const double qfactorMin = 0.01;
+
+  /// Maximum value for [qfactor].
   static const double qfactorMax = 100.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set center frequency
   final double centerf;
+
+  /// set input level
   final double level;
+
+  /// set filter order
   final int order;
+
+  /// set Q-factor
   final double qfactor;
 
+  /// Creates an [AsuperpassSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AsuperpassSettings({
     this.enabled = false,
     this.centerf = 1000.0,
@@ -4993,6 +6853,7 @@ final class AsuperpassSettings {
     this.qfactor = 1.0,
   });
 
+  /// Returns a copy of this [AsuperpassSettings] with the given fields replaced.
   AsuperpassSettings copyWith({
     bool? enabled,
     double? centerf,
@@ -5059,25 +6920,61 @@ final class AsuperpassSettings {
 /// - [order]: Set filter order. Available values are from 4 to 20. Default value is 4. (range 4..20, default 4, runtime-tunable)
 /// - [qfactor]: Set Q-factor. Allowed range is from 0.01 to 100. Default value is 1. (range 0.01..100.0, default 1., runtime-tunable)
 final class AsuperstopSettings {
+  /// Default value for [centerf].
   static const double centerfDefault = 1000.0;
+
+  /// Minimum value for [centerf].
   static const double centerfMin = 2.0;
+
+  /// Maximum value for [centerf].
   static const double centerfMax = 999999.0;
+
+  /// Default value for [level].
   static const double levelDefault = 1.0;
+
+  /// Minimum value for [level].
   static const double levelMin = 0.0;
+
+  /// Maximum value for [level].
   static const double levelMax = 2.0;
+
+  /// Default value for [order].
   static const int orderDefault = 4;
+
+  /// Minimum value for [order].
   static const int orderMin = 4;
+
+  /// Maximum value for [order].
   static const int orderMax = 20;
+
+  /// Default value for [qfactor].
   static const double qfactorDefault = 1.0;
+
+  /// Minimum value for [qfactor].
   static const double qfactorMin = 0.01;
+
+  /// Maximum value for [qfactor].
   static const double qfactorMax = 100.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set center frequency
   final double centerf;
+
+  /// set input level
   final double level;
+
+  /// set filter order
   final int order;
+
+  /// set Q-factor
   final double qfactor;
 
+  /// Creates an [AsuperstopSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AsuperstopSettings({
     this.enabled = false,
     this.centerf = 1000.0,
@@ -5086,6 +6983,7 @@ final class AsuperstopSettings {
     this.qfactor = 1.0,
   });
 
+  /// Returns a copy of this [AsuperstopSettings] with the given fields replaced.
   AsuperstopSettings copyWith({
     bool? enabled,
     double? centerf,
@@ -5164,18 +7062,31 @@ final class AsuperstopSettings {
 /// Parameters:
 /// - [tempo]: Change filter tempo scale factor. Syntax for the command is : "`tempo`" (range 0.5..100.0, default 1.0, runtime-tunable)
 final class AtempoSettings {
+  /// Default value for [tempo].
   static const double tempoDefault = 1.0;
+
+  /// Minimum value for [tempo].
   static const double tempoMin = 0.5;
+
+  /// Maximum value for [tempo].
   static const double tempoMax = 100.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set tempo scale factor
   final double tempo;
 
+  /// Creates an [AtempoSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AtempoSettings({
     this.enabled = false,
     this.tempo = 1.0,
   });
 
+  /// Returns a copy of this [AtempoSettings] with the given fields replaced.
   AtempoSettings copyWith({
     bool? enabled,
     double? tempo,
@@ -5224,29 +7135,73 @@ final class AtempoSettings {
 /// - [slope]: Set slope direction of tilt. Default is 0. Allowed range is from -1 to 1. (range -1..1, default 0, runtime-tunable)
 /// - [width]: Set width of tilt. Default is 1000. Allowed range is from 100 to 10000. (range 100..10000, default 1000, runtime-tunable)
 final class AtiltSettings {
+  /// Default value for [freq].
   static const double freqDefault = 10000.0;
+
+  /// Minimum value for [freq].
   static const double freqMin = 20.0;
+
+  /// Maximum value for [freq].
   static const double freqMax = 192000.0;
+
+  /// Default value for [level].
   static const double levelDefault = 1.0;
+
+  /// Minimum value for [level].
   static const double levelMin = 0.0;
+
+  /// Maximum value for [level].
   static const double levelMax = 4.0;
+
+  /// Default value for [order].
   static const int orderDefault = 5;
+
+  /// Minimum value for [order].
   static const int orderMin = 2;
+
+  /// Maximum value for [order].
   static const int orderMax = 30;
+
+  /// Default value for [slope].
   static const double slopeDefault = 0.0;
+
+  /// Minimum value for [slope].
   static const double slopeMin = -1.0;
+
+  /// Maximum value for [slope].
   static const double slopeMax = 1.0;
+
+  /// Default value for [width].
   static const double widthDefault = 1000.0;
+
+  /// Minimum value for [width].
   static const double widthMin = 100.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 10000.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set central frequency
   final double freq;
+
+  /// set input level
   final double level;
+
+  /// set filter order
   final int order;
+
+  /// set filter slope
   final double slope;
+
+  /// set filter width
   final double width;
 
+  /// Creates an [AtiltSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const AtiltSettings({
     this.enabled = false,
     this.freq = 10000.0,
@@ -5256,6 +7211,7 @@ final class AtiltSettings {
     this.width = 1000.0,
   });
 
+  /// Returns a copy of this [AtiltSettings] with the given fields replaced.
   AtiltSettings copyWith({
     bool? enabled,
     double? freq,
@@ -5345,52 +7301,142 @@ final class AtiltSettings {
 /// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class BandpassSettings {
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [f].
   static const double fDefault = 3000.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 3000.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [w].
   static const double wDefault = 0.5;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 0.5;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final BandpassTransformType a;
+
+  /// set the block size
   final int b;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// use constant skirt gain
   final bool csg;
+
+  /// set central frequency
   final double f;
+
+  /// set central frequency
   final double frequency;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set filtering precision
   final BandpassPrecision precision;
+
+  /// set filtering precision
   final BandpassPrecision r;
+
+  /// set filter-width type
   final BandpassWidthType t;
+
+  /// set transform type
   final BandpassTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final BandpassWidthType width_type;
 
+  /// Creates an [BandpassSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const BandpassSettings({
     this.enabled = false,
     this.a = BandpassTransformType.di,
@@ -5414,6 +7460,7 @@ final class BandpassSettings {
     this.width_type = BandpassWidthType.q,
   });
 
+  /// Returns a copy of this [BandpassSettings] with the given fields replaced.
   BandpassSettings copyWith({
     bool? enabled,
     BandpassTransformType? a,
@@ -5505,7 +7552,7 @@ final class BandpassSettings {
       transform,
       w,
       width,
-      width_type);
+      width_type,);
 
   @override
   String toString() =>
@@ -5587,51 +7634,139 @@ final class BandpassSettings {
 /// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 0.5, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class BandrejectSettings {
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [f].
   static const double fDefault = 3000.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 3000.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [w].
   static const double wDefault = 0.5;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 0.5;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final BandrejectTransformType a;
+
+  /// set the block size
   final int b;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set central frequency
   final double f;
+
+  /// set central frequency
   final double frequency;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set filtering precision
   final BandrejectPrecision precision;
+
+  /// set filtering precision
   final BandrejectPrecision r;
+
+  /// set filter-width type
   final BandrejectWidthType t;
+
+  /// set transform type
   final BandrejectTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final BandrejectWidthType width_type;
 
+  /// Creates an [BandrejectSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const BandrejectSettings({
     this.enabled = false,
     this.a = BandrejectTransformType.di,
@@ -5654,6 +7789,7 @@ final class BandrejectSettings {
     this.width_type = BandrejectWidthType.q,
   });
 
+  /// Returns a copy of this [BandrejectSettings] with the given fields replaced.
   BandrejectSettings copyWith({
     bool? enabled,
     BandrejectTransformType? a,
@@ -5741,7 +7877,7 @@ final class BandrejectSettings {
       transform,
       w,
       width,
-      width_type);
+      width_type,);
 
   @override
   String toString() =>
@@ -5826,67 +7962,187 @@ final class BandrejectSettings {
 /// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class BassSettings {
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [f].
   static const double fDefault = 100.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 100.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [g].
   static const double gDefault = 0.0;
+
+  /// Minimum value for [g].
   static const double gMin = -900.0;
+
+  /// Maximum value for [g].
   static const double gMax = 900.0;
+
+  /// Default value for [gain].
   static const double gainDefault = 0.0;
+
+  /// Minimum value for [gain].
   static const double gainMin = -900.0;
+
+  /// Maximum value for [gain].
   static const double gainMax = 900.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [p].
   static const int pDefault = 2;
+
+  /// Minimum value for [p].
   static const int pMin = 1;
+
+  /// Maximum value for [p].
   static const int pMax = 2;
+
+  /// Default value for [poles].
   static const int polesDefault = 2;
+
+  /// Minimum value for [poles].
   static const int polesMin = 1;
+
+  /// Maximum value for [poles].
   static const int polesMax = 2;
+
+  /// Default value for [w].
   static const double wDefault = 0.5;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 0.5;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final BassTransformType a;
+
+  /// set the block size
   final int b;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set central frequency
   final double f;
+
+  /// set central frequency
   final double frequency;
+
+  /// set gain
   final double g;
+
+  /// set gain
   final double gain;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set number of poles
   final int p;
+
+  /// set number of poles
   final int poles;
+
+  /// set filtering precision
   final BassPrecision precision;
+
+  /// set filtering precision
   final BassPrecision r;
+
+  /// set filter-width type
   final BassWidthType t;
+
+  /// set transform type
   final BassTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final BassWidthType width_type;
 
+  /// Creates an [BassSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const BassSettings({
     this.enabled = false,
     this.a = BassTransformType.di,
@@ -5913,6 +8169,7 @@ final class BassSettings {
     this.width_type = BassWidthType.q,
   });
 
+  /// Returns a copy of this [BassSettings] with the given fields replaced.
   BassSettings copyWith({
     bool? enabled,
     BassTransformType? a,
@@ -6016,7 +8273,7 @@ final class BassSettings {
         transform,
         w,
         width,
-        width_type
+        width_type,
       ]);
 
   @override
@@ -6110,57 +8367,157 @@ final class BassSettings {
 /// - [r]: Set precision of filtering. (range -1..3, default -1)
 /// - [transform]: Set transform type of IIR filter. (range 0..6, default DI)
 final class BiquadSettings {
+  /// Default value for [a0].
   static const double a0Default = 1.0;
+
+  /// Minimum value for [a0].
   static const double a0Min = -2147483648.0;
+
+  /// Maximum value for [a0].
   static const double a0Max = 2147483647.0;
+
+  /// Default value for [a1].
   static const double a1Default = 0.0;
+
+  /// Minimum value for [a1].
   static const double a1Min = -2147483648.0;
+
+  /// Maximum value for [a1].
   static const double a1Max = 2147483647.0;
+
+  /// Default value for [a2].
   static const double a2Default = 0.0;
+
+  /// Minimum value for [a2].
   static const double a2Min = -2147483648.0;
+
+  /// Maximum value for [a2].
   static const double a2Max = 2147483647.0;
+
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [b0].
   static const double b0Default = 0.0;
+
+  /// Minimum value for [b0].
   static const double b0Min = -2147483648.0;
+
+  /// Maximum value for [b0].
   static const double b0Max = 2147483647.0;
+
+  /// Default value for [b1].
   static const double b1Default = 0.0;
+
+  /// Minimum value for [b1].
   static const double b1Min = -2147483648.0;
+
+  /// Maximum value for [b1].
   static const double b1Max = 2147483647.0;
+
+  /// Default value for [b2].
   static const double b2Default = 0.0;
+
+  /// Minimum value for [b2].
   static const double b2Min = -2147483648.0;
+
+  /// Maximum value for [b2].
   static const double b2Max = 2147483647.0;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final BiquadTransformType a;
+
+  /// The `a0` parameter.
   final double a0;
+
+  /// The `a1` parameter.
   final double a1;
+
+  /// The `a2` parameter.
   final double a2;
+
+  /// set the block size
   final int b;
+
+  /// The `b0` parameter.
   final double b0;
+
+  /// The `b1` parameter.
   final double b1;
+
+  /// The `b2` parameter.
   final double b2;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set filtering precision
   final BiquadPrecision precision;
+
+  /// set filtering precision
   final BiquadPrecision r;
+
+  /// set transform type
   final BiquadTransformType transform;
 
+  /// Creates an [BiquadSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const BiquadSettings({
     this.enabled = false,
     this.a = BiquadTransformType.di,
@@ -6183,6 +8540,7 @@ final class BiquadSettings {
     this.transform = BiquadTransformType.di,
   });
 
+  /// Returns a copy of this [BiquadSettings] with the given fields replaced.
   BiquadSettings copyWith({
     bool? enabled,
     BiquadTransformType? a,
@@ -6252,7 +8610,7 @@ final class BiquadSettings {
 
   @override
   int get hashCode => Object.hash(enabled, a, a0, a1, a2, b, b0, b1, b2,
-      blocksize, c, channels, m, mix, n, normalize, precision, r, transform);
+      blocksize, c, channels, m, mix, n, normalize, precision, r, transform,);
 
   @override
   String toString() =>
@@ -6316,16 +8674,26 @@ final class BiquadSettings {
 /// - [channel_layout]: The channel layout of the output stream. If not specified, then filter will guess it based on the `out_channel` names or the number of mappings. Guessed layouts will not necessarily contain channels in the order of the mappings.
 /// - [map]: Map channels from input to output. The argument is a '|'-separated list of mappings, each in the `@var{in_channel`-`out_channel`} or `@var{in_channel`} form. `in_channel` can be either the name of the input channel (e.g. FL for front left) or its index in the input channel layout. `out_channel` is the name of the output channel or its index in the output channel layout. If `out_channel` is not given then it is implicitly an index, starting with zero and increasing by one for each mapping. Mixing different types of mappings is not allowed and will result in a parse error.
 final class ChannelmapSettings {
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// Output channel layout.
   final String? channel_layout;
+
+  /// A comma-separated list of input channel numbers in output order.
   final String? map;
 
+  /// Creates an [ChannelmapSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const ChannelmapSettings({
     this.enabled = false,
     this.channel_layout,
     this.map,
   });
 
+  /// Returns a copy of this [ChannelmapSettings] with the given fields replaced.
   ChannelmapSettings copyWith({
     bool? enabled,
     Object? channel_layout = unset,
@@ -6390,21 +8758,49 @@ final class ChannelmapSettings {
 /// - [out_gain]: Set output gain. Default is 0.4. (range 0..1, default .4)
 /// - [speeds]: Set speeds. (range 0..0, default "")
 final class ChorusSettings {
+  /// Default value for [in_gain].
   static const double in_gainDefault = .4;
+
+  /// Minimum value for [in_gain].
   static const double in_gainMin = 0.0;
+
+  /// Maximum value for [in_gain].
   static const double in_gainMax = 1.0;
+
+  /// Default value for [out_gain].
   static const double out_gainDefault = .4;
+
+  /// Minimum value for [out_gain].
   static const double out_gainMin = 0.0;
+
+  /// Maximum value for [out_gain].
   static const double out_gainMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set decays
   final String decays;
+
+  /// set delays
   final String delays;
+
+  /// set depths
   final String depths;
+
+  /// set input gain
   final double in_gain;
+
+  /// set output gain
   final double out_gain;
+
+  /// set speeds
   final String speeds;
 
+  /// Creates an [ChorusSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const ChorusSettings({
     this.enabled = false,
     this.decays = '',
@@ -6415,6 +8811,7 @@ final class ChorusSettings {
     this.speeds = '',
   });
 
+  /// Returns a copy of this [ChorusSettings] with the given fields replaced.
   ChorusSettings copyWith({
     bool? enabled,
     String? decays,
@@ -6490,25 +8887,62 @@ final class ChorusSettings {
 /// their original key in the [params] map:
 /// - `soft-knee`: Set the curve radius in dB for all joints. It defaults to 0.01. (range 0.01..900, default 0.01)
 final class CompandSettings {
+  /// Default value for [delay].
   static const double delayDefault = 0.0;
+
+  /// Minimum value for [delay].
   static const double delayMin = 0.0;
+
+  /// Maximum value for [delay].
   static const double delayMax = 20.0;
+
+  /// Default value for [gain].
   static const double gainDefault = 0.0;
+
+  /// Minimum value for [gain].
   static const double gainMin = -900.0;
+
+  /// Maximum value for [gain].
   static const double gainMax = 900.0;
+
+  /// Default value for [volume].
   static const double volumeDefault = 0.0;
+
+  /// Minimum value for [volume].
   static const double volumeMin = -900.0;
+
+  /// Maximum value for [volume].
   static const double volumeMax = 0.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set time over which increase of volume is determined
   final String attacks;
+
+  /// set time over which decrease of volume is determined
   final String decays;
+
+  /// set delay for samples before sending them to volume adjuster
   final double delay;
+
+  /// set output gain
   final double gain;
+
+  /// set points of transfer function
   final String points;
+
+  /// set initial volume
   final double volume;
+
+  /// Raw values for parameters whose names start with a digit,
+  /// keyed by their original ffmpeg option name.
   final Map<String, double> params;
 
+  /// Creates an [CompandSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const CompandSettings({
     this.enabled = false,
     this.attacks = '0',
@@ -6520,6 +8954,7 @@ final class CompandSettings {
     this.params = const <String, double>{},
   });
 
+  /// Returns a copy of this [CompandSettings] with the given fields replaced.
   CompandSettings copyWith({
     bool? enabled,
     String? attacks,
@@ -6564,7 +8999,7 @@ final class CompandSettings {
       points,
       volume,
       Object.hashAllUnordered(
-          params.entries.map((e) => Object.hash(e.key, e.value))));
+          params.entries.map((e) => Object.hash(e.key, e.value)),),);
 
   @override
   String toString() =>
@@ -6622,33 +9057,85 @@ final class CompandSettings {
 /// - [temp]: Set temperature in degrees Celsius. This is the temperature of the environment. Default is 20. (range -50..50, default 20)
 /// - [wet]: Set wet amount. Amount of processed (wet) signal. Default is 1. (range 0..1, default 1)
 final class CompensationdelaySettings {
+  /// Default value for [cm].
   static const int cmDefault = 0;
+
+  /// Minimum value for [cm].
   static const int cmMin = 0;
+
+  /// Maximum value for [cm].
   static const int cmMax = 100;
+
+  /// Default value for [dry].
   static const double dryDefault = 0.0;
+
+  /// Minimum value for [dry].
   static const double dryMin = 0.0;
+
+  /// Maximum value for [dry].
   static const double dryMax = 1.0;
+
+  /// Default value for [m].
   static const int mDefault = 0;
+
+  /// Minimum value for [m].
   static const int mMin = 0;
+
+  /// Maximum value for [m].
   static const int mMax = 100;
+
+  /// Default value for [mm].
   static const int mmDefault = 0;
+
+  /// Minimum value for [mm].
   static const int mmMin = 0;
+
+  /// Maximum value for [mm].
   static const int mmMax = 10;
+
+  /// Default value for [temp].
   static const int tempDefault = 20;
+
+  /// Minimum value for [temp].
   static const int tempMin = -50;
+
+  /// Maximum value for [temp].
   static const int tempMax = 50;
+
+  /// Default value for [wet].
   static const double wetDefault = 1.0;
+
+  /// Minimum value for [wet].
   static const double wetMin = 0.0;
+
+  /// Maximum value for [wet].
   static const double wetMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set cm distance
   final int cm;
+
+  /// set dry amount
   final double dry;
+
+  /// set meter distance
   final int m;
+
+  /// set mm distance
   final int mm;
+
+  /// set temperature °C
   final int temp;
+
+  /// set wet amount
   final double wet;
 
+  /// Creates an [CompensationdelaySettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const CompensationdelaySettings({
     this.enabled = false,
     this.cm = 0,
@@ -6659,6 +9146,7 @@ final class CompensationdelaySettings {
     this.wet = 1.0,
   });
 
+  /// Returns a copy of this [CompensationdelaySettings] with the given fields replaced.
   CompensationdelaySettings copyWith({
     bool? enabled,
     int? cm,
@@ -6745,33 +9233,85 @@ final class CompensationdelaySettings {
 /// - [slope]: Set curve slope of low shelf filter. Default is 0.5. Allowed range is from 0.01 to 1. (range .01..1, default .5, runtime-tunable)
 /// - [strength]: Set strength of crossfeed. Default is 0.2. Allowed range is from 0 to 1. This sets gain of low shelf filter for side part of stereo image. Default is -6dB. Max allowed is -30db when strength is set to 1. (range 0..1, default .2, runtime-tunable)
 final class CrossfeedSettings {
+  /// Default value for [block_size].
   static const int block_sizeDefault = 0;
+
+  /// Minimum value for [block_size].
   static const int block_sizeMin = 0;
+
+  /// Maximum value for [block_size].
   static const int block_sizeMax = 32768;
+
+  /// Default value for [level_in].
   static const double level_inDefault = .9;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = 0.0;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 1.0;
+
+  /// Default value for [level_out].
   static const double level_outDefault = 1.0;
+
+  /// Minimum value for [level_out].
   static const double level_outMin = 0.0;
+
+  /// Maximum value for [level_out].
   static const double level_outMax = 1.0;
+
+  /// Default value for [range].
   static const double rangeDefault = .5;
+
+  /// Minimum value for [range].
   static const double rangeMin = 0.0;
+
+  /// Maximum value for [range].
   static const double rangeMax = 1.0;
+
+  /// Default value for [slope].
   static const double slopeDefault = .5;
+
+  /// Minimum value for [slope].
   static const double slopeMin = .01;
+
+  /// Maximum value for [slope].
   static const double slopeMax = 1.0;
+
+  /// Default value for [strength].
   static const double strengthDefault = .2;
+
+  /// Minimum value for [strength].
   static const double strengthMin = 0.0;
+
+  /// Maximum value for [strength].
   static const double strengthMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set the block size
   final int block_size;
+
+  /// set level in
   final double level_in;
+
+  /// set level out
   final double level_out;
+
+  /// set soundstage wideness
   final double range;
+
+  /// set curve slope
   final double slope;
+
+  /// set crossfeed strength
   final double strength;
 
+  /// Creates an [CrossfeedSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const CrossfeedSettings({
     this.enabled = false,
     this.block_size = 0,
@@ -6782,6 +9322,7 @@ final class CrossfeedSettings {
     this.strength = .2,
   });
 
+  /// Returns a copy of this [CrossfeedSettings] with the given fields replaced.
   CrossfeedSettings copyWith({
     bool? enabled,
     int? block_size,
@@ -6815,7 +9356,7 @@ final class CrossfeedSettings {
 
   @override
   int get hashCode => Object.hash(
-      enabled, block_size, level_in, level_out, range, slope, strength);
+      enabled, block_size, level_in, level_out, range, slope, strength,);
 
   @override
   String toString() =>
@@ -6826,7 +9367,7 @@ final class CrossfeedSettings {
   String toFilterString() {
     assert(block_size >= block_sizeMin, 'crossfeed.block_size must be >= 0');
     assert(
-        block_size <= block_sizeMax, 'crossfeed.block_size must be <= 32768');
+        block_size <= block_sizeMax, 'crossfeed.block_size must be <= 32768',);
     assert(level_in >= level_inMin, 'crossfeed.level_in must be >= 0');
     assert(level_in <= level_inMax, 'crossfeed.level_in must be <= 1');
     assert(level_out >= level_outMin, 'crossfeed.level_out must be >= 0');
@@ -6862,20 +9403,35 @@ final class CrossfeedSettings {
 /// - [c]: Enable clipping. By default is enabled. (range 0..1, default 1, runtime-tunable)
 /// - [i]: Sets the intensity of effect (default: 2.0). Must be in range between -10.0 to 0 (unchanged sound) to 10.0 (maximum effect). To inverse filtering use negative value. (range -10..10, default 2.0, runtime-tunable)
 final class CrystalizerSettings {
+  /// Default value for [i].
   static const double iDefault = 2.0;
+
+  /// Minimum value for [i].
   static const double iMin = -10.0;
+
+  /// Maximum value for [i].
   static const double iMax = 10.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// enable clipping
   final bool c;
+
+  /// set intensity
   final double i;
 
+  /// Creates an [CrystalizerSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const CrystalizerSettings({
     this.enabled = false,
     this.c = true,
     this.i = 2.0,
   });
 
+  /// Returns a copy of this [CrystalizerSettings] with the given fields replaced.
   CrystalizerSettings copyWith({
     bool? enabled,
     bool? c,
@@ -6928,23 +9484,44 @@ final class CrystalizerSettings {
 /// - [limitergain]: Optional. It should have a value much less than 1 (e.g. 0.05 or 0.02) and is used to prevent clipping. (range 0..1, default 0)
 /// - [shift]: Set the DC shift, allowed range is [-1, 1]. It indicates the amount to shift the audio. (range -1..1, default 0)
 final class DcshiftSettings {
+  /// Default value for [limitergain].
   static const double limitergainDefault = 0.0;
+
+  /// Minimum value for [limitergain].
   static const double limitergainMin = 0.0;
+
+  /// Maximum value for [limitergain].
   static const double limitergainMax = 1.0;
+
+  /// Default value for [shift].
   static const double shiftDefault = 0.0;
+
+  /// Minimum value for [shift].
   static const double shiftMin = -1.0;
+
+  /// Maximum value for [shift].
   static const double shiftMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set limiter gain
   final double limitergain;
+
+  /// set DC shift
   final double shift;
 
+  /// Creates an [DcshiftSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const DcshiftSettings({
     this.enabled = false,
     this.limitergain = 0.0,
     this.shift = 0.0,
   });
 
+  /// Returns a copy of this [DcshiftSettings] with the given fields replaced.
   DcshiftSettings copyWith({
     bool? enabled,
     double? limitergain,
@@ -6996,22 +9573,52 @@ final class DcshiftSettings {
 /// - [m]: Set amount of ducking on treble part of sound. Allowed range is from 0 to 1. Default is 0.5. (range 0.0..1.0, default 0.5)
 /// - [s]: Set the output mode.  It accepts the following values: (range 0..2, default OUT_MODE)
 final class DeesserSettings {
+  /// Default value for [f].
   static const double fDefault = 0.5;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 1.0;
+
+  /// Default value for [i].
   static const double iDefault = 0.0;
+
+  /// Minimum value for [i].
   static const double iMin = 0.0;
+
+  /// Maximum value for [i].
   static const double iMax = 1.0;
+
+  /// Default value for [m].
   static const double mDefault = 0.5;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set frequency
   final double f;
+
+  /// set intensity
   final double i;
+
+  /// set max deessing
   final double m;
+
+  /// set output mode
   final DeesserMode s;
 
+  /// Creates an [DeesserSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const DeesserSettings({
     this.enabled = false,
     this.f = 0.5,
@@ -7020,6 +9627,7 @@ final class DeesserSettings {
     this.s = DeesserMode.o,
   });
 
+  /// Returns a copy of this [DeesserSettings] with the given fields replaced.
   DeesserSettings copyWith({
     bool? enabled,
     double? f,
@@ -7086,21 +9694,49 @@ final class DeesserSettings {
 /// - [original]: Set the original center factor to keep in front center channel output. Allowed range is from 0 to 1. Default value is 1. (range 0..1, default 1, runtime-tunable)
 /// - [voice]: Set the voice detection factor. Allowed range is from 2 to 32. Default value is 2. (range 2..32, default 2, runtime-tunable)
 final class DialoguenhanceSettings {
+  /// Default value for [enhance].
   static const double enhanceDefault = 1.0;
+
+  /// Minimum value for [enhance].
   static const double enhanceMin = 0.0;
+
+  /// Maximum value for [enhance].
   static const double enhanceMax = 3.0;
+
+  /// Default value for [original].
   static const double originalDefault = 1.0;
+
+  /// Minimum value for [original].
   static const double originalMin = 0.0;
+
+  /// Maximum value for [original].
   static const double originalMax = 1.0;
+
+  /// Default value for [voice].
   static const double voiceDefault = 2.0;
+
+  /// Minimum value for [voice].
   static const double voiceMin = 2.0;
+
+  /// Maximum value for [voice].
   static const double voiceMax = 32.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set dialogue enhance factor
   final double enhance;
+
+  /// set original center factor
   final double original;
+
+  /// set voice detection factor
   final double voice;
 
+  /// Creates an [DialoguenhanceSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const DialoguenhanceSettings({
     this.enabled = false,
     this.enhance = 1.0,
@@ -7108,6 +9744,7 @@ final class DialoguenhanceSettings {
     this.voice = 2.0,
   });
 
+  /// Returns a copy of this [DialoguenhanceSettings] with the given fields replaced.
   DialoguenhanceSettings copyWith({
     bool? enabled,
     double? enhance,
@@ -7169,18 +9806,31 @@ final class DialoguenhanceSettings {
 /// Parameters:
 /// - [length]: Set window length in seconds used to split audio into segments of equal length. Default is 3 seconds. (range .01..10, default 3)
 final class DrmeterSettings {
+  /// Default value for [length].
   static const double lengthDefault = 3.0;
+
+  /// Minimum value for [length].
   static const double lengthMin = .01;
+
+  /// Maximum value for [length].
   static const double lengthMax = 10.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set the window length
   final double length;
 
+  /// Creates an [DrmeterSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const DrmeterSettings({
     this.enabled = false,
     this.length = 3.0,
   });
 
+  /// Returns a copy of this [DrmeterSettings] with the given fields replaced.
   DrmeterSettings copyWith({
     bool? enabled,
     double? length,
@@ -7258,83 +9908,235 @@ final class DrmeterSettings {
 /// - [threshold]: Set the target threshold value. This specifies the lowest permissible magnitude level for the audio input which will be normalized. If input frame volume is above this value frame will be normalized. Otherwise frame may not be normalized at all. The default value is set to 0, which means all input frames will be normalized. This option is mostly useful if digital noise is not wanted to be amplified. (range 0.0..1.0, default 0.0, runtime-tunable)
 /// - [v]: Specify the peak mapping curve expression which is going to be used when calculating gain applied to frames. The max output frame gain will still be limited by other options mentioned previously for this filter.  The expression can contain the following constants: (default "", runtime-tunable)
 final class DynaudnormSettings {
+  /// Default value for [compress].
   static const double compressDefault = 0.0;
+
+  /// Minimum value for [compress].
   static const double compressMin = 0.0;
+
+  /// Maximum value for [compress].
   static const double compressMax = 30.0;
+
+  /// Default value for [f].
   static const int fDefault = 500;
+
+  /// Minimum value for [f].
   static const int fMin = 10;
+
+  /// Maximum value for [f].
   static const int fMax = 8000;
+
+  /// Default value for [framelen].
   static const int framelenDefault = 500;
+
+  /// Minimum value for [framelen].
   static const int framelenMin = 10;
+
+  /// Maximum value for [framelen].
   static const int framelenMax = 8000;
+
+  /// Default value for [g].
   static const int gDefault = 31;
+
+  /// Minimum value for [g].
   static const int gMin = 3;
+
+  /// Maximum value for [g].
   static const int gMax = 301;
+
+  /// Default value for [gausssize].
   static const int gausssizeDefault = 31;
+
+  /// Minimum value for [gausssize].
   static const int gausssizeMin = 3;
+
+  /// Maximum value for [gausssize].
   static const int gausssizeMax = 301;
+
+  /// Default value for [m].
   static const double mDefault = 10.0;
+
+  /// Minimum value for [m].
   static const double mMin = 1.0;
+
+  /// Maximum value for [m].
   static const double mMax = 100.0;
+
+  /// Default value for [maxgain].
   static const double maxgainDefault = 10.0;
+
+  /// Minimum value for [maxgain].
   static const double maxgainMin = 1.0;
+
+  /// Maximum value for [maxgain].
   static const double maxgainMax = 100.0;
+
+  /// Default value for [o].
   static const double oDefault = .0;
+
+  /// Minimum value for [o].
   static const double oMin = 0.0;
+
+  /// Maximum value for [o].
   static const double oMax = 1.0;
+
+  /// Default value for [overlap].
   static const double overlapDefault = .0;
+
+  /// Minimum value for [overlap].
   static const double overlapMin = 0.0;
+
+  /// Maximum value for [overlap].
   static const double overlapMax = 1.0;
+
+  /// Default value for [p].
   static const double pDefault = 0.95;
+
+  /// Minimum value for [p].
   static const double pMin = 0.0;
+
+  /// Maximum value for [p].
   static const double pMax = 1.0;
+
+  /// Default value for [peak].
   static const double peakDefault = 0.95;
+
+  /// Minimum value for [peak].
   static const double peakMin = 0.0;
+
+  /// Maximum value for [peak].
   static const double peakMax = 1.0;
+
+  /// Default value for [r].
   static const double rDefault = 0.0;
+
+  /// Minimum value for [r].
   static const double rMin = 0.0;
+
+  /// Maximum value for [r].
   static const double rMax = 1.0;
+
+  /// Default value for [s].
   static const double sDefault = 0.0;
+
+  /// Minimum value for [s].
   static const double sMin = 0.0;
+
+  /// Maximum value for [s].
   static const double sMax = 30.0;
+
+  /// Default value for [t].
   static const double tDefault = 0.0;
+
+  /// Minimum value for [t].
   static const double tMin = 0.0;
+
+  /// Maximum value for [t].
   static const double tMax = 1.0;
+
+  /// Default value for [targetrms].
   static const double targetrmsDefault = 0.0;
+
+  /// Minimum value for [targetrms].
   static const double targetrmsMin = 0.0;
+
+  /// Maximum value for [targetrms].
   static const double targetrmsMax = 1.0;
+
+  /// Default value for [threshold].
   static const double thresholdDefault = 0.0;
+
+  /// Minimum value for [threshold].
   static const double thresholdMin = 0.0;
+
+  /// Maximum value for [threshold].
   static const double thresholdMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set alternative boundary mode
   final bool altboundary;
+
+  /// set alternative boundary mode
   final bool b;
+
+  /// set DC correction
   final bool c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set the compress factor
   final double compress;
+
+  /// set DC correction
   final bool correctdc;
+
+  /// set channel coupling
   final bool coupling;
+
+  /// set the custom peak mapping curve
   final String curve;
+
+  /// set the frame length in msec
   final int f;
+
+  /// set the frame length in msec
   final int framelen;
+
+  /// set the filter size
   final int g;
+
+  /// set the filter size
   final int gausssize;
+
+  /// set channels to filter
   final String h;
+
+  /// set the max amplification
   final double m;
+
+  /// set the max amplification
   final double maxgain;
+
+  /// set channel coupling
   final bool n;
+
+  /// set the frame overlap
   final double o;
+
+  /// set the frame overlap
   final double overlap;
+
+  /// set the peak value
   final double p;
+
+  /// set the peak value
   final double peak;
+
+  /// set the target RMS
   final double r;
+
+  /// set the compress factor
   final double s;
+
+  /// set the threshold value
   final double t;
+
+  /// set the target RMS
   final double targetrms;
+
+  /// set the threshold value
   final double threshold;
+
+  /// set the custom peak mapping curve
   final String v;
 
+  /// Creates an [DynaudnormSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const DynaudnormSettings({
     this.enabled = false,
     this.altboundary = false,
@@ -7365,6 +10167,7 @@ final class DynaudnormSettings {
     this.v = '',
   });
 
+  /// Returns a copy of this [DynaudnormSettings] with the given fields replaced.
   DynaudnormSettings copyWith({
     bool? enabled,
     bool? altboundary,
@@ -7484,7 +10287,7 @@ final class DynaudnormSettings {
         t,
         targetrms,
         threshold,
-        v
+        v,
       ]);
 
   @override
@@ -7571,12 +10374,18 @@ final class DynaudnormSettings {
 ///
 /// Ported from SoX.
 final class EarwaxSettings {
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
 
+  /// Creates an [EarwaxSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const EarwaxSettings({
     this.enabled = false,
   });
 
+  /// Returns a copy of this [EarwaxSettings] with the given fields replaced.
   EarwaxSettings copyWith({
     bool? enabled,
   }) =>
@@ -7643,29 +10452,73 @@ final class EarwaxSettings {
 /// - [target]: set a specific target level in LUFS (-23 to 0) (range -23..0, default -23)
 /// - [video]: Activate the video output. The audio stream is passed unchanged whether this option is set or no. The video stream will be the first output stream if activated. Default is `0`. (range 0..1, default 0)
 final class Ebur128Settings {
+  /// Default value for [meter].
   static const int meterDefault = 9;
+
+  /// Minimum value for [meter].
   static const int meterMin = 9;
+
+  /// Maximum value for [meter].
   static const int meterMax = 18;
+
+  /// Default value for [panlaw].
   static const double panlawDefault = -3.01029995663978;
+
+  /// Minimum value for [panlaw].
   static const double panlawMin = -10.0;
+
+  /// Maximum value for [panlaw].
   static const double panlawMax = 0.0;
+
+  /// Default value for [target].
   static const int targetDefault = -23;
+
+  /// Minimum value for [target].
   static const int targetMin = -23;
+
+  /// Maximum value for [target].
   static const int targetMax = 0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// treat mono input files as dual-mono
   final bool dualmono;
+
+  /// force frame logging level
   final Ebur128Level? framelog;
+
+  /// set gauge display type
   final Ebur128Gaugetype gauge;
+
+  /// inject metadata in the filtergraph
   final bool metadata;
+
+  /// set scale meter (+9 to +18)
   final int meter;
+
+  /// set a specific pan law for dual-mono files
   final double panlaw;
+
+  /// set peak mode
   final Set<Ebur128Mode> peak;
+
+  /// sets display method for the stats
   final Ebur128Scaletype scale;
+
+  /// set video size
   final String size;
+
+  /// set a specific target level in LUFS (-23 to 0)
   final int target;
+
+  /// set video output
   final bool video;
 
+  /// Creates an [Ebur128Settings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const Ebur128Settings({
     this.enabled = false,
     this.dualmono = false,
@@ -7681,6 +10534,7 @@ final class Ebur128Settings {
     this.video = false,
   });
 
+  /// Returns a copy of this [Ebur128Settings] with the given fields replaced.
   Ebur128Settings copyWith({
     bool? enabled,
     bool? dualmono,
@@ -7731,7 +10585,7 @@ final class Ebur128Settings {
 
   @override
   int get hashCode => Object.hash(enabled, dualmono, framelog, gauge, metadata,
-      meter, panlaw, Object.hashAllUnordered(peak), scale, size, target, video);
+      meter, panlaw, Object.hashAllUnordered(peak), scale, size, target, video,);
 
   @override
   String toString() =>
@@ -7799,59 +10653,163 @@ final class Ebur128Settings {
 /// - [width]: Specify the band-width of a filter in width_type units. (range 0..99999, default 1.0, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class EqualizerSettings {
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [f].
   static const double fDefault = 0.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 0.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [g].
   static const double gDefault = 0.0;
+
+  /// Minimum value for [g].
   static const double gMin = -900.0;
+
+  /// Maximum value for [g].
   static const double gMax = 900.0;
+
+  /// Default value for [gain].
   static const double gainDefault = 0.0;
+
+  /// Minimum value for [gain].
   static const double gainMin = -900.0;
+
+  /// Maximum value for [gain].
   static const double gainMax = 900.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [w].
   static const double wDefault = 1.0;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 1.0;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final EqualizerTransformType a;
+
+  /// set the block size
   final int b;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set central frequency
   final double f;
+
+  /// set central frequency
   final double frequency;
+
+  /// set gain
   final double g;
+
+  /// set gain
   final double gain;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set filtering precision
   final EqualizerPrecision precision;
+
+  /// set filtering precision
   final EqualizerPrecision r;
+
+  /// set filter-width type
   final EqualizerWidthType t;
+
+  /// set transform type
   final EqualizerTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final EqualizerWidthType width_type;
 
+  /// Creates an [EqualizerSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const EqualizerSettings({
     this.enabled = false,
     this.a = EqualizerTransformType.di,
@@ -7876,6 +10834,7 @@ final class EqualizerSettings {
     this.width_type = EqualizerWidthType.q,
   });
 
+  /// Returns a copy of this [EqualizerSettings] with the given fields replaced.
   EqualizerSettings copyWith({
     bool? enabled,
     EqualizerTransformType? a,
@@ -7971,7 +10930,7 @@ final class EqualizerSettings {
         transform,
         w,
         width,
-        width_type
+        width_type,
       ]);
 
   @override
@@ -8042,20 +11001,35 @@ final class EqualizerSettings {
 /// - [c]: Enable clipping. By default is enabled. (range 0..1, default 1, runtime-tunable)
 /// - [m]: Sets the difference coefficient (default: 2.5). 0.0 means mono sound (average of both channels), with 1.0 sound will be unchanged, with -1.0 left and right channels will be swapped. (range -10..10, default 2.5, runtime-tunable)
 final class ExtrastereoSettings {
+  /// Default value for [m].
   static const double mDefault = 2.5;
+
+  /// Minimum value for [m].
   static const double mMin = -10.0;
+
+  /// Maximum value for [m].
   static const double mMax = 10.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// enable clipping
   final bool c;
+
+  /// set the difference coefficient
   final double m;
 
+  /// Creates an [ExtrastereoSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const ExtrastereoSettings({
     this.enabled = false,
     this.c = true,
     this.m = 2.5,
   });
 
+  /// Returns a copy of this [ExtrastereoSettings] with the given fields replaced.
   ExtrastereoSettings copyWith({
     bool? enabled,
     bool? c,
@@ -8116,28 +11090,70 @@ final class ExtrastereoSettings {
 /// - [wfunc]: Set window function. Acceptable values are: (range 0..9, default WFUNC_HANN)
 /// - [zero_phase]: Enable zero phase mode by subtracting timestamp to compensate delay. Default is disabled. (range 0..1, default 0)
 final class FirequalizerSettings {
+  /// Default value for [accuracy].
   static const double accuracyDefault = 5.0;
+
+  /// Minimum value for [accuracy].
   static const double accuracyMin = 0.0;
+
+  /// Maximum value for [accuracy].
   static const double accuracyMax = 1e10;
+
+  /// Default value for [delay].
   static const double delayDefault = 0.01;
+
+  /// Minimum value for [delay].
   static const double delayMin = 0.0;
+
+  /// Maximum value for [delay].
   static const double delayMax = 1e10;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set accuracy
   final double accuracy;
+
+  /// set delay
   final double delay;
+
+  /// set dump file
   final String dumpfile;
+
+  /// set dump scale
   final FirequalizerScale dumpscale;
+
+  /// set 2-channels fft
   final bool fft2;
+
+  /// set fixed frame samples
   final bool fixed;
+
+  /// set gain curve
   final String gain;
+
+  /// set gain entry
   final String gain_entry;
+
+  /// set minimum phase mode
   final bool min_phase;
+
+  /// set multi channels mode
   final bool multi;
+
+  /// set gain scale
   final FirequalizerScale scale;
+
+  /// set window function
   final FirequalizerWfunc wfunc;
+
+  /// set zero phase mode
   final bool zero_phase;
 
+  /// Creates an [FirequalizerSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const FirequalizerSettings({
     this.enabled = false,
     this.accuracy = 5.0,
@@ -8155,6 +11171,7 @@ final class FirequalizerSettings {
     this.zero_phase = false,
   });
 
+  /// Returns a copy of this [FirequalizerSettings] with the given fields replaced.
   FirequalizerSettings copyWith({
     bool? enabled,
     double? accuracy,
@@ -8222,7 +11239,7 @@ final class FirequalizerSettings {
       multi,
       scale,
       wfunc,
-      zero_phase);
+      zero_phase,);
 
   @override
   String toString() =>
@@ -8273,35 +11290,91 @@ final class FirequalizerSettings {
 /// - [speed]: Set sweeps per second (Hz). Range from 0.1 to 10. Default value is 0.5. (range 0.1..10, default 0.5)
 /// - [width]: Set percentage of delayed signal mixed with original. Range from 0 to 100. Default value is 71. (range 0..100, default 71)
 final class FlangerSettings {
+  /// Default value for [delay].
   static const double delayDefault = 0.0;
+
+  /// Minimum value for [delay].
   static const double delayMin = 0.0;
+
+  /// Maximum value for [delay].
   static const double delayMax = 30.0;
+
+  /// Default value for [depth].
   static const double depthDefault = 2.0;
+
+  /// Minimum value for [depth].
   static const double depthMin = 0.0;
+
+  /// Maximum value for [depth].
   static const double depthMax = 10.0;
+
+  /// Default value for [phase].
   static const double phaseDefault = 25.0;
+
+  /// Minimum value for [phase].
   static const double phaseMin = 0.0;
+
+  /// Maximum value for [phase].
   static const double phaseMax = 100.0;
+
+  /// Default value for [regen].
   static const double regenDefault = 0.0;
+
+  /// Minimum value for [regen].
   static const double regenMin = -95.0;
+
+  /// Maximum value for [regen].
   static const double regenMax = 95.0;
+
+  /// Default value for [speed].
   static const double speedDefault = 0.5;
+
+  /// Minimum value for [speed].
   static const double speedMin = 0.1;
+
+  /// Maximum value for [speed].
   static const double speedMax = 10.0;
+
+  /// Default value for [width].
   static const double widthDefault = 71.0;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 100.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// base delay in milliseconds
   final double delay;
+
+  /// added swept delay in milliseconds
   final double depth;
+
+  /// delay-line interpolation
   final FlangerItype interp;
+
+  /// swept wave percentage phase-shift for multi-channel
   final double phase;
+
+  /// percentage regeneration (delayed signal feedback)
   final double regen;
+
+  /// swept wave shape
   final FlangerType shape;
+
+  /// sweeps per second (Hz)
   final double speed;
+
+  /// percentage of delayed signal mixed with original
   final double width;
 
+  /// Creates an [FlangerSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const FlangerSettings({
     this.enabled = false,
     this.delay = 0.0,
@@ -8314,6 +11387,7 @@ final class FlangerSettings {
     this.width = 71.0,
   });
 
+  /// Returns a copy of this [FlangerSettings] with the given fields replaced.
   FlangerSettings copyWith({
     bool? enabled,
     double? delay,
@@ -8353,7 +11427,7 @@ final class FlangerSettings {
 
   @override
   int get hashCode => Object.hash(
-      enabled, delay, depth, interp, phase, regen, shape, speed, width);
+      enabled, delay, depth, interp, phase, regen, shape, speed, width,);
 
   @override
   String toString() =>
@@ -8412,49 +11486,133 @@ final class FlangerSettings {
 /// - [right_phase]: set right phase (range 0..1, default 1)
 /// - [side_gain]: Set gain applied to side part of signal. By default is `1`. (range 0.015625..64, default 1)
 final class HaasSettings {
+  /// Default value for [left_balance].
   static const double left_balanceDefault = -1.0;
+
+  /// Minimum value for [left_balance].
   static const double left_balanceMin = -1.0;
+
+  /// Maximum value for [left_balance].
   static const double left_balanceMax = 1.0;
+
+  /// Default value for [left_delay].
   static const double left_delayDefault = 2.05;
+
+  /// Minimum value for [left_delay].
   static const double left_delayMin = 0.0;
+
+  /// Maximum value for [left_delay].
   static const double left_delayMax = 40.0;
+
+  /// Default value for [left_gain].
   static const double left_gainDefault = 1.0;
+
+  /// Minimum value for [left_gain].
   static const double left_gainMin = 0.015625;
+
+  /// Maximum value for [left_gain].
   static const double left_gainMax = 64.0;
+
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = 0.015625;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 64.0;
+
+  /// Default value for [level_out].
   static const double level_outDefault = 1.0;
+
+  /// Minimum value for [level_out].
   static const double level_outMin = 0.015625;
+
+  /// Maximum value for [level_out].
   static const double level_outMax = 64.0;
+
+  /// Default value for [right_balance].
   static const double right_balanceDefault = 1.0;
+
+  /// Minimum value for [right_balance].
   static const double right_balanceMin = -1.0;
+
+  /// Maximum value for [right_balance].
   static const double right_balanceMax = 1.0;
+
+  /// Default value for [right_delay].
   static const double right_delayDefault = 2.12;
+
+  /// Minimum value for [right_delay].
   static const double right_delayMin = 0.0;
+
+  /// Maximum value for [right_delay].
   static const double right_delayMax = 40.0;
+
+  /// Default value for [right_gain].
   static const double right_gainDefault = 1.0;
+
+  /// Minimum value for [right_gain].
   static const double right_gainMin = 0.015625;
+
+  /// Maximum value for [right_gain].
   static const double right_gainMax = 64.0;
+
+  /// Default value for [side_gain].
   static const double side_gainDefault = 1.0;
+
+  /// Minimum value for [side_gain].
   static const double side_gainMin = 0.015625;
+
+  /// Maximum value for [side_gain].
   static const double side_gainMax = 64.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set left balance
   final double left_balance;
+
+  /// set left delay
   final double left_delay;
+
+  /// set left gain
   final double left_gain;
+
+  /// set left phase
   final bool left_phase;
+
+  /// set level in
   final double level_in;
+
+  /// set level out
   final double level_out;
+
+  /// set middle phase
   final bool middle_phase;
+
+  /// set middle source
   final HaasSource middle_source;
+
+  /// set right balance
   final double right_balance;
+
+  /// set right delay
   final double right_delay;
+
+  /// set right gain
   final double right_gain;
+
+  /// set right phase
   final bool right_phase;
+
+  /// set side gain
   final double side_gain;
 
+  /// Creates an [HaasSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const HaasSettings({
     this.enabled = false,
     this.left_balance = -1.0,
@@ -8472,6 +11630,7 @@ final class HaasSettings {
     this.side_gain = 1.0,
   });
 
+  /// Returns a copy of this [HaasSettings] with the given fields replaced.
   HaasSettings copyWith({
     bool? enabled,
     double? left_balance,
@@ -8539,7 +11698,7 @@ final class HaasSettings {
       right_delay,
       right_gain,
       right_phase,
-      side_gain);
+      side_gain,);
 
   @override
   String toString() =>
@@ -8559,9 +11718,9 @@ final class HaasSettings {
     assert(level_out >= level_outMin, 'haas.level_out must be >= 0.015625');
     assert(level_out <= level_outMax, 'haas.level_out must be <= 64');
     assert(
-        right_balance >= right_balanceMin, 'haas.right_balance must be >= -1');
+        right_balance >= right_balanceMin, 'haas.right_balance must be >= -1',);
     assert(
-        right_balance <= right_balanceMax, 'haas.right_balance must be <= 1');
+        right_balance <= right_balanceMax, 'haas.right_balance must be <= 1',);
     assert(right_delay >= right_delayMin, 'haas.right_delay must be >= 0');
     assert(right_delay <= right_delayMax, 'haas.right_delay must be <= 40');
     assert(right_gain >= right_gainMin, 'haas.right_gain must be >= 0.015625');
@@ -8617,18 +11776,40 @@ final class HaasSettings {
 /// - [force_pe]: Always extend peaks above -3dBFS even if PE isn't signaled. (range 0..1, default 0)
 /// - [process_stereo]: Process the stereo channels together. If target_gain does not match between channels, consider it invalid and use the last valid target_gain. (range 0..1, default HDCD_PROCESS_STEREO_DEFAULT)
 final class HdcdSettings {
+  /// Default value for [cdt_ms].
   static const int cdt_msDefault = 2000;
+
+  /// Minimum value for [cdt_ms].
   static const int cdt_msMin = 100;
+
+  /// Maximum value for [cdt_ms].
   static const int cdt_msMax = 60000;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// Replace audio with solid tone and signal some processing aspect in the amplitude.
   final HdcdAnalyzeMode analyze_mode;
+
+  /// Valid bits per sample (location of the true LSB).
   final HdcdBitsPerSample bits_per_sample;
+
+  /// Code detect timer period in ms.
   final int cdt_ms;
+
+  /// Disable any format conversion or resampling in the filter graph.
   final bool disable_autoconvert;
+
+  /// Always extend peaks above -3dBFS even when PE is not signaled.
   final bool force_pe;
+
+  /// Process stereo channels together. Only apply target_gain when both channels match.
   final bool process_stereo;
 
+  /// Creates an [HdcdSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const HdcdSettings({
     this.enabled = false,
     this.analyze_mode = HdcdAnalyzeMode.off,
@@ -8639,6 +11820,7 @@ final class HdcdSettings {
     this.process_stereo = false,
   });
 
+  /// Returns a copy of this [HdcdSettings] with the given fields replaced.
   HdcdSettings copyWith({
     bool? enabled,
     HdcdAnalyzeMode? analyze_mode,
@@ -8672,7 +11854,7 @@ final class HdcdSettings {
 
   @override
   int get hashCode => Object.hash(enabled, analyze_mode, bits_per_sample,
-      cdt_ms, disable_autoconvert, force_pe, process_stereo);
+      cdt_ms, disable_autoconvert, force_pe, process_stereo,);
 
   @override
   String toString() =>
@@ -8715,24 +11897,58 @@ final class HdcdSettings {
 /// - [size]: Set size of frame in number of samples which will be processed at once. Default value is `1024`. Allowed range is from 1024 to 96000. (range 1024..96000, default 1024)
 /// - [type]: Set processing type. Can be `time` or `freq`. `time` is processing audio in time domain which is slow. `freq` is processing audio in frequency domain which is fast. Default is `freq`. (range 0..1, default 1)
 final class HeadphoneSettings {
+  /// Default value for [gain].
   static const double gainDefault = 0.0;
+
+  /// Minimum value for [gain].
   static const double gainMin = -20.0;
+
+  /// Maximum value for [gain].
   static const double gainMax = 40.0;
+
+  /// Default value for [lfe].
   static const double lfeDefault = 0.0;
+
+  /// Minimum value for [lfe].
   static const double lfeMin = -20.0;
+
+  /// Maximum value for [lfe].
   static const double lfeMax = 40.0;
+
+  /// Default value for [size].
   static const int sizeDefault = 1024;
+
+  /// Minimum value for [size].
   static const int sizeMin = 1024;
+
+  /// Maximum value for [size].
   static const int sizeMax = 96000;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set gain in dB
   final double gain;
+
+  /// set hrir format
   final HeadphoneHrir hrir;
+
+  /// set lfe gain in dB
   final double lfe;
+
+  /// set channels convolution mappings
   final String map;
+
+  /// set frame size
   final int size;
+
+  /// set processing
   final HeadphoneType type;
 
+  /// Creates an [HeadphoneSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const HeadphoneSettings({
     this.enabled = false,
     this.gain = 0.0,
@@ -8743,6 +11959,7 @@ final class HeadphoneSettings {
     this.type = HeadphoneType.freq,
   });
 
+  /// Returns a copy of this [HeadphoneSettings] with the given fields replaced.
   HeadphoneSettings copyWith({
     bool? enabled,
     double? gain,
@@ -8833,59 +12050,163 @@ final class HeadphoneSettings {
 /// - [width]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class HighpassSettings {
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [f].
   static const double fDefault = 3000.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 3000.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [p].
   static const int pDefault = 2;
+
+  /// Minimum value for [p].
   static const int pMin = 1;
+
+  /// Maximum value for [p].
   static const int pMax = 2;
+
+  /// Default value for [poles].
   static const int polesDefault = 2;
+
+  /// Minimum value for [poles].
   static const int polesMin = 1;
+
+  /// Maximum value for [poles].
   static const int polesMax = 2;
+
+  /// Default value for [w].
   static const double wDefault = 0.707;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 0.707;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final HighpassTransformType a;
+
+  /// set the block size
   final int b;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set frequency
   final double f;
+
+  /// set frequency
   final double frequency;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set number of poles
   final int p;
+
+  /// set number of poles
   final int poles;
+
+  /// set filtering precision
   final HighpassPrecision precision;
+
+  /// set filtering precision
   final HighpassPrecision r;
+
+  /// set filter-width type
   final HighpassWidthType t;
+
+  /// set transform type
   final HighpassTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final HighpassWidthType width_type;
 
+  /// Creates an [HighpassSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const HighpassSettings({
     this.enabled = false,
     this.a = HighpassTransformType.di,
@@ -8910,6 +12231,7 @@ final class HighpassSettings {
     this.width_type = HighpassWidthType.q,
   });
 
+  /// Returns a copy of this [HighpassSettings] with the given fields replaced.
   HighpassSettings copyWith({
     bool? enabled,
     HighpassTransformType? a,
@@ -9005,7 +12327,7 @@ final class HighpassSettings {
         transform,
         w,
         width,
-        width_type
+        width_type,
       ]);
 
   @override
@@ -9097,67 +12419,187 @@ final class HighpassSettings {
 /// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class HighshelfSettings {
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [f].
   static const double fDefault = 3000.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 3000.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [g].
   static const double gDefault = 0.0;
+
+  /// Minimum value for [g].
   static const double gMin = -900.0;
+
+  /// Maximum value for [g].
   static const double gMax = 900.0;
+
+  /// Default value for [gain].
   static const double gainDefault = 0.0;
+
+  /// Minimum value for [gain].
   static const double gainMin = -900.0;
+
+  /// Maximum value for [gain].
   static const double gainMax = 900.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [p].
   static const int pDefault = 2;
+
+  /// Minimum value for [p].
   static const int pMin = 1;
+
+  /// Maximum value for [p].
   static const int pMax = 2;
+
+  /// Default value for [poles].
   static const int polesDefault = 2;
+
+  /// Minimum value for [poles].
   static const int polesMin = 1;
+
+  /// Maximum value for [poles].
   static const int polesMax = 2;
+
+  /// Default value for [w].
   static const double wDefault = 0.5;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 0.5;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final HighshelfTransformType a;
+
+  /// set the block size
   final int b;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set central frequency
   final double f;
+
+  /// set central frequency
   final double frequency;
+
+  /// set gain
   final double g;
+
+  /// set gain
   final double gain;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set number of poles
   final int p;
+
+  /// set number of poles
   final int poles;
+
+  /// set filtering precision
   final HighshelfPrecision precision;
+
+  /// set filtering precision
   final HighshelfPrecision r;
+
+  /// set filter-width type
   final HighshelfWidthType t;
+
+  /// set transform type
   final HighshelfTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final HighshelfWidthType width_type;
 
+  /// Creates an [HighshelfSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const HighshelfSettings({
     this.enabled = false,
     this.a = HighshelfTransformType.di,
@@ -9184,6 +12626,7 @@ final class HighshelfSettings {
     this.width_type = HighshelfWidthType.q,
   });
 
+  /// Returns a copy of this [HighshelfSettings] with the given fields replaced.
   HighshelfSettings copyWith({
     bool? enabled,
     HighshelfTransformType? a,
@@ -9287,7 +12730,7 @@ final class HighshelfSettings {
         transform,
         w,
         width,
-        width_type
+        width_type,
       ]);
 
   @override
@@ -9383,69 +12826,193 @@ final class HighshelfSettings {
 /// - [stats_file]: Write stats to specified file. Format is controlled by @option{print_format}, which must be set. Specify `-` to write to standard output. Default is unset. (range 0..0, default "")
 /// - [tp]: Set maximum true peak. Range is -9.0 - +0.0. Default value is -2.0. (range -9.0..0.0, default -2.)
 final class LoudnormSettings {
+  /// Default value for [I].
   static const double IDefault = -24.0;
+
+  /// Minimum value for [I].
   static const double IMin = -70.0;
+
+  /// Maximum value for [I].
   static const double IMax = -5.0;
+
+  /// Default value for [LRA].
   static const double LRADefault = 7.0;
+
+  /// Minimum value for [LRA].
   static const double LRAMin = 1.0;
+
+  /// Maximum value for [LRA].
   static const double LRAMax = 50.0;
+
+  /// Default value for [TP].
   static const double TPDefault = -2.0;
+
+  /// Minimum value for [TP].
   static const double TPMin = -9.0;
+
+  /// Maximum value for [TP].
   static const double TPMax = 0.0;
+
+  /// Default value for [i].
   static const double iDefault = -24.0;
+
+  /// Minimum value for [i].
   static const double iMin = -70.0;
+
+  /// Maximum value for [i].
   static const double iMax = -5.0;
+
+  /// Default value for [lra].
   static const double lraDefault = 7.0;
+
+  /// Minimum value for [lra].
   static const double lraMin = 1.0;
+
+  /// Maximum value for [lra].
   static const double lraMax = 50.0;
+
+  /// Default value for [measured_I].
   static const double measured_IDefault = 0.0;
+
+  /// Minimum value for [measured_I].
   static const double measured_IMin = -99.0;
+
+  /// Maximum value for [measured_I].
   static const double measured_IMax = 0.0;
+
+  /// Default value for [measured_LRA].
   static const double measured_LRADefault = 0.0;
+
+  /// Minimum value for [measured_LRA].
   static const double measured_LRAMin = 0.0;
+
+  /// Maximum value for [measured_LRA].
   static const double measured_LRAMax = 99.0;
+
+  /// Default value for [measured_TP].
   static const double measured_TPDefault = 99.0;
+
+  /// Minimum value for [measured_TP].
   static const double measured_TPMin = -99.0;
+
+  /// Maximum value for [measured_TP].
   static const double measured_TPMax = 99.0;
+
+  /// Default value for [measured_i].
   static const double measured_iDefault = 0.0;
+
+  /// Minimum value for [measured_i].
   static const double measured_iMin = -99.0;
+
+  /// Maximum value for [measured_i].
   static const double measured_iMax = 0.0;
+
+  /// Default value for [measured_lra].
   static const double measured_lraDefault = 0.0;
+
+  /// Minimum value for [measured_lra].
   static const double measured_lraMin = 0.0;
+
+  /// Maximum value for [measured_lra].
   static const double measured_lraMax = 99.0;
+
+  /// Default value for [measured_thresh].
   static const double measured_threshDefault = -70.0;
+
+  /// Minimum value for [measured_thresh].
   static const double measured_threshMin = -99.0;
+
+  /// Maximum value for [measured_thresh].
   static const double measured_threshMax = 0.0;
+
+  /// Default value for [measured_tp].
   static const double measured_tpDefault = 99.0;
+
+  /// Minimum value for [measured_tp].
   static const double measured_tpMin = -99.0;
+
+  /// Maximum value for [measured_tp].
   static const double measured_tpMax = 99.0;
+
+  /// Default value for [offset].
   static const double offsetDefault = 0.0;
+
+  /// Minimum value for [offset].
   static const double offsetMin = -99.0;
+
+  /// Maximum value for [offset].
   static const double offsetMax = 99.0;
+
+  /// Default value for [tp].
   static const double tpDefault = -2.0;
+
+  /// Minimum value for [tp].
   static const double tpMin = -9.0;
+
+  /// Maximum value for [tp].
   static const double tpMax = 0.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set integrated loudness target
   final double I;
+
+  /// set loudness range target
   final double LRA;
+
+  /// set maximum true peak
   final double TP;
+
+  /// treat mono input as dual-mono
   final bool dual_mono;
+
+  /// set integrated loudness target
   final double i;
+
+  /// normalize linearly if possible
   final bool linear;
+
+  /// set loudness range target
   final double lra;
+
+  /// measured IL of input file
   final double measured_I;
+
+  /// measured LRA of input file
   final double measured_LRA;
+
+  /// measured true peak of input file
   final double measured_TP;
+
+  /// measured IL of input file
   final double measured_i;
+
+  /// measured LRA of input file
   final double measured_lra;
+
+  /// measured threshold of input file
   final double measured_thresh;
+
+  /// measured true peak of input file
   final double measured_tp;
+
+  /// set offset gain
   final double offset;
+
+  /// set print format for stats
   final LoudnormPrintFormat print_format;
+
+  /// set stats output file
   final String stats_file;
+
+  /// set maximum true peak
   final double tp;
 
+  /// Creates an [LoudnormSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const LoudnormSettings({
     this.enabled = false,
     this.I = -24.0,
@@ -9468,6 +13035,7 @@ final class LoudnormSettings {
     this.tp = -2.0,
   });
 
+  /// Returns a copy of this [LoudnormSettings] with the given fields replaced.
   LoudnormSettings copyWith({
     bool? enabled,
     double? I,
@@ -9555,7 +13123,7 @@ final class LoudnormSettings {
       offset,
       print_format,
       stats_file,
-      tp);
+      tp,);
 
   @override
   String toString() =>
@@ -9577,27 +13145,27 @@ final class LoudnormSettings {
     assert(measured_I >= measured_IMin, 'loudnorm.measured_I must be >= -99.0');
     assert(measured_I <= measured_IMax, 'loudnorm.measured_I must be <= 0.0');
     assert(measured_LRA >= measured_LRAMin,
-        'loudnorm.measured_LRA must be >= 0.0');
+        'loudnorm.measured_LRA must be >= 0.0',);
     assert(measured_LRA <= measured_LRAMax,
-        'loudnorm.measured_LRA must be <= 99.0');
+        'loudnorm.measured_LRA must be <= 99.0',);
     assert(
-        measured_TP >= measured_TPMin, 'loudnorm.measured_TP must be >= -99.0');
+        measured_TP >= measured_TPMin, 'loudnorm.measured_TP must be >= -99.0',);
     assert(
-        measured_TP <= measured_TPMax, 'loudnorm.measured_TP must be <= 99.0');
+        measured_TP <= measured_TPMax, 'loudnorm.measured_TP must be <= 99.0',);
     assert(measured_i >= measured_iMin, 'loudnorm.measured_i must be >= -99.0');
     assert(measured_i <= measured_iMax, 'loudnorm.measured_i must be <= 0.0');
     assert(measured_lra >= measured_lraMin,
-        'loudnorm.measured_lra must be >= 0.0');
+        'loudnorm.measured_lra must be >= 0.0',);
     assert(measured_lra <= measured_lraMax,
-        'loudnorm.measured_lra must be <= 99.0');
+        'loudnorm.measured_lra must be <= 99.0',);
     assert(measured_thresh >= measured_threshMin,
-        'loudnorm.measured_thresh must be >= -99.0');
+        'loudnorm.measured_thresh must be >= -99.0',);
     assert(measured_thresh <= measured_threshMax,
-        'loudnorm.measured_thresh must be <= 0.0');
+        'loudnorm.measured_thresh must be <= 0.0',);
     assert(
-        measured_tp >= measured_tpMin, 'loudnorm.measured_tp must be >= -99.0');
+        measured_tp >= measured_tpMin, 'loudnorm.measured_tp must be >= -99.0',);
     assert(
-        measured_tp <= measured_tpMax, 'loudnorm.measured_tp must be <= 99.0');
+        measured_tp <= measured_tpMax, 'loudnorm.measured_tp must be <= 99.0',);
     assert(offset >= offsetMin, 'loudnorm.offset must be >= -99.0');
     assert(offset <= offsetMax, 'loudnorm.offset must be <= 99.0');
     assert(tp >= tpMin, 'loudnorm.tp must be >= -9.0');
@@ -9663,59 +13231,163 @@ final class LoudnormSettings {
 /// - [width]: Specify the band-width of a filter in width_type units. Applies only to double-pole filter. The default is 0.707q and gives a Butterworth response. (range 0..99999, default 0.707, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class LowpassSettings {
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [f].
   static const double fDefault = 500.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 500.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [p].
   static const int pDefault = 2;
+
+  /// Minimum value for [p].
   static const int pMin = 1;
+
+  /// Maximum value for [p].
   static const int pMax = 2;
+
+  /// Default value for [poles].
   static const int polesDefault = 2;
+
+  /// Minimum value for [poles].
   static const int polesMin = 1;
+
+  /// Maximum value for [poles].
   static const int polesMax = 2;
+
+  /// Default value for [w].
   static const double wDefault = 0.707;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 0.707;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final LowpassTransformType a;
+
+  /// set the block size
   final int b;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set frequency
   final double f;
+
+  /// set frequency
   final double frequency;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set number of poles
   final int p;
+
+  /// set number of poles
   final int poles;
+
+  /// set filtering precision
   final LowpassPrecision precision;
+
+  /// set filtering precision
   final LowpassPrecision r;
+
+  /// set filter-width type
   final LowpassWidthType t;
+
+  /// set transform type
   final LowpassTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final LowpassWidthType width_type;
 
+  /// Creates an [LowpassSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const LowpassSettings({
     this.enabled = false,
     this.a = LowpassTransformType.di,
@@ -9740,6 +13412,7 @@ final class LowpassSettings {
     this.width_type = LowpassWidthType.q,
   });
 
+  /// Returns a copy of this [LowpassSettings] with the given fields replaced.
   LowpassSettings copyWith({
     bool? enabled,
     LowpassTransformType? a,
@@ -9835,7 +13508,7 @@ final class LowpassSettings {
         transform,
         w,
         width,
-        width_type
+        width_type,
       ]);
 
   @override
@@ -9925,67 +13598,187 @@ final class LowpassSettings {
 /// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class LowshelfSettings {
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [f].
   static const double fDefault = 100.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 100.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [g].
   static const double gDefault = 0.0;
+
+  /// Minimum value for [g].
   static const double gMin = -900.0;
+
+  /// Maximum value for [g].
   static const double gMax = 900.0;
+
+  /// Default value for [gain].
   static const double gainDefault = 0.0;
+
+  /// Minimum value for [gain].
   static const double gainMin = -900.0;
+
+  /// Maximum value for [gain].
   static const double gainMax = 900.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [p].
   static const int pDefault = 2;
+
+  /// Minimum value for [p].
   static const int pMin = 1;
+
+  /// Maximum value for [p].
   static const int pMax = 2;
+
+  /// Default value for [poles].
   static const int polesDefault = 2;
+
+  /// Minimum value for [poles].
   static const int polesMin = 1;
+
+  /// Maximum value for [poles].
   static const int polesMax = 2;
+
+  /// Default value for [w].
   static const double wDefault = 0.5;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 0.5;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final LowshelfTransformType a;
+
+  /// set the block size
   final int b;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set central frequency
   final double f;
+
+  /// set central frequency
   final double frequency;
+
+  /// set gain
   final double g;
+
+  /// set gain
   final double gain;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set number of poles
   final int p;
+
+  /// set number of poles
   final int poles;
+
+  /// set filtering precision
   final LowshelfPrecision precision;
+
+  /// set filtering precision
   final LowshelfPrecision r;
+
+  /// set filter-width type
   final LowshelfWidthType t;
+
+  /// set transform type
   final LowshelfTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final LowshelfWidthType width_type;
 
+  /// Creates an [LowshelfSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const LowshelfSettings({
     this.enabled = false,
     this.a = LowshelfTransformType.di,
@@ -10012,6 +13805,7 @@ final class LowshelfSettings {
     this.width_type = LowshelfWidthType.q,
   });
 
+  /// Returns a copy of this [LowshelfSettings] with the given fields replaced.
   LowshelfSettings copyWith({
     bool? enabled,
     LowshelfTransformType? a,
@@ -10115,7 +13909,7 @@ final class LowshelfSettings {
         transform,
         w,
         width,
-        width_type
+        width_type,
       ]);
 
   @override
@@ -10194,15 +13988,23 @@ final class LowshelfSettings {
 /// Parameters:
 /// - [args]: This option syntax is: attack,decay,[attack,decay..] soft-knee points crossover_frequency [delay [initial_volume [gain]]] | attack,decay ... For explanation of each item refer to compand filter documentation. (range 0..0, default "0.005,0.1 6 -47/-40,-34/-34,-17/-33 100 | 0.003,0.05 6 -47/-40,-34/-34,-17/-33 400 | 0.000625,0.0125 6 -47/-40,-34/-34,-15/-33 1600 | 0.0001,0.025 6 -47/-40,-34/-34,-31/-31,-0/-30 6400 | 0,0.025 6 -38/-31,-28/-28,-0/-25 22000")
 final class McompandSettings {
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set parameters for each band
   final String args;
 
+  /// Creates an [McompandSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const McompandSettings({
     this.enabled = false,
     this.args =
         '0.005,0.1 6 -47/-40,-34/-34,-17/-33 100 | 0.003,0.05 6 -47/-40,-34/-34,-17/-33 400 | 0.000625,0.0125 6 -47/-40,-34/-34,-15/-33 1600 | 0.0001,0.025 6 -47/-40,-34/-34,-31/-31,-0/-30 6400 | 0,0.025 6 -38/-31,-28/-28,-0/-25 22000',
   });
 
+  /// Returns a copy of this [McompandSettings] with the given fields replaced.
   McompandSettings copyWith({
     bool? enabled,
     String? args,
@@ -10252,14 +14054,22 @@ final class McompandSettings {
 /// Parameters:
 /// - [args]:  (range 0..0, default "")
 final class PanSettings {
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// The `args` parameter.
   final String args;
 
+  /// Creates an [PanSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const PanSettings({
     this.enabled = false,
     this.args = '',
   });
 
+  /// Returns a copy of this [PanSettings] with the given fields replaced.
   PanSettings copyWith({
     bool? enabled,
     String? args,
@@ -10310,25 +14120,61 @@ final class PanSettings {
 /// - [transients]: Set transients detector. Possible values are: (range 0..2147483647, default 0)
 /// - [window]: set window (range 0..2147483647, default 0)
 final class RubberbandSettings {
+  /// Default value for [pitch].
   static const double pitchDefault = 1.0;
+
+  /// Minimum value for [pitch].
   static const double pitchMin = 0.01;
+
+  /// Maximum value for [pitch].
   static const double pitchMax = 100.0;
+
+  /// Default value for [tempo].
   static const double tempoDefault = 1.0;
+
+  /// Minimum value for [tempo].
   static const double tempoMin = 0.01;
+
+  /// Maximum value for [tempo].
   static const double tempoMax = 100.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set channels
   final RubberbandChannels channels;
+
+  /// set detector
   final RubberbandDetector detector;
+
+  /// set formant
   final RubberbandFormant formant;
+
+  /// set phase
   final RubberbandPhase phase;
+
+  /// set pitch scale factor
   final double pitch;
+
+  /// set pitch quality
   final RubberbandPitch pitchq;
+
+  /// set smoothing
   final RubberbandSmoothing smoothing;
+
+  /// set tempo scale factor
   final double tempo;
+
+  /// set transients
   final RubberbandTransients transients;
+
+  /// set window
   final RubberbandWindow window;
 
+  /// Creates an [RubberbandSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const RubberbandSettings({
     this.enabled = false,
     this.channels = RubberbandChannels.apart,
@@ -10343,6 +14189,7 @@ final class RubberbandSettings {
     this.window = RubberbandWindow.standard,
   });
 
+  /// Returns a copy of this [RubberbandSettings] with the given fields replaced.
   RubberbandSettings copyWith({
     bool? enabled,
     RubberbandChannels? channels,
@@ -10388,7 +14235,7 @@ final class RubberbandSettings {
 
   @override
   int get hashCode => Object.hash(enabled, channels, detector, formant, phase,
-      pitch, pitchq, smoothing, tempo, transients, window);
+      pitch, pitchq, smoothing, tempo, transients, window,);
 
   @override
   String toString() =>
@@ -10446,51 +14293,106 @@ final class RubberbandSettings {
 /// - [timestamp]: Set processing mode of every audio frame output timestamp. (range 0..1, default TS_WRITE)
 /// - [window]: Set duration in number of seconds used to calculate size of window in number of samples for detecting silence. Using `0` will effectively disable any windowing and use only single sample per channel for silence detection. In that case it may be needed to also set @option{start_silence} and/or @option{stop_silence} to nonzero values with also @option{start_duration} and/or @option{stop_duration} to nonzero values. Default value is `0.02`. Allowed range is from `0` to `10`. (range 0..100000000, default 20000)
 final class SilenceremoveSettings {
+  /// Default value for [start_periods].
   static const int start_periodsDefault = 0;
+
+  /// Minimum value for [start_periods].
   static const int start_periodsMin = 0;
+
+  /// Maximum value for [start_periods].
   static const int start_periodsMax = 9000;
+
+  /// Default value for [start_threshold].
   static const double start_thresholdDefault = 0.0;
+
+  /// Minimum value for [start_threshold].
   static const double start_thresholdMin = 0.0;
+
+  /// Maximum value for [start_threshold].
   static const double start_thresholdMax = 1.7976931348623157e+308;
+
+  /// Default value for [stop_periods].
   static const int stop_periodsDefault = 0;
+
+  /// Minimum value for [stop_periods].
   static const int stop_periodsMin = -9000;
+
+  /// Maximum value for [stop_periods].
   static const int stop_periodsMax = 9000;
+
+  /// Default value for [stop_threshold].
   static const double stop_thresholdDefault = 0.0;
+
+  /// Minimum value for [stop_threshold].
   static const double stop_thresholdMin = 0.0;
+
+  /// Maximum value for [stop_threshold].
   static const double stop_thresholdMax = 1.7976931348623157e+308;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set how silence is detected
   final SilenceremoveDetection detection;
+
+  /// set start duration of non-silence part
   final Duration start_duration;
+
+  /// set which channel will trigger trimming from start
   final SilenceremoveMode start_mode;
+
+  /// set periods of silence parts to skip from start
   final int start_periods;
+
+  /// set start duration of silence part to keep
   final Duration start_silence;
+
+  /// set threshold for start silence detection
   final double start_threshold;
+
+  /// set stop duration of silence part
   final Duration stop_duration;
+
+  /// set which channel will trigger trimming from end
   final SilenceremoveMode stop_mode;
+
+  /// set periods of silence parts to skip from end
   final int stop_periods;
+
+  /// set stop duration of silence part to keep
   final Duration stop_silence;
+
+  /// set threshold for stop silence detection
   final double stop_threshold;
+
+  /// set how every output frame timestamp is processed
   final SilenceremoveTimestamp timestamp;
+
+  /// set duration of window for silence detection
   final Duration window;
 
+  /// Creates an [SilenceremoveSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const SilenceremoveSettings({
     this.enabled = false,
     this.detection = SilenceremoveDetection.rms,
-    this.start_duration = const Duration(microseconds: 0),
+    this.start_duration = Duration.zero,
     this.start_mode = SilenceremoveMode.any,
     this.start_periods = 0,
-    this.start_silence = const Duration(microseconds: 0),
+    this.start_silence = Duration.zero,
     this.start_threshold = 0.0,
-    this.stop_duration = const Duration(microseconds: 0),
+    this.stop_duration = Duration.zero,
     this.stop_mode = SilenceremoveMode.all,
     this.stop_periods = 0,
-    this.stop_silence = const Duration(microseconds: 0),
+    this.stop_silence = Duration.zero,
     this.stop_threshold = 0.0,
     this.timestamp = SilenceremoveTimestamp.write,
     this.window = const Duration(microseconds: 20000),
   });
 
+  /// Returns a copy of this [SilenceremoveSettings] with the given fields replaced.
   SilenceremoveSettings copyWith({
     bool? enabled,
     SilenceremoveDetection? detection,
@@ -10558,7 +14460,7 @@ final class SilenceremoveSettings {
       stop_silence,
       stop_threshold,
       timestamp,
-      window);
+      window,);
 
   @override
   String toString() =>
@@ -10568,45 +14470,45 @@ final class SilenceremoveSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     assert(start_periods >= start_periodsMin,
-        'silenceremove.start_periods must be >= 0');
+        'silenceremove.start_periods must be >= 0',);
     assert(start_periods <= start_periodsMax,
-        'silenceremove.start_periods must be <= 9000');
+        'silenceremove.start_periods must be <= 9000',);
     assert(start_threshold >= start_thresholdMin,
-        'silenceremove.start_threshold must be >= 0');
+        'silenceremove.start_threshold must be >= 0',);
     assert(start_threshold <= start_thresholdMax,
-        'silenceremove.start_threshold must be <= 1.7976931348623157e+308');
+        'silenceremove.start_threshold must be <= 1.7976931348623157e+308',);
     assert(stop_periods >= stop_periodsMin,
-        'silenceremove.stop_periods must be >= -9000');
+        'silenceremove.stop_periods must be >= -9000',);
     assert(stop_periods <= stop_periodsMax,
-        'silenceremove.stop_periods must be <= 9000');
+        'silenceremove.stop_periods must be <= 9000',);
     assert(stop_threshold >= stop_thresholdMin,
-        'silenceremove.stop_threshold must be >= 0');
+        'silenceremove.stop_threshold must be >= 0',);
     assert(stop_threshold <= stop_thresholdMax,
-        'silenceremove.stop_threshold must be <= 1.7976931348623157e+308');
+        'silenceremove.stop_threshold must be <= 1.7976931348623157e+308',);
     final parts = <String>[];
     if (detection != SilenceremoveDetection.rms)
       parts.add('detection=' + detection.mpvValue);
-    if (start_duration != const Duration(microseconds: 0))
+    if (start_duration != Duration.zero)
       parts.add(
-          'start_duration=' + _wireDouble(start_duration.inMicroseconds / 1e6));
+          'start_duration=' + _wireDouble(start_duration.inMicroseconds / 1e6),);
     if (start_mode != SilenceremoveMode.any)
       parts.add('start_mode=' + start_mode.mpvValue);
     if (start_periods != 0)
       parts.add('start_periods=' + start_periods.toString());
-    if (start_silence != const Duration(microseconds: 0))
+    if (start_silence != Duration.zero)
       parts.add(
-          'start_silence=' + _wireDouble(start_silence.inMicroseconds / 1e6));
+          'start_silence=' + _wireDouble(start_silence.inMicroseconds / 1e6),);
     if (start_threshold != 0.0)
       parts.add('start_threshold=' + _wireDouble(start_threshold));
-    if (stop_duration != const Duration(microseconds: 0))
+    if (stop_duration != Duration.zero)
       parts.add(
-          'stop_duration=' + _wireDouble(stop_duration.inMicroseconds / 1e6));
+          'stop_duration=' + _wireDouble(stop_duration.inMicroseconds / 1e6),);
     if (stop_mode != SilenceremoveMode.all)
       parts.add('stop_mode=' + stop_mode.mpvValue);
     if (stop_periods != 0) parts.add('stop_periods=' + stop_periods.toString());
-    if (stop_silence != const Duration(microseconds: 0))
+    if (stop_silence != Duration.zero)
       parts.add(
-          'stop_silence=' + _wireDouble(stop_silence.inMicroseconds / 1e6));
+          'stop_silence=' + _wireDouble(stop_silence.inMicroseconds / 1e6),);
     if (stop_threshold != 0.0)
       parts.add('stop_threshold=' + _wireDouble(stop_threshold));
     if (timestamp != SilenceremoveTimestamp.write)
@@ -10651,71 +14553,199 @@ final class SilenceremoveSettings {
 /// - [t]: Set the threshold value. Default value is 0.0. Allowed range is from 0.0 to 1.0. This option specifies which half-cycles of samples will be compressed and which will be expanded. Any half-cycle samples with their local peak value below or same as this option value will be compressed by current compression factor, otherwise, if greater than threshold value they will be expanded with expansion factor so that it could reach peak target value but never surpass it. (range 0.0..1.0, default 0, runtime-tunable)
 /// - [threshold]: Set the threshold value. Default value is 0.0. Allowed range is from 0.0 to 1.0. This option specifies which half-cycles of samples will be compressed and which will be expanded. Any half-cycle samples with their local peak value below or same as this option value will be compressed by current compression factor, otherwise, if greater than threshold value they will be expanded with expansion factor so that it could reach peak target value but never surpass it. (range 0.0..1.0, default 0, runtime-tunable)
 final class SpeechnormSettings {
+  /// Default value for [c].
   static const double cDefault = 2.0;
+
+  /// Minimum value for [c].
   static const double cMin = 1.0;
+
+  /// Maximum value for [c].
   static const double cMax = 50.0;
+
+  /// Default value for [compression].
   static const double compressionDefault = 2.0;
+
+  /// Minimum value for [compression].
   static const double compressionMin = 1.0;
+
+  /// Maximum value for [compression].
   static const double compressionMax = 50.0;
+
+  /// Default value for [e].
   static const double eDefault = 2.0;
+
+  /// Minimum value for [e].
   static const double eMin = 1.0;
+
+  /// Maximum value for [e].
   static const double eMax = 50.0;
+
+  /// Default value for [expansion].
   static const double expansionDefault = 2.0;
+
+  /// Minimum value for [expansion].
   static const double expansionMin = 1.0;
+
+  /// Maximum value for [expansion].
   static const double expansionMax = 50.0;
+
+  /// Default value for [f].
   static const double fDefault = 0.001;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 1.0;
+
+  /// Default value for [fall].
   static const double fallDefault = 0.001;
+
+  /// Minimum value for [fall].
   static const double fallMin = 0.0;
+
+  /// Maximum value for [fall].
   static const double fallMax = 1.0;
+
+  /// Default value for [m].
   static const double mDefault = 0.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [p].
   static const double pDefault = 0.95;
+
+  /// Minimum value for [p].
   static const double pMin = 0.0;
+
+  /// Maximum value for [p].
   static const double pMax = 1.0;
+
+  /// Default value for [peak].
   static const double peakDefault = 0.95;
+
+  /// Minimum value for [peak].
   static const double peakMin = 0.0;
+
+  /// Maximum value for [peak].
   static const double peakMax = 1.0;
+
+  /// Default value for [r].
   static const double rDefault = 0.001;
+
+  /// Minimum value for [r].
   static const double rMin = 0.0;
+
+  /// Maximum value for [r].
   static const double rMax = 1.0;
+
+  /// Default value for [raise].
   static const double raiseDefault = 0.001;
+
+  /// Minimum value for [raise].
   static const double raiseMin = 0.0;
+
+  /// Maximum value for [raise].
   static const double raiseMax = 1.0;
+
+  /// Default value for [rms].
   static const double rmsDefault = 0.0;
+
+  /// Minimum value for [rms].
   static const double rmsMin = 0.0;
+
+  /// Maximum value for [rms].
   static const double rmsMax = 1.0;
+
+  /// Default value for [t].
   static const double tDefault = 0.0;
+
+  /// Minimum value for [t].
   static const double tMin = 0.0;
+
+  /// Maximum value for [t].
   static const double tMax = 1.0;
+
+  /// Default value for [threshold].
   static const double thresholdDefault = 0.0;
+
+  /// Minimum value for [threshold].
   static const double thresholdMin = 0.0;
+
+  /// Maximum value for [threshold].
   static const double thresholdMax = 1.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set the max compression factor
   final double c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set the max compression factor
   final double compression;
+
+  /// set the max expansion factor
   final double e;
+
+  /// set the max expansion factor
   final double expansion;
+
+  /// set the compression raising amount
   final double f;
+
+  /// set the compression raising amount
   final double fall;
+
+  /// set channels to filter
   final String h;
+
+  /// set inverted filtering
   final bool i;
+
+  /// set inverted filtering
   final bool invert;
+
+  /// set linked channels filtering
   final bool l;
+
+  /// set linked channels filtering
   final bool link;
+
+  /// set the RMS value
   final double m;
+
+  /// set the peak value
   final double p;
+
+  /// set the peak value
   final double peak;
+
+  /// set the expansion raising amount
   final double r;
+
+  /// set the expansion raising amount
   final double raise;
+
+  /// set the RMS value
   final double rms;
+
+  /// set the threshold value
   final double t;
+
+  /// set the threshold value
   final double threshold;
 
+  /// Creates an [SpeechnormSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const SpeechnormSettings({
     this.enabled = false,
     this.c = 2.0,
@@ -10740,6 +14770,7 @@ final class SpeechnormSettings {
     this.threshold = 0.0,
   });
 
+  /// Returns a copy of this [SpeechnormSettings] with the given fields replaced.
   SpeechnormSettings copyWith({
     bool? enabled,
     double? c,
@@ -10835,7 +14866,7 @@ final class SpeechnormSettings {
         raise,
         rms,
         t,
-        threshold
+        threshold,
       ]);
 
   @override
@@ -10848,9 +14879,9 @@ final class SpeechnormSettings {
     assert(c >= cMin, 'speechnorm.c must be >= 1.0');
     assert(c <= cMax, 'speechnorm.c must be <= 50.0');
     assert(
-        compression >= compressionMin, 'speechnorm.compression must be >= 1.0');
+        compression >= compressionMin, 'speechnorm.compression must be >= 1.0',);
     assert(compression <= compressionMax,
-        'speechnorm.compression must be <= 50.0');
+        'speechnorm.compression must be <= 50.0',);
     assert(e >= eMin, 'speechnorm.e must be >= 1.0');
     assert(e <= eMax, 'speechnorm.e must be <= 50.0');
     assert(expansion >= expansionMin, 'speechnorm.expansion must be >= 1.0');
@@ -10933,65 +14964,181 @@ final class SpeechnormSettings {
 /// - [slev]: set side level (range 0.015625..64, default 1, runtime-tunable)
 /// - [softclip]: Enable softclipping. Results in analog distortion instead of harsh digital 0dB clipping. Disabled by default. (range 0..1, default 0, runtime-tunable)
 final class StereotoolsSettings {
+  /// Default value for [balance_in].
   static const double balance_inDefault = 0.0;
+
+  /// Minimum value for [balance_in].
   static const double balance_inMin = -1.0;
+
+  /// Maximum value for [balance_in].
   static const double balance_inMax = 1.0;
+
+  /// Default value for [balance_out].
   static const double balance_outDefault = 0.0;
+
+  /// Minimum value for [balance_out].
   static const double balance_outMin = -1.0;
+
+  /// Maximum value for [balance_out].
   static const double balance_outMax = 1.0;
+
+  /// Default value for [base].
   static const double baseDefault = 0.0;
+
+  /// Minimum value for [base].
   static const double baseMin = -1.0;
+
+  /// Maximum value for [base].
   static const double baseMax = 1.0;
+
+  /// Default value for [delay].
   static const double delayDefault = 0.0;
+
+  /// Minimum value for [delay].
   static const double delayMin = -20.0;
+
+  /// Maximum value for [delay].
   static const double delayMax = 20.0;
+
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = 0.015625;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 64.0;
+
+  /// Default value for [level_out].
   static const double level_outDefault = 1.0;
+
+  /// Minimum value for [level_out].
   static const double level_outMin = 0.015625;
+
+  /// Maximum value for [level_out].
   static const double level_outMax = 64.0;
+
+  /// Default value for [mlev].
   static const double mlevDefault = 1.0;
+
+  /// Minimum value for [mlev].
   static const double mlevMin = 0.015625;
+
+  /// Maximum value for [mlev].
   static const double mlevMax = 64.0;
+
+  /// Default value for [mpan].
   static const double mpanDefault = 0.0;
+
+  /// Minimum value for [mpan].
   static const double mpanMin = -1.0;
+
+  /// Maximum value for [mpan].
   static const double mpanMax = 1.0;
+
+  /// Default value for [phase].
   static const double phaseDefault = 0.0;
+
+  /// Minimum value for [phase].
   static const double phaseMin = 0.0;
+
+  /// Maximum value for [phase].
   static const double phaseMax = 360.0;
+
+  /// Default value for [sbal].
   static const double sbalDefault = 0.0;
+
+  /// Minimum value for [sbal].
   static const double sbalMin = -1.0;
+
+  /// Maximum value for [sbal].
   static const double sbalMax = 1.0;
+
+  /// Default value for [sclevel].
   static const double sclevelDefault = 1.0;
+
+  /// Minimum value for [sclevel].
   static const double sclevelMin = 1.0;
+
+  /// Maximum value for [sclevel].
   static const double sclevelMax = 100.0;
+
+  /// Default value for [slev].
   static const double slevDefault = 1.0;
+
+  /// Minimum value for [slev].
   static const double slevMin = 0.015625;
+
+  /// Maximum value for [slev].
   static const double slevMax = 64.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set balance in
   final double balance_in;
+
+  /// set balance out
   final double balance_out;
+
+  /// set stereo base
   final double base;
+
+  /// set balance in mode
   final StereotoolsBmode bmode_in;
+
+  /// set balance out mode
   final StereotoolsBmode bmode_out;
+
+  /// set delay
   final double delay;
+
+  /// set level in
   final double level_in;
+
+  /// set level out
   final double level_out;
+
+  /// set middle level
   final double mlev;
+
+  /// set stereo mode
   final StereotoolsMode mode;
+
+  /// set middle pan
   final double mpan;
+
+  /// mute L
   final bool mutel;
+
+  /// mute R
   final bool muter;
+
+  /// set stereo phase
   final double phase;
+
+  /// phase L
   final bool phasel;
+
+  /// phase R
   final bool phaser;
+
+  /// set side balance
   final double sbal;
+
+  /// set S/C level
   final double sclevel;
+
+  /// set side level
   final double slev;
+
+  /// enable softclip
   final bool softclip;
 
+  /// Creates an [StereotoolsSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const StereotoolsSettings({
     this.enabled = false,
     this.balance_in = 0.0,
@@ -11016,6 +15163,7 @@ final class StereotoolsSettings {
     this.softclip = false,
   });
 
+  /// Returns a copy of this [StereotoolsSettings] with the given fields replaced.
   StereotoolsSettings copyWith({
     bool? enabled,
     double? balance_in,
@@ -11111,7 +15259,7 @@ final class StereotoolsSettings {
         sbal,
         sclevel,
         slev,
-        softclip
+        softclip,
       ]);
 
   @override
@@ -11124,9 +15272,9 @@ final class StereotoolsSettings {
     assert(balance_in >= balance_inMin, 'stereotools.balance_in must be >= -1');
     assert(balance_in <= balance_inMax, 'stereotools.balance_in must be <= 1');
     assert(
-        balance_out >= balance_outMin, 'stereotools.balance_out must be >= -1');
+        balance_out >= balance_outMin, 'stereotools.balance_out must be >= -1',);
     assert(
-        balance_out <= balance_outMax, 'stereotools.balance_out must be <= 1');
+        balance_out <= balance_outMax, 'stereotools.balance_out must be <= 1',);
     assert(base >= baseMin, 'stereotools.base must be >= -1');
     assert(base <= baseMax, 'stereotools.base must be <= 1');
     assert(delay >= delayMin, 'stereotools.delay must be >= -20');
@@ -11134,7 +15282,7 @@ final class StereotoolsSettings {
     assert(level_in >= level_inMin, 'stereotools.level_in must be >= 0.015625');
     assert(level_in <= level_inMax, 'stereotools.level_in must be <= 64');
     assert(
-        level_out >= level_outMin, 'stereotools.level_out must be >= 0.015625');
+        level_out >= level_outMin, 'stereotools.level_out must be >= 0.015625',);
     assert(level_out <= level_outMax, 'stereotools.level_out must be <= 64');
     assert(mlev >= mlevMin, 'stereotools.mlev must be >= 0.015625');
     assert(mlev <= mlevMax, 'stereotools.mlev must be <= 64');
@@ -11192,25 +15340,61 @@ final class StereotoolsSettings {
 /// - [drymix]: Set level of input signal of original channel. Default is 0.8. (range 0..1.0, default .8, runtime-tunable)
 /// - [feedback]: Amount of gain in delayed signal into right and vice versa. Gives a delay effect of left signal in right output and vice versa which gives widening effect. Default is 0.3. (range 0..0.9, default .3, runtime-tunable)
 final class StereowidenSettings {
+  /// Default value for [crossfeed].
   static const double crossfeedDefault = .3;
+
+  /// Minimum value for [crossfeed].
   static const double crossfeedMin = 0.0;
+
+  /// Maximum value for [crossfeed].
   static const double crossfeedMax = 0.8;
+
+  /// Default value for [delay].
   static const double delayDefault = 20.0;
+
+  /// Minimum value for [delay].
   static const double delayMin = 1.0;
+
+  /// Maximum value for [delay].
   static const double delayMax = 100.0;
+
+  /// Default value for [drymix].
   static const double drymixDefault = .8;
+
+  /// Minimum value for [drymix].
   static const double drymixMin = 0.0;
+
+  /// Maximum value for [drymix].
   static const double drymixMax = 1.0;
+
+  /// Default value for [feedback].
   static const double feedbackDefault = .3;
+
+  /// Minimum value for [feedback].
   static const double feedbackMin = 0.0;
+
+  /// Maximum value for [feedback].
   static const double feedbackMax = 0.9;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set cross feed
   final double crossfeed;
+
+  /// set delay time
   final double delay;
+
+  /// set dry-mix
   final double drymix;
+
+  /// set feedback gain
   final double feedback;
 
+  /// Creates an [StereowidenSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const StereowidenSettings({
     this.enabled = false,
     this.crossfeed = .3,
@@ -11219,6 +15403,7 @@ final class StereowidenSettings {
     this.feedback = .3,
   });
 
+  /// Returns a copy of this [StereowidenSettings] with the given fields replaced.
   StereowidenSettings copyWith({
     bool? enabled,
     double? crossfeed,
@@ -11300,14 +15485,23 @@ final class StereowidenSettings {
 /// - `8b`: Set 740Hz band gain. (range 0..20, default 1)
 /// - `9b`: Set 1047Hz band gain. (range 0..20, default 1)
 final class SuperequalizerSettings {
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// Raw values for parameters whose names start with a digit,
+  /// keyed by their original ffmpeg option name.
   final Map<String, double> params;
 
+  /// Creates an [SuperequalizerSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const SuperequalizerSettings({
     this.enabled = false,
     this.params = const <String, double>{},
   });
 
+  /// Returns a copy of this [SuperequalizerSettings] with the given fields replaced.
   SuperequalizerSettings copyWith({
     bool? enabled,
     Map<String, double>? params,
@@ -11328,7 +15522,7 @@ final class SuperequalizerSettings {
   int get hashCode => Object.hash(
       enabled,
       Object.hashAllUnordered(
-          params.entries.map((e) => Object.hash(e.key, e.value))));
+          params.entries.map((e) => Object.hash(e.key, e.value)),),);
 
   @override
   String toString() =>
@@ -11405,194 +15599,568 @@ final class SuperequalizerSettings {
 /// - [win_func]: Set window function.  It accepts the following values: (default WFUNC_HANNING)
 /// - [win_size]: Set window size. Allowed range is from `1024` to `65536`. Default size is `4096`. (range 1024..65536, default 4096)
 final class SurroundSettings {
+  /// Default value for [allx].
   static const double allxDefault = -1.0;
+
+  /// Minimum value for [allx].
   static const double allxMin = -1.0;
+
+  /// Maximum value for [allx].
   static const double allxMax = 15.0;
+
+  /// Default value for [ally].
   static const double allyDefault = -1.0;
+
+  /// Minimum value for [ally].
   static const double allyMin = -1.0;
+
+  /// Maximum value for [ally].
   static const double allyMax = 15.0;
+
+  /// Default value for [angle].
   static const double angleDefault = 90.0;
+
+  /// Minimum value for [angle].
   static const double angleMin = 0.0;
+
+  /// Maximum value for [angle].
   static const double angleMax = 360.0;
+
+  /// Default value for [bc_in].
   static const double bc_inDefault = 1.0;
+
+  /// Minimum value for [bc_in].
   static const double bc_inMin = 0.0;
+
+  /// Maximum value for [bc_in].
   static const double bc_inMax = 10.0;
+
+  /// Default value for [bc_out].
   static const double bc_outDefault = 1.0;
+
+  /// Minimum value for [bc_out].
   static const double bc_outMin = 0.0;
+
+  /// Maximum value for [bc_out].
   static const double bc_outMax = 10.0;
+
+  /// Default value for [bcx].
   static const double bcxDefault = 0.5;
+
+  /// Minimum value for [bcx].
   static const double bcxMin = .06;
+
+  /// Maximum value for [bcx].
   static const double bcxMax = 15.0;
+
+  /// Default value for [bcy].
   static const double bcyDefault = 0.5;
+
+  /// Minimum value for [bcy].
   static const double bcyMin = .06;
+
+  /// Maximum value for [bcy].
   static const double bcyMax = 15.0;
+
+  /// Default value for [bl_in].
   static const double bl_inDefault = 1.0;
+
+  /// Minimum value for [bl_in].
   static const double bl_inMin = 0.0;
+
+  /// Maximum value for [bl_in].
   static const double bl_inMax = 10.0;
+
+  /// Default value for [bl_out].
   static const double bl_outDefault = 1.0;
+
+  /// Minimum value for [bl_out].
   static const double bl_outMin = 0.0;
+
+  /// Maximum value for [bl_out].
   static const double bl_outMax = 10.0;
+
+  /// Default value for [blx].
   static const double blxDefault = 0.5;
+
+  /// Minimum value for [blx].
   static const double blxMin = .06;
+
+  /// Maximum value for [blx].
   static const double blxMax = 15.0;
+
+  /// Default value for [bly].
   static const double blyDefault = 0.5;
+
+  /// Minimum value for [bly].
   static const double blyMin = .06;
+
+  /// Maximum value for [bly].
   static const double blyMax = 15.0;
+
+  /// Default value for [br_in].
   static const double br_inDefault = 1.0;
+
+  /// Minimum value for [br_in].
   static const double br_inMin = 0.0;
+
+  /// Maximum value for [br_in].
   static const double br_inMax = 10.0;
+
+  /// Default value for [br_out].
   static const double br_outDefault = 1.0;
+
+  /// Minimum value for [br_out].
   static const double br_outMin = 0.0;
+
+  /// Maximum value for [br_out].
   static const double br_outMax = 10.0;
+
+  /// Default value for [brx].
   static const double brxDefault = 0.5;
+
+  /// Minimum value for [brx].
   static const double brxMin = .06;
+
+  /// Maximum value for [brx].
   static const double brxMax = 15.0;
+
+  /// Default value for [bry].
   static const double bryDefault = 0.5;
+
+  /// Minimum value for [bry].
   static const double bryMin = .06;
+
+  /// Maximum value for [bry].
   static const double bryMax = 15.0;
+
+  /// Default value for [fc_in].
   static const double fc_inDefault = 1.0;
+
+  /// Minimum value for [fc_in].
   static const double fc_inMin = 0.0;
+
+  /// Maximum value for [fc_in].
   static const double fc_inMax = 10.0;
+
+  /// Default value for [fc_out].
   static const double fc_outDefault = 1.0;
+
+  /// Minimum value for [fc_out].
   static const double fc_outMin = 0.0;
+
+  /// Maximum value for [fc_out].
   static const double fc_outMax = 10.0;
+
+  /// Default value for [fcx].
   static const double fcxDefault = 0.5;
+
+  /// Minimum value for [fcx].
   static const double fcxMin = .06;
+
+  /// Maximum value for [fcx].
   static const double fcxMax = 15.0;
+
+  /// Default value for [fcy].
   static const double fcyDefault = 0.5;
+
+  /// Minimum value for [fcy].
   static const double fcyMin = .06;
+
+  /// Maximum value for [fcy].
   static const double fcyMax = 15.0;
+
+  /// Default value for [fl_in].
   static const double fl_inDefault = 1.0;
+
+  /// Minimum value for [fl_in].
   static const double fl_inMin = 0.0;
+
+  /// Maximum value for [fl_in].
   static const double fl_inMax = 10.0;
+
+  /// Default value for [fl_out].
   static const double fl_outDefault = 1.0;
+
+  /// Minimum value for [fl_out].
   static const double fl_outMin = 0.0;
+
+  /// Maximum value for [fl_out].
   static const double fl_outMax = 10.0;
+
+  /// Default value for [flx].
   static const double flxDefault = 0.5;
+
+  /// Minimum value for [flx].
   static const double flxMin = .06;
+
+  /// Maximum value for [flx].
   static const double flxMax = 15.0;
+
+  /// Default value for [fly].
   static const double flyDefault = 0.5;
+
+  /// Minimum value for [fly].
   static const double flyMin = .06;
+
+  /// Maximum value for [fly].
   static const double flyMax = 15.0;
+
+  /// Default value for [focus].
   static const double focusDefault = 0.0;
+
+  /// Minimum value for [focus].
   static const double focusMin = -1.0;
+
+  /// Maximum value for [focus].
   static const double focusMax = 1.0;
+
+  /// Default value for [fr_in].
   static const double fr_inDefault = 1.0;
+
+  /// Minimum value for [fr_in].
   static const double fr_inMin = 0.0;
+
+  /// Maximum value for [fr_in].
   static const double fr_inMax = 10.0;
+
+  /// Default value for [fr_out].
   static const double fr_outDefault = 1.0;
+
+  /// Minimum value for [fr_out].
   static const double fr_outMin = 0.0;
+
+  /// Maximum value for [fr_out].
   static const double fr_outMax = 10.0;
+
+  /// Default value for [frx].
   static const double frxDefault = 0.5;
+
+  /// Minimum value for [frx].
   static const double frxMin = .06;
+
+  /// Maximum value for [frx].
   static const double frxMax = 15.0;
+
+  /// Default value for [fry].
   static const double fryDefault = 0.5;
+
+  /// Minimum value for [fry].
   static const double fryMin = .06;
+
+  /// Maximum value for [fry].
   static const double fryMax = 15.0;
+
+  /// Default value for [level_in].
   static const double level_inDefault = 1.0;
+
+  /// Minimum value for [level_in].
   static const double level_inMin = 0.0;
+
+  /// Maximum value for [level_in].
   static const double level_inMax = 10.0;
+
+  /// Default value for [level_out].
   static const double level_outDefault = 1.0;
+
+  /// Minimum value for [level_out].
   static const double level_outMin = 0.0;
+
+  /// Maximum value for [level_out].
   static const double level_outMax = 10.0;
+
+  /// Default value for [lfe_high].
   static const int lfe_highDefault = 256;
+
+  /// Minimum value for [lfe_high].
   static const int lfe_highMin = 0;
+
+  /// Maximum value for [lfe_high].
   static const int lfe_highMax = 512;
+
+  /// Default value for [lfe_in].
   static const double lfe_inDefault = 1.0;
+
+  /// Minimum value for [lfe_in].
   static const double lfe_inMin = 0.0;
+
+  /// Maximum value for [lfe_in].
   static const double lfe_inMax = 10.0;
+
+  /// Default value for [lfe_low].
   static const int lfe_lowDefault = 128;
+
+  /// Minimum value for [lfe_low].
   static const int lfe_lowMin = 0;
+
+  /// Maximum value for [lfe_low].
   static const int lfe_lowMax = 256;
+
+  /// Default value for [lfe_out].
   static const double lfe_outDefault = 1.0;
+
+  /// Minimum value for [lfe_out].
   static const double lfe_outMin = 0.0;
+
+  /// Maximum value for [lfe_out].
   static const double lfe_outMax = 10.0;
+
+  /// Default value for [overlap].
   static const double overlapDefault = 0.5;
+
+  /// Minimum value for [overlap].
   static const double overlapMin = 0.0;
+
+  /// Maximum value for [overlap].
   static const double overlapMax = 1.0;
+
+  /// Default value for [sl_in].
   static const double sl_inDefault = 1.0;
+
+  /// Minimum value for [sl_in].
   static const double sl_inMin = 0.0;
+
+  /// Maximum value for [sl_in].
   static const double sl_inMax = 10.0;
+
+  /// Default value for [sl_out].
   static const double sl_outDefault = 1.0;
+
+  /// Minimum value for [sl_out].
   static const double sl_outMin = 0.0;
+
+  /// Maximum value for [sl_out].
   static const double sl_outMax = 10.0;
+
+  /// Default value for [slx].
   static const double slxDefault = 0.5;
+
+  /// Minimum value for [slx].
   static const double slxMin = .06;
+
+  /// Maximum value for [slx].
   static const double slxMax = 15.0;
+
+  /// Default value for [sly].
   static const double slyDefault = 0.5;
+
+  /// Minimum value for [sly].
   static const double slyMin = .06;
+
+  /// Maximum value for [sly].
   static const double slyMax = 15.0;
+
+  /// Default value for [smooth].
   static const double smoothDefault = 0.0;
+
+  /// Minimum value for [smooth].
   static const double smoothMin = 0.0;
+
+  /// Maximum value for [smooth].
   static const double smoothMax = 1.0;
+
+  /// Default value for [sr_in].
   static const double sr_inDefault = 1.0;
+
+  /// Minimum value for [sr_in].
   static const double sr_inMin = 0.0;
+
+  /// Maximum value for [sr_in].
   static const double sr_inMax = 10.0;
+
+  /// Default value for [sr_out].
   static const double sr_outDefault = 1.0;
+
+  /// Minimum value for [sr_out].
   static const double sr_outMin = 0.0;
+
+  /// Maximum value for [sr_out].
   static const double sr_outMax = 10.0;
+
+  /// Default value for [srx].
   static const double srxDefault = 0.5;
+
+  /// Minimum value for [srx].
   static const double srxMin = .06;
+
+  /// Maximum value for [srx].
   static const double srxMax = 15.0;
+
+  /// Default value for [sry].
   static const double sryDefault = 0.5;
+
+  /// Minimum value for [sry].
   static const double sryMin = .06;
+
+  /// Maximum value for [sry].
   static const double sryMax = 15.0;
+
+  /// Default value for [win_size].
   static const int win_sizeDefault = 4096;
+
+  /// Minimum value for [win_size].
   static const int win_sizeMin = 1024;
+
+  /// Maximum value for [win_size].
   static const int win_sizeMax = 65536;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set all channel's x spread
   final double allx;
+
+  /// set all channel's y spread
   final double ally;
+
+  /// set soundfield transform angle
   final double angle;
+
+  /// set back center channel input level
   final double bc_in;
+
+  /// set back center channel output level
   final double bc_out;
+
+  /// set back center channel x spread
   final double bcx;
+
+  /// set back center channel y spread
   final double bcy;
+
+  /// set back left channel input level
   final double bl_in;
+
+  /// set back left channel output level
   final double bl_out;
+
+  /// set back left channel x spread
   final double blx;
+
+  /// set back left channel y spread
   final double bly;
+
+  /// set back right channel input level
   final double br_in;
+
+  /// set back right channel output level
   final double br_out;
+
+  /// set back right channel x spread
   final double brx;
+
+  /// set back right channel y spread
   final double bry;
+
+  /// set input channel layout
   final String chl_in;
+
+  /// set output channel layout
   final String chl_out;
+
+  /// set front center channel input level
   final double fc_in;
+
+  /// set front center channel output level
   final double fc_out;
+
+  /// set front center channel x spread
   final double fcx;
+
+  /// set front center channel y spread
   final double fcy;
+
+  /// set front left channel input level
   final double fl_in;
+
+  /// set front left channel output level
   final double fl_out;
+
+  /// set front left channel x spread
   final double flx;
+
+  /// set front left channel y spread
   final double fly;
+
+  /// set soundfield transform focus
   final double focus;
+
+  /// set front right channel input level
   final double fr_in;
+
+  /// set front right channel output level
   final double fr_out;
+
+  /// set front right channel x spread
   final double frx;
+
+  /// set front right channel y spread
   final double fry;
+
+  /// set input level
   final double level_in;
+
+  /// set output level
   final double level_out;
+
+  /// output LFE
   final bool lfe;
+
+  /// LFE high cut off
   final int lfe_high;
+
+  /// set lfe channel input level
   final double lfe_in;
+
+  /// LFE low cut off
   final int lfe_low;
+
+  /// set LFE channel mode
   final SurroundLfeMode lfe_mode;
+
+  /// set lfe channel output level
   final double lfe_out;
+
+  /// set window overlap
   final double overlap;
+
+  /// set side left channel input level
   final double sl_in;
+
+  /// set side left channel output level
   final double sl_out;
+
+  /// set side left channel x spread
   final double slx;
+
+  /// set side left channel y spread
   final double sly;
+
+  /// set temporal smoothness strength
   final double smooth;
+
+  /// set side right channel input level
   final double sr_in;
+
+  /// set side right channel output level
   final double sr_out;
+
+  /// set side right channel x spread
   final double srx;
+
+  /// set side right channel y spread
   final double sry;
+
+  /// set window function
   final SurroundWinFunc win_func;
+
+  /// set window size
   final int win_size;
 
+  /// Creates an [SurroundSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const SurroundSettings({
     this.enabled = false,
     this.allx = -1.0,
@@ -11610,8 +16178,8 @@ final class SurroundSettings {
     this.br_out = 1.0,
     this.brx = 0.5,
     this.bry = 0.5,
-    this.chl_in = "stereo",
-    this.chl_out = "5.1",
+    this.chl_in = 'stereo',
+    this.chl_out = '5.1',
     this.fc_in = 1.0,
     this.fc_out = 1.0,
     this.fcx = 0.5,
@@ -11647,6 +16215,7 @@ final class SurroundSettings {
     this.win_size = 4096,
   });
 
+  /// Returns a copy of this [SurroundSettings] with the given fields replaced.
   SurroundSettings copyWith({
     bool? enabled,
     double? allx,
@@ -11862,7 +16431,7 @@ final class SurroundSettings {
         srx,
         sry,
         win_func,
-        win_size
+        win_size,
       ]);
 
   @override
@@ -11978,8 +16547,8 @@ final class SurroundSettings {
     if (br_out != 1.0) parts.add('br_out=' + _wireDouble(br_out));
     if (brx != 0.5) parts.add('brx=' + _wireDouble(brx));
     if (bry != 0.5) parts.add('bry=' + _wireDouble(bry));
-    if (chl_in != "stereo") parts.add('chl_in=' + '[' + chl_in + ']');
-    if (chl_out != "5.1") parts.add('chl_out=' + '[' + chl_out + ']');
+    if (chl_in != 'stereo') parts.add('chl_in=' + '[' + chl_in + ']');
+    if (chl_out != '5.1') parts.add('chl_out=' + '[' + chl_out + ']');
     if (fc_in != 1.0) parts.add('fc_in=' + _wireDouble(fc_in));
     if (fc_out != 1.0) parts.add('fc_out=' + _wireDouble(fc_out));
     if (fcx != 0.5) parts.add('fcx=' + _wireDouble(fcx));
@@ -12054,67 +16623,187 @@ final class SurroundSettings {
 /// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class TiltshelfSettings {
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [f].
   static const double fDefault = 3000.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 3000.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [g].
   static const double gDefault = 0.0;
+
+  /// Minimum value for [g].
   static const double gMin = -900.0;
+
+  /// Maximum value for [g].
   static const double gMax = 900.0;
+
+  /// Default value for [gain].
   static const double gainDefault = 0.0;
+
+  /// Minimum value for [gain].
   static const double gainMin = -900.0;
+
+  /// Maximum value for [gain].
   static const double gainMax = 900.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [p].
   static const int pDefault = 2;
+
+  /// Minimum value for [p].
   static const int pMin = 1;
+
+  /// Maximum value for [p].
   static const int pMax = 2;
+
+  /// Default value for [poles].
   static const int polesDefault = 2;
+
+  /// Minimum value for [poles].
   static const int polesMin = 1;
+
+  /// Maximum value for [poles].
   static const int polesMax = 2;
+
+  /// Default value for [w].
   static const double wDefault = 0.5;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 0.5;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final TiltshelfTransformType a;
+
+  /// set the block size
   final int b;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set central frequency
   final double f;
+
+  /// set central frequency
   final double frequency;
+
+  /// set gain
   final double g;
+
+  /// set gain
   final double gain;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set number of poles
   final int p;
+
+  /// set number of poles
   final int poles;
+
+  /// set filtering precision
   final TiltshelfPrecision precision;
+
+  /// set filtering precision
   final TiltshelfPrecision r;
+
+  /// set filter-width type
   final TiltshelfWidthType t;
+
+  /// set transform type
   final TiltshelfTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final TiltshelfWidthType width_type;
 
+  /// Creates an [TiltshelfSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const TiltshelfSettings({
     this.enabled = false,
     this.a = TiltshelfTransformType.di,
@@ -12141,6 +16830,7 @@ final class TiltshelfSettings {
     this.width_type = TiltshelfWidthType.q,
   });
 
+  /// Returns a copy of this [TiltshelfSettings] with the given fields replaced.
   TiltshelfSettings copyWith({
     bool? enabled,
     TiltshelfTransformType? a,
@@ -12244,7 +16934,7 @@ final class TiltshelfSettings {
         transform,
         w,
         width,
-        width_type
+        width_type,
       ]);
 
   @override
@@ -12342,67 +17032,187 @@ final class TiltshelfSettings {
 /// - [width]: Determine how steep is the filter's shelf transition. (range 0..99999, default 0.5, runtime-tunable)
 /// - [width_type]: Set method to specify band-width of filter. (range 1..5, default QFACTOR, runtime-tunable)
 final class TrebleSettings {
+  /// Default value for [b].
   static const int bDefault = 0;
+
+  /// Minimum value for [b].
   static const int bMin = 0;
+
+  /// Maximum value for [b].
   static const int bMax = 32768;
+
+  /// Default value for [blocksize].
   static const int blocksizeDefault = 0;
+
+  /// Minimum value for [blocksize].
   static const int blocksizeMin = 0;
+
+  /// Maximum value for [blocksize].
   static const int blocksizeMax = 32768;
+
+  /// Default value for [f].
   static const double fDefault = 3000.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.0;
+
+  /// Maximum value for [f].
   static const double fMax = 999999.0;
+
+  /// Default value for [frequency].
   static const double frequencyDefault = 3000.0;
+
+  /// Minimum value for [frequency].
   static const double frequencyMin = 0.0;
+
+  /// Maximum value for [frequency].
   static const double frequencyMax = 999999.0;
+
+  /// Default value for [g].
   static const double gDefault = 0.0;
+
+  /// Minimum value for [g].
   static const double gMin = -900.0;
+
+  /// Maximum value for [g].
   static const double gMax = 900.0;
+
+  /// Default value for [gain].
   static const double gainDefault = 0.0;
+
+  /// Minimum value for [gain].
   static const double gainMin = -900.0;
+
+  /// Maximum value for [gain].
   static const double gainMax = 900.0;
+
+  /// Default value for [m].
   static const double mDefault = 1.0;
+
+  /// Minimum value for [m].
   static const double mMin = 0.0;
+
+  /// Maximum value for [m].
   static const double mMax = 1.0;
+
+  /// Default value for [mix].
   static const double mixDefault = 1.0;
+
+  /// Minimum value for [mix].
   static const double mixMin = 0.0;
+
+  /// Maximum value for [mix].
   static const double mixMax = 1.0;
+
+  /// Default value for [p].
   static const int pDefault = 2;
+
+  /// Minimum value for [p].
   static const int pMin = 1;
+
+  /// Maximum value for [p].
   static const int pMax = 2;
+
+  /// Default value for [poles].
   static const int polesDefault = 2;
+
+  /// Minimum value for [poles].
   static const int polesMin = 1;
+
+  /// Maximum value for [poles].
   static const int polesMax = 2;
+
+  /// Default value for [w].
   static const double wDefault = 0.5;
+
+  /// Minimum value for [w].
   static const double wMin = 0.0;
+
+  /// Maximum value for [w].
   static const double wMax = 99999.0;
+
+  /// Default value for [width].
   static const double widthDefault = 0.5;
+
+  /// Minimum value for [width].
   static const double widthMin = 0.0;
+
+  /// Maximum value for [width].
   static const double widthMax = 99999.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set transform type
   final TrebleTransformType a;
+
+  /// set the block size
   final int b;
+
+  /// set the block size
   final int blocksize;
+
+  /// set channels to filter
   final String c;
+
+  /// set channels to filter
   final String channels;
+
+  /// set central frequency
   final double f;
+
+  /// set central frequency
   final double frequency;
+
+  /// set gain
   final double g;
+
+  /// set gain
   final double gain;
+
+  /// set mix
   final double m;
+
+  /// set mix
   final double mix;
+
+  /// normalize coefficients
   final bool n;
+
+  /// normalize coefficients
   final bool normalize;
+
+  /// set number of poles
   final int p;
+
+  /// set number of poles
   final int poles;
+
+  /// set filtering precision
   final TreblePrecision precision;
+
+  /// set filtering precision
   final TreblePrecision r;
+
+  /// set filter-width type
   final TrebleWidthType t;
+
+  /// set transform type
   final TrebleTransformType transform;
+
+  /// set width
   final double w;
+
+  /// set width
   final double width;
+
+  /// set filter-width type
   final TrebleWidthType width_type;
 
+  /// Creates an [TrebleSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const TrebleSettings({
     this.enabled = false,
     this.a = TrebleTransformType.di,
@@ -12429,6 +17239,7 @@ final class TrebleSettings {
     this.width_type = TrebleWidthType.q,
   });
 
+  /// Returns a copy of this [TrebleSettings] with the given fields replaced.
   TrebleSettings copyWith({
     bool? enabled,
     TrebleTransformType? a,
@@ -12532,7 +17343,7 @@ final class TrebleSettings {
         transform,
         w,
         width,
-        width_type
+        width_type,
       ]);
 
   @override
@@ -12606,23 +17417,44 @@ final class TrebleSettings {
 /// - [d]: Depth of modulation as a percentage. Range is 0.0 - 1.0. Default value is 0.5. (range 0.0..1.0, default 0.5)
 /// - [f]: Modulation frequency in Hertz. Modulation frequencies in the subharmonic range (20 Hz or lower) will result in a tremolo effect. This filter may also be used as a ring modulator by specifying a modulation frequency higher than 20 Hz. Range is 0.1 - 20000.0. Default value is 5.0 Hz. (range 0.1..20000.0, default 5.0)
 final class TremoloSettings {
+  /// Default value for [d].
   static const double dDefault = 0.5;
+
+  /// Minimum value for [d].
   static const double dMin = 0.0;
+
+  /// Maximum value for [d].
   static const double dMax = 1.0;
+
+  /// Default value for [f].
   static const double fDefault = 5.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.1;
+
+  /// Maximum value for [f].
   static const double fMax = 20000.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set depth as percentage
   final double d;
+
+  /// set frequency in hertz
   final double f;
 
+  /// Creates an [TremoloSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const TremoloSettings({
     this.enabled = false,
     this.d = 0.5,
     this.f = 5.0,
   });
 
+  /// Returns a copy of this [TremoloSettings] with the given fields replaced.
   TremoloSettings copyWith({
     bool? enabled,
     double? d,
@@ -12672,23 +17504,44 @@ final class TremoloSettings {
 /// - [d]: Depth of modulation as a percentage. Range is 0.0 - 1.0. Default value is 0.5. (range 0.00..1.0, default 0.5)
 /// - [f]: Modulation frequency in Hertz. Range is 0.1 - 20000.0. Default value is 5.0 Hz. (range 0.1..20000.0, default 5.0)
 final class VibratoSettings {
+  /// Default value for [d].
   static const double dDefault = 0.5;
+
+  /// Minimum value for [d].
   static const double dMin = 0.00;
+
+  /// Maximum value for [d].
   static const double dMax = 1.0;
+
+  /// Default value for [f].
   static const double fDefault = 5.0;
+
+  /// Minimum value for [f].
   static const double fMin = 0.1;
+
+  /// Maximum value for [f].
   static const double fMax = 20000.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set depth as percentage
   final double d;
+
+  /// set frequency in hertz
   final double f;
 
+  /// Creates an [VibratoSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const VibratoSettings({
     this.enabled = false,
     this.d = 0.5,
     this.f = 5.0,
   });
 
+  /// Returns a copy of this [VibratoSettings] with the given fields replaced.
   VibratoSettings copyWith({
     bool? enabled,
     double? d,
@@ -12742,23 +17595,44 @@ final class VibratoSettings {
 /// - [cutoff]: Set the virtual bass cutoff frequency. Default value is 250 Hz. Allowed range is from 100 to 500 Hz. (range 100..500, default 250)
 /// - [strength]: Set the virtual bass strength. Allowed range is from 0.5 to 3. Default value is 3. (range 0.5..3, default 3, runtime-tunable)
 final class VirtualbassSettings {
+  /// Default value for [cutoff].
   static const double cutoffDefault = 250.0;
+
+  /// Minimum value for [cutoff].
   static const double cutoffMin = 100.0;
+
+  /// Maximum value for [cutoff].
   static const double cutoffMax = 500.0;
+
+  /// Default value for [strength].
   static const double strengthDefault = 3.0;
+
+  /// Minimum value for [strength].
   static const double strengthMin = 0.5;
+
+  /// Maximum value for [strength].
   static const double strengthMax = 3.0;
 
+  /// Whether this effect is inserted into the audio chain.
   final bool enabled;
+
+  /// set virtual bass cutoff
   final double cutoff;
+
+  /// set virtual bass strength
   final double strength;
 
+  /// Creates an [VirtualbassSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
   const VirtualbassSettings({
     this.enabled = false,
     this.cutoff = 250.0,
     this.strength = 3.0,
   });
 
+  /// Returns a copy of this [VirtualbassSettings] with the given fields replaced.
   VirtualbassSettings copyWith({
     bool? enabled,
     double? cutoff,
@@ -12813,94 +17687,273 @@ final class VirtualbassSettings {
 /// before any typed stage. Use it for expression-based filters or
 /// experimental ffmpeg filters that don't have a typed equivalent.
 final class AudioEffects {
+  /// Raw lavfi filter strings emitted at the head of the chain,
+  /// before any typed stage. Use for expression-based or
+  /// experimental filters without a typed equivalent.
   final List<String> custom;
+
+  /// Configuration for the `acompressor` audio effect.
   final AcompressorSettings acompressor;
+
+  /// Configuration for the `acontrast` audio effect.
   final AcontrastSettings acontrast;
+
+  /// Configuration for the `acrusher` audio effect.
   final AcrusherSettings acrusher;
+
+  /// Configuration for the `adeclick` audio effect.
   final AdeclickSettings adeclick;
+
+  /// Configuration for the `adeclip` audio effect.
   final AdeclipSettings adeclip;
+
+  /// Configuration for the `adecorrelate` audio effect.
   final AdecorrelateSettings adecorrelate;
+
+  /// Configuration for the `adelay` audio effect.
   final AdelaySettings adelay;
+
+  /// Configuration for the `adenorm` audio effect.
   final AdenormSettings adenorm;
+
+  /// Configuration for the `aderivative` audio effect.
   final AderivativeSettings aderivative;
+
+  /// Configuration for the `adrc` audio effect.
   final AdrcSettings adrc;
+
+  /// Configuration for the `adynamicequalizer` audio effect.
   final AdynamicequalizerSettings adynamicequalizer;
+
+  /// Configuration for the `adynamicsmooth` audio effect.
   final AdynamicsmoothSettings adynamicsmooth;
+
+  /// Configuration for the `aecho` audio effect.
   final AechoSettings aecho;
+
+  /// Configuration for the `aemphasis` audio effect.
   final AemphasisSettings aemphasis;
+
+  /// Configuration for the `aeval` audio effect.
   final AevalSettings aeval;
+
+  /// Configuration for the `aexciter` audio effect.
   final AexciterSettings aexciter;
+
+  /// Configuration for the `afade` audio effect.
   final AfadeSettings afade;
+
+  /// Configuration for the `afftdn` audio effect.
   final AfftdnSettings afftdn;
+
+  /// Configuration for the `afftfilt` audio effect.
   final AfftfiltSettings afftfilt;
+
+  /// Configuration for the `aformat` audio effect.
   final AformatSettings aformat;
+
+  /// Configuration for the `afreqshift` audio effect.
   final AfreqshiftSettings afreqshift;
+
+  /// Configuration for the `afwtdn` audio effect.
   final AfwtdnSettings afwtdn;
+
+  /// Configuration for the `agate` audio effect.
   final AgateSettings agate;
+
+  /// Configuration for the `aiir` audio effect.
   final AiirSettings aiir;
+
+  /// Configuration for the `alimiter` audio effect.
   final AlimiterSettings alimiter;
+
+  /// Configuration for the `allpass` audio effect.
   final AllpassSettings allpass;
+
+  /// Configuration for the `anequalizer` audio effect.
   final AnequalizerSettings anequalizer;
+
+  /// Configuration for the `anlmdn` audio effect.
   final AnlmdnSettings anlmdn;
+
+  /// Configuration for the `apad` audio effect.
   final ApadSettings apad;
+
+  /// Configuration for the `aphaser` audio effect.
   final AphaserSettings aphaser;
+
+  /// Configuration for the `aphaseshift` audio effect.
   final AphaseshiftSettings aphaseshift;
+
+  /// Configuration for the `apsyclip` audio effect.
   final ApsyclipSettings apsyclip;
+
+  /// Configuration for the `apulsator` audio effect.
   final ApulsatorSettings apulsator;
+
+  /// Configuration for the `aresample` audio effect.
   final AresampleSettings aresample;
+
+  /// Configuration for the `arnndn` audio effect.
   final ArnndnSettings arnndn;
+
+  /// Configuration for the `asoftclip` audio effect.
   final AsoftclipSettings asoftclip;
+
+  /// Configuration for the `asubboost` audio effect.
   final AsubboostSettings asubboost;
+
+  /// Configuration for the `asubcut` audio effect.
   final AsubcutSettings asubcut;
+
+  /// Configuration for the `asupercut` audio effect.
   final AsupercutSettings asupercut;
+
+  /// Configuration for the `asuperpass` audio effect.
   final AsuperpassSettings asuperpass;
+
+  /// Configuration for the `asuperstop` audio effect.
   final AsuperstopSettings asuperstop;
+
+  /// Configuration for the `atempo` audio effect.
   final AtempoSettings atempo;
+
+  /// Configuration for the `atilt` audio effect.
   final AtiltSettings atilt;
+
+  /// Configuration for the `bandpass` audio effect.
   final BandpassSettings bandpass;
+
+  /// Configuration for the `bandreject` audio effect.
   final BandrejectSettings bandreject;
+
+  /// Configuration for the `bass` audio effect.
   final BassSettings bass;
+
+  /// Configuration for the `biquad` audio effect.
   final BiquadSettings biquad;
+
+  /// Configuration for the `channelmap` audio effect.
   final ChannelmapSettings channelmap;
+
+  /// Configuration for the `chorus` audio effect.
   final ChorusSettings chorus;
+
+  /// Configuration for the `compand` audio effect.
   final CompandSettings compand;
+
+  /// Configuration for the `compensationdelay` audio effect.
   final CompensationdelaySettings compensationdelay;
+
+  /// Configuration for the `crossfeed` audio effect.
   final CrossfeedSettings crossfeed;
+
+  /// Configuration for the `crystalizer` audio effect.
   final CrystalizerSettings crystalizer;
+
+  /// Configuration for the `dcshift` audio effect.
   final DcshiftSettings dcshift;
+
+  /// Configuration for the `deesser` audio effect.
   final DeesserSettings deesser;
+
+  /// Configuration for the `dialoguenhance` audio effect.
   final DialoguenhanceSettings dialoguenhance;
+
+  /// Configuration for the `drmeter` audio effect.
   final DrmeterSettings drmeter;
+
+  /// Configuration for the `dynaudnorm` audio effect.
   final DynaudnormSettings dynaudnorm;
+
+  /// Configuration for the `earwax` audio effect.
   final EarwaxSettings earwax;
+
+  /// Configuration for the `ebur128` audio effect.
   final Ebur128Settings ebur128;
+
+  /// Configuration for the `equalizer` audio effect.
   final EqualizerSettings equalizer;
+
+  /// Configuration for the `extrastereo` audio effect.
   final ExtrastereoSettings extrastereo;
+
+  /// Configuration for the `firequalizer` audio effect.
   final FirequalizerSettings firequalizer;
+
+  /// Configuration for the `flanger` audio effect.
   final FlangerSettings flanger;
+
+  /// Configuration for the `haas` audio effect.
   final HaasSettings haas;
+
+  /// Configuration for the `hdcd` audio effect.
   final HdcdSettings hdcd;
+
+  /// Configuration for the `headphone` audio effect.
   final HeadphoneSettings headphone;
+
+  /// Configuration for the `highpass` audio effect.
   final HighpassSettings highpass;
+
+  /// Configuration for the `highshelf` audio effect.
   final HighshelfSettings highshelf;
+
+  /// Configuration for the `loudnorm` audio effect.
   final LoudnormSettings loudnorm;
+
+  /// Configuration for the `lowpass` audio effect.
   final LowpassSettings lowpass;
+
+  /// Configuration for the `lowshelf` audio effect.
   final LowshelfSettings lowshelf;
+
+  /// Configuration for the `mcompand` audio effect.
   final McompandSettings mcompand;
+
+  /// Configuration for the `pan` audio effect.
   final PanSettings pan;
+
+  /// Configuration for the `rubberband` audio effect.
   final RubberbandSettings rubberband;
+
+  /// Configuration for the `silenceremove` audio effect.
   final SilenceremoveSettings silenceremove;
+
+  /// Configuration for the `speechnorm` audio effect.
   final SpeechnormSettings speechnorm;
+
+  /// Configuration for the `stereotools` audio effect.
   final StereotoolsSettings stereotools;
+
+  /// Configuration for the `stereowiden` audio effect.
   final StereowidenSettings stereowiden;
+
+  /// Configuration for the `superequalizer` audio effect.
   final SuperequalizerSettings superequalizer;
+
+  /// Configuration for the `surround` audio effect.
   final SurroundSettings surround;
+
+  /// Configuration for the `tiltshelf` audio effect.
   final TiltshelfSettings tiltshelf;
+
+  /// Configuration for the `treble` audio effect.
   final TrebleSettings treble;
+
+  /// Configuration for the `tremolo` audio effect.
   final TremoloSettings tremolo;
+
+  /// Configuration for the `vibrato` audio effect.
   final VibratoSettings vibrato;
+
+  /// Configuration for the `virtualbass` audio effect.
   final VirtualbassSettings virtualbass;
 
+  /// Creates an [AudioEffects] bundle.
+  ///
+  /// Every effect defaults to a disabled instance; configure the ones
+  /// you need and apply the whole bundle atomically.
   const AudioEffects({
     this.custom = const <String>[],
     this.acompressor = const AcompressorSettings(),
@@ -12991,6 +18044,7 @@ final class AudioEffects {
     this.virtualbass = const VirtualbassSettings(),
   });
 
+  /// Returns a copy of this bundle with the given effects replaced.
   AudioEffects copyWith({
     List<String>? custom,
     AcompressorSettings? acompressor,
@@ -13562,6 +18616,8 @@ final class AudioEffects {
 /// }
 /// ```
 extension AudioEffectsX on AudioEffects {
+  /// The [AudioEffect] for every slot whose `*Settings.enabled` is
+  /// `true`, in the bundle's field declaration order.
   Iterable<AudioEffect> get active sync* {
     if (acompressor.enabled) yield AudioEffect.acompressor;
     if (acontrast.enabled) yield AudioEffect.acontrast;

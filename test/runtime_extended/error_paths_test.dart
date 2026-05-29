@@ -7,8 +7,9 @@ library;
 
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -37,20 +38,20 @@ void main() {
 
       try {
         await player.open(
-          Media('/tmp/this-file-does-not-exist.flac'),
+          const Media('/tmp/this-file-does-not-exist.flac'),
           play: false,
         );
         final event =
             await completer.future.timeout(const Duration(seconds: 5));
         expect(event.reason, MpvEndFileReason.error,
-            reason: 'mpv reports loadfile failure as endFile.error');
+            reason: 'mpv reports loadfile failure as endFile.error',);
         expect(event.error, lessThan(0),
-            reason: 'errored end-file carries a negative mpv error code');
+            reason: 'errored end-file carries a negative mpv error code',);
         expect(event.reachedNaturalEnd, isFalse);
       } finally {
         await sub.cancel();
       }
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test('opening a malformed URL also reports endFile error', () async {
       final completer = Completer<MpvFileEndedEvent>();
@@ -62,7 +63,7 @@ void main() {
 
       try {
         await player.open(
-          Media('totally-not-a-valid-url://??'),
+          const Media('totally-not-a-valid-url://??'),
           play: false,
         );
         final event =
@@ -71,7 +72,7 @@ void main() {
       } finally {
         await sub.cancel();
       }
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test('error event also surfaces on Player.stream.error as MpvEndFileError',
         () async {
@@ -86,7 +87,7 @@ void main() {
       });
 
       try {
-        await player.open(Media('/tmp/another-missing-file.flac'), play: false);
+        await player.open(const Media('/tmp/another-missing-file.flac'), play: false);
         final err = await completer.future.timeout(const Duration(seconds: 5));
         expect(err, isA<MpvEndFileError>());
         final endErr = err as MpvEndFileError;
@@ -96,7 +97,7 @@ void main() {
       } finally {
         await sub.cancel();
       }
-    }, timeout: const Timeout(Duration(seconds: 30)));
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test('MpvEndFileReason.fromValue exhaustively maps all 5 raw codes', () {
       // Pure sanity test for the enum's value-mapping. The five mpv

@@ -37,5 +37,5 @@ void main() {
     }
     // Reaching here without crashing is the assertion.
     expect(true, isTrue);
-  }, timeout: const Timeout(Duration(seconds: 10)));
+  }, timeout: const Timeout(Duration(seconds: 10)),);
 }

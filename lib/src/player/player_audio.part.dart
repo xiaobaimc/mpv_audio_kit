@@ -62,7 +62,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('audio-pitch-correction', enable ? 'yes' : 'no');
     _updateField((s) => s.copyWith(pitchCorrection: enable),
-        _reactives.pitchCorrection, enable);
+        _reactives.pitchCorrection, enable,);
   }
 
   /// Sets the audio delay relative to video (mpv's `audio-delay`).
@@ -80,7 +80,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('audio-delay', durationToSeconds(delay).toStringAsFixed(3));
     _updateField(
-        (s) => s.copyWith(audioDelay: delay), _reactives.audioDelay, delay);
+        (s) => s.copyWith(audioDelay: delay), _reactives.audioDelay, delay,);
   }
 
   /// Enables or disables gapless playback. See [Gapless] for the
@@ -90,7 +90,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('gapless-audio', gapless.mpvValue);
     _updateField(
-        (s) => s.copyWith(gapless: gapless), _reactives.gapless, gapless);
+        (s) => s.copyWith(gapless: gapless), _reactives.gapless, gapless,);
   }
 
   /// Sets the ReplayGain normalization configuration atomically.
@@ -138,7 +138,7 @@ mixin _AudioModule on _PlayerBase {
       rethrow;
     }
     _updateField((s) => s.copyWith(replayGain: settings), _reactives.replayGain,
-        settings);
+        settings,);
   }
 
   /// Sets volume gain in dB (pre-amplification on top of [setVolume]).
@@ -153,7 +153,7 @@ mixin _AudioModule on _PlayerBase {
     _checkFinite(gainDb, 'gainDb');
     _prop('volume-gain', gainDb.toStringAsFixed(2));
     _updateField(
-        (s) => s.copyWith(volumeGain: gainDb), _reactives.volumeGain, gainDb);
+        (s) => s.copyWith(volumeGain: gainDb), _reactives.volumeGain, gainDb,);
   }
 
   /// Sets the upper bound the user-facing volume scale is clamped to.
@@ -168,7 +168,7 @@ mixin _AudioModule on _PlayerBase {
     _checkFinite(limit, 'limit');
     _prop('volume-max', limit.toStringAsFixed(1));
     _updateField(
-        (s) => s.copyWith(volumeMax: limit), _reactives.volumeMax, limit);
+        (s) => s.copyWith(volumeMax: limit), _reactives.volumeMax, limit,);
   }
 
   /// Enables exclusive audio mode (WASAPI / ALSA / CoreAudio).
@@ -177,7 +177,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('audio-exclusive', exclusive ? 'yes' : 'no');
     _updateField((s) => s.copyWith(audioExclusive: exclusive),
-        _reactives.audioExclusive, exclusive);
+        _reactives.audioExclusive, exclusive,);
   }
 
   /// Sets HDMI/S/PDIF audio passthrough codecs.
@@ -190,7 +190,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('audio-spdif', Spdif.formatMpvList(codecs));
     _updateField(
-        (s) => s.copyWith(audioSpdif: codecs), _reactives.audioSpdif, codecs);
+        (s) => s.copyWith(audioSpdif: codecs), _reactives.audioSpdif, codecs,);
   }
 
   /// Selects the audio track via a typed [Track] —
@@ -283,7 +283,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('cover-art-auto', cover.mpvValue);
     _updateField(
-        (s) => s.copyWith(coverArtAuto: cover), _reactives.coverArtAuto, cover);
+        (s) => s.copyWith(coverArtAuto: cover), _reactives.coverArtAuto, cover,);
   }
 
   /// Sets the target audio sample rate.
@@ -292,7 +292,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('audio-samplerate', rate.toString());
     _updateField((s) => s.copyWith(audioSampleRate: rate),
-        _reactives.audioSampleRate, rate);
+        _reactives.audioSampleRate, rate,);
   }
 
   /// Sets the target audio sample format. Use [Format.auto] to
@@ -302,7 +302,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('audio-format', format.mpvValue);
     _updateField(
-        (s) => s.copyWith(audioFormat: format), _reactives.audioFormat, format);
+        (s) => s.copyWith(audioFormat: format), _reactives.audioFormat, format,);
   }
 
   /// Sets the target audio channel layout. Use the named static
@@ -314,7 +314,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('audio-channels', channels.mpvValue);
     _updateField((s) => s.copyWith(audioChannels: channels),
-        _reactives.audioChannels, channels);
+        _reactives.audioChannels, channels,);
   }
 
   /// Sets the audio client name.
@@ -323,7 +323,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('audio-client-name', name);
     _updateField((s) => s.copyWith(audioClientName: name),
-        _reactives.audioClientName, name);
+        _reactives.audioClientName, name,);
   }
 
   /// Sets the audio output driver (e.g. 'auto', 'coreaudio', 'pulse', 'alsa', 'wasapi').
@@ -332,7 +332,7 @@ mixin _AudioModule on _PlayerBase {
     await _ready;
     _prop('ao', driver);
     _updateField(
-        (s) => s.copyWith(audioDriver: driver), _reactives.audioDriver, driver);
+        (s) => s.copyWith(audioDriver: driver), _reactives.audioDriver, driver,);
   }
 
   // ── Spectrum / PCM streams ───────────────────────────────────────────

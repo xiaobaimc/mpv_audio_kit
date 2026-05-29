@@ -28,7 +28,6 @@ void main() {
         final fixturePath = await materializeFixture('sine_440hz_1s.wav');
         final player = Player(
           configuration: const PlayerConfiguration(
-            autoPlay: false,
             logLevel: LogLevel.off,
           ),
         );

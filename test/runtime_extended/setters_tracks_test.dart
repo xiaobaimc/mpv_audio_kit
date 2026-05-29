@@ -7,8 +7,9 @@ library;
 
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -47,8 +48,8 @@ void main() {
       final current = await waitForTrack2;
       expect(current!.id, 2);
       expect(current.lang, 'fra',
-          reason: 'fixture metadata: track 2 is French');
-    }, timeout: const Timeout(Duration(seconds: 30)));
+          reason: 'fixture metadata: track 2 is French',);
+    }, timeout: const Timeout(Duration(seconds: 30)),);
 
     test('setAudioTrack(Track.off) disables audio output (`aid=no`)', () async {
       // mpv 0.41 does NOT emit a `current-tracks/audio` property-change
@@ -58,7 +59,7 @@ void main() {
       await player.setAudioTrack(Track.off);
       await Future.delayed(const Duration(milliseconds: 200));
       expect(await player.getRawProperty('aid'), 'no');
-    }, timeout: const Timeout(Duration(seconds: 15)));
+    }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test(
         'setAudioTrack(Track.auto) writes aid=auto (mpv resolves '
@@ -74,7 +75,7 @@ void main() {
       final aid = await player.getRawProperty('aid');
       expect(['auto', '1', '2'], contains(aid),
           reason: 'mpv 0.41 may resolve auto → default track id at write '
-              'time; both shapes are valid post-conditions');
-    }, timeout: const Timeout(Duration(seconds: 15)));
+              'time; both shapes are valid post-conditions',);
+    }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

@@ -45,7 +45,7 @@ void main() {
           'shutdown path in event_isolate._isolateEntry has likely '
           'regressed (missing fromMain.close() after _runEventLoop).',
     );
-  }, timeout: const Timeout(Duration(seconds: 30)));
+  }, timeout: const Timeout(Duration(seconds: 30)),);
 
   test('20 consecutive Player.dispose() calls all return quickly', () async {
     // Stress the path: build + dispose 20 times. If the cooperative
@@ -69,5 +69,5 @@ void main() {
           '${avg.toStringAsFixed(1)} ms); a single cycle hitting the '
           '2 s timeout indicates the isolate is not exiting cleanly.',
     );
-  }, timeout: const Timeout(Duration(seconds: 60)));
+  }, timeout: const Timeout(Duration(seconds: 60)),);
 }

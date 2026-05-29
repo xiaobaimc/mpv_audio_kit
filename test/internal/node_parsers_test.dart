@@ -2,9 +2,9 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 import 'package:mpv_audio_kit/src/reactive/node_parsers.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('parsePlaylistNode', () {
@@ -36,8 +36,8 @@ void main() {
     });
 
     test('attaches Media instances from mediaCache (preserves extras)', () {
-      final cached = Media('a.mp3',
-          extras: const {'title': 'Track A'}, httpHeaders: const {'X': 'Y'});
+      const cached = Media('a.mp3',
+          extras: {'title': 'Track A'}, httpHeaders: {'X': 'Y'},);
       final p = parsePlaylistNode(
         raw: [
           {'filename': 'a.mp3', 'current': true},
@@ -48,7 +48,7 @@ void main() {
       expect(p.items[0], same(cached),
           reason: 'consumer-supplied Media must round-trip identically; mpv '
               'only echoes the URI back so the wrapper has to re-attach '
-              'extras + headers from cache');
+              'extras + headers from cache',);
     });
 
     test('falls back to Media(filename) when not in cache', () {
@@ -59,7 +59,7 @@ void main() {
         mediaCache: const {},
         previous: Playlist.empty,
       );
-      expect(p.items[0], Media('unknown.mp3'));
+      expect(p.items[0], const Media('unknown.mp3'));
     });
 
     test(
@@ -93,7 +93,7 @@ void main() {
             const Playlist([Media('a'), Media('b'), Media('c')], index: 2),
       );
       expect(p.index, 0,
-          reason: 'clamp prev.index=2 into [0, length-1] = [0, 0]');
+          reason: 'clamp prev.index=2 into [0, length-1] = [0, 0]',);
     });
 
     test('empty array → empty playlist (index=0 not -1)', () {
@@ -110,21 +110,21 @@ void main() {
       // mpv could in principle deliver MPV_FORMAT_NONE (decoded as null)
       // during a brief unobservable window. The wrapper must keep the
       // previous playlist visible rather than collapsing to empty.
-      final previous = const Playlist([Media('a')], index: 0);
+      const previous = Playlist([Media('a')]);
       expect(
           parsePlaylistNode(
             raw: null,
             mediaCache: const {},
             previous: previous,
           ),
-          same(previous));
+          same(previous),);
       expect(
           parsePlaylistNode(
             raw: 'unexpected scalar',
             mediaCache: const {},
             previous: previous,
           ),
-          same(previous));
+          same(previous),);
     });
 
     test('malformed entry (non-map) is tolerated, fills empty slot', () {
@@ -223,19 +223,19 @@ void main() {
       // Full window: 30s out of 30s target → 100%
       expect(
         parseDemuxerCacheStateNode(<String, dynamic>{'cache-duration': 30},
-            const Duration(seconds: 30)),
+            const Duration(seconds: 30),),
         100.0,
       );
       // Half full: 15s / 30s → 50%
       expect(
         parseDemuxerCacheStateNode(<String, dynamic>{'cache-duration': 15},
-            const Duration(seconds: 30)),
+            const Duration(seconds: 30),),
         50.0,
       );
       // Empty: 0s / 30s → 0%
       expect(
         parseDemuxerCacheStateNode(<String, dynamic>{'cache-duration': 0},
-            const Duration(seconds: 30)),
+            const Duration(seconds: 30),),
         0.0,
       );
     });
@@ -245,7 +245,7 @@ void main() {
       // because of demuxer fluctuations.
       expect(
         parseDemuxerCacheStateNode(<String, dynamic>{'cache-duration': 50},
-            const Duration(seconds: 30)),
+            const Duration(seconds: 30),),
         100.0,
       );
     });
@@ -256,12 +256,12 @@ void main() {
       // by zero — the helper documents a 1s fallback.
       expect(
         parseDemuxerCacheStateNode(
-            <String, dynamic>{'cache-duration': 0.5}, Duration.zero),
+            <String, dynamic>{'cache-duration': 0.5}, Duration.zero,),
         50.0,
       );
       expect(
         parseDemuxerCacheStateNode(
-            <String, dynamic>{'cache-duration': 5}, Duration.zero),
+            <String, dynamic>{'cache-duration': 5}, Duration.zero,),
         100.0,
         reason: 'with the 1s fallback, anything ≥1 saturates at 100',
       );
@@ -270,7 +270,7 @@ void main() {
     test('missing cache-duration key → 0%', () {
       expect(
         parseDemuxerCacheStateNode(
-            <String, dynamic>{}, const Duration(seconds: 30)),
+            <String, dynamic>{}, const Duration(seconds: 30),),
         0.0,
       );
     });
@@ -278,7 +278,7 @@ void main() {
     test('non-map raw → 0%', () {
       expect(parseDemuxerCacheStateNode(null, const Duration(seconds: 1)), 0.0);
       expect(parseDemuxerCacheStateNode('garbage', const Duration(seconds: 1)),
-          0.0);
+          0.0,);
     });
   });
 
@@ -428,7 +428,7 @@ void main() {
       expect(tracks[0].type, 'audio');
       expect(tracks[0].selected, isTrue);
       expect(tracks[0].defaultTrack, isTrue,
-          reason: 'mpv key is `default`; renamed to defaultTrack in Dart');
+          reason: 'mpv key is `default`; renamed to defaultTrack in Dart',);
       expect(tracks[0].lang, 'eng');
       expect(tracks[0].title, 'Stereo');
       expect(tracks[0].codec, 'flac');

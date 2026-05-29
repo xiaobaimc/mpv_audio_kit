@@ -2,8 +2,8 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Playlist construction', () {
@@ -45,7 +45,7 @@ void main() {
     });
 
     test('different index = not equal', () {
-      const a = Playlist([Media('x'), Media('y')], index: 0);
+      const a = Playlist([Media('x'), Media('y')]);
       const b = Playlist([Media('x'), Media('y')], index: 1);
       expect(a, isNot(b));
     });
@@ -69,8 +69,8 @@ void main() {
       // `playlistCtrl.add(updated)` would silently dedup at the
       // ReactiveProperty level and consumers would never see the cover.
       const before = Playlist([Media('track://1')]);
-      final after = Playlist([
-        Media('track://1', extras: const {'artBytes': 'something'}),
+      const after = Playlist([
+        Media('track://1', extras: {'artBytes': 'something'}),
       ]);
       expect(before, isNot(after));
     });
@@ -88,10 +88,13 @@ void main() {
       // were `==` but had different hashCodes — violating
       // `a == b ⇒ a.hashCode == b.hashCode`. The fix uses
       // `Object.hashAll(medias)` so structural equality drives the hash.
-      final a = Playlist(<Media>[const Media('x'), const Media('y')]);
-      final b = Playlist(<Media>[const Media('x'), const Media('y')]);
+      // `List.of` (not a const literal) forces two separately-allocated
+      // lists — a `const` literal would be canonicalised to one instance,
+      // defeating the `identical(...) == false` precondition below.
+      final a = Playlist(List<Media>.of(const [Media('x'), Media('y')]));
+      final b = Playlist(List<Media>.of(const [Media('x'), Media('y')]));
       expect(identical(a.items, b.items), isFalse,
-          reason: 'lists must be separate instances for this test to bite');
+          reason: 'lists must be separate instances for this test to bite',);
       expect(a, b);
       expect(a.hashCode, b.hashCode);
       // Set membership: equal-but-non-identical playlists must collapse.
@@ -108,7 +111,7 @@ void main() {
             Loop.off,
             Loop.file,
             Loop.playlist,
-          ]));
+          ]),);
     });
   });
 }

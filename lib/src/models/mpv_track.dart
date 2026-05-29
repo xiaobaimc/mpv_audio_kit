@@ -132,6 +132,8 @@ final class MpvTrack {
   /// carries its own title / artist / role tags.
   final Map<String, String> metadata;
 
+  /// Creates a track descriptor. Only [id] and [type] are required; the
+  /// remaining fields mirror the optional entries mpv exposes per track.
   const MpvTrack({
     required this.id,
     required this.type,
@@ -163,6 +165,8 @@ final class MpvTrack {
     this.metadata = const <String, String>{},
   });
 
+  /// Returns a copy with the given fields replaced. Pass `null` for a
+  /// nullable field to clear it; omitted fields keep their current value.
   MpvTrack copyWith({
     int? id,
     String? type,

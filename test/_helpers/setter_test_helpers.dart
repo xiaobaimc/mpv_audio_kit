@@ -58,7 +58,6 @@ Future<Player> buildPlayer({PlayerConfiguration? configuration}) async {
   final player = Player(
     configuration: configuration ??
         const PlayerConfiguration(
-          autoPlay: false,
           logLevel: LogLevel.off,
         ),
   );

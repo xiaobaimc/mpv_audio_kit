@@ -39,7 +39,6 @@ void main() {
       shortFixture = await materializeFixture('sine_440hz_1s.wav');
       player = Player(
         configuration: const PlayerConfiguration(
-          autoPlay: false,
           logLevel: LogLevel.off,
         ),
       );
@@ -151,7 +150,7 @@ void main() {
       expect(mime, 'image/png',
           reason: 'fixture is muxed with a PNG cover; an empty/wrong mime '
               'would mean the FFI bridge for cover art is broken on this '
-              'platform');
+              'platform',);
     });
 
     testWidgets(
@@ -174,7 +173,7 @@ void main() {
       await player.setVolume(73.0);
       expect(player.state.volume, 73.0,
           reason: 'optimistic state update should reflect the requested '
-              'value synchronously, regardless of platform binary');
+              'value synchronously, regardless of platform binary',);
       await waitFor;
       expect(player.state.volume, 73.0);
     });

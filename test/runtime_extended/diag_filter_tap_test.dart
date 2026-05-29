@@ -1,13 +1,17 @@
 // Diagnostic — not part of the suite. Subscribes to a post-side tap
 // and logs timing + sample fingerprint to see exactly what flows.
+// The `print`s are the point of this diagnostic test, so avoid_print
+// is suppressed file-wide rather than dropping the output.
+// ignore_for_file: avoid_print
 @TestOn('mac-os || linux || windows')
 library;
 
 import 'dart:async';
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:mpv_audio_kit/mpv_audio_kit.dart';
+import 'package:test/test.dart';
+
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
@@ -19,7 +23,7 @@ void main() {
     try {
       await player.setAudioEffects(const AudioEffects(
         equalizer: EqualizerSettings(enabled: true),
-      ));
+      ),);
       await openAndWaitForLoad(player, fixture);
 
       // Wait for the global pcm-tap to start flowing — proves audio
@@ -65,5 +69,5 @@ void main() {
       await player.pause();
       await player.dispose();
     }
-  }, timeout: const Timeout(Duration(seconds: 15)));
+  }, timeout: const Timeout(Duration(seconds: 15)),);
 }

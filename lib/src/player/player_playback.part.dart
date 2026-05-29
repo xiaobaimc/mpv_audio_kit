@@ -12,6 +12,11 @@ mixin _PlaybackModule on _PlayerBase {
   Future<void> play() async {
     _checkNotDisposed();
     await _ready;
+    // Optimistic intent: `pause` is silent on the first load → playing
+    // transition, so set the intent axis here rather than relying on the
+    // observer. See [PlayerState.playWhenReady].
+    _updateField((s) => s.copyWith(playWhenReady: true),
+        _reactives.playWhenReady, true,);
     _prop('pause', 'no');
   }
 
@@ -20,6 +25,8 @@ mixin _PlaybackModule on _PlayerBase {
   Future<void> pause() async {
     _checkNotDisposed();
     await _ready;
+    _updateField((s) => s.copyWith(playWhenReady: false),
+        _reactives.playWhenReady, false,);
     _prop('pause', 'yes');
   }
 
@@ -29,6 +36,10 @@ mixin _PlaybackModule on _PlayerBase {
   Future<void> stop() async {
     _checkNotDisposed();
     await _ready;
+    // Stop unloads the file; intent returns to "not playing" so the OS
+    // button settles on play. mpv may not emit `pause` here, so set it.
+    _updateField((s) => s.copyWith(playWhenReady: false),
+        _reactives.playWhenReady, false,);
     _command(['stop']);
   }
 
@@ -50,7 +61,7 @@ mixin _PlaybackModule on _PlayerBase {
     await _ready;
     final secs = position.inMicroseconds / 1e6;
     _command(
-        ['seek', secs.toStringAsFixed(6), relative ? 'relative' : 'absolute']);
+        ['seek', secs.toStringAsFixed(6), relative ? 'relative' : 'absolute'],);
   }
 
   /// Jumps to the chapter at [index] in the current file.
@@ -64,7 +75,7 @@ mixin _PlaybackModule on _PlayerBase {
     await _ready;
     _prop('chapter', index.toString());
     _updateField((s) => s.copyWith(currentChapter: index),
-        _reactives.currentChapter, index);
+        _reactives.currentChapter, index,);
   }
 
   // ── A-B loop ───────────────────────────────────────────────────────────────
@@ -81,9 +92,9 @@ mixin _PlaybackModule on _PlayerBase {
         'ab-loop-a',
         position == null
             ? 'no'
-            : durationToSeconds(position).toStringAsFixed(6));
+            : durationToSeconds(position).toStringAsFixed(6),);
     _updateField(
-        (s) => s.copyWith(abLoopA: position), _reactives.abLoopA, position);
+        (s) => s.copyWith(abLoopA: position), _reactives.abLoopA, position,);
   }
 
   /// Sets the A-B loop end point. Pass `null` to disable. See [setAbLoopA].
@@ -94,9 +105,9 @@ mixin _PlaybackModule on _PlayerBase {
         'ab-loop-b',
         position == null
             ? 'no'
-            : durationToSeconds(position).toStringAsFixed(6));
+            : durationToSeconds(position).toStringAsFixed(6),);
     _updateField(
-        (s) => s.copyWith(abLoopB: position), _reactives.abLoopB, position);
+        (s) => s.copyWith(abLoopB: position), _reactives.abLoopB, position,);
   }
 
   /// Sets the total A-B loop repetitions. Pass `null` for infinite looping
@@ -110,6 +121,6 @@ mixin _PlaybackModule on _PlayerBase {
     }
     _prop('ab-loop-count', count == null ? 'inf' : count.toString());
     _updateField(
-        (s) => s.copyWith(abLoopCount: count), _reactives.abLoopCount, count);
+        (s) => s.copyWith(abLoopCount: count), _reactives.abLoopCount, count,);
   }
 }
