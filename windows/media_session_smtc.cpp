@@ -47,9 +47,13 @@ std::string RepeatToLoop(wm::MediaPlaybackAutoRepeatMode mode) {
 // there can assert/deadlock. So the async store/flush run on a dedicated MTA
 // thread; the platform thread blocks on a std::future (a plain C++ wait, not a
 // COM wait). The returned reference is agile, so it crosses back safely.
-wss::IRandomAccessStreamReference MakeThumbnail(const std::vector<uint8_t>& bytes) {
+// Returns the RandomAccessStreamReference runtime class (not the bare
+// IRandomAccessStreamReference interface): the SMTC DisplayUpdater's `Thumbnail`
+// setter is projected as `Thumbnail(RandomAccessStreamReference const&)`, and
+// the interface does not implicitly convert back up to the concrete class.
+wss::RandomAccessStreamReference MakeThumbnail(const std::vector<uint8_t>& bytes) {
   return std::async(std::launch::async,
-                    [bytes]() -> wss::IRandomAccessStreamReference {
+                    [bytes]() -> wss::RandomAccessStreamReference {
     // `.get()` is only safe on an MTA thread; this dedicated worker is MTA.
     // init_apartment can throw RPC_E_CHANGED_MODE on a pooled/reused thread —
     // swallow it (agile work is fine regardless). Do NOT uninit_apartment():
@@ -70,7 +74,7 @@ wss::IRandomAccessStreamReference MakeThumbnail(const std::vector<uint8_t>& byte
       return wss::RandomAccessStreamReference::CreateFromStream(stream);
     } catch (const winrt::hresult_error&) {
       // Undecodable / bad blob → no thumbnail rather than a crashed thread.
-      return wss::IRandomAccessStreamReference{nullptr};
+      return wss::RandomAccessStreamReference{nullptr};
     }
   }).get();
 }
@@ -240,14 +244,14 @@ void SmtcController::PublishMetadata() {
 
   if (!metadata_.artwork.empty()) {
     if (metadata_.artwork != artwork_cache_key_) {
-      wss::IRandomAccessStreamReference thumb = MakeThumbnail(metadata_.artwork);
+      wss::RandomAccessStreamReference thumb = MakeThumbnail(metadata_.artwork);
       du.Thumbnail(thumb);
       artwork_cache_key_ = metadata_.artwork;
     }
   } else {
     // A bare `nullptr` is ambiguous for the projected property setter — pass an
     // explicitly typed empty reference to clear the thumbnail.
-    du.Thumbnail(wss::IRandomAccessStreamReference{nullptr});
+    du.Thumbnail(wss::RandomAccessStreamReference{nullptr});
     artwork_cache_key_.clear();
   }
   du.Update();  // mandatory — nothing renders without it.

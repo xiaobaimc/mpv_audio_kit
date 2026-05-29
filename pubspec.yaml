@@ -65,11 +65,13 @@ flutter:
         pluginClass: MpvAudioKitPlugin
         ffiPlugin: true
       linux:
+        pluginClass: MpvAudioKitPlugin
         ffiPlugin: true
       macos:
         pluginClass: MpvAudioKitPlugin
         ffiPlugin: true
       windows:
+        pluginClass: MpvAudioKitPluginCApi
         ffiPlugin: true
   # CA certificate bundle used for `https://` peer verification on
   # platforms whose OS trust store is not reachable from native code.
