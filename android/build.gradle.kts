@@ -99,8 +99,18 @@ android {
 }
 
 dependencies {
+    // Media3 drives the OS media session (now-playing notification,
+    // lock-screen / Android-11+ media controls, hardware & Bluetooth
+    // media keys). The custom SimpleBasePlayer adapter is a controller
+    // only — libmpv decodes in-process; Media3 never touches audio.
+    val media3Version = "1.6.1"
+    implementation("androidx.media3:media3-session:$media3Version")
+    implementation("androidx.media3:media3-common:$media3Version")
+
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.mockito:mockito-core:5.0.0")
+    // JUnit 5 engine for the `useJUnitPlatform()` runner above.
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
 }
 
 val MPV_RELEASE_VERSION = "libmpv-r7"

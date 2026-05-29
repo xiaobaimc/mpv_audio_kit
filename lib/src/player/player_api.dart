@@ -209,7 +209,9 @@ abstract interface class PlayerApi {
   /// Sets the client name reported to the audio server.
   Future<void> setAudioClientName(String name);
 
-  /// Selects the audio output driver.
+  /// Selects the audio output driver (e.g. `'coreaudio'`, `'wasapi'`,
+  /// `'pulse'`, `'alsa'`, `'pipewire'`). Pass `'auto'` or an empty string
+  /// to let mpv auto-probe the best backend (the default).
   Future<void> setAudioDriver(String driver);
 
   /// Applies the spectrum / PCM pipeline configuration atomically.

@@ -1030,7 +1030,7 @@ await player.setAudioDriver('coreaudio'); // macOS
 await player.setAudioDriver('pulse');     // Linux
 await player.setAudioDriver('alsa');      // Linux
 await player.setAudioDriver('pipewire');  // Linux
-await player.setAudioDriver('auto');      // Let mpv choose (default)
+await player.setAudioDriver('auto');      // Auto
 ```
 
 #### 6.2 Exclusive mode

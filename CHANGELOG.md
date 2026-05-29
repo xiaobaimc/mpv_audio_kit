@@ -11,6 +11,7 @@
 - When a single track or the whole playlist finishes, the play/pause button now settles back on "play" and `state.completed` / `MpvPlaybackState.completed` now report the end of the track. Previously the button stayed showing the pause icon and `completed` was never reached at the natural end of content.
 - `setRawProperty('pause', …)` is now rejected: writing `pause` directly bypassed the play/pause intent and silently desynced the OS button from what was actually playing. Use `Player.play()` / `Player.pause()`.
 - A failed first `open(play: true)` (e.g. a missing file) no longer leaves the play/pause button stuck on "pause".
+- `setAudioDriver('auto')` (and an empty string) now selects mpv's auto-probe instead of failing with "Audio output auto not found" and producing no sound — `'auto'` was passed through as a literal backend name.
 
 ## [0.2.3] - 25-05-2026
 

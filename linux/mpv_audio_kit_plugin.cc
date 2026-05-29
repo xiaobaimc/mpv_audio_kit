@@ -8,6 +8,8 @@
 
 #include <cstring>
 
+#include "mpris_server.h"
+
 /**
  * @file mpv_audio_kit_plugin.cc
  * @brief Implementation of the Linux side of the mpv_audio_kit plugin.
@@ -21,6 +23,9 @@
 // Private struct for the plugin instance.
 struct _MpvAudioKitPlugin {
   GObject parent_instance;
+  // Owns the MPRIS2 D-Bus server for the OS media session. Created in
+  // register_with_registrar, freed in dispose.
+  mpv_audio_kit::MprisServer* mpris;
 };
 
 // Define the GType for the plugin.
@@ -47,40 +52,58 @@ static void mpv_audio_kit_plugin_handle_method_call(
 }
 
 /**
- * @brief Stub handler for the OS media-session method channel.
+ * @brief Handler for the OS media-session method channel.
  *
- * Accepts `enable` / `updateConfig` / `updateMetadata` / `updatePlayback` /
- * `disable` calls from the Dart MediaSessionController, logs them, and
- * acks success. The actual MPRIS D-Bus registration lands in Phase 4
- * (Linux native implementation). This stub exists so the Dart side can
- * be tested end-to-end without surfacing MissingPluginException on
- * Linux desktop builds.
+ * Routes `enable` / `updateConfig` / `updateMetadata` / `updatePlayback` /
+ * `disable` / `debugMediaSessionState` to the plugin's MprisServer.
  */
 static void media_session_method_call_cb(FlMethodChannel* channel,
                                          FlMethodCall* method_call,
                                          gpointer user_data) {
+  MpvAudioKitPlugin* plugin = MPV_AUDIO_KIT_PLUGIN(user_data);
+  mpv_audio_kit::MprisServer* mpris = plugin->mpris;
   const gchar* method = fl_method_call_get_name(method_call);
-  g_message("[mpv_audio_kit] media_session stub call: %s", method);
+  FlValue* args = fl_method_call_get_args(method_call);
+  g_autoptr(FlMethodResponse) response = nullptr;
 
-  g_autoptr(FlMethodResponse) response =
-      FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  if (mpris == nullptr) {
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else if (strcmp(method, "enable") == 0) {
+    mpris->Enable(fl_value_lookup_string(args, "config"),
+                  fl_value_lookup_string(args, "metadata"),
+                  fl_value_lookup_string(args, "playback"));
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else if (strcmp(method, "updateConfig") == 0) {
+    mpris->UpdateConfig(args);
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else if (strcmp(method, "updateMetadata") == 0) {
+    mpris->UpdateMetadata(args);
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else if (strcmp(method, "updatePlayback") == 0) {
+    mpris->UpdatePlayback(args);
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else if (strcmp(method, "disable") == 0) {
+    mpris->Disable();
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+  } else if (strcmp(method, "debugMediaSessionState") == 0) {
+    g_autoptr(FlValue) state = mpris->DebugState();
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(state));
+  } else {
+    response = FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
+  }
   fl_method_call_respond(method_call, response, nullptr);
 }
 
-// Event-channel stub for `mpv_audio_kit/media_session/commands`. No
-// events are emitted until the Phase 4 MPRIS implementation lands —
-// the stream handler simply tracks listener attach/detach for
-// diagnostics.
-
+// Event-channel handlers for `mpv_audio_kit/media_session/commands`. The
+// MprisServer sends commands through this channel; the listen/cancel hooks
+// just satisfy the Flutter stream-handler contract.
 static FlMethodErrorResponse* media_session_events_listen_cb(
     FlEventChannel* channel, FlValue* args, gpointer user_data) {
-  g_message("[mpv_audio_kit] media_session commands stream listener attached");
   return nullptr;
 }
 
 static FlMethodErrorResponse* media_session_events_cancel_cb(
     FlEventChannel* channel, FlValue* args, gpointer user_data) {
-  g_message("[mpv_audio_kit] media_session commands stream listener cancelled");
   return nullptr;
 }
 
@@ -88,6 +111,11 @@ static FlMethodErrorResponse* media_session_events_cancel_cb(
  * @brief Cleans up the plugin instance resources.
  */
 static void mpv_audio_kit_plugin_dispose(GObject* object) {
+  MpvAudioKitPlugin* self = MPV_AUDIO_KIT_PLUGIN(object);
+  if (self->mpris != nullptr) {
+    delete self->mpris;
+    self->mpris = nullptr;
+  }
   G_OBJECT_CLASS(mpv_audio_kit_plugin_parent_class)->dispose(object);
 }
 
@@ -101,7 +129,9 @@ static void mpv_audio_kit_plugin_class_init(MpvAudioKitPluginClass* klass) {
 /**
  * @brief Initializes the plugin instance.
  */
-static void mpv_audio_kit_plugin_init(MpvAudioKitPlugin* self) {}
+static void mpv_audio_kit_plugin_init(MpvAudioKitPlugin* self) {
+  self->mpris = nullptr;
+}
 
 /**
  * @brief Callback for method channel calls, delegating to handle_method_call.
@@ -129,20 +159,12 @@ void mpv_audio_kit_plugin_register_with_registrar(FlPluginRegistrar* registrar) 
                                             g_object_ref(plugin),
                                             g_object_unref);
 
-  // ── Media-session channels ──────────────────────────────────────────
-  // Separate method + event channels for the OS media-session bridge.
-  // Stubs for now — Phase 4 wires the real MPRIS D-Bus server.
-  g_autoptr(FlStandardMethodCodec) ms_method_codec =
-      fl_standard_method_codec_new();
-  FlMethodChannel* ms_method_channel = fl_method_channel_new(
-      fl_plugin_registrar_get_messenger(registrar),
-      "mpv_audio_kit/media_session", FL_METHOD_CODEC(ms_method_codec));
-  fl_method_channel_set_method_call_handler(
-      ms_method_channel, media_session_method_call_cb, nullptr, nullptr);
-  // Channel object is intentionally leaked for the lifetime of the
-  // plugin — Flutter's GObject API has no plugin-scoped destructor
-  // for these, and the registrar outlives the plugin process anyway.
-
+  // ── OS media session via MPRIS2 (GLib/GDBus) ────────────────────────
+  // The event channel is created first and handed to the MprisServer
+  // (which takes ownership of one ref) so incoming D-Bus commands can be
+  // forwarded to Dart. The method channel then routes enable/update*/
+  // disable to the server. Both channel objects are leaked for the
+  // plugin lifetime (matching the channel-ownership pattern Flutter uses).
   g_autoptr(FlStandardMethodCodec) ms_event_codec =
       fl_standard_method_codec_new();
   FlEventChannel* ms_event_channel = fl_event_channel_new(
@@ -153,6 +175,16 @@ void mpv_audio_kit_plugin_register_with_registrar(FlPluginRegistrar* registrar) 
                                        media_session_events_listen_cb,
                                        media_session_events_cancel_cb,
                                        nullptr, nullptr);
+  plugin->mpris = new mpv_audio_kit::MprisServer(ms_event_channel);
+
+  g_autoptr(FlStandardMethodCodec) ms_method_codec =
+      fl_standard_method_codec_new();
+  FlMethodChannel* ms_method_channel = fl_method_channel_new(
+      fl_plugin_registrar_get_messenger(registrar),
+      "mpv_audio_kit/media_session", FL_METHOD_CODEC(ms_method_codec));
+  fl_method_channel_set_method_call_handler(
+      ms_method_channel, media_session_method_call_cb, g_object_ref(plugin),
+      g_object_unref);
 
   g_object_unref(plugin);
 }

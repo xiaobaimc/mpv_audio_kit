@@ -24,6 +24,10 @@ set(PLUGIN_NAME "mpv_audio_kit_plugin")
 list(APPEND PLUGIN_SOURCES
   "mpv_audio_kit_plugin.cpp"
   "mpv_audio_kit_plugin.h"
+  "media_session_smtc.cpp"
+  "media_session_smtc.h"
+  "media_session_channel_win.cpp"
+  "media_session_channel_win.h"
 )
 
 # Define the plugin library target. Its name must not be changed (see comment
@@ -54,6 +58,12 @@ target_include_directories(${PLUGIN_NAME}
   PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/libs/include"
 )
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
+
+# C++/WinRT consumes SystemMediaTransportControls; link the WinRT umbrella
+# import library for RoActivateInstance / WindowsCreateString etc. The
+# C++/WinRT headers (winrt/Windows.Media.*) are header-only and ship with the
+# Windows SDK already on the MSVC include path — no NuGet, no extra toolchain.
+target_link_libraries(${PLUGIN_NAME} PRIVATE windowsapp)
 
 # ── libmpv Bundling ──────────────────────────────────────────────────────────
 # libmpv.dll is auto-downloaded from GitHub Releases per target arch. Two

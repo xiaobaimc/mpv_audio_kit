@@ -1,52 +1,30 @@
 // Copyright © 2026 & onwards, Alessandro Di Ronza <ales.drnz@gmail.com>.
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
+// This TU mixes windows.h with the C++/WinRT projection (via
+// media_session_channel_win.h). Suppress the min/max macros so they don't
+// clash with C++/WinRT's std::min/std::max.
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include "mpv_audio_kit_plugin.h"
 
 // This must be included before many other Windows headers.
 #include <windows.h>
 
-#include <flutter/event_channel.h>
-#include <flutter/event_stream_handler_functions.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
 #include <memory>
-#include <sstream>
+
+#include "media_session_channel_win.h"
 
 namespace mpv_audio_kit {
-
-namespace {
-
-/**
- * @brief Stub media-session method channel handler.
- *
- * Logs the call via OutputDebugStringA and acks success. Real SMTC
- * wiring lands in Phase 5; this stub exists so the Dart-side
- * MediaSessionController doesn't surface MissingPluginException on
- * Windows desktop builds.
- */
-void HandleMediaSessionMethodCall(
-    const flutter::MethodCall<flutter::EncodableValue>& call,
-    std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  std::ostringstream oss;
-  oss << "[mpv_audio_kit] media_session stub call: " << call.method_name()
-      << "\n";
-  OutputDebugStringA(oss.str().c_str());
-
-  const auto& method = call.method_name();
-  if (method == "enable" || method == "updateConfig" ||
-      method == "updateMetadata" || method == "updatePlayback" ||
-      method == "disable") {
-    result->Success();
-  } else {
-    result->NotImplemented();
-  }
-}
-
-}  // namespace
-
 
 /**
  * @brief Static method to register the plugin with the Windows registrar.
@@ -70,50 +48,14 @@ void MpvAudioKitPlugin::RegisterWithRegistrar(
         plugin_pointer->HandleMethodCall(call, std::move(result));
       });
 
-  // ── Media-session channels ──────────────────────────────────────────
-  // Separate method + event channels for the OS media-session bridge.
-  // Stubs for now — Phase 5 wires the real SMTC (SystemMedia
-  // TransportControls) integration via C++/WinRT.
-  auto media_session_method =
-      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "mpv_audio_kit/media_session",
-          &flutter::StandardMethodCodec::GetInstance());
-  media_session_method->SetMethodCallHandler(
-      [](const auto &call, auto result) {
-        HandleMediaSessionMethodCall(call, std::move(result));
-      });
-  // Channel ownership: the lambda captures plugin-lifetime state by
-  // value, and the unique_ptr lives in static storage tied to the
-  // registrar — leaked deliberately for plugin lifetime, matching
-  // the pattern Flutter uses for its own per-plugin channels.
-  static auto media_session_method_storage = std::move(media_session_method);
-
-  auto media_session_events =
-      std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "mpv_audio_kit/media_session/commands",
-          &flutter::StandardMethodCodec::GetInstance());
-  media_session_events->SetStreamHandler(
-      std::make_unique<flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
-          [](const flutter::EncodableValue *arguments,
-             std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
-                 &&events)
-              -> std::unique_ptr<
-                  flutter::StreamHandlerError<flutter::EncodableValue>> {
-            OutputDebugStringA(
-                "[mpv_audio_kit] media_session commands stream listener "
-                "attached\n");
-            // No events yet — emitter is wired in Phase 5.
-            return nullptr;
-          },
-          [](const flutter::EncodableValue *arguments)
-              -> std::unique_ptr<
-                  flutter::StreamHandlerError<flutter::EncodableValue>> {
-            OutputDebugStringA(
-                "[mpv_audio_kit] media_session commands stream listener "
-                "cancelled\n");
-            return nullptr;
-          }));
-  static auto media_session_events_storage = std::move(media_session_events);
+  // ── OS media session (SMTC via C++/WinRT) ───────────────────────────
+  // MediaSessionChannelWin owns both media-session channels, the
+  // SystemMediaTransportControls controller, and the platform-thread
+  // command marshaling. Leaked into static storage for the plugin
+  // lifetime (matching the channel-ownership pattern Flutter uses).
+  static auto media_session =
+      std::make_unique<MediaSessionChannelWin>(registrar);
+  (void)media_session;
 
   // Add the plugin instance to the registrar.
   registrar->AddPlugin(std::move(plugin));

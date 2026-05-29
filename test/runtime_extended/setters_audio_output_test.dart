@@ -77,6 +77,17 @@ void main() {
       expect(player.state.audioDriver, 'null');
     }, timeout: const Timeout(Duration(seconds: 15)),);
 
+    test("audioDriver 'auto' normalizes to mpv's empty auto-probe", () async {
+      // mpv has no backend literally named 'auto'; passing it through
+      // would fail to initialize any output. 'auto' and '' both map to
+      // the empty `ao` auto-probe value.
+      await player.setAudioDriver('auto');
+      expect(player.state.audioDriver, '');
+
+      await player.setAudioDriver('');
+      expect(player.state.audioDriver, '');
+    }, timeout: const Timeout(Duration(seconds: 15)),);
+
     test('audioDevice round-trips by name (description is metadata)', () async {
       const dev = Device(name: 'null', description: 'Null Driver');
       await player.setAudioDevice(dev);

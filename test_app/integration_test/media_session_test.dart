@@ -4,19 +4,21 @@
 // found in the LICENSE file.
 //
 // End-to-end media-session test on the REAL OS. Runs the full path —
-// Dart `Player` → `MediaSessionController` → method channel →
-// `MediaSessionPlugin` → `MPNowPlayingInfoCenter` — on a real iOS
-// simulator / macOS, then reads the OS-visible Now Playing state back
-// through the plugin's `debugNowPlayingInfo` probe. A green run means
-// the running app publishes exactly this state to the OS — there is no
-// "different world" between the tests and the app.
+// Dart `Player` → `MediaSessionController` → method channel → native
+// plugin → the OS media session — then reads the OS-facing state back
+// through a native debug probe. A green run means the running app
+// publishes exactly this state to the OS — there is no "different world"
+// between the tests and the app.
 //
-// Apple only: the probe + MPNowPlayingInfoCenter live in the darwin
-// plugin. Skipped on other platforms (their bridges have their own
-// suites). Cover art is intentionally NOT asserted — iOS currently
-// loads an unpatched libmpv that doesn't expose embedded cover art
-// (see smoke_test.dart); title / artist / album / duration / state all
-// come from standard mpv properties and work everywhere.
+// Two platform-gated groups share this file:
+//  - Apple (iOS / macOS): `MediaSessionPlugin` → `MPNowPlayingInfoCenter`,
+//    read back via `debugNowPlayingInfo`.
+//  - Android: `MediaSessionManager` → Media3 `MediaSession` /
+//    `SimpleBasePlayer`, read back via `debugMediaSessionState`.
+//
+// Cover art is intentionally NOT asserted — title / artist / album /
+// duration / state come from standard mpv properties and work everywhere,
+// while embedded cover art depends on the platform's libmpv build.
 
 import 'dart:io';
 
@@ -30,7 +32,7 @@ import '_helpers/asset_fixture.dart';
 const _probe = MethodChannel('mpv_audio_kit/media_session');
 
 /// Reads the OS-visible Now Playing snapshot back from the plugin (the
-/// real `MPNowPlayingInfoCenter.default()`).
+/// real `MPNowPlayingInfoCenter.default()`). Apple only.
 Future<Map<String, Object?>> readNowPlaying() async {
   final raw = await _probe.invokeMethod<Map<Object?, Object?>>(
     'debugNowPlayingInfo',
@@ -38,22 +40,33 @@ Future<Map<String, Object?>> readNowPlaying() async {
   return Map<String, Object?>.from(raw ?? const {});
 }
 
-/// Polls [readNowPlaying] until [predicate] holds or the timeout fires.
-/// Returns the last snapshot so the caller can assert on it (and get a
-/// useful failure message). Method-channel pushes are async, so a
-/// settled assertion needs a poll, not a fixed delay.
+/// Reads back the real published Media3 session State from the Android
+/// plugin (what the OS notification / lock-screen renders from). Android only.
+Future<Map<String, Object?>> readMediaSession() async {
+  final raw = await _probe.invokeMethod<Map<Object?, Object?>>(
+    'debugMediaSessionState',
+  );
+  return Map<String, Object?>.from(raw ?? const {});
+}
+
+/// Polls [reader] until [predicate] holds or the timeout fires. Returns
+/// the last snapshot so the caller can assert on it (and get a useful
+/// failure message). Method-channel pushes are async, so a settled
+/// assertion needs a poll, not a fixed delay. [reader] defaults to the
+/// Apple Now Playing probe; the Android tests pass [readMediaSession].
 Future<Map<String, Object?>> pumpUntil(
   bool Function(Map<String, Object?>) predicate, {
   Duration timeout = const Duration(seconds: 5),
+  Future<Map<String, Object?>> Function() reader = readNowPlaying,
 }) async {
   final deadline = DateTime.now().add(timeout);
-  var snapshot = await readNowPlaying();
+  var snapshot = await reader();
   while (!predicate(snapshot)) {
     if (DateTime.now().isAfter(deadline)) {
-      fail('Now Playing never satisfied the predicate. Last: $snapshot');
+      fail('Media session never satisfied the predicate. Last: $snapshot');
     }
     await Future<void>.delayed(const Duration(milliseconds: 50));
-    snapshot = await readNowPlaying();
+    snapshot = await reader();
   }
   return snapshot;
 }
@@ -66,8 +79,14 @@ void main() {
   });
 
   // The probe (`debugNowPlayingInfo`) and MPNowPlayingInfoCenter only
-  // exist in the Apple plugin.
+  // exist in the Apple plugin; `debugMediaSessionState` + the Media3
+  // session live in the Android plugin.
   final isApple = Platform.isIOS || Platform.isMacOS;
+  // Android (Media3), Windows (SMTC), and Linux (MPRIS2) expose an identical
+  // `debugMediaSessionState` probe and assert the same way, so they share one
+  // group below.
+  final isProbePlatform =
+      Platform.isAndroid || Platform.isWindows || Platform.isLinux;
 
   group('media session — real OS Now Playing', () {
     late Player player;
@@ -210,5 +229,153 @@ void main() {
       expect(np['title'], isNull,
           reason: 'disable must clear the title, got ${np['title']}',);
     }, skip: !isApple,);
+  });
+
+  // Android (Media3 SimpleBasePlayer) + Windows (SMTC) + Linux (MPRIS2) share
+  // this group: all read the real published state via `debugMediaSessionState`.
+  // A green run proves the Dart Player → controller → channel → native session
+  // path publishes exactly this. The Apple group above is separate (rate-0 on
+  // pause, artwork specifics differ).
+  group('media session — real OS session (Android / Windows / Linux)', () {
+    late Player player;
+    late String fixture;
+
+    setUp(() async {
+      fixture = await materializeFixture('with_chapters.mka');
+      player = Player(
+        configuration: const PlayerConfiguration(
+          logLevel: LogLevel.off,
+        ),
+      );
+      await player.setRawProperty('ao', 'null');
+    });
+
+    tearDown(() async {
+      await player.setMediaSession(null);
+      await player.stop();
+      await player.dispose();
+    });
+
+    testWidgets('enable publishes overridden metadata to the session',
+        (_) async {
+      await player.open(Media(fixture), play: false);
+      await player.stream.duration
+          .firstWhere((d) => d.inMilliseconds > 2500)
+          .timeout(const Duration(seconds: 10));
+
+      await player.setMediaSession(const MediaSession(
+        title: 'E2E Title',
+        artist: 'E2E Artist',
+        album: 'E2E Album',
+      ),);
+
+      final np = await pumpUntil(
+        (s) => s['title'] == 'E2E Title',
+        reader: readMediaSession,
+      );
+      expect(np['artist'], 'E2E Artist');
+      expect(np['album'], 'E2E Album');
+      expect((np['durationMs'] as num?)?.toDouble(), greaterThan(2500),
+          reason: 'duration must reach the session, got ${np['durationMs']}',);
+      // open(play:false) → playWhenReady false → paused.
+      expect(np['playbackState'], 'paused');
+    }, skip: !isProbePlatform,);
+
+    testWidgets('example flow: setMediaSession BEFORE play, derive from file',
+        (_) async {
+      final tagged = await materializeFixture('tagged.m4a');
+      await player.setMediaSession(const MediaSession()); // enable FIRST
+      await player.open(Media(tagged), play: true); // then autoplay
+      await player.stream.playing
+          .firstWhere((p) => p)
+          .timeout(const Duration(seconds: 10));
+
+      final np = await pumpUntil(
+        (s) => s['title'] == 'Tagged Title',
+        reader: readMediaSession,
+      );
+      expect((np['durationMs'] as num?)?.toDouble() ?? 0, greaterThan(1500),
+          reason: 'snapshot=$np',);
+      expect(np['playbackState'], 'playing', reason: 'snapshot=$np');
+    }, skip: !isProbePlatform,);
+
+    testWidgets('play / pause round-trips to the session playbackState',
+        (_) async {
+      await player.open(Media(fixture), play: false);
+      await player.stream.duration
+          .firstWhere((d) => d.inMilliseconds > 2500)
+          .timeout(const Duration(seconds: 10));
+      await player.setMediaSession(const MediaSession(title: 'E2E'));
+      await pumpUntil((s) => s['title'] == 'E2E', reader: readMediaSession);
+
+      await player.play();
+      await player.stream.playing
+          .firstWhere((p) => p)
+          .timeout(const Duration(seconds: 5));
+      final np = await pumpUntil(
+        (s) => s['playbackState'] == 'playing',
+        reader: readMediaSession,
+      );
+      expect((np['rate'] as num?)?.toDouble(), 1.0,
+          reason: 'playing must publish rate 1, got ${np['rate']}',);
+
+      await player.pause();
+      await player.stream.playing
+          .firstWhere((p) => !p)
+          .timeout(const Duration(seconds: 5));
+      // Android binds the OS button to the INTENT axis (playWhenReady);
+      // playbackState flips to paused while the configured speed stays 1.
+      await pumpUntil((s) => s['playbackState'] == 'paused',
+          reader: readMediaSession,);
+    }, skip: !isProbePlatform,);
+
+    testWidgets('seek moves the session position and keeps the play state',
+        (_) async {
+      await player.open(Media(fixture), play: false);
+      await player.stream.duration
+          .firstWhere((d) => d.inMilliseconds > 2500)
+          .timeout(const Duration(seconds: 10));
+      await player.setMediaSession(const MediaSession(title: 'E2E'));
+      await pumpUntil((s) => s['title'] == 'E2E', reader: readMediaSession);
+
+      await player.play();
+      await player.stream.playing
+          .firstWhere((p) => p)
+          .timeout(const Duration(seconds: 5));
+      await pumpUntil((s) => s['playbackState'] == 'playing',
+          reader: readMediaSession,);
+
+      await player.seek(const Duration(milliseconds: 1500));
+      await player.stream.position
+          .firstWhere((p) => p.inMilliseconds >= 1400)
+          .timeout(const Duration(seconds: 5));
+
+      // The settled session: position moved to ~1.5s and the play state
+      // stayed playing — mpv's transient seek-pause did NOT leak (intent axis).
+      final np = await pumpUntil(
+        (s) => ((s['positionMs'] as num?)?.toDouble() ?? 0) >= 1400,
+        reader: readMediaSession,
+      );
+      expect(np['playbackState'], 'playing',
+          reason: 'seek must not leave the session paused, '
+              'got ${np['playbackState']}',);
+    }, skip: !isProbePlatform,);
+
+    testWidgets('disable clears the session entry', (_) async {
+      await player.open(Media(fixture), play: false);
+      await player.stream.duration
+          .firstWhere((d) => d.inMilliseconds > 2500)
+          .timeout(const Duration(seconds: 10));
+      await player.setMediaSession(const MediaSession(title: 'E2E'));
+      await pumpUntil((s) => s['title'] == 'E2E', reader: readMediaSession);
+
+      await player.setMediaSession(null);
+      final np = await pumpUntil(
+        (s) => s['playbackState'] == 'stopped',
+        reader: readMediaSession,
+      );
+      expect(np['title'], isNull,
+          reason: 'disable must clear the title, got ${np['title']}',);
+    }, skip: !isProbePlatform,);
   });
 }

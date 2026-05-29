@@ -1,3 +1,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.alesdrnz.mpv_audio_kit">
+
+  <!-- The OS media session runs in a foreground service of type
+       mediaPlayback so the now-playing notification and lock-screen
+       controls persist while the screen is off. FOREGROUND_SERVICE_MEDIA_PLAYBACK
+       is mandatory on Android 14+ (API 34) for this service type. -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+  <!-- Android 13+ (API 33) runtime permission. Media-session notifications
+       are exempt from the grant for lock-screen / Bluetooth, but the in-shade
+       media player only shows once the consumer app requests it at runtime. -->
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+  <application>
+    <service
+      android:name=".media_session.MpvMediaSessionService"
+      android:exported="true"
+      android:foregroundServiceType="mediaPlayback">
+      <intent-filter>
+        <action android:name="androidx.media3.session.MediaSessionService" />
+      </intent-filter>
+    </service>
+  </application>
 </manifest>

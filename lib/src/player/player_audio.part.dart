@@ -326,13 +326,22 @@ mixin _AudioModule on _PlayerBase {
         _reactives.audioClientName, name,);
   }
 
-  /// Sets the audio output driver (e.g. 'auto', 'coreaudio', 'pulse', 'alsa', 'wasapi').
+  /// Sets the audio output driver — e.g. `'coreaudio'` (macOS),
+  /// `'wasapi'` (Windows), `'pulse'` / `'alsa'` / `'pipewire'` (Linux).
+  ///
+  /// Pass `'auto'` or an empty string to let mpv auto-probe the best
+  /// available backend (the default). mpv has no backend literally named
+  /// `auto` — setting `ao=auto` fails to initialize any output — so both
+  /// are normalized to an empty `ao`, which is mpv's auto-probe value.
   Future<void> setAudioDriver(String driver) async {
     _checkNotDisposed();
     await _ready;
-    _prop('ao', driver);
+    // 'auto' is a convenience alias for mpv's empty-string auto-probe;
+    // the literal string 'auto' is not a valid AO backend.
+    final ao = driver == 'auto' ? '' : driver;
+    _prop('ao', ao);
     _updateField(
-        (s) => s.copyWith(audioDriver: driver), _reactives.audioDriver, driver,);
+        (s) => s.copyWith(audioDriver: ao), _reactives.audioDriver, ao,);
   }
 
   // ── Spectrum / PCM streams ───────────────────────────────────────────

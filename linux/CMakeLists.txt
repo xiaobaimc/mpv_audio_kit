@@ -79,6 +79,7 @@ endif()
 # Any new source files that you add to the plugin should be added here.
 list(APPEND PLUGIN_SOURCES
   "mpv_audio_kit_plugin.cc"
+  "mpris_server.cc"
 )
 
 # Define the plugin library target. Its name must not be changed (see comment
@@ -106,3 +107,10 @@ target_include_directories(${PLUGIN_NAME}
 )
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter)
 target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GTK)
+
+# GDBus / GLib (GIO) for the MPRIS2 media-session server. GIO ships with the
+# GTK stack — GTK pulls it transitively — but link it explicitly so the
+# g_bus_own_name / g_dbus_connection_* symbols are guaranteed resolved.
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GIO REQUIRED IMPORTED_TARGET gio-2.0)
+target_link_libraries(${PLUGIN_NAME} PRIVATE PkgConfig::GIO)
