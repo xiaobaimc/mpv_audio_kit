@@ -71,10 +71,10 @@ SmtcConfig ParseConfig(const EncodableMap& m) {
       for (const auto& e : *list) {
         if (auto* d = std::get_if<double>(&e)) {
           c.supported_rates.push_back(*d);
-        } else if (auto* i = std::get_if<int32_t>(&e)) {
-          c.supported_rates.push_back(static_cast<double>(*i));
-        } else if (auto* i = std::get_if<int64_t>(&e)) {
-          c.supported_rates.push_back(static_cast<double>(*i));
+        } else if (auto* i32 = std::get_if<int32_t>(&e)) {
+          c.supported_rates.push_back(static_cast<double>(*i32));
+        } else if (auto* i64 = std::get_if<int64_t>(&e)) {
+          c.supported_rates.push_back(static_cast<double>(*i64));
         }
       }
   if (auto s = GetString(m, "appName")) c.app_name = *s;
@@ -166,7 +166,18 @@ MediaSessionChannelWin::MediaSessionChannelWin(
 }
 
 MediaSessionChannelWin::~MediaSessionChannelWin() {
+  // Tear down the controller first so its SMTC handlers are revoked and no
+  // further commands are posted to the window.
+  controller_.reset();
   if (message_window_) {
+    SetWindowLongPtrW(message_window_, GWLP_USERDATA, 0);
+    // Drain queued command messages so their heap payloads aren't leaked when
+    // the window is destroyed.
+    MSG msg;
+    while (PeekMessageW(&msg, message_window_, kCommandMessage, kCommandMessage,
+                        PM_REMOVE)) {
+      delete reinterpret_cast<EncodableValue*>(msg.lParam);
+    }
     DestroyWindow(message_window_);
     message_window_ = nullptr;
   }
@@ -202,34 +213,40 @@ void MediaSessionChannelWin::HandleMethodCall(
   const auto& method = call.method_name();
   const auto* args = std::get_if<EncodableMap>(call.arguments());
 
-  if (method == "enable") {
-    if (!args) {
-      result->Error("bad_args", "enable expects a map");
-      return;
+  // Backstop: any WinRT failure inside the controller surfaces as a channel
+  // error instead of an uncaught hresult_error that would crash the engine.
+  try {
+    if (method == "enable") {
+      if (!args) {
+        result->Error("bad_args", "enable expects a map");
+        return;
+      }
+      const EncodableMap* cfg = SubMap(*args, "config");
+      const EncodableMap* meta = SubMap(*args, "metadata");
+      const EncodableMap* pb = SubMap(*args, "playback");
+      controller_->Enable(cfg ? ParseConfig(*cfg) : SmtcConfig{},
+                          meta ? ParseMetadata(*meta) : SmtcMetadata{},
+                          pb ? ParsePlayback(*pb) : SmtcPlayback{});
+      result->Success();
+    } else if (method == "updateConfig") {
+      if (args) controller_->UpdateConfig(ParseConfig(*args));
+      result->Success();
+    } else if (method == "updateMetadata") {
+      if (args) controller_->UpdateMetadata(ParseMetadata(*args));
+      result->Success();
+    } else if (method == "updatePlayback") {
+      if (args) controller_->UpdatePlayback(ParsePlayback(*args));
+      result->Success();
+    } else if (method == "disable") {
+      controller_->Disable();
+      result->Success();
+    } else if (method == "debugMediaSessionState") {
+      result->Success(controller_->DebugState());
+    } else {
+      result->NotImplemented();
     }
-    const EncodableMap* cfg = SubMap(*args, "config");
-    const EncodableMap* meta = SubMap(*args, "metadata");
-    const EncodableMap* pb = SubMap(*args, "playback");
-    controller_->Enable(cfg ? ParseConfig(*cfg) : SmtcConfig{},
-                        meta ? ParseMetadata(*meta) : SmtcMetadata{},
-                        pb ? ParsePlayback(*pb) : SmtcPlayback{});
-    result->Success();
-  } else if (method == "updateConfig") {
-    if (args) controller_->UpdateConfig(ParseConfig(*args));
-    result->Success();
-  } else if (method == "updateMetadata") {
-    if (args) controller_->UpdateMetadata(ParseMetadata(*args));
-    result->Success();
-  } else if (method == "updatePlayback") {
-    if (args) controller_->UpdatePlayback(ParsePlayback(*args));
-    result->Success();
-  } else if (method == "disable") {
-    controller_->Disable();
-    result->Success();
-  } else if (method == "debugMediaSessionState") {
-    result->Success(controller_->DebugState());
-  } else {
-    result->NotImplemented();
+  } catch (const winrt::hresult_error& e) {
+    result->Error("smtc_error", winrt::to_string(e.message()));
   }
 }
 

@@ -75,9 +75,10 @@ MpvAudioKitPlugin::~MpvAudioKitPlugin() {}
  * @param result The result object to send a response back.
  */
 void MpvAudioKitPlugin::HandleMethodCall(
-    const flutter::MethodCall<flutter::EncodableValue> &method_call,
+    const flutter::MethodCall<flutter::EncodableValue> & /*method_call*/,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  // Platform-specific methods are not yet implemented on Windows.
+  // Platform-specific methods are not yet implemented on Windows. The unused
+  // call param is left unnamed to avoid C4100 under MSVC /W4 /WX.
   result->NotImplemented();
 }
 

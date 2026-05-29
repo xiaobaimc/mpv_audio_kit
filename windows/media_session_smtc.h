@@ -9,6 +9,7 @@
 #include <winrt/Windows.Media.Playback.h>
 #include <winrt/Windows.Media.h>
 
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <optional>
@@ -100,6 +101,11 @@ class SmtcController {
   bool created_ = false;
   bool enabled_ = false;
   int64_t publish_count_ = 0;
+
+  // Seek intervals are read on WinRT pool threads (button handlers) while the
+  // platform thread mutates config_ — keep them as atomics to avoid a race.
+  std::atomic<int64_t> ff_ms_{15000};
+  std::atomic<int64_t> rw_ms_{15000};
 
   SmtcConfig config_{};
   SmtcMetadata metadata_{};

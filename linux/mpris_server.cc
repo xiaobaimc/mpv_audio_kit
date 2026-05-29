@@ -139,6 +139,9 @@ void MprisServer::OnBusAcquired(GDBusConnection* connection, const gchar*,
                                 gpointer user_data) {
   auto* self = static_cast<MprisServer*>(user_data);
   self->connection_ = connection;
+  // The introspection XML is a compile-time constant so parsing won't fail in
+  // practice, but guard so a future edit can't silently null-deref here.
+  if (self->node_info_ == nullptr) return;
 
   GDBusInterfaceInfo* root =
       g_dbus_node_info_lookup_interface(self->node_info_, kRootIface);
@@ -461,7 +464,14 @@ int64_t MprisServer::ExtrapolatedPositionUs() const {
     gint64 now = g_get_monotonic_time();
     us += static_cast<int64_t>((now - base_monotonic_us_) * rate_);
   }
-  return us < 0 ? 0 : us;
+  if (us < 0) us = 0;
+  // Clamp to the track length so a poll past the last update while playing
+  // doesn't report Position beyond mpris:length (clients render >100%).
+  if (has_duration_) {
+    const int64_t max_us = duration_ms_ * 1000;
+    if (us > max_us) us = max_us;
+  }
+  return us;
 }
 
 void MprisServer::AnchorPosition() {
@@ -719,6 +729,11 @@ void MprisServer::Disable() {
   seekable_ = false;
   loop_ = "off";
   shuffle_ = false;
+  // Reset rate bounds / volume so a later Enable() without supportedPlaybackRates
+  // doesn't advertise stale bounds from the previous session.
+  min_rate_ = 0.5;
+  max_rate_ = 2.0;
+  volume_ = 1.0;
   ++publish_count_;
 }
 

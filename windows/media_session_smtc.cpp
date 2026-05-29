@@ -50,21 +50,28 @@ std::string RepeatToLoop(wm::MediaPlaybackAutoRepeatMode mode) {
 wss::IRandomAccessStreamReference MakeThumbnail(const std::vector<uint8_t>& bytes) {
   return std::async(std::launch::async,
                     [bytes]() -> wss::IRandomAccessStreamReference {
-    winrt::init_apartment(winrt::apartment_type::multi_threaded);
-    wss::IRandomAccessStreamReference ref{nullptr};
-    {
+    // `.get()` is only safe on an MTA thread; this dedicated worker is MTA.
+    // init_apartment can throw RPC_E_CHANGED_MODE on a pooled/reused thread —
+    // swallow it (agile work is fine regardless). Do NOT uninit_apartment():
+    // COM tears down on thread exit, and an explicit uninit here would destroy
+    // the apartment while the returned reference's proxy is still live.
+    try {
+      winrt::init_apartment(winrt::apartment_type::multi_threaded);
+    } catch (const winrt::hresult_error&) {
+    }
+    try {
       wss::InMemoryRandomAccessStream stream;
       wss::DataWriter writer{stream};
       writer.WriteBytes(winrt::array_view<uint8_t const>(
           bytes.data(), bytes.data() + bytes.size()));
-      writer.StoreAsync().get();
-      writer.FlushAsync().get();
-      writer.DetachStream();
+      writer.StoreAsync().get();  // commits the buffer; FlushAsync is a no-op
+      writer.DetachStream();      // (and may throw E_NOTIMPL) on in-memory.
       stream.Seek(0);
-      ref = wss::RandomAccessStreamReference::CreateFromStream(stream);
+      return wss::RandomAccessStreamReference::CreateFromStream(stream);
+    } catch (const winrt::hresult_error&) {
+      // Undecodable / bad blob → no thumbnail rather than a crashed thread.
+      return wss::IRandomAccessStreamReference{nullptr};
     }
-    winrt::uninit_apartment();
-    return ref;
   }).get();
 }
 
@@ -91,11 +98,25 @@ SmtcController::~SmtcController() {
 void SmtcController::EnsureCreated() {
   if (created_) return;
 
-  // Host MediaPlayer purely to obtain a process-wide SMTC without an HWND.
-  player_ = wmp::MediaPlayer();
-  smtc_ = player_.SystemMediaTransportControls();
-  // Disable the automatic MediaPlayer↔SMTC integration; we drive it manually.
-  player_.CommandManager().IsEnabled(false);
+  // Guard the SMTC acquisition: if MediaPlayer / SMTC init throws (missing
+  // Media Foundation, unpackaged-app limits, apartment issues) stay disabled
+  // instead of letting the exception escape the channel handler and crash the
+  // Flutter engine.
+  try {
+    // Host MediaPlayer purely to obtain a process-wide SMTC without an HWND.
+    player_ = wmp::MediaPlayer();
+#pragma warning(push)
+#pragma warning(disable : 4996)
+    // SystemMediaTransportControls() is marked deprecated on some Windows SDKs;
+    // the MediaPlayer shim is the supported HWND-less path for a desktop app,
+    // so the deprecation is suppressed locally rather than promoted by /WX.
+    smtc_ = player_.SystemMediaTransportControls();
+#pragma warning(pop)
+    // Disable the automatic MediaPlayer↔SMTC integration; we drive it manually.
+    player_.CommandManager().IsEnabled(false);
+  } catch (const winrt::hresult_error&) {
+    return;  // created_ stays false → the controller is a safe no-op.
+  }
 
   button_token_ = smtc_.ButtonPressed(
       [this](wm::SystemMediaTransportControls const&,
@@ -167,17 +188,19 @@ void SmtcController::OnButton(wm::SystemMediaTransportControlsButton button) {
       Emit("previous");
       break;
     case B::FastForward:
+      // Read the atomic interval (this fires on a WinRT pool thread; config_
+      // is mutated on the platform thread).
       command_sink_(flutter::EncodableValue(flutter::EncodableMap{
           {flutter::EncodableValue("type"), flutter::EncodableValue("seekBy")},
           {flutter::EncodableValue("offsetMs"),
-           flutter::EncodableValue(config_.fast_forward_ms)},
+           flutter::EncodableValue(ff_ms_.load())},
       }));
       break;
     case B::Rewind:
       command_sink_(flutter::EncodableValue(flutter::EncodableMap{
           {flutter::EncodableValue("type"), flutter::EncodableValue("seekBy")},
           {flutter::EncodableValue("offsetMs"),
-           flutter::EncodableValue(-config_.rewind_ms)},
+           flutter::EncodableValue(-rw_ms_.load())},
       }));
       break;
     default:
@@ -217,11 +240,14 @@ void SmtcController::PublishMetadata() {
 
   if (!metadata_.artwork.empty()) {
     if (metadata_.artwork != artwork_cache_key_) {
-      du.Thumbnail(MakeThumbnail(metadata_.artwork));
+      wss::IRandomAccessStreamReference thumb = MakeThumbnail(metadata_.artwork);
+      du.Thumbnail(thumb);
       artwork_cache_key_ = metadata_.artwork;
     }
   } else {
-    du.Thumbnail(nullptr);
+    // A bare `nullptr` is ambiguous for the projected property setter — pass an
+    // explicitly typed empty reference to clear the thumbnail.
+    du.Thumbnail(wss::IRandomAccessStreamReference{nullptr});
     artwork_cache_key_.clear();
   }
   du.Update();  // mandatory — nothing renders without it.
@@ -250,7 +276,12 @@ void SmtcController::PublishPlayback() {
   tl.EndTime(Ms(dur > 0 ? dur : 0));
   // Scrubbing requires Min/MaxSeekTime; gate it on seekability + the action.
   tl.MaxSeekTime(can_scrub ? Ms(dur) : Ms(0));
-  tl.Position(Ms(playback_.position_ms));
+  // Clamp Position into [0, duration]; a value outside [Min,Max]SeekTime can
+  // make UpdateTimelineProperties reject the whole update.
+  int64_t pos = playback_.position_ms;
+  if (pos < 0) pos = 0;
+  if (dur > 0 && pos > dur) pos = dur;
+  tl.Position(Ms(pos));
   smtc_.UpdateTimelineProperties(tl);
 }
 
@@ -259,8 +290,14 @@ void SmtcController::Enable(const SmtcConfig& config, const SmtcMetadata& metada
   config_ = config;
   metadata_ = metadata;
   playback_ = playback;
-  enabled_ = true;
+  ff_ms_ = config.fast_forward_ms;
+  rw_ms_ = config.rewind_ms;
   EnsureCreated();
+  if (!created_) {  // SMTC unavailable — enable is a no-op.
+    ++publish_count_;
+    return;
+  }
+  enabled_ = true;
   smtc_.IsEnabled(true);
   ConfigureButtons();
   PublishMetadata();
@@ -270,6 +307,8 @@ void SmtcController::Enable(const SmtcConfig& config, const SmtcMetadata& metada
 
 void SmtcController::UpdateConfig(const SmtcConfig& config) {
   config_ = config;
+  ff_ms_ = config.fast_forward_ms;
+  rw_ms_ = config.rewind_ms;
   if (enabled_) {
     ConfigureButtons();
     // Re-publish playback so an actions change re-gates the scrubber.

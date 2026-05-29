@@ -66,6 +66,19 @@ static void media_session_method_call_cb(FlMethodChannel* channel,
   FlValue* args = fl_method_call_get_args(method_call);
   g_autoptr(FlMethodResponse) response = nullptr;
 
+  // enable/update* carry a map payload; reject malformed input rather than
+  // letting fl_value_lookup_string emit a GLib critical on a null/non-map arg.
+  const bool needs_map =
+      strcmp(method, "enable") == 0 || strcmp(method, "updateConfig") == 0 ||
+      strcmp(method, "updateMetadata") == 0 ||
+      strcmp(method, "updatePlayback") == 0;
+  if (mpris != nullptr && needs_map &&
+      (args == nullptr || fl_value_get_type(args) != FL_VALUE_TYPE_MAP)) {
+    response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
+    fl_method_call_respond(method_call, response, nullptr);
+    return;
+  }
+
   if (mpris == nullptr) {
     response = FL_METHOD_RESPONSE(fl_method_success_response_new(nullptr));
   } else if (strcmp(method, "enable") == 0) {
