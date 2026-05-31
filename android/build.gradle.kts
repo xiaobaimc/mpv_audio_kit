@@ -5,29 +5,22 @@ import java.security.MessageDigest
 group = "com.alesdrnz.mpv_audio_kit"
 version = "0.2.3"
 
-buildscript {
-    val kotlinVersion = "2.0.21"
-    repositories {
-        google()
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath("com.android.tools.build:gradle:8.7.2")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
+// AGP and the Kotlin Gradle Plugin are supplied by the consuming app's build
+// (and by flutter_tools), so this module declares no buildscript classpath of
+// its own — pinning them here would force versions onto the app and, on AGP 9,
+// would clash with Built-in Kotlin by holding KGP below the required 2.2.10.
 plugins {
     id("com.android.library")
-    id("kotlin-android")
+}
+
+// ── Built-in Kotlin migration ───────────────────────────────────────────────
+// Flutter 3.44+/AGP 9 provide Kotlin out of the box, and applying the Kotlin
+// Gradle Plugin (KGP) ourselves there breaks the build. On AGP < 9 (current
+// Flutter) KGP is still required, so apply it conditionally on the AGP major
+// version. See: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
+val agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.substringBefore('.').toInt()
+if (agpMajor < 9) {
+    apply(plugin = "org.jetbrains.kotlin.android")
 }
 
 android {
@@ -39,10 +32,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     sourceSets {
@@ -95,6 +84,14 @@ android {
                 }
             }
         }
+    }
+}
+
+// Replaces the deprecated `android.kotlinOptions {}` DSL; works identically
+// whether KGP is applied by us (AGP < 9) or built in (AGP 9+).
+project.extensions.configure(org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension::class.java) {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 

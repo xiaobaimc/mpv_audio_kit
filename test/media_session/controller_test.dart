@@ -731,12 +731,12 @@ void main() {
 
       // Default (embedded) with no embedded cover → fall back to the queue
       // item's extras['art'] (the transcoded-stream case).
-      rig.state = PlayerState(
-        mediaSession: const MediaSession(),
-        metadata: const {'title': 'p2'},
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        metadata: {'title': 'p2'},
         playlist: Playlist([
           Media('https://server/stream',
-              extras: const {'art': 'https://art/2.png'},),
+              extras: {'art': 'https://art/2.png'},),
         ]),
       );
       rig.metadata.add(const {'title': 'p2'});
@@ -752,9 +752,9 @@ void main() {
         mediaSession: const MediaSession(),
         coverArt: embedded,
         metadata: const {'title': 'p3'},
-        playlist: Playlist([
+        playlist: const Playlist([
           Media('https://server/stream',
-              extras: const {'art': 'https://art/3.png'},),
+              extras: {'art': 'https://art/3.png'},),
         ]),
       );
       rig.metadata.add(const {'title': 'p3'});
@@ -778,11 +778,11 @@ void main() {
 
       // A transcoded stream: no mpv tags, and media-title is the raw URL.
       // The consumer-attached extras supply the real text.
-      rig.state = PlayerState(
-        mediaSession: const MediaSession(),
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
         mediaTitle: 'https://server/stream',
         playlist: Playlist([
-          Media('https://server/stream', extras: const {
+          Media('https://server/stream', extras: {
             'title': 'Real Title',
             'artist': 'Real Artist',
             'album': 'Real Album',

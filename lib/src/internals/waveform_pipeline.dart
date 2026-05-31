@@ -149,7 +149,9 @@ class WaveformPipeline {
         }
       }
 
-      if (state == 'ready' &&
+      final ready = state == 'ready';
+      final progressive = state == 'progressive';
+      if ((ready || progressive) &&
           durationUs > 0 &&
           min != null &&
           max != null &&
@@ -160,15 +162,21 @@ class WaveformPipeline {
           min: min,
           max: max,
         );
-        _data = data;
-        _pollTimer?.cancel();
-        _pollTimer = null;
+        if (ready) {
+          // Bulk envelope is final: cache it and stop polling.
+          _data = data;
+          _pollTimer?.cancel();
+          _pollTimer = null;
+        }
+        // Progressive (network) envelope grows: leave _data null and the
+        // timer running so each poll drives the native fold and emits the
+        // freshly-grown envelope.
         _emit(data);
         return;
       }
       if (state == 'failed') {
-        // Analyzer failed (live stream / unsupported protocol). Stop
-        // polling and clear — there is nothing further to wait for.
+        // No envelope is coming (true live / unsupported). Stop polling
+        // and clear — there is nothing further to wait for.
         _pollTimer?.cancel();
         _pollTimer = null;
         _emit(null);

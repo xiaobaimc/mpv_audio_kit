@@ -39,6 +39,12 @@ let package = Package(
             // expose the shared darwin/ tree to both iOS and macOS
             // SwiftPM packages without duplicating the Swift code.
             path: "Sources/mpv_audio_kit",
+            // Apple privacy manifest, embedded into the built bundle —
+            // required for App Store submission. Same shared darwin/ file the
+            // Swift sources symlink to; .process places it at the bundle root.
+            resources: [
+                .process("PrivacyInfo.xcprivacy"),
+            ],
             linkerSettings: [
                 // MediaPlayer hosts MPNowPlayingInfoCenter +
                 // MPRemoteCommandCenter for the lockscreen / Control

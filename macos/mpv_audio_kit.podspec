@@ -35,7 +35,15 @@ Pod::Spec.new do |s|
   # channel for this plugin) rejects `path:` values that escape the
   # package root, so the symlinks are the canonical way to keep both
   # build systems happy with one set of Swift sources.
-  s.source_files     = 'mpv_audio_kit/Sources/mpv_audio_kit/**/*'
+  s.source_files     = 'mpv_audio_kit/Sources/mpv_audio_kit/**/*.swift'
+  # Apple privacy manifest. Shipped as a CocoaPods resource bundle so it is
+  # embedded (and codesigned) into the built framework — required for App
+  # Store submission. The file is the shared one under `darwin/`, reached
+  # through the same Sources symlink as the Swift code. Kept out of
+  # `source_files` (which is now `*.swift`) so it isn't double-referenced.
+  s.resource_bundles = {
+    'mpv_audio_kit_privacy' => ['mpv_audio_kit/Sources/mpv_audio_kit/PrivacyInfo.xcprivacy'],
+  }
 
   s.dependency 'FlutterMacOS'
 

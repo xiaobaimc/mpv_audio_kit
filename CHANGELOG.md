@@ -14,6 +14,10 @@
 - A failed first `open(play: true)` (e.g. a missing file) no longer leaves the play/pause button stuck on "pause".
 - `setAudioDriver('auto')` (and an empty string) now selects mpv's auto-probe instead of failing with "Audio output auto not found" and producing no sound — `'auto'` was passed through as a literal backend name.
 
+### Build
+- Migrated the Android build to Flutter's Built-in Kotlin model: the Kotlin Gradle Plugin is now applied conditionally (only on AGP < 9) and `kotlinOptions` was replaced with `compilerOptions`, so the plugin won't fail to build on future Flutter / AGP 9 releases while still building on current Flutter. The module's own `buildscript {}` classpath (which pinned AGP 8.7.2 / KGP 2.0.21) was removed — AGP and Kotlin are now inherited from the consuming app, so the plugin no longer forces toolchain versions and no longer holds KGP below the 2.2.10 that AGP 9 requires.
+- iOS and macOS now ship an Apple privacy manifest that is actually embedded in the built framework: `PrivacyInfo.xcprivacy` is declared via `resource_bundles` (CocoaPods) and `resources: [.process(...)]` (Swift Package Manager). Previously the file existed in the repo but was packaged by neither channel, so it never reached an App Store build. The manifest is a single shared file under `darwin/`, symlinked into both platforms like the Swift sources.
+
 ## [0.2.3] - 25-05-2026
 
 ### Docs
