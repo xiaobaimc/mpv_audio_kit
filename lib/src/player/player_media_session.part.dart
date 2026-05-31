@@ -108,7 +108,11 @@ mixin _MediaSessionModule on _PlayerBase {
       case MediaSessionCommandPause():
         unawaited((this as Player).pause());
       case MediaSessionCommandPlayPause():
-        if (_state.playing) {
+        // Resolve against the INTENT axis, not actual output: `_state.playing`
+        // (core-idle inverted) toggles transiently on every seek/buffer, so a
+        // single-button PlayPause landing during a transient would flip the
+        // wrong way. The OS button itself binds to `playWhenReady`; match it.
+        if (_state.playWhenReady) {
           unawaited((this as Player).pause());
         } else {
           unawaited((this as Player).play());

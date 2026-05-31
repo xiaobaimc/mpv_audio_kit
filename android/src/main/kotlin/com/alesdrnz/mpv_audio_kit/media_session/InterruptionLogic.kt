@@ -79,6 +79,39 @@ internal object InterruptionLogic {
             else -> Reaction(command = null, resumeOnFocusGain = resumeArmed, abandonFocus = false)
         }
 
+    /**
+     * Reaction to the result of an audio-focus *request* made when playback
+     * starts (the gate ExoPlayer's `AudioFocusManager` applies). Without this
+     * the engine barges over a non-duckable holder (active call / assistant).
+     *
+     * - GRANTED: proceed (already playing).
+     * - FAILED: pause — another app holds focus we can't duck under.
+     * - DELAYED (only when `setAcceptsDelayedFocusGain(true)`): pause now and
+     *   arm auto-resume so the eventual `AUDIOFOCUS_GAIN` resumes, for
+     *   pauseAndResume only (parity with transient-loss handling).
+     *
+     * `keepPlaying` never pauses — the policy opts out of focus gating.
+     */
+    fun onFocusRequestResult(result: Int, policy: String): Reaction {
+        if (policy == KEEP_PLAYING) {
+            return Reaction(command = null, resumeOnFocusGain = false, abandonFocus = false)
+        }
+        return when (result) {
+            AudioManager.AUDIOFOCUS_REQUEST_GRANTED ->
+                Reaction(command = null, resumeOnFocusGain = false, abandonFocus = false)
+
+            AudioManager.AUDIOFOCUS_REQUEST_DELAYED ->
+                Reaction(
+                    command = PAUSE,
+                    resumeOnFocusGain = policy == PAUSE_AND_RESUME,
+                    abandonFocus = false,
+                )
+
+            else ->  // AUDIOFOCUS_REQUEST_FAILED
+                Reaction(command = PAUSE, resumeOnFocusGain = false, abandonFocus = false)
+        }
+    }
+
     /** Reaction to `ACTION_AUDIO_BECOMING_NOISY` (headphones unplugged / BT
      *  disconnect). Pause unless keepPlaying; never arm auto-resume. */
     fun onBecomingNoisy(policy: String): Reaction =

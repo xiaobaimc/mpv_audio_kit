@@ -5,8 +5,12 @@
 
 #include <winrt/Windows.Foundation.h>
 
+#include <shobjidl_core.h>  // SetCurrentProcessExplicitAppUserModelID
+
 #include <flutter/event_stream_handler_functions.h>
 
+#include <atomic>
+#include <cwctype>
 #include <optional>
 #include <string>
 #include <variant>
@@ -86,8 +90,12 @@ SmtcMetadata ParseMetadata(const EncodableMap& m) {
   md.title = GetString(m, "title");
   md.artist = GetString(m, "artist");
   md.album = GetString(m, "album");
+  md.album_artist = GetString(m, "albumArtist");
+  md.genre = GetString(m, "genre");
+  md.track_number = GetInt64(m, "trackNumber");
   if (auto* v = Find(m, "artworkBytes"))
     if (auto* b = std::get_if<std::vector<uint8_t>>(v)) md.artwork = *b;
+  md.artwork_uri = GetString(m, "artworkUri");
   md.duration_ms = GetInt64(m, "durationMs");
   return md;
 }
@@ -95,9 +103,12 @@ SmtcMetadata ParseMetadata(const EncodableMap& m) {
 SmtcPlayback ParsePlayback(const EncodableMap& m) {
   SmtcPlayback p;
   p.playing = GetBool(m, "playing", false);
+  p.buffering = GetBool(m, "buffering", false);
   if (auto i = GetInt64(m, "positionMs")) p.position_ms = *i;
   if (auto d = GetDouble(m, "rate")) p.rate = *d;
   p.seekable = GetBool(m, "seekable", false);
+  p.has_next = GetBool(m, "hasNext", true);
+  p.has_previous = GetBool(m, "hasPrevious", true);
   if (auto s = GetString(m, "loop")) p.loop = *s;
   p.shuffle = GetBool(m, "shuffle", false);
   return p;
@@ -106,6 +117,33 @@ SmtcPlayback ParsePlayback(const EncodableMap& m) {
 const EncodableMap* SubMap(const EncodableMap& m, const char* key) {
   if (auto* v = Find(m, key)) return std::get_if<EncodableMap>(v);
   return nullptr;
+}
+
+// Give the process a stable AppUserModelID before the SystemMediaTransportControls
+// is created. An unpackaged Flutter `.exe` has no explicit AUMID, so the SMTC
+// card on the volume flyout / lock screen renders with a volatile, process-derived
+// (often blank) source identity. Derived once from the consumer-supplied app name
+// (sanitised to AUMID-legal characters) with a stable package fallback. Must run
+// before SmtcController::EnsureCreated() acquires the SMTC.
+void EnsureProcessIdentity(const std::string& app_name_utf8) {
+  static std::atomic_flag done = ATOMIC_FLAG_INIT;
+  if (done.test_and_set()) return;
+
+  std::wstring aumid = L"mpv_audio_kit";
+  if (!app_name_utf8.empty()) {
+    int n = MultiByteToWideChar(CP_UTF8, 0, app_name_utf8.c_str(), -1, nullptr, 0);
+    if (n > 0) {
+      std::wstring wide(static_cast<size_t>(n), L'\0');
+      MultiByteToWideChar(CP_UTF8, 0, app_name_utf8.c_str(), -1, wide.data(), n);
+      std::wstring suffix;
+      for (wchar_t c : wide) {
+        if (c == L'\0') break;
+        if (std::iswalnum(static_cast<wint_t>(c))) suffix.push_back(c);
+      }
+      if (!suffix.empty()) aumid += L"." + suffix;  // e.g. "mpv_audio_kit.Finova"
+    }
+  }
+  SetCurrentProcessExplicitAppUserModelID(aumid.c_str());  // HRESULT ignored
 }
 
 }  // namespace
@@ -166,28 +204,29 @@ MediaSessionChannelWin::MediaSessionChannelWin(
 }
 
 MediaSessionChannelWin::~MediaSessionChannelWin() {
-  // Tear down the controller first so its SMTC handlers are revoked and no
-  // further commands are posted to the window.
+  // Publish nullptr to the window BEFORE tearing down the controller: a command
+  // firing on a WinRT pool thread mid-teardown then no-ops in ForwardCommand
+  // instead of racing the window's destruction. (The controller also flips its
+  // own `alive_` flag so its handlers stop touching the command sink.)
+  HWND win = message_window_.exchange(nullptr);
   controller_.reset();
-  if (message_window_) {
-    SetWindowLongPtrW(message_window_, GWLP_USERDATA, 0);
+  if (win) {
+    SetWindowLongPtrW(win, GWLP_USERDATA, 0);
     // Drain queued command messages so their heap payloads aren't leaked when
     // the window is destroyed.
     MSG msg;
-    while (PeekMessageW(&msg, message_window_, kCommandMessage, kCommandMessage,
-                        PM_REMOVE)) {
+    while (PeekMessageW(&msg, win, kCommandMessage, kCommandMessage, PM_REMOVE)) {
       delete reinterpret_cast<EncodableValue*>(msg.lParam);
     }
-    DestroyWindow(message_window_);
-    message_window_ = nullptr;
+    DestroyWindow(win);
   }
 }
 
 void MediaSessionChannelWin::ForwardCommand(EncodableValue command) {
-  if (!message_window_) return;
+  HWND win = message_window_.load();
+  if (!win) return;
   auto* heap = new EncodableValue(std::move(command));
-  if (!PostMessageW(message_window_, kCommandMessage, 0,
-                    reinterpret_cast<LPARAM>(heap))) {
+  if (!PostMessageW(win, kCommandMessage, 0, reinterpret_cast<LPARAM>(heap))) {
     delete heap;
   }
 }
@@ -224,7 +263,11 @@ void MediaSessionChannelWin::HandleMethodCall(
       const EncodableMap* cfg = SubMap(*args, "config");
       const EncodableMap* meta = SubMap(*args, "metadata");
       const EncodableMap* pb = SubMap(*args, "playback");
-      controller_->Enable(cfg ? ParseConfig(*cfg) : SmtcConfig{},
+      SmtcConfig parsed = cfg ? ParseConfig(*cfg) : SmtcConfig{};
+      // Set the process AUMID (from app_name) before the SMTC is created inside
+      // Enable() → EnsureCreated(); no-op after the first call.
+      EnsureProcessIdentity(parsed.app_name);
+      controller_->Enable(parsed,
                           meta ? ParseMetadata(*meta) : SmtcMetadata{},
                           pb ? ParsePlayback(*pb) : SmtcPlayback{});
       result->Success();

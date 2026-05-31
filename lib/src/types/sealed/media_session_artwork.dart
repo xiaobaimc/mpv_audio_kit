@@ -11,6 +11,10 @@ import '../../models/cover_art.dart';
 ///   the playing file, exposed by [PlayerStream.coverArt].
 /// - [MediaSessionArtwork.custom]: a specific image you supply, ignoring
 ///   the file's embedded cover.
+/// - [MediaSessionArtwork.uri]: a remote / file URL the OS fetches
+///   itself — for streams whose file carries no embedded cover (e.g. a
+///   transcoded server track). Cheaper than [MediaSessionArtwork.custom]:
+///   only the URL crosses the platform channel, not the decoded bytes.
 /// - [MediaSessionArtwork.none]: no artwork — the OS shows its own
 ///   placeholder (typically the app icon).
 sealed class MediaSessionArtwork {
@@ -25,6 +29,17 @@ sealed class MediaSessionArtwork {
   /// Show [cover], ignoring any cover embedded in the file.
   const factory MediaSessionArtwork.custom(CoverArt cover) =
       MediaSessionArtworkCustom._;
+
+  /// Show the image at [uri], ignoring any embedded cover. The OS fetches
+  /// it natively (Android `setArtworkUri`, Windows SMTC `CreateFromUri`,
+  /// Linux MPRIS `mpris:artUrl`; the Apple plugin loads it via
+  /// `URLSession`), so only the URL — not the bytes — crosses the channel.
+  ///
+  /// [uri] must be self-resolvable by the OS: an `http(s)://` URL that
+  /// needs no custom auth headers (a tokenised query string is fine), or a
+  /// `file://` path. For art behind custom headers, fetch the bytes
+  /// yourself and use [MediaSessionArtwork.custom].
+  const factory MediaSessionArtwork.uri(Uri uri) = MediaSessionArtworkUri._;
 }
 
 /// The [MediaSessionArtwork.embedded] variant: artwork from the playing
@@ -61,4 +76,24 @@ final class MediaSessionArtworkCustom extends MediaSessionArtwork {
 
   @override
   String toString() => 'MediaSessionArtwork.custom($cover)';
+}
+
+/// The [MediaSessionArtwork.uri] variant: a remote / file URL the OS
+/// fetches itself.
+final class MediaSessionArtworkUri extends MediaSessionArtwork {
+  /// The artwork location — an `http(s)://` or `file://` URL.
+  final Uri uri;
+
+  const MediaSessionArtworkUri._(this.uri) : super._();
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MediaSessionArtworkUri && other.uri == uri;
+
+  @override
+  int get hashCode => Object.hash(MediaSessionArtworkUri, uri);
+
+  @override
+  String toString() => 'MediaSessionArtwork.uri($uri)';
 }

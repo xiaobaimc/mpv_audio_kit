@@ -75,6 +75,7 @@ class MprisServer {
   void Emit(const gchar* type);
   void EmitWith(FlValue* command);  // takes ownership of command
   void WriteArtwork(const std::vector<uint8_t>& bytes, const std::string& mime);
+  void SetExternalArtwork(const std::string& url);
   void SweepArtwork();
   int64_t ExtrapolatedPositionUs() const;
   void AnchorPosition();
@@ -97,6 +98,7 @@ class MprisServer {
   // config
   std::set<std::string> actions_;
   std::string app_name_;
+  std::string desktop_entry_;  // installed .desktop basename (MPRIS icon)
 
   // metadata
   std::string title_;
@@ -107,13 +109,25 @@ class MprisServer {
   bool has_duration_ = false;
   std::string art_url_;
   bool has_artwork_ = false;
-  int64_t track_no_ = 0;
+  int64_t track_no_ = 0;  // monotonic trackid counter (mpris:trackid path)
+  // Rich xesam:* tags (0 / empty = absent).
+  int64_t xesam_track_ = 0;
+  int64_t xesam_disc_ = 0;
+  std::string album_artist_;
+  std::string genre_;
+  std::string xesam_url_;
+  std::string track_id_ =  // cached mpris:trackid object path (rebuilt on track change)
+      "/org/mpris/MediaPlayer2/Track/0";
 
   // playback
-  bool playing_ = false;
+  bool playing_ = false;        // intent axis (drives PlaybackStatus Playing/Paused)
+  bool actual_playing_ = false; // actual output — gates position extrapolation
+  bool completed_ = false;      // eof-reached → PlaybackStatus=Stopped, empty Metadata
   int64_t position_ms_ = 0;
   double rate_ = 1.0;
   bool seekable_ = false;
+  bool has_next_ = true;      // real playlist navigability (CanGoNext)
+  bool has_prev_ = true;
   std::string loop_ = "off";
   bool shuffle_ = false;
   double volume_ = 1.0;

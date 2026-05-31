@@ -73,6 +73,9 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   // rate 0. Set in `handleScrub`, cleared by the next `updatePlayback`
   // (or by `refreshSeekableGate` when the source becomes non-seekable).
   internal var frozenElapsed: TimeInterval?
+  // Bumped on every scrub so a stale backstop timer recognises it has been
+  // superseded by a newer scrub and no-ops.
+  private var scrubFreezeGeneration = 0
 
   // Artwork cache: the cache key (bytes identity) + the
   // `MPMediaItemArtwork` wrapper. The wrapper's request closure captures
@@ -81,6 +84,10 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   // retaining a second copy of the bitmap.
   internal var artworkCacheKey: Data?
   internal var artworkCacheObject: MPMediaItemArtwork?
+  // The remote artwork URL currently resolved (or being fetched). Keys the
+  // async URLSession path so per-second playback pushes don't re-download,
+  // and lets a late fetch detect that the track moved on (stale → drop).
+  internal var artworkUrlKey: String?
 
   // Last published dict + state, for the dedup check in `publishNowPlaying`.
   internal var lastPublishedInfo: [String: Any]?
@@ -91,6 +98,13 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
 
   #if os(iOS)
   private var audioSessionWired = false
+  // True once `setActive(true)` has succeeded — `setActive` is blocking
+  // mediaserverd IPC meant for activation transitions, so only call it on the
+  // false→true edge, not on every position/rate publish.
+  private var sessionActive = false
+  // The play state captured when an interruption began, so `.ended` only
+  // auto-resumes audio that was actually playing before.
+  private var wasPlayingBeforeInterruption = false
   #endif
 
   private var eventSink: FlutterEventSink?
@@ -214,6 +228,15 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
 
   private func enable(args: [String: Any]) {
     dispatchPrecondition(condition: .onQueue(.main))
+    // Single-owner guard mirroring the Dart StateError: the shared command
+    // targets resolve `currentInstance` at fire time, so a second engine
+    // enabling would silently hijack every remote command. Refuse instead.
+    if let existing = MediaSessionPlugin.currentInstance, existing !== self {
+      NSLog(
+        "[mpv_audio_kit] OS media session already owned by another engine; "
+          + "ignoring enable.")
+      return
+    }
     if let cfg = args["config"] as? [String: Any] { currentConfig = cfg }
     if let meta = args["metadata"] as? [String: Any] { currentMetadata = meta }
     if let pb = args["playback"] as? [String: Any] { currentPlayback = pb }
@@ -259,6 +282,7 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     currentPlayback = [:]
     frozenElapsed = nil
     artworkCacheKey = nil
+    artworkUrlKey = nil
     artworkCacheObject = nil
     lastPublishedInfo = nil
     lastPublishedPlaybackState = .unknown
@@ -292,6 +316,15 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
         selector: #selector(handleAudioSessionRouteChange(_:)),
         name: AVAudioSession.routeChangeNotification,
         object: nil)
+      // mediaserverd can reset, invalidating the audio session, all
+      // MPRemoteCommandCenter targets, and the Now Playing dict. Without a
+      // rebuild path the lockscreen / Control Center / CarPlay controls go
+      // dead until app relaunch — observe it and rebuild.
+      center.addObserver(
+        self,
+        selector: #selector(handleMediaServicesReset(_:)),
+        name: AVAudioSession.mediaServicesWereResetNotification,
+        object: nil)
       audioSessionWired = true
     }
     // Declare intent; activation happens lazily on the first playing push.
@@ -308,8 +341,16 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   /// (or an interruption `.ended`) retries.
   private func activateSessionIfPlaying(_ playing: Bool) {
     dispatchPrecondition(condition: .onQueue(.main))
-    guard playing, audioSessionWired else { return }
-    try? AVAudioSession.sharedInstance().setActive(true, options: [])
+    // Only on the false→true edge: `setActive` is blocking IPC, and
+    // `publishNowPlaying` runs it on every position/rate/seek push.
+    guard playing, audioSessionWired, !sessionActive else { return }
+    do {
+      try AVAudioSession.sharedInstance().setActive(true, options: [])
+      sessionActive = true
+    } catch {
+      // The OS declined (e.g. during a call) — leave inactive; a later push
+      // or an interruption `.ended` retries.
+    }
   }
 
   /// Consumer's interruption-policy wire value (`pauseAndResume` /
@@ -326,7 +367,10 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
       self, name: AVAudioSession.interruptionNotification, object: nil)
     center.removeObserver(
       self, name: AVAudioSession.routeChangeNotification, object: nil)
+    center.removeObserver(
+      self, name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
     audioSessionWired = false
+    sessionActive = false
     // Don't `setActive(false)` — the session is process-wide config and
     // other audio paths may still need it; iOS reclaims it at exit.
   }
@@ -343,29 +387,48 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
           let type = AVAudioSession.InterruptionType(rawValue: typeRaw)
     else { return }
 
+    // iOS 10+ delivers a synthetic interruption when the app was merely
+    // suspended (its session deactivated in the background) — not a real
+    // call/Siri interruption. Treat it as a no-op so foregrounding doesn't
+    // fire a spurious pause/resume.
+    if type == .began,
+       (info[AVAudioSessionInterruptionWasSuspendedKey] as? Bool) == true {
+      return
+    }
+
     DispatchQueue.main.async {
       let policy = self.currentInterruptionPolicy()
       switch type {
       case .began:
-        if policy != "keepPlaying" {
+        // The session is deactivated for the interruption's duration.
+        self.sessionActive = false
+        // Only pause (and arm resume) if we were actually playing — a manual
+        // pause before the interruption must not auto-resume on `.ended`.
+        self.wasPlayingBeforeInterruption =
+          (self.currentPlayback["playing"] as? Bool) ?? false
+        if policy != "keepPlaying", self.wasPlayingBeforeInterruption {
           self.eventSink?(["type": "pause"])
         }
       case .ended:
         switch policy {
         case "keepPlaying":
           // We never paused; reactivate so the engine's output resumes.
-          try? AVAudioSession.sharedInstance().setActive(true, options: [])
+          if (try? AVAudioSession.sharedInstance().setActive(true, options: []))
+            != nil { self.sessionActive = true }
         case "pauseOnly":
           break  // paused on `.began`, no auto-resume
         default:  // pauseAndResume
           let optsRaw =
             (info[AVAudioSessionInterruptionOptionKey] as? UInt) ?? 0
           let opts = AVAudioSession.InterruptionOptions(rawValue: optsRaw)
-          if opts.contains(.shouldResume) {
-            try? AVAudioSession.sharedInstance().setActive(true, options: [])
+          // Resume only when the OS allows it AND we paused a genuine playback.
+          if opts.contains(.shouldResume), self.wasPlayingBeforeInterruption {
+            if (try? AVAudioSession.sharedInstance().setActive(true, options: []))
+              != nil { self.sessionActive = true }
             self.eventSink?(["type": "play"])
           }
         }
+        self.wasPlayingBeforeInterruption = false
       @unknown default:
         break
       }
@@ -384,7 +447,43 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
       self.eventSink?(["type": "pause"])
     }
   }
+
+  /// mediaserverd was reset: the audio session is inactive, every
+  /// MPRemoteCommandCenter target is invalidated, and the Now Playing dict is
+  /// gone. Rebuild the whole stack so the OS controls come back without an
+  /// app relaunch.
+  @objc private func handleMediaServicesReset(_ note: Notification) {
+    DispatchQueue.main.async {
+      guard self.enabled, MediaSessionPlugin.currentInstance === self else {
+        return
+      }
+      self.applyAudioSessionConfig()  // re-set category (observers persist)
+      // Command targets were invalidated — remove the stale ones and reinstall,
+      // then re-apply the enabled set.
+      self.reinstallCommandTargets()
+      self.configureCommands()
+      let playing = (self.currentPlayback["playing"] as? Bool) ?? false
+      self.activateSessionIfPlaying(playing)
+      // Defeat the publish dedup so the rebuilt dict actually re-lands.
+      self.lastPublishedInfo = nil
+      self.lastPublishedPlaybackState = .unknown
+      self.publishNowPlaying()
+    }
+  }
   #endif
+
+  /// Removes the (now invalid) shared command targets and reinstalls them.
+  /// Used by the iOS media-services-reset recovery; the targets are
+  /// process-wide, so this clears the static storage before re-adding.
+  private func reinstallCommandTargets() {
+    dispatchPrecondition(condition: .onQueue(.main))
+    for (command, target) in MediaSessionPlugin.sharedCommandTargets {
+      command.removeTarget(target)
+    }
+    MediaSessionPlugin.sharedCommandTargets.removeAll()
+    MediaSessionPlugin.sharedCommandsInstalled = false
+    installCommandTargetsIfNeeded()
+  }
 
   // ── Now-playing snapshot ──────────────────────────────────────────
 
@@ -425,6 +524,20 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     }
     if let album = currentMetadata["album"] as? String, !album.isEmpty {
       info[MPMediaItemPropertyAlbumTitle] = album
+    }
+    // Rich tags — CarPlay / Now Playing show "track N of M", album artist.
+    if let albumArtist = currentMetadata["albumArtist"] as? String,
+       !albumArtist.isEmpty {
+      info[MPMediaItemPropertyAlbumArtist] = albumArtist
+    }
+    if let genre = currentMetadata["genre"] as? String, !genre.isEmpty {
+      info[MPMediaItemPropertyGenre] = genre
+    }
+    if let track = currentMetadata["trackNumber"] as? Int, track > 0 {
+      info[MPMediaItemPropertyAlbumTrackNumber] = NSNumber(value: track)
+    }
+    if let disc = currentMetadata["discNumber"] as? Int, disc > 0 {
+      info[MPMediaItemPropertyDiscNumber] = NSNumber(value: disc)
     }
 
     if !isLiveStream, let durationMs = durationMs, durationMs > 0 {
@@ -471,6 +584,17 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     // swallowed.
     publishCurrentRepeatAndShuffle()
 
+    // Skip enablement also lives on MPRemoteCommandCenter (outside the dict),
+    // and navigability changes arrive on playback — refresh here so the lock-
+    // screen / CarPlay skip buttons grey out at playlist bounds.
+    let skipActions = Set((currentConfig["actions"] as? [String]) ?? [])
+    let cmdCenter = MPRemoteCommandCenter.shared()
+    cmdCenter.nextTrackCommand.isEnabled =
+      skipActions.contains("next") && (currentPlayback["hasNext"] as? Bool ?? true)
+    cmdCenter.previousTrackCommand.isEnabled =
+      skipActions.contains("previous")
+      && (currentPlayback["hasPrevious"] as? Bool ?? true)
+
     // Dedup: the widget re-animates the slider on every assignment even
     // when nothing changed — skip identical writes.
     if let last = lastPublishedInfo,
@@ -503,6 +627,10 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
       MPMediaItemPropertyArtist,
       MPMediaItemPropertyAlbumTitle,
       MPMediaItemPropertyPlaybackDuration,
+      MPMediaItemPropertyAlbumArtist,
+      MPMediaItemPropertyGenre,
+      MPMediaItemPropertyAlbumTrackNumber,
+      MPMediaItemPropertyDiscNumber,
     ]
     for key in scalarKeys {
       let av = a[key] as? NSObject
@@ -534,30 +662,67 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   }
 
   private func resolveArtwork() -> MPMediaItemArtwork? {
-    guard let bytes = currentMetadata["artworkBytes"] as? FlutterStandardTypedData
-    else {
-      artworkCacheKey = nil
-      artworkCacheObject = nil
-      return nil
+    if let bytes = currentMetadata["artworkBytes"] as? FlutterStandardTypedData {
+      artworkUrlKey = nil  // leaving the URL path
+
+      // Cache by byte identity. The wrapper's bounds are declared at the
+      // image's true aspect ratio (longest edge capped at `artworkBoundsSide`)
+      // so the OS requests proportional sizes and non-square art isn't
+      // stretched; the closure downscales on demand and retains the decoded
+      // image, so the system can request lockscreen / Control Center /
+      // CarPlay / Watch sizes without a second copy of the bitmap.
+      if artworkCacheKey != bytes.data,
+         let image = PlatformImage(data: bytes.data)
+      {
+        artworkCacheKey = bytes.data
+        artworkCacheObject =
+          MPMediaItemArtwork(boundsSize: Self.boundsSize(for: image)) { size in
+            Self.resizedArtwork(image, to: size)
+          }
+      }
+      return artworkCacheObject
     }
 
-    // Cache by byte identity. The wrapper's bounds are declared at the
-    // image's true aspect ratio (longest edge capped at `artworkBoundsSide`)
-    // so the OS requests proportional sizes and non-square art isn't
-    // stretched; the closure downscales on demand and retains the decoded
-    // image, so the system can request lockscreen / Control Center /
-    // CarPlay / Watch sizes without a second copy of the bitmap.
-    if artworkCacheKey != bytes.data,
-       let image = PlatformImage(data: bytes.data)
+    // A URL the OS can't decode for us (unlike Android / Windows / Linux,
+    // MPNowPlayingInfoCenter needs a concrete image), so fetch it once via
+    // URLSession off the main thread and re-publish when it lands. Keyed by
+    // the URL string so the per-second playback pushes don't re-fetch.
+    if let urlString = currentMetadata["artworkUri"] as? String,
+       !urlString.isEmpty,
+       let url = URL(string: urlString)
     {
-      artworkCacheKey = bytes.data
-      artworkCacheObject =
-        MPMediaItemArtwork(boundsSize: Self.boundsSize(for: image)) { size in
-          Self.resizedArtwork(image, to: size)
-        }
+      if artworkUrlKey != urlString {
+        artworkUrlKey = urlString
+        artworkCacheKey = nil
+        artworkCacheObject = nil  // until the fetch lands
+        fetchArtwork(from: url, key: urlString)
+      }
+      return artworkCacheObject
     }
 
-    return artworkCacheObject
+    artworkCacheKey = nil
+    artworkUrlKey = nil
+    artworkCacheObject = nil
+    return nil
+  }
+
+  /// Downloads remote [url] artwork and, if the track hasn't changed by the
+  /// time it lands ([key] still current), caches the wrapper and re-publishes
+  /// so the lockscreen picks it up.
+  private func fetchArtwork(from url: URL, key: String) {
+    URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+      guard let data = data, let image = PlatformImage(data: data) else {
+        return
+      }
+      DispatchQueue.main.async {
+        guard let self = self, self.artworkUrlKey == key else { return }
+        self.artworkCacheObject =
+          MPMediaItemArtwork(boundsSize: Self.boundsSize(for: image)) { size in
+            Self.resizedArtwork(image, to: size)
+          }
+        if self.enabled { self.publishNowPlaying() }
+      }
+    }.resume()
   }
 
   /// The artwork's natural size scaled so its longest edge is at most
@@ -767,6 +932,18 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
       "type": "seekTo",
       "positionMs": Int((seconds * 1000.0).rounded()),
     ])
+    // Backstop: if no landing reconciles the freeze within ~2s (the seek
+    // failed, was clamped past EOF, or landed >1s off on an approximate-
+    // seekable source), force-clear so the slider can't strand at rate 0
+    // forever. A newer scrub bumps the generation and supersedes this.
+    scrubFreezeGeneration += 1
+    let gen = scrubFreezeGeneration
+    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+      guard let self = self, self.frozenElapsed != nil,
+            self.scrubFreezeGeneration == gen else { return }
+      self.frozenElapsed = nil
+      if self.enabled { self.publishNowPlaying() }
+    }
   }
 
   private func configureCommands() {
@@ -783,8 +960,13 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     // `Player.stream.mediaSessionCommands` so a consumer driving its own
     // external queue can advance it. (mpv-playlist auto-advance is a
     // convenience layered on top, gated separately in `_handleSessionCommand`.)
-    center.nextTrackCommand.isEnabled = actions.contains("next")
-    center.previousTrackCommand.isEnabled = actions.contains("previous")
+    // Gate skip enablement on real navigability so the buttons grey out at
+    // playlist bounds. Refreshed on playback in publishNowPlaying.
+    center.nextTrackCommand.isEnabled =
+      actions.contains("next") && (currentPlayback["hasNext"] as? Bool ?? true)
+    center.previousTrackCommand.isEnabled =
+      actions.contains("previous")
+      && (currentPlayback["hasPrevious"] as? Bool ?? true)
     center.skipForwardCommand.isEnabled = actions.contains("fastForward")
     center.skipBackwardCommand.isEnabled = actions.contains("rewind")
     center.changeRepeatModeCommand.isEnabled = actions.contains("setRepeatMode")

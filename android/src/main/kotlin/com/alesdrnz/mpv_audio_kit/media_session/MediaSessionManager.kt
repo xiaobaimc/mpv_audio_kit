@@ -59,10 +59,16 @@ internal object MediaSessionManager :
         val artist: String?,
         val album: String?,
         val artworkBytes: ByteArray?,
+        val artworkUri: String?,
         val durationMs: Long?,
+        val trackNumber: Int?,
+        val discNumber: Int?,
+        val albumArtist: String?,
+        val genre: String?,
     ) {
         companion object {
-            val EMPTY = MetadataSnapshot(null, null, null, null, null)
+            val EMPTY =
+                MetadataSnapshot(null, null, null, null, null, null, null, null, null, null)
         }
     }
 
@@ -73,9 +79,16 @@ internal object MediaSessionManager :
         val seekable: Boolean,
         val loop: String,
         val shuffle: Boolean,
+        val completed: Boolean,
+        val actualPlaying: Boolean,
+        val buffering: Boolean,
+        val hasNext: Boolean,
+        val hasPrevious: Boolean,
     ) {
         companion object {
-            val EMPTY = PlaybackSnapshot(false, 0, 1.0, false, "off", false)
+            val EMPTY = PlaybackSnapshot(
+                false, 0, 1.0, false, "off", false, false, false, false, true, true,
+            )
         }
     }
 
@@ -213,9 +226,14 @@ internal object MediaSessionManager :
             scrubFreezeMs = null
         }
         publish()
-        // Acquire focus when playback starts (idempotent while held);
-        // focus is held across a user pause and released only on disable.
-        if (pb.playing) audioFocus?.onPlaybackActive()
+        // Acquire focus when playback starts (idempotent while held); focus is
+        // held across a user pause and released only on disable. On pause, drop
+        // the becoming-noisy receiver but keep focus.
+        if (pb.playing) {
+            audioFocus?.onPlaybackActive()
+        } else {
+            audioFocus?.onPlaybackInactive()
+        }
     }
 
     private fun disable() = runOnMain {
@@ -231,10 +249,13 @@ internal object MediaSessionManager :
         player?.republish()
         publishCount++
         stopService()
-        session?.release()
-        session = null
+        // Media3's documented onDestroy order: release the Player BEFORE the
+        // MediaSession it wraps, or the player's release-time notifications hit
+        // a dead session and log "already released" spam.
         player?.release()
         player = null
+        session?.release()
+        session = null
     }
 
     // ── Session / service lifecycle ─────────────────────────────────────
@@ -341,7 +362,12 @@ internal object MediaSessionManager :
         artist = map["artist"] as? String,
         album = map["album"] as? String,
         artworkBytes = map["artworkBytes"] as? ByteArray,
+        artworkUri = map["artworkUri"] as? String,
         durationMs = (map["durationMs"] as? Number)?.toLong(),
+        trackNumber = (map["trackNumber"] as? Number)?.toInt(),
+        discNumber = (map["discNumber"] as? Number)?.toInt(),
+        albumArtist = map["albumArtist"] as? String,
+        genre = map["genre"] as? String,
     )
 
     private fun parsePlayback(map: Map<*, *>) = PlaybackSnapshot(
@@ -351,6 +377,11 @@ internal object MediaSessionManager :
         seekable = map["seekable"] as? Boolean ?: false,
         loop = map["loop"] as? String ?: "off",
         shuffle = map["shuffle"] as? Boolean ?: false,
+        completed = map["completed"] as? Boolean ?: false,
+        actualPlaying = map["actualPlaying"] as? Boolean ?: false,
+        buffering = map["buffering"] as? Boolean ?: false,
+        hasNext = map["hasNext"] as? Boolean ?: true,
+        hasPrevious = map["hasPrevious"] as? Boolean ?: true,
     )
 
     private fun runOnMain(block: () -> Unit) {

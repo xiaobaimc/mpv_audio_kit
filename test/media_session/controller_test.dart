@@ -62,6 +62,8 @@ class _RecordingChannel extends MediaSessionChannel {
       'playing': playback.playing,
       'positionMs': playback.position.inMilliseconds,
       'rate': playback.rate,
+      'completed': playback.completed,
+      'snapshot': playback,
     }),);
   }
 
@@ -93,6 +95,8 @@ class _Call {
 /// then firing the matching stream.
 class _Rig {
   final playWhenReady = StreamController<bool>.broadcast();
+  final playing = StreamController<bool>.broadcast();
+  final buffering = StreamController<bool>.broadcast();
   final rate = StreamController<double>.broadcast();
   final seekCompleted = StreamController<void>.broadcast();
   final seekable = StreamController<bool>.broadcast();
@@ -108,6 +112,8 @@ class _Rig {
 
   MediaSessionInputs get inputs => MediaSessionInputs(
         playWhenReady: playWhenReady.stream,
+        playing: playing.stream,
+        buffering: buffering.stream,
         rate: rate.stream,
         seekCompleted: seekCompleted.stream,
         seekable: seekable.stream,
@@ -122,6 +128,8 @@ class _Rig {
 
   Future<void> dispose() async {
     await playWhenReady.close();
+    await playing.close();
+    await buffering.close();
     await rate.close();
     await seekCompleted.close();
     await seekable.close();
@@ -242,6 +250,73 @@ void main() {
       expect(updates.length, 1);
       expect(updates.single.args['positionMs'], 60000);
       expect(updates.single.args['playing'], true);
+      final snap =
+          updates.single.args['snapshot'] as MediaSessionPlaybackSnapshot;
+      expect(snap.seek, true,
+          reason: 'a seek landing must flag seek=true so MPRIS emits Seeked',);
+    });
+
+    test('a non-seek push (intent change) carries seek=false', () async {
+      final rig = _Rig();
+      final ch = _RecordingChannel();
+      addTearDown(rig.dispose);
+      addTearDown(ch.close);
+      final controller = await _buildController(rig: rig, channel: ch);
+      addTearDown(controller.dispose);
+      ch.calls.clear();
+
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        playWhenReady: true,
+      );
+      rig.playWhenReady.add(true);
+      await _settle();
+
+      final snap = ch.callsOfType('updatePlayback').single.args['snapshot']
+          as MediaSessionPlaybackSnapshot;
+      expect(snap.seek, false,
+          reason: 'only seek landings flag seek; a play/pause must not',);
+    });
+
+    test('end-of-content carries completed=true on the playback snapshot',
+        () async {
+      // At true EOF the eof-reached hook releases playWhenReady (→ false) and
+      // sets state.completed. That playWhenReady flip drives the playback push,
+      // so the completed flag must ride that same snapshot — the native side
+      // maps it to STATE_ENDED (Android) / Stopped+empty Metadata (Linux).
+      final rig = _Rig();
+      final ch = _RecordingChannel();
+      addTearDown(rig.dispose);
+      addTearDown(ch.close);
+      final controller = await _buildController(rig: rig, channel: ch);
+      addTearDown(controller.dispose);
+      ch.calls.clear();
+
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        position: Duration(seconds: 30),
+        completed: true,
+      );
+      rig.playWhenReady.add(false);
+      await _settle();
+
+      final updates = ch.callsOfType('updatePlayback');
+      expect(updates.length, 1);
+      expect(updates.single.args['playing'], false);
+      expect(updates.single.args['completed'], true,
+          reason: 'completed must reach native so it can render a terminal state',);
+
+      // Falling edge: seeking back in clears completed and re-syncs.
+      ch.calls.clear();
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        playWhenReady: true,
+        position: Duration(seconds: 5),
+      );
+      rig.seekCompleted.add(null);
+      await _settle();
+      expect(ch.callsOfType('updatePlayback').single.args['completed'], false,
+          reason: 'seeking back in clears the terminal flag',);
     });
 
     test('a genuine pause (intent=false) propagates immediately', () async {
@@ -367,8 +442,10 @@ void main() {
       expect(ch.callsOfType('updatePlayback').length, 1);
     });
 
-    test('seekable/loop/shuffle changes each trigger updatePlayback',
+    test('seekable/loop/shuffle changes in one turn coalesce into one push',
         () async {
+      // Several playback signals fired in the same microtask turn collapse
+      // into a single updatePlayback (the OS only needs the resolved snapshot).
       final rig = _Rig();
       final ch = _RecordingChannel();
       addTearDown(rig.dispose);
@@ -382,10 +459,161 @@ void main() {
       rig.shuffle.add(true);
       await _settle();
 
-      expect(ch.callsOfType('updatePlayback').length, 3);
+      expect(ch.callsOfType('updatePlayback').length, 1,
+          reason: 'same-turn playback signals coalesce',);
     });
 
-    test('duration/metadata/coverArt/mediaTitle each trigger updateMetadata',
+    test('metadata signals in one turn coalesce into one updateMetadata',
+        () async {
+      // A file-load fans out across duration/metadata/coverArt/mediaTitle
+      // in one turn — they collapse into a single push so the cover art ships
+      // once, not 4×.
+      final rig = _Rig();
+      final ch = _RecordingChannel();
+      addTearDown(rig.dispose);
+      addTearDown(ch.close);
+      final controller = await _buildController(rig: rig, channel: ch);
+      addTearDown(controller.dispose);
+      ch.calls.clear();
+
+      // A genuine state change so the dedup doesn't suppress the push.
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        duration: Duration(seconds: 30),
+        metadata: {'title': 'X'},
+      );
+      rig.duration.add(const Duration(seconds: 30));
+      rig.metadata.add(const {'title': 'X'});
+      rig.coverArt.add(null);
+      rig.mediaTitle.add('X');
+      await _settle();
+
+      expect(ch.callsOfType('updateMetadata').length, 1,
+          reason: 'same-turn metadata signals coalesce into one push',);
+    });
+
+    test('actualPlaying + buffering ride the playback snapshot', () async {
+      // The OS button binds to intent (playing=playWhenReady), but the native
+      // side needs the actual-output axis to gate scrub extrapolation and show
+      // a loading state — those travel as actualPlaying / buffering.
+      final rig = _Rig();
+      final ch = _RecordingChannel();
+      addTearDown(rig.dispose);
+      addTearDown(ch.close);
+      final controller = await _buildController(rig: rig, channel: ch);
+      addTearDown(controller.dispose);
+      ch.calls.clear();
+
+      // Intending to play, but no actual output yet and buffering: button stays
+      // "play" (intent), but the snapshot reflects the stall.
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        playWhenReady: true,
+        buffering: true,
+      );
+      rig.buffering.add(true);
+      await _settle();
+
+      final snap = ch.callsOfType('updatePlayback').last.args['snapshot']
+          as MediaSessionPlaybackSnapshot;
+      expect(snap.playing, true, reason: 'intent axis stays true');
+      expect(snap.actualPlaying, false, reason: 'no actual output during stall');
+      expect(snap.buffering, true);
+    });
+
+    test('hasNext/hasPrevious reflect playlist bounds, loop, and single-item',
+        () async {
+      final rig = _Rig();
+      final ch = _RecordingChannel();
+      addTearDown(rig.dispose);
+      addTearDown(ch.close);
+      final controller = await _buildController(rig: rig, channel: ch);
+      addTearDown(controller.dispose);
+
+      const media = [
+        Media('a'),
+        Media('b'),
+        Media('c'),
+      ];
+
+      // Middle of a multi-item playlist → both available.
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        playlist: Playlist(media, index: 1),
+      );
+      rig.playWhenReady.add(true);
+      await _settle();
+      var snap = ch.callsOfType('updatePlayback').last.args['snapshot']
+          as MediaSessionPlaybackSnapshot;
+      expect(snap.hasPrevious, true);
+      expect(snap.hasNext, true);
+
+      // Last item, loop off → no next.
+      ch.calls.clear();
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        playlist: Playlist(media, index: 2),
+      );
+      rig.playWhenReady.add(true);
+      await _settle();
+      snap = ch.callsOfType('updatePlayback').last.args['snapshot']
+          as MediaSessionPlaybackSnapshot;
+      expect(snap.hasNext, false, reason: 'last item, no loop');
+      expect(snap.hasPrevious, true);
+
+      // Last item but loop=playlist → next wraps.
+      ch.calls.clear();
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        playlist: Playlist(media, index: 2),
+        loop: Loop.playlist,
+      );
+      rig.loop.add(Loop.playlist);
+      await _settle();
+      snap = ch.callsOfType('updatePlayback').last.args['snapshot']
+          as MediaSessionPlaybackSnapshot;
+      expect(snap.hasNext, true, reason: 'loop=playlist wraps');
+
+      // Single item → stays navigable (external queue can drive it).
+      ch.calls.clear();
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        playlist: Playlist([Media('only')]),
+      );
+      rig.playWhenReady.add(true);
+      await _settle();
+      snap = ch.callsOfType('updatePlayback').last.args['snapshot']
+          as MediaSessionPlaybackSnapshot;
+      expect(snap.hasNext, true, reason: 'single item stays navigable');
+      expect(snap.hasPrevious, true);
+    });
+
+    test('an unchanged metadata snapshot is not re-pushed (dedup)', () async {
+      // Re-firing a metadata signal that resolves to the same snapshot
+      // (same title/artist/album/duration/cover identity) must not re-ship.
+      final rig = _Rig();
+      final ch = _RecordingChannel();
+      addTearDown(rig.dispose);
+      addTearDown(ch.close);
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        metadata: {'title': 'Steady'},
+      );
+      final controller = await _buildController(rig: rig, channel: ch);
+      addTearDown(controller.dispose);
+      ch.calls.clear(); // ignore the initial enable
+
+      // Nothing in state changed — a bare signal must not produce a push.
+      rig.metadata.add(const {'title': 'Steady'});
+      await _settle();
+
+      expect(ch.callsOfType('updateMetadata'), isEmpty,
+          reason: 'identical snapshot must be deduped',);
+    });
+  });
+
+  group('MediaSessionController — rich metadata', () {
+    test('track/disc/albumArtist/genre/url are derived from mpv tags',
         () async {
       final rig = _Rig();
       final ch = _RecordingChannel();
@@ -395,13 +623,27 @@ void main() {
       addTearDown(controller.dispose);
       ch.calls.clear();
 
-      rig.duration.add(const Duration(seconds: 30));
-      rig.metadata.add(const {'title': 'X'});
-      rig.coverArt.add(null);
-      rig.mediaTitle.add('Y');
+      rig.state = const PlayerState(
+        mediaSession: MediaSession(),
+        metadata: {
+          'title': 'Song',
+          'album_artist': 'The Band',
+          'genre': 'Metal',
+          'track': '3/12', // leading int parsed
+          'disc': '1',
+        },
+        playlist: Playlist([Media('file:///music/song.flac')]),
+      );
+      rig.metadata.add(const {'title': 'Song'});
       await _settle();
 
-      expect(ch.callsOfType('updateMetadata').length, 4);
+      final snap = ch.callsOfType('updateMetadata').last.args['metadata']
+          as MediaSessionMetadataSnapshot;
+      expect(snap.trackNumber, 3);
+      expect(snap.discNumber, 1);
+      expect(snap.albumArtist, 'The Band');
+      expect(snap.genre, 'Metal');
+      expect(snap.url, 'file:///music/song.flac');
     });
   });
 
@@ -417,25 +659,31 @@ void main() {
       final custom = CoverArt(
           bytes: Uint8List.fromList(const [9, 9]), mimeType: 'image/jpeg',);
 
-      // none → null even when an embedded cover is present.
-      rig.state = PlayerState(
-        mediaSession: const MediaSession(artwork: MediaSessionArtwork.none),
-        coverArt: embedded,
-      );
+      // Neutral baseline so each phase below is a genuine snapshot change
+      // (distinct titles defeat the dedup between phases).
       final controller = await _buildController(rig: rig, channel: ch);
       addTearDown(controller.dispose);
       ch.calls.clear();
 
-      rig.metadata.add(const {'title': 'x'});
+      // none → null even when an embedded cover is present.
+      rig.state = PlayerState(
+        mediaSession: const MediaSession(artwork: MediaSessionArtwork.none),
+        coverArt: embedded,
+        metadata: const {'title': 'p1'},
+      );
+      rig.metadata.add(const {'title': 'p1'});
       await _settle();
       var snap = ch.callsOfType('updateMetadata').last.args['metadata']
           as MediaSessionMetadataSnapshot;
       expect(snap.artwork, isNull, reason: 'none suppresses artwork');
 
       // embedded → the file's cover.
-      rig.state =
-          PlayerState(mediaSession: const MediaSession(), coverArt: embedded);
-      rig.metadata.add(const {'title': 'x'});
+      rig.state = PlayerState(
+        mediaSession: const MediaSession(),
+        coverArt: embedded,
+        metadata: const {'title': 'p2'},
+      );
+      rig.metadata.add(const {'title': 'p2'});
       await _settle();
       snap = ch.callsOfType('updateMetadata').last.args['metadata']
           as MediaSessionMetadataSnapshot;
@@ -445,12 +693,112 @@ void main() {
       rig.state = PlayerState(
         mediaSession: MediaSession(artwork: MediaSessionArtwork.custom(custom)),
         coverArt: embedded,
+        metadata: const {'title': 'p3'},
       );
-      rig.metadata.add(const {'title': 'x'});
+      rig.metadata.add(const {'title': 'p3'});
       await _settle();
       snap = ch.callsOfType('updateMetadata').last.args['metadata']
           as MediaSessionMetadataSnapshot;
       expect(snap.artwork, custom);
+    });
+
+    test('uri override and extras[art] fallback resolve to artworkUri',
+        () async {
+      final rig = _Rig();
+      final ch = _RecordingChannel();
+      addTearDown(rig.dispose);
+      addTearDown(ch.close);
+
+      final embedded = CoverArt(
+          bytes: Uint8List.fromList(const [1, 2, 3]), mimeType: 'image/png',);
+
+      final controller = await _buildController(rig: rig, channel: ch);
+      addTearDown(controller.dispose);
+      ch.calls.clear();
+
+      // Explicit uri override → artworkUri, no bytes on the wire.
+      rig.state = PlayerState(
+        mediaSession: MediaSession(
+            artwork: MediaSessionArtwork.uri(Uri.parse('https://art/1.jpg')),),
+        metadata: const {'title': 'p1'},
+      );
+      rig.metadata.add(const {'title': 'p1'});
+      await _settle();
+      var snap = ch.callsOfType('updateMetadata').last.args['metadata']
+          as MediaSessionMetadataSnapshot;
+      expect(snap.artwork, isNull);
+      expect(snap.artworkUri, 'https://art/1.jpg');
+
+      // Default (embedded) with no embedded cover → fall back to the queue
+      // item's extras['art'] (the transcoded-stream case).
+      rig.state = PlayerState(
+        mediaSession: const MediaSession(),
+        metadata: const {'title': 'p2'},
+        playlist: Playlist([
+          Media('https://server/stream',
+              extras: const {'art': 'https://art/2.png'},),
+        ]),
+      );
+      rig.metadata.add(const {'title': 'p2'});
+      await _settle();
+      snap = ch.callsOfType('updateMetadata').last.args['metadata']
+          as MediaSessionMetadataSnapshot;
+      expect(snap.artwork, isNull);
+      expect(snap.artworkUri, 'https://art/2.png',
+          reason: 'no embedded cover falls back to extras[art]',);
+
+      // An embedded cover still wins over extras['art'].
+      rig.state = PlayerState(
+        mediaSession: const MediaSession(),
+        coverArt: embedded,
+        metadata: const {'title': 'p3'},
+        playlist: Playlist([
+          Media('https://server/stream',
+              extras: const {'art': 'https://art/3.png'},),
+        ]),
+      );
+      rig.metadata.add(const {'title': 'p3'});
+      await _settle();
+      snap = ch.callsOfType('updateMetadata').last.args['metadata']
+          as MediaSessionMetadataSnapshot;
+      expect(snap.artwork, embedded);
+      expect(snap.artworkUri, isNull, reason: 'embedded cover wins');
+    });
+
+    test('title/artist/album fall back to queue-item extras for tag-less streams',
+        () async {
+      final rig = _Rig();
+      final ch = _RecordingChannel();
+      addTearDown(rig.dispose);
+      addTearDown(ch.close);
+
+      final controller = await _buildController(rig: rig, channel: ch);
+      addTearDown(controller.dispose);
+      ch.calls.clear();
+
+      // A transcoded stream: no mpv tags, and media-title is the raw URL.
+      // The consumer-attached extras supply the real text.
+      rig.state = PlayerState(
+        mediaSession: const MediaSession(),
+        mediaTitle: 'https://server/stream',
+        playlist: Playlist([
+          Media('https://server/stream', extras: const {
+            'title': 'Real Title',
+            'artist': 'Real Artist',
+            'album': 'Real Album',
+          },),
+        ]),
+      );
+      rig.mediaTitle.add('https://server/stream');
+      await _settle();
+      final snap = ch.callsOfType('updateMetadata').last.args['metadata']
+          as MediaSessionMetadataSnapshot;
+      expect(snap.title, 'Real Title',
+          reason: 'extras title beats the URL media-title',);
+      expect(snap.artist, 'Real Artist');
+      expect(snap.album, 'Real Album');
+      expect(snap.albumArtist, 'Real Artist',
+          reason: 'album-artist line falls back to extras artist',);
     });
   });
 }

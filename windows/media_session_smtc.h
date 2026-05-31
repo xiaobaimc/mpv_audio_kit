@@ -36,16 +36,23 @@ struct SmtcMetadata {
   std::optional<std::string> title;
   std::optional<std::string> artist;
   std::optional<std::string> album;
-  std::vector<uint8_t> artwork;  // empty => no artwork
+  std::optional<std::string> album_artist;
+  std::optional<std::string> genre;
+  std::optional<int64_t> track_number;
+  std::vector<uint8_t> artwork;          // empty => no embedded/custom bytes
+  std::optional<std::string> artwork_uri;  // URL the OS fetches itself
   std::optional<int64_t> duration_ms;
 };
 
 // Parsed playback payload. `playing` is the INTENT axis (stable across seeks).
 struct SmtcPlayback {
-  bool playing = false;
+  bool playing = false;  // intent axis (drives the SMTC PlaybackStatus)
+  bool buffering = false;
   int64_t position_ms = 0;
   double rate = 1.0;
   bool seekable = false;
+  bool has_next = true;  // real playlist navigability (IsNextEnabled)
+  bool has_previous = true;
   std::string loop = "off";
   bool shuffle = false;
 };
@@ -102,6 +109,12 @@ class SmtcController {
   bool enabled_ = false;
   int64_t publish_count_ = 0;
 
+  // Cleared at the top of the destructor. OS event handlers fire on WinRT pool
+  // threads and capture `this`; revoking their tokens does not join an already-
+  // running handler, so each handler checks this flag before touching
+  // command_sink_ to avoid a use-after-free across teardown.
+  std::atomic<bool> alive_{true};
+
   // Seek intervals are read on WinRT pool threads (button handlers) while the
   // platform thread mutates config_ — keep them as atomics to avoid a race.
   std::atomic<int64_t> ff_ms_{15000};
@@ -113,6 +126,9 @@ class SmtcController {
 
   // Thumbnail cache keyed by byte identity — skip rebuilding when unchanged.
   std::vector<uint8_t> artwork_cache_key_{};
+  // Thumbnail cache for the URL path — skip re-issuing CreateFromUri when the
+  // URL is unchanged. Empty when the current art is byte- or none-sourced.
+  std::string artwork_uri_cache_key_{};
 };
 
 }  // namespace mpv_audio_kit

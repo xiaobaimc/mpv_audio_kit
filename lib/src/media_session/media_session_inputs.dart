@@ -30,6 +30,17 @@ class MediaSessionInputs {
   /// (Deliberately NOT `core-idle`, which toggles on every seek.)
   final Stream<bool> playWhenReady;
 
+  /// Actual audio output (`core-idle` inverted). Distinct from
+  /// [playWhenReady]: this toggles transiently on seek and goes false during a
+  /// buffer stall. The OS button is NOT bound to this (it would flicker); it
+  /// drives position extrapolation (only advance the scrubber while audio is
+  /// genuinely advancing) and the buffering indication.
+  final Stream<bool> playing;
+
+  /// Buffering / loading (cache underrun while intending to play). Surfaced as
+  /// a loading state on the OS where supported (Android `STATE_BUFFERING`).
+  final Stream<bool> buffering;
+
   /// Playback rate (mpv `speed`).
   final Stream<double> rate;
 
@@ -70,6 +81,8 @@ class MediaSessionInputs {
 
   const MediaSessionInputs({
     required this.playWhenReady,
+    required this.playing,
+    required this.buffering,
     required this.rate,
     required this.seekCompleted,
     required this.seekable,
@@ -89,6 +102,8 @@ class MediaSessionInputs {
   }) =>
       MediaSessionInputs(
         playWhenReady: stream.playWhenReady,
+        playing: stream.playing,
+        buffering: stream.buffering,
         rate: stream.rate,
         seekCompleted: stream.seekCompleted,
         seekable: stream.seekable,

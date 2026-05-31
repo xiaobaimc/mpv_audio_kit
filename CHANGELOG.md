@@ -3,8 +3,9 @@
 ### Added
 - `Player.setMediaSession(MediaSession?)`: publishes the player to the OS media session — the Now Playing entry, Control Center and lockscreen on iOS and macOS, MPRIS on Linux, SMTC on Windows, and the media notification on Android. Title, artist, album, artwork and duration are taken from the playing file automatically, or overridden per field; pass `null` to remove the entry.
 - `Player.stream.mediaSessionCommands`: a stream of `MediaSessionCommand`s the OS sends back — play / pause / next / previous / seek / repeat / shuffle / speed from the lockscreen, a Bluetooth headset, Siri or CarPlay. Commands are auto-applied to the player and surfaced here for analytics or interception.
-- `MediaSession` configures the advertised transport buttons (`MediaAction`), the artwork choice (`MediaSessionArtwork`), the skip-forward / rewind intervals, the supported-speed set, and the audio-interruption response via `InterruptionPolicy` — `pauseAndResume` (default), `pauseOnly`, or `keepPlaying` (focused-listening mode that stays at full volume; iOS / Android, no-op on desktop).
+- `MediaSession` configures the advertised transport buttons (`MediaAction`), the artwork choice (`MediaSessionArtwork`), the skip-forward / rewind intervals, the supported-speed set, the audio-interruption response via `InterruptionPolicy` — `pauseAndResume` (default), `pauseOnly`, or `keepPlaying` (focused-listening mode that stays at full volume; iOS / Android, no-op on desktop) — and the app identity (`appName`, plus `desktopEntry` to resolve the app icon next to the Linux media controls).
 - `Player.state.playWhenReady` / `Player.stream.playWhenReady`: the play/pause *intent* axis, set by `play` / `pause` / `open` / `stop`. Unlike `playing` (which mirrors actual audio output and toggles transiently while seeking or buffering), it stays stable across seeks — bind your play/pause button to this. "Actually emitting audio" is `playWhenReady && playing`.
+- `Player.setLogLevel(LogLevel)`: changes the engine-side log verbosity at runtime (the initial value still comes from `PlayerConfiguration.logLevel`). Raise it on demand to surface more diagnostics on `Player.stream.log`, or lower it to cut log volume.
 
 ### Fixed
 - The OS media-session play/pause button no longer flickers while scrubbing the system Now Playing scrub bar. The button now follows play/pause intent rather than the engine's actual-output state, which momentarily reports "paused" on every seek.
@@ -130,7 +131,6 @@ Major release. The Dart API has been redesigned for type safety, ergonomics, and
 - Raw-API escape hatches (`getRawProperty`, `setRawProperty`, `sendRawCommand`) are now `Future<...>` and surface mpv-side errors as `MpvException` instead of silently no-oping. `getRawProperty` still returns `null` on failure.
 - Every typed setter (`setVolume`, `setRate`, `setAudioEffects`, `setCache`, …) now throws `MpvException` when mpv rejects the write, instead of silently advancing the optimistic state.
 - `Player.openPlaylist` renamed to `Player.openAll` (matches Dart's `addAll` / `removeAll` convention).
-- See the [Migration](README.md#migration) section in the README for the full 0.0.9 → 0.1.0.
 
 ### Fixed
 - The initial player state (volume, format, channels, params, …) is now reliably populated before the first `await`. A startup race could previously leave one or more state fields at their default until the next user-driven setter.

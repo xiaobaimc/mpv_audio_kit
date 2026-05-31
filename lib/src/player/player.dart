@@ -378,6 +378,22 @@ class Player extends _PlayerBase
   }
 
   @override
+  Future<void> setLogLevel(LogLevel level) async {
+    _checkNotDisposed();
+    await _ready;
+    // `mpv_request_log_messages` is thread-safe and operates on the shared
+    // client handle the same way the main-thread getRawProperty path does,
+    // so there's no need to round-trip through the event isolate.
+    // [LogLevel.off] already maps to mpv's `no`.
+    using(
+      (arena) => _lib.mpvRequestLogMessages(
+        _handle,
+        level.mpvValue.toNativeUtf8(allocator: arena),
+      ),
+    );
+  }
+
+  @override
   Future<void> dispose() async {
     // Release the OS media session BEFORE tearing libmpv down. After
     // super.dispose() the FFI handle is gone — leaving the native

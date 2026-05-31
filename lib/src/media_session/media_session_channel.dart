@@ -20,16 +20,76 @@ class MediaSessionMetadataSnapshot {
   final String? title;
   final String? artist;
   final String? album;
+
+  /// Decoded artwork bytes (embedded cover or a [MediaSessionArtwork.custom]
+  /// image). Mutually exclusive with [artworkUri] — at most one is set.
   final CoverArt? artwork;
+
+  /// A remote / file artwork URL the native side resolves itself
+  /// ([MediaSessionArtwork.uri], or the consumer-attached `extras['art']`
+  /// fallback for a tag-less stream). Mutually exclusive with [artwork].
+  final String? artworkUri;
   final Duration? duration;
+
+  /// Rich tags, mpv-derived (no per-field override). Surfaced where the OS
+  /// supports them: Apple `MPMediaItemProperty*`, Android `MediaMetadata`,
+  /// Linux MPRIS `xesam:*`.
+  final int? trackNumber;
+  final int? discNumber;
+  final String? albumArtist;
+  final String? genre;
+
+  /// Source URI of the current item (MPRIS `xesam:url`).
+  final String? url;
 
   const MediaSessionMetadataSnapshot({
     this.title,
     this.artist,
     this.album,
     this.artwork,
+    this.artworkUri,
     this.duration,
+    this.trackNumber,
+    this.discNumber,
+    this.albumArtist,
+    this.genre,
+    this.url,
   });
+
+  // Value equality so the controller can dedup unchanged snapshots before
+  // re-shipping. The byte [artwork] compares by reference identity — the
+  // resolver returns a stable [CoverArt] until the cover genuinely changes,
+  // so the (multi-MB) bytes are never walked here; [artworkUri] is a small
+  // string and compares by value.
+  @override
+  bool operator ==(Object other) =>
+      other is MediaSessionMetadataSnapshot &&
+      other.title == title &&
+      other.artist == artist &&
+      other.album == album &&
+      other.duration == duration &&
+      identical(other.artwork, artwork) &&
+      other.artworkUri == artworkUri &&
+      other.trackNumber == trackNumber &&
+      other.discNumber == discNumber &&
+      other.albumArtist == albumArtist &&
+      other.genre == genre &&
+      other.url == url;
+
+  @override
+  int get hashCode => Object.hash(
+        title,
+        artist,
+        album,
+        duration,
+        identityHashCode(artwork),
+        artworkUri,
+        trackNumber,
+        discNumber,
+        albumArtist,
+        genre,
+        url,
+      );
 }
 
 /// Effective playback snapshot pushed to native. The OS extrapolates
@@ -46,6 +106,39 @@ class MediaSessionPlaybackSnapshot {
   final Loop loop;
   final bool shuffle;
 
+  /// End-of-content reached (mpv's `eof-reached` rising edge, mirrored by
+  /// [PlayerState.completed]). The native side maps this to a terminal
+  /// state — Android `STATE_ENDED`, Linux MPRIS `PlaybackStatus=Stopped`
+  /// with empty `Metadata` — instead of leaving a finished track parked as
+  /// "Paused at full length" on the OS surface. Apple has no distinct
+  /// "ended" playback state and parks acceptably as paused, so it ignores it.
+  final bool completed;
+
+  /// This snapshot originates from a seek landing (PLAYBACK_RESTART), as
+  /// opposed to a plain play/pause/rate change. Linux MPRIS uses it to emit
+  /// the `Seeked` signal deterministically — even for a sub-second scrub that
+  /// a magnitude heuristic would miss, which otherwise leaves the OS slider
+  /// snapped back to the pre-seek position.
+  final bool seek;
+
+  /// Actual audio output (`core-idle` inverted), distinct from [playing]
+  /// (which is the intent the OS button binds to). The native side advances
+  /// the scrub bar by extrapolation ONLY while this is true, so the slider
+  /// doesn't keep moving during a buffer stall or a seek transient.
+  final bool actualPlaying;
+
+  /// Buffering / loading. Mapped to a loading state where the OS supports one
+  /// (Android `STATE_BUFFERING`).
+  final bool buffering;
+
+  /// Whether next / previous navigation is available right now. For a real
+  /// multi-item mpv playlist these reflect the actual bounds (respecting
+  /// `loop == playlist` wrap); for a single item they stay `true` so a
+  /// consumer driving an external queue still receives the command. The OS
+  /// greys the skip buttons out when false (Windows / Linux / Apple).
+  final bool hasNext;
+  final bool hasPrevious;
+
   const MediaSessionPlaybackSnapshot({
     required this.playing,
     required this.position,
@@ -53,6 +146,12 @@ class MediaSessionPlaybackSnapshot {
     required this.seekable,
     required this.loop,
     required this.shuffle,
+    this.completed = false,
+    this.seek = false,
+    this.actualPlaying = false,
+    this.buffering = false,
+    this.hasNext = true,
+    this.hasPrevious = true,
   });
 }
 
@@ -145,15 +244,18 @@ class MediaSessionChannel {
       'rewindIntervalMs': s.rewindInterval.inMilliseconds,
       'supportedPlaybackRates': s.supportedPlaybackRates,
     };
-    // `appName` / `appIcon` are consumed only by Windows SMTC and Linux
-    // MPRIS; macOS / iOS / Android use the system app identity and ignore
-    // them. Ship the (potentially large) icon bytes only where they're
-    // read, instead of copying them across the channel to be discarded.
+    // `appName` is consumed by Windows SMTC (the process AUMID) and Linux MPRIS
+    // (Identity / bus name); macOS / iOS / Android use the system app identity.
+    // The app icon bytes are NOT read by any native side (Windows derives the
+    // SMTC icon from the AUMID; MPRIS has no per-player icon beyond
+    // DesktopEntry), so they are never shipped across the channel.
     if (defaultTargetPlatform == TargetPlatform.windows ||
         defaultTargetPlatform == TargetPlatform.linux) {
       config['appName'] = s.appName;
-      config['appIconBytes'] = s.appIcon?.bytes;
-      config['appIconMime'] = s.appIcon?.mimeType;
+    }
+    // `desktopEntry` resolves the MPRIS app icon — Linux only.
+    if (defaultTargetPlatform == TargetPlatform.linux) {
+      config['desktopEntry'] = s.desktopEntry;
     }
     return config;
   }
@@ -165,7 +267,16 @@ class MediaSessionChannel {
         'album': m.album,
         'artworkBytes': m.artwork?.bytes,
         'artworkMime': m.artwork?.mimeType,
+        // A URL the native side fetches itself (mutually exclusive with the
+        // bytes above) — keeps the (multi-MB) blob off the channel for
+        // remote covers. `null` when artwork is embedded/custom/none.
+        'artworkUri': m.artworkUri,
         'durationMs': m.duration?.inMilliseconds,
+        'trackNumber': m.trackNumber,
+        'discNumber': m.discNumber,
+        'albumArtist': m.albumArtist,
+        'genre': m.genre,
+        'url': m.url,
       };
 
   Map<String, Object?> _encodePlayback(MediaSessionPlaybackSnapshot p) =>
@@ -179,6 +290,12 @@ class MediaSessionChannel {
         // platform enum (MPRepeatType / MediaSession REPEAT_MODE_*).
         'loop': p.loop.name,
         'shuffle': p.shuffle,
+        'completed': p.completed,
+        'seek': p.seek,
+        'actualPlaying': p.actualPlaying,
+        'buffering': p.buffering,
+        'hasNext': p.hasNext,
+        'hasPrevious': p.hasPrevious,
       };
 
   /// Decodes one incoming event from the native event channel into a

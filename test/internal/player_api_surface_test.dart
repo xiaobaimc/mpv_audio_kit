@@ -239,6 +239,9 @@ class _ApiProbe implements PlayerApi {
 
   @override
   Future<void> sendRawCommand(List<String> args) => _record('sendRawCommand');
+
+  @override
+  Future<void> setLogLevel(LogLevel level) => _record('setLogLevel');
 }
 
 void main() {
@@ -247,6 +250,13 @@ void main() {
       final PlayerApi api = _ApiProbe();
       await api.setTlsCaFile('/etc/ssl/cert.pem');
       expect((api as _ApiProbe).calls, contains('setTlsCaFile'));
+    });
+
+    test('exposes setLogLevel through the interface', () async {
+      final api = _ApiProbe();
+      final PlayerApi typed = api;
+      await typed.setLogLevel(LogLevel.debug);
+      expect(api.calls, contains('setLogLevel'));
     });
 
     test('Tls / network setters all reachable through the interface', () async {

@@ -21,6 +21,7 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include <atomic>
 #include <memory>
 
 #include "media_session_smtc.h"
@@ -58,7 +59,10 @@ class MediaSessionChannelWin {
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> event_channel_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> event_sink_;
   std::unique_ptr<SmtcController> controller_;
-  HWND message_window_ = nullptr;
+  // Read on WinRT pool threads (ForwardCommand) while the platform thread
+  // creates/destroys it — atomic so teardown can publish nullptr with a
+  // happens-before edge instead of racing an unsynchronised HWND read.
+  std::atomic<HWND> message_window_{nullptr};
 };
 
 }  // namespace mpv_audio_kit

@@ -21,5 +21,18 @@
         <action android:name="androidx.media3.session.MediaSessionService" />
       </intent-filter>
     </service>
+
+    <!-- Media-button target. While the session is live Media3 self-registers a
+         runtime receiver, but once the foreground service is demoted/destroyed
+         (pause timeout, swipe-away, disable) there is no manifest target to
+         cold-start the service for a Bluetooth/headset key. This declares it.
+         A standalone consumer ships none otherwise. -->
+    <receiver
+      android:name="androidx.media3.session.MediaButtonReceiver"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MEDIA_BUTTON" />
+      </intent-filter>
+    </receiver>
   </application>
 </manifest>

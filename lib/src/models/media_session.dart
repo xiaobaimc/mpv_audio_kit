@@ -6,7 +6,6 @@ import '../internals/unset_sentinel.dart';
 import '../types/enums/interruption_policy.dart';
 import '../types/enums/media_action.dart';
 import '../types/sealed/media_session_artwork.dart';
-import 'cover_art.dart';
 
 /// Configuration and metadata for the OS media session — the
 /// lockscreen / SMTC / MPRIS entry, Bluetooth AVRCP, headset
@@ -113,10 +112,14 @@ class MediaSession {
   /// macOS, iOS and Android always use the bundle display name.
   final String? appName;
 
-  /// App icon shown alongside the now-playing entry on platforms that
-  /// surface one (SMTC, MPRIS). macOS, iOS and Android use the system
-  /// app icon. `null` defers to the platform default.
-  final CoverArt? appIcon;
+  /// Basename of the installed `.desktop` file (without the `.desktop`
+  /// extension) — used by MPRIS on Linux to resolve the app icon shown beside
+  /// the media controls in GNOME / KDE. For
+  /// `/usr/share/applications/com.example.myapp.desktop`, pass
+  /// `'com.example.myapp'`. `null` omits the hint entirely (the desktop shows a
+  /// generic placeholder) rather than emitting a guessed value that resolves to
+  /// the wrong icon. Ignored on every non-Linux platform.
+  final String? desktopEntry;
 
   /// Creates a media-session configuration. Every field is optional and
   /// carries a sensible default; metadata fields default to deriving
@@ -140,15 +143,15 @@ class MediaSession {
     this.rewindInterval = const Duration(seconds: 15),
     this.supportedPlaybackRates = const [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0],
     this.appName,
-    this.appIcon,
+    this.desktopEntry,
   });
 
   /// Returns a copy of this configuration with the given fields replaced.
   ///
   /// The nullable override fields ([title], [artist], [album], [duration],
-  /// [appName], [appIcon]) accept `null` to CLEAR the override back to the
-  /// mpv-derived value: passing `null` is distinguished from omitting the
-  /// argument (which keeps the current value). The non-nullable fields keep
+  /// [appName], [desktopEntry]) accept `null` to CLEAR the override back to the
+  /// mpv-derived / default value: passing `null` is distinguished from omitting
+  /// the argument (which keeps the current value). The non-nullable fields keep
   /// their current value when omitted.
   MediaSession copyWith({
     Object? title = unset,
@@ -162,7 +165,7 @@ class MediaSession {
     Duration? rewindInterval,
     List<double>? supportedPlaybackRates,
     Object? appName = unset,
-    Object? appIcon = unset,
+    Object? desktopEntry = unset,
   }) =>
       MediaSession(
         title: identical(title, unset) ? this.title : title as String?,
@@ -178,8 +181,9 @@ class MediaSession {
         supportedPlaybackRates:
             supportedPlaybackRates ?? this.supportedPlaybackRates,
         appName: identical(appName, unset) ? this.appName : appName as String?,
-        appIcon:
-            identical(appIcon, unset) ? this.appIcon : appIcon as CoverArt?,
+        desktopEntry: identical(desktopEntry, unset)
+            ? this.desktopEntry
+            : desktopEntry as String?,
       );
 
   @override
@@ -195,7 +199,7 @@ class MediaSession {
         other.fastForwardInterval != fastForwardInterval ||
         other.rewindInterval != rewindInterval ||
         other.appName != appName ||
-        other.appIcon != appIcon) {
+        other.desktopEntry != desktopEntry) {
       return false;
     }
     if (other.actions.length != actions.length) return false;
@@ -226,7 +230,7 @@ class MediaSession {
         rewindInterval,
         Object.hashAll(supportedPlaybackRates),
         appName,
-        appIcon,
+        desktopEntry,
       );
 
   @override
@@ -237,5 +241,5 @@ class MediaSession {
       'fastForwardInterval: $fastForwardInterval, '
       'rewindInterval: $rewindInterval, '
       'supportedPlaybackRates: $supportedPlaybackRates, '
-      'appName: $appName, appIcon: $appIcon)';
+      'appName: $appName, desktopEntry: $desktopEntry)';
 }

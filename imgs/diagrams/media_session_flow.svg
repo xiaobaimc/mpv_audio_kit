@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -6 720 394" font-family="system-ui, -apple-system, sans-serif" font-size="13" role="img" aria-label="OS media session flow">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7a8190"/>
+    </marker>
+  </defs>
+
+  <style>
+    rect      { fill: #f8f9fb; rx: 10; ry: 10; }
+    .title    { font-weight: 600; fill: #1e2329; }
+    .subtitle { font-size: 10.5px; fill: #5b6371; }
+    .axis     { font-size: 10.5px; fill: #5b6371; font-style: italic; }
+    .arrow    { stroke: #7a8190; stroke-width: 1.6; fill: none;
+                marker-end: url(#ar); }
+    .merge    { stroke: #7a8190; stroke-width: 1.6; fill: none; }
+  </style>
+
+  <!-- ── Your Player ───────────────────────────────────────────────── -->
+  <rect x="210" y="24" width="300" height="58"/>
+  <text class="title"    x="360" y="51" text-anchor="middle">Your Player</text>
+  <text class="subtitle" x="360" y="68" text-anchor="middle">playing a track in mpv</text>
+
+  <!-- ── Two axes between Player and the session ──────────────────────
+       state flows down, commands flow back up -->
+  <path class="arrow" d="M330 86 L330 166"/>
+  <path class="arrow" d="M390 166 L390 86"/>
+  <text class="axis" x="318" y="123" text-anchor="end">now-playing</text>
+  <text class="axis" x="318" y="138" text-anchor="end">state</text>
+  <text class="axis" x="402" y="123" text-anchor="start">OS</text>
+  <text class="axis" x="402" y="138" text-anchor="start">commands</text>
+
+  <!-- ── OS media session (one setter) ────────────────────────────────-->
+  <rect x="190" y="170" width="340" height="58"/>
+  <text class="title"    x="360" y="197" text-anchor="middle">OS media session</text>
+  <text class="subtitle" x="360" y="214" text-anchor="middle">one setMediaSession() call</text>
+
+  <!-- ── Distribute to every platform surface ─────────────────────────-->
+  <path class="merge" d="M360 228 L360 266"/>
+  <path class="merge" d="M90 266 L630 266"/>
+  <path class="arrow" d="M90  266 L90  298"/>
+  <path class="arrow" d="M225 266 L225 298"/>
+  <path class="arrow" d="M360 266 L360 298"/>
+  <path class="arrow" d="M495 266 L495 298"/>
+  <path class="arrow" d="M630 266 L630 298"/>
+
+  <!-- ── Five native surfaces ─────────────────────────────────────────-->
+  <rect x="30"  y="300" width="120" height="58"/>
+  <text class="title"    x="90"  y="327" text-anchor="middle">iOS</text>
+  <text class="subtitle" x="90"  y="344" text-anchor="middle">Now Playing</text>
+
+  <rect x="165" y="300" width="120" height="58"/>
+  <text class="title"    x="225" y="327" text-anchor="middle">macOS</text>
+  <text class="subtitle" x="225" y="344" text-anchor="middle">Control Center</text>
+
+  <rect x="300" y="300" width="120" height="58"/>
+  <text class="title"    x="360" y="327" text-anchor="middle">Android</text>
+  <text class="subtitle" x="360" y="344" text-anchor="middle">Notification</text>
+
+  <rect x="435" y="300" width="120" height="58"/>
+  <text class="title"    x="495" y="327" text-anchor="middle">Windows</text>
+  <text class="subtitle" x="495" y="344" text-anchor="middle">SMTC</text>
+
+  <rect x="570" y="300" width="120" height="58"/>
+  <text class="title"    x="630" y="327" text-anchor="middle">Linux</text>
+  <text class="subtitle" x="630" y="344" text-anchor="middle">MPRIS</text>
+</svg>

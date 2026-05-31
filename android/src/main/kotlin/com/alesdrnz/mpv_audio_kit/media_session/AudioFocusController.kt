@@ -55,10 +55,22 @@ internal class AudioFocusController(
         }
     }
 
-    /** Playback became active: take focus and listen for headphone unplug. */
+    /** Playback became active: take focus and listen for headphone unplug.
+     *  Gate on the request result — a FAILED/DELAYED grant pauses instead of
+     *  barging over a non-duckable holder (active call / assistant). */
     fun onPlaybackActive() {
-        requestFocus()
+        val result = requestFocus()
         registerNoisy()
+        val r = InterruptionLogic.onFocusRequestResult(result, policy())
+        resumeOnFocusGain = r.resumeOnFocusGain
+        r.command?.let { emit(mapOf("type" to it)) }
+    }
+
+    /** Playback paused (intent off): drop the headphone-unplug receiver — a
+     *  paused stream can't be "becoming noisy" — but keep audio focus held so
+     *  a quick resume doesn't re-duck other apps. */
+    fun onPlaybackInactive() {
+        unregisterNoisy()
     }
 
     /** Session disabled / engine detached: drop focus and the receiver. */
@@ -75,8 +87,10 @@ internal class AudioFocusController(
         r.command?.let { emit(mapOf("type" to it)) }
     }
 
-    private fun requestFocus() {
-        if (hasFocus) return
+    /** Requests focus and returns the raw `AUDIOFOCUS_REQUEST_*` result so the
+     *  caller can gate playback (GRANTED / FAILED / DELAYED). */
+    private fun requestFocus(): Int {
+        if (hasFocus) return AudioManager.AUDIOFOCUS_REQUEST_GRANTED
         val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val attrs = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -89,6 +103,9 @@ internal class AudioFocusController(
                 // prompts) instead of pausing — matches iOS, which doesn't
                 // pause for duck-type events. No CAN_DUCK callback arrives.
                 .setWillPauseWhenDucked(false)
+                // Accept a deferred grant: if focus is busy now (a call), the
+                // system grants it later via AUDIOFOCUS_GAIN → resume then.
+                .setAcceptsDelayedFocusGain(true)
                 .build()
             focusRequest = req
             audioManager.requestAudioFocus(req)
@@ -101,6 +118,7 @@ internal class AudioFocusController(
             )
         }
         hasFocus = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        return result
     }
 
     private fun abandonFocus() {

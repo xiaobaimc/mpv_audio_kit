@@ -5,6 +5,7 @@
  */
 package com.alesdrnz.mpv_audio_kit.media_session
 
+import android.net.Uri
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -72,10 +73,20 @@ internal object MediaSessionMappers {
         meta.title?.let { b.setTitle(it) }
         meta.artist?.let { b.setArtist(it) }
         meta.album?.let { b.setAlbumTitle(it) }
+        meta.albumArtist?.let { b.setAlbumArtist(it) }
+        meta.genre?.let { b.setGenre(it) }
+        meta.trackNumber?.let { b.setTrackNumber(it) }
+        meta.discNumber?.let { b.setDiscNumber(it) }
         // Media3 takes raw encoded image bytes (JPEG/PNG) directly and
         // decodes them for the notification — no Bitmap conversion needed.
-        meta.artworkBytes?.let {
-            b.setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+        // For a tag-less stream we instead hand it the artwork URL and let
+        // Media3 load + cache it (a transcoded server track has no embedded
+        // cover). Bytes win when both are present; they're mutually exclusive
+        // off the wire anyway.
+        when {
+            meta.artworkBytes != null ->
+                b.setArtworkData(meta.artworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+            meta.artworkUri != null -> b.setArtworkUri(Uri.parse(meta.artworkUri))
         }
         return b.build()
     }

@@ -1,57 +1,25 @@
 name: mpv_audio_kit_example
-description: "Demonstrates how to use the mpv_audio_kit plugin."
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+description: "A minimal example for the mpv_audio_kit plugin."
+# Prevents accidental publication of the example to pub.dev.
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
   sdk: ^3.11.1
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
     sdk: flutter
 
   mpv_audio_kit:
-    # When depending on this package from a real application you should use:
-    #   mpv_audio_kit: ^x.y.z
-    # See https://dart.dev/tools/pub/dependencies#version-constraints
-    # The example app is bundled with the plugin so we use a path dependency on
-    # the parent directory to use the current plugin's version.
+    # In a real app depend on a published version (mpv_audio_kit: ^x.y.z).
+    # The bundled example uses a path dependency on the plugin it ships with.
     path: ../
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
-  file_picker: ^10.3.10
-  desktop_drop: ^0.5.0
-  window_manager: ^0.5.1
-  shared_preferences: ^2.5.4
-  flutter_launcher_icons: ^0.14.4
-
 dev_dependencies:
-  integration_test:
-    sdk: flutter
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
 
-# The following section is specific to Flutter packages.
 flutter:
   uses-material-design: true
-
-flutter_launcher_icons:
-  android: true
-  ios: true
-  macos:
-    generate: true
-  windows:
-    generate: true
-  image_path: "assets/mpv_audio_kit.png"
-  min_sdk_android: 21

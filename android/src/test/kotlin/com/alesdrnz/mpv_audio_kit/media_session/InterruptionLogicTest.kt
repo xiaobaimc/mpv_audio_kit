@@ -109,6 +109,54 @@ class InterruptionLogicTest {
         assertTrue(r.resumeOnFocusGain, "an unrelated duck must not clear a pending resume")
     }
 
+    // ── Focus request result (playback-start gate) ──────────────────────
+
+    @Test
+    fun `granted focus request proceeds with no command`() {
+        for (policy in listOf("pauseAndResume", "pauseOnly", "keepPlaying")) {
+            val r = InterruptionLogic.onFocusRequestResult(
+                AudioManager.AUDIOFOCUS_REQUEST_GRANTED, policy,
+            )
+            assertNull(r.command, "granted focus needs no transport change (policy=$policy)")
+            assertFalse(r.resumeOnFocusGain, "policy=$policy")
+        }
+    }
+
+    @Test
+    fun `failed focus request pauses under pause policies`() {
+        for (policy in listOf("pauseAndResume", "pauseOnly")) {
+            val r = InterruptionLogic.onFocusRequestResult(
+                AudioManager.AUDIOFOCUS_REQUEST_FAILED, policy,
+            )
+            assertEquals(InterruptionLogic.PAUSE, r.command,
+                "must not barge over a non-duckable holder (policy=$policy)")
+            assertFalse(r.resumeOnFocusGain, "a hard failure does not arm resume (policy=$policy)")
+        }
+    }
+
+    @Test
+    fun `failed focus request is a no-op under keepPlaying`() {
+        val r = InterruptionLogic.onFocusRequestResult(
+            AudioManager.AUDIOFOCUS_REQUEST_FAILED, "keepPlaying",
+        )
+        assertNull(r.command, "keepPlaying opts out of focus gating")
+    }
+
+    @Test
+    fun `delayed focus request pauses and arms resume only for pauseAndResume`() {
+        val par = InterruptionLogic.onFocusRequestResult(
+            AudioManager.AUDIOFOCUS_REQUEST_DELAYED, "pauseAndResume",
+        )
+        assertEquals(InterruptionLogic.PAUSE, par.command)
+        assertTrue(par.resumeOnFocusGain, "a deferred grant resumes on the later GAIN")
+
+        val only = InterruptionLogic.onFocusRequestResult(
+            AudioManager.AUDIOFOCUS_REQUEST_DELAYED, "pauseOnly",
+        )
+        assertEquals(InterruptionLogic.PAUSE, only.command)
+        assertFalse(only.resumeOnFocusGain, "pauseOnly never auto-resumes")
+    }
+
     // ── Becoming noisy (headphones unplugged) ───────────────────────────
 
     @Test

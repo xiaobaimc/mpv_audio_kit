@@ -10,6 +10,7 @@ import '../types/enums/cover.dart';
 import '../types/enums/format.dart';
 import '../types/enums/gapless.dart';
 import '../types/enums/hook.dart';
+import '../types/enums/log_level.dart';
 import '../types/enums/loop.dart';
 import '../types/enums/spdif.dart';
 import '../types/sealed/channels.dart';
@@ -302,4 +303,12 @@ abstract interface class PlayerApi {
   /// Sends an arbitrary mpv command with its argument list. Escape hatch
   /// for commands without a typed wrapper.
   Future<void> sendRawCommand(List<String> args);
+
+  /// Sets the minimum severity of log messages mpv emits on
+  /// [PlayerStream.log] at runtime (`mpv_request_log_messages`).
+  ///
+  /// The initial level comes from [PlayerConfiguration.logLevel]; raise it
+  /// (e.g. to [LogLevel.debug]) to surface more diagnostics on demand, or
+  /// lower it to cut log volume. Cheap and thread-safe.
+  Future<void> setLogLevel(LogLevel level);
 }

@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 import '../models/cover_art.dart';
 import '../models/media_session.dart';
 import '../player/player_state.dart';
+import '../types/enums/loop.dart';
 import '../types/sealed/media_session_artwork.dart';
 import '../types/sealed/media_session_command.dart';
 import 'media_session_channel.dart';
@@ -53,6 +54,17 @@ class MediaSessionController {
   StreamSubscription<MediaSessionCommand>? _commandSub;
   bool _disposed = false;
 
+  // ── Coalescing ──────────────────────────────────────────────────────
+  // One mpv file-load fans out across up to 4 metadata streams + several
+  // playback streams in the same microtask turn. Collapse them into at most
+  // one updateMetadata + one updatePlayback per turn so the (multi-MB) cover
+  // art crosses the channel once, not 4×. A dirty-flag + microtask flush.
+  bool _metadataDirty = false;
+  bool _playbackDirty = false;
+  bool _playbackSeek = false;
+  bool _flushScheduled = false;
+  MediaSessionMetadataSnapshot? _lastMetadata;
+
   MediaSessionController._({
     required PlayerState Function() stateSnapshot,
     required MediaSessionInputs inputs,
@@ -95,23 +107,31 @@ class MediaSessionController {
     // seeks. The `seekCompleted` push re-syncs the landed position on
     // EVERY restart (seek + file-load) so the OS slider tracks mpv (e.g.
     // snaps to ~0 on playlist auto-advance).
-    _subscriptions.add(_inputs.playWhenReady.listen((_) => _pushPlayback()));
-    _subscriptions.add(_inputs.rate.listen((_) => _pushPlayback()));
-    _subscriptions.add(_inputs.seekCompleted.listen((_) => _pushPlayback()));
+    _subscriptions.add(_inputs.playWhenReady.listen((_) => _markPlayback()));
+    // Actual-output + buffering changes drive position-extrapolation gating and
+    // the loading indication. They do NOT touch the OS play/pause button (bound
+    // to playWhenReady), so they can't flicker it; same-turn pushes coalesce.
+    _subscriptions.add(_inputs.playing.listen((_) => _markPlayback()));
+    _subscriptions.add(_inputs.buffering.listen((_) => _markPlayback()));
+    _subscriptions.add(_inputs.rate.listen((_) => _markPlayback()));
+    // A seek landing (PLAYBACK_RESTART) carries seek=true so the native side
+    // (Linux MPRIS) can emit `Seeked` deterministically.
+    _subscriptions
+        .add(_inputs.seekCompleted.listen((_) => _markPlayback(seek: true)));
     // Seekable governs both the OS scrubber (enabled/disabled) and
     // the "live stream" UI mode — re-push when it flips.
-    _subscriptions.add(_inputs.seekable.listen((_) => _pushPlayback()));
+    _subscriptions.add(_inputs.seekable.listen((_) => _markPlayback()));
     // Loop + shuffle drive the OS repeat / shuffle button visual state
     // (Apple's `currentRepeatType` / `currentShuffleType`,
     // MPRIS `LoopStatus` / `Shuffle`, MediaSession actions).
-    _subscriptions.add(_inputs.loop.listen((_) => _pushPlayback()));
-    _subscriptions.add(_inputs.shuffle.listen((_) => _pushPlayback()));
+    _subscriptions.add(_inputs.loop.listen((_) => _markPlayback()));
+    _subscriptions.add(_inputs.shuffle.listen((_) => _markPlayback()));
 
     // Metadata signals — drive `updateMetadata`.
-    _subscriptions.add(_inputs.duration.listen((_) => _pushMetadata()));
-    _subscriptions.add(_inputs.metadata.listen((_) => _pushMetadata()));
-    _subscriptions.add(_inputs.coverArt.listen((_) => _pushMetadata()));
-    _subscriptions.add(_inputs.mediaTitle.listen((_) => _pushMetadata()));
+    _subscriptions.add(_inputs.duration.listen((_) => _markMetadata()));
+    _subscriptions.add(_inputs.metadata.listen((_) => _markMetadata()));
+    _subscriptions.add(_inputs.coverArt.listen((_) => _markMetadata()));
+    _subscriptions.add(_inputs.mediaTitle.listen((_) => _markMetadata()));
 
     // Config changes — drive `updateConfig`, AND re-push metadata. The
     // metadata-override fields (title / artist / album / artwork /
@@ -122,7 +142,7 @@ class MediaSessionController {
     _subscriptions.add(_inputs.mediaSession.listen((session) {
       if (session == null) return;
       _channel.updateConfig(session);
-      _pushMetadata();
+      _markMetadata();
     }),);
 
     // Inbound commands from the OS event channel.
@@ -132,9 +152,11 @@ class MediaSessionController {
     final state = _stateSnapshot();
     final session = state.mediaSession;
     if (session == null) return;
+    final metadata = _computeMetadata();
+    _lastMetadata = metadata;
     await _channel.enable(
       session: session,
-      metadata: _computeMetadata(),
+      metadata: metadata,
       playback: _computePlayback(),
     );
   }
@@ -154,22 +176,55 @@ class MediaSessionController {
 
   // ── Push helpers ────────────────────────────────────────────────────
 
-  /// Pushes a playback snapshot.
+  /// Marks the playback snapshot dirty and schedules a coalesced flush.
   ///
   /// The OS play/pause state comes from `playWhenReady` (user intent),
   /// not `core-idle` — so it stays stable while mpv churns through the
   /// seek/restart cycle and the scrub-bar button never flickers. No
-  /// seek-transient masking is needed.
-  Future<void> _pushPlayback() async {
-    if (_disposed) return;
-    if (_stateSnapshot().mediaSession == null) return;
-    await _channel.updatePlayback(_computePlayback());
+  /// seek-transient masking is needed. [seek] sticks across the coalescing
+  /// window so a seek landing in the same turn still emits MPRIS `Seeked`.
+  void _markPlayback({bool seek = false}) {
+    _playbackDirty = true;
+    if (seek) _playbackSeek = true;
+    _scheduleFlush();
   }
 
-  Future<void> _pushMetadata() async {
-    if (_disposed) return;
-    if (_stateSnapshot().mediaSession == null) return;
-    await _channel.updateMetadata(_computeMetadata());
+  void _markMetadata() {
+    _metadataDirty = true;
+    _scheduleFlush();
+  }
+
+  void _scheduleFlush() {
+    if (_flushScheduled || _disposed) return;
+    _flushScheduled = true;
+    scheduleMicrotask(_flush);
+  }
+
+  /// Flushes the coalesced dirty state: at most one metadata + one playback
+  /// push per microtask turn. Metadata is deduped against the last-pushed
+  /// snapshot so an unchanged value (incl. cover identity) doesn't re-ship.
+  Future<void> _flush() async {
+    _flushScheduled = false;
+    if (_disposed || _stateSnapshot().mediaSession == null) {
+      _metadataDirty = false;
+      _playbackDirty = false;
+      _playbackSeek = false;
+      return;
+    }
+    if (_metadataDirty) {
+      _metadataDirty = false;
+      final snap = _computeMetadata();
+      if (_lastMetadata == null || snap != _lastMetadata) {
+        _lastMetadata = snap;
+        await _channel.updateMetadata(snap);
+      }
+    }
+    if (_playbackDirty) {
+      final seek = _playbackSeek;
+      _playbackDirty = false;
+      _playbackSeek = false;
+      await _channel.updatePlayback(_computePlayback(seek: seek));
+    }
   }
 
   // ── Snapshot builders ───────────────────────────────────────────────
@@ -179,41 +234,121 @@ class MediaSessionController {
     final override = state.mediaSession;
     final mpvMeta = state.metadata;
 
-    // Title falls through three layers: explicit override → mpv's
-    // `metadata.title` tag → mpv's `media-title` (which itself falls
-    // back to the filename for files without a title tag).
+    // The currently-playing queue item. Its consumer-attached
+    // [Media.extras] are the metadata fallback for files that carry no
+    // tags of their own — most importantly transcoded streams (HLS/DASH
+    // segments demuxed from an upstream server): mpv sees no `title` /
+    // `artist` / `album` tag and reports the stream URL as `media-title`,
+    // so without this the OS lockscreen would show the raw URL. extras
+    // sit *below* mpv's real tags (a tagged file still wins) but *above*
+    // the filename-derived `media-title`.
+    final playlist = state.playlist;
+    final item =
+        (playlist.index >= 0 && playlist.index < playlist.items.length)
+            ? playlist.items[playlist.index]
+            : null;
+    final extras = item?.extras;
+
+    // Title falls through: explicit override → mpv's `metadata.title` tag
+    // → consumer-attached `extras['title']` → mpv's `media-title` (which
+    // itself falls back to the filename for files without a title tag).
     final title = override?.title ??
         _firstTagValue(mpvMeta, const ['title']) ??
+        _extra(extras, 'title') ??
         (state.mediaTitle.isEmpty ? null : state.mediaTitle);
 
     final artist = override?.artist ??
-        _firstTagValue(mpvMeta, const ['artist', 'album_artist']);
+        _firstTagValue(mpvMeta, const ['artist', 'album_artist']) ??
+        _extra(extras, 'artist');
 
-    final album = override?.album ?? _firstTagValue(mpvMeta, const ['album']);
+    final album = override?.album ??
+        _firstTagValue(mpvMeta, const ['album']) ??
+        _extra(extras, 'album');
 
     final duration = override?.duration ??
         (state.duration == Duration.zero ? null : state.duration);
+
+    // Rich tags (mpv-derived, with the extras-attached artist as a final
+    // fallback for the album-artist line on tag-less streams).
+    final albumArtist =
+        _firstTagValue(mpvMeta, const ['album_artist']) ?? _extra(extras, 'artist');
+    final genre = _firstTagValue(mpvMeta, const ['genre']);
+    // mpv `track` / `disc` tags are often "3" or "3/12" — take the leading int.
+    final trackNumber = _parseLeadingInt(_firstTagValue(mpvMeta, const ['track']));
+    final discNumber = _parseLeadingInt(_firstTagValue(mpvMeta, const ['disc']));
+
+    // Source URI of the current item, for MPRIS xesam:url.
+    final url = item?.uri;
+
+    final artwork = _resolveArtwork(override, state.coverArt, extras);
 
     return MediaSessionMetadataSnapshot(
       title: title,
       artist: artist,
       album: album,
-      artwork: _resolveArtwork(override, state.coverArt),
+      artwork: artwork.bytes,
+      artworkUri: artwork.uri,
       duration: duration,
+      trackNumber: trackNumber,
+      discNumber: discNumber,
+      albumArtist: albumArtist,
+      genre: genre,
+      url: url,
     );
   }
 
-  CoverArt? _resolveArtwork(MediaSession? override, CoverArt? embedded) {
+  /// Reads a non-empty string [key] from a queue item's [Media.extras];
+  /// `null` if the map is absent, lacks the key, or the value is blank or
+  /// not a string. Lets a consumer supply lockscreen metadata for streams
+  /// the file itself can't tag.
+  String? _extra(Map<String, Object?>? extras, String key) {
+    final v = extras?[key];
+    return (v is String && v.isNotEmpty) ? v : null;
+  }
+
+  /// Parses the leading integer from a tag like `"3"` or `"3/12"`; `null` if
+  /// absent or non-numeric.
+  int? _parseLeadingInt(String? raw) {
+    if (raw == null) return null;
+    final match = RegExp(r'^\s*(\d+)').firstMatch(raw);
+    return match == null ? null : int.tryParse(match.group(1)!);
+  }
+
+  /// Resolves the effective artwork into the two mutually-exclusive shapes the
+  /// snapshot carries: decoded [bytes] (embedded / custom) or a [uri] the
+  /// native side fetches itself.
+  ///
+  /// For the default [MediaSessionArtwork.embedded] the file's embedded cover
+  /// wins; when it has none — the common case for a transcoded stream — we
+  /// fall back to a network artwork URL the consumer attached to the queue
+  /// item as `extras['art']`, mirroring the title/artist/album fallback. An
+  /// explicit [MediaSessionArtwork.none] suppresses art outright (no fallback).
+  ({CoverArt? bytes, String? uri}) _resolveArtwork(
+    MediaSession? override,
+    CoverArt? embedded,
+    Map<String, Object?>? extras,
+  ) {
     final artwork = override?.artwork ?? MediaSessionArtwork.embedded;
     return switch (artwork) {
-      MediaSessionArtworkNone() => null,
-      MediaSessionArtworkCustom(:final cover) => cover,
-      MediaSessionArtworkEmbedded() => embedded,
+      MediaSessionArtworkNone() => (bytes: null, uri: null),
+      MediaSessionArtworkCustom(:final cover) => (bytes: cover, uri: null),
+      MediaSessionArtworkUri(:final uri) => (bytes: null, uri: uri.toString()),
+      MediaSessionArtworkEmbedded() => embedded != null
+          ? (bytes: embedded, uri: null)
+          : (bytes: null, uri: _extra(extras, 'art')),
     };
   }
 
-  MediaSessionPlaybackSnapshot _computePlayback() {
+  MediaSessionPlaybackSnapshot _computePlayback({bool seek = false}) {
     final state = _stateSnapshot();
+    // Navigability: a real multi-item mpv playlist reflects its bounds
+    // (loop=playlist wraps both ways); a single item stays navigable so an
+    // external-queue consumer still receives next/previous.
+    final pl = state.playlist;
+    final multi = pl.items.length > 1;
+    final loopPlaylist = state.loop == Loop.playlist;
+    final hasNext = !multi || loopPlaylist || pl.index < pl.items.length - 1;
+    final hasPrevious = !multi || loopPlaylist || pl.index > 0;
     return MediaSessionPlaybackSnapshot(
       playing: state.playWhenReady,
       position: state.position,
@@ -221,6 +356,17 @@ class MediaSessionController {
       seekable: state.seekable,
       loop: state.loop,
       shuffle: state.shuffle,
+      // Terminal end-of-content. The `eof-reached` hook releases
+      // `playWhenReady` at true EOF, which already drives a playback push,
+      // so the completed transition is carried on that same snapshot.
+      completed: state.completed,
+      seek: seek,
+      // Actual output + buffering — for extrapolation gating and the loading
+      // state. Independent of the intent axis the button binds to.
+      actualPlaying: state.playing,
+      buffering: state.buffering,
+      hasNext: hasNext,
+      hasPrevious: hasPrevious,
     );
   }
 

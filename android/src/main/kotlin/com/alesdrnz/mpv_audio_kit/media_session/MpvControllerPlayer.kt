@@ -40,6 +40,14 @@ internal class MpvControllerPlayer(looper: Looper) : SimpleBasePlayer(looper) {
 
     private val mgr get() = MediaSessionManager
 
+    // Cache the built MediaMetadata keyed by the snapshot identity, so a
+    // playback-only tick (position/rate/seek) doesn't re-wrap title/artwork
+    // into a fresh MediaMetadata on every getState. The manager replaces the
+    // snapshot object only on updateMetadata, so reference identity is a sound
+    // key.
+    private var cachedMetaKey: MediaSessionManager.MetadataSnapshot? = null
+    private var cachedMediaMetadata: MediaMetadata? = null
+
     /** Re-poll [getState] and notify listeners. Public wrapper around the
      *  protected `invalidateState`, called by the manager on each push. */
     fun republish() = invalidateState()
@@ -57,11 +65,23 @@ internal class MpvControllerPlayer(looper: Looper) : SimpleBasePlayer(looper) {
         // content-less publish" guard).
         if (title == null) return idleState(playWhenReady = pb.playing)
 
-        val mediaMetadata = MediaSessionMappers.toMediaMetadata(meta)
+        val mediaMetadata = if (meta === cachedMetaKey && cachedMediaMetadata != null) {
+            cachedMediaMetadata!!
+        } else {
+            MediaSessionMappers.toMediaMetadata(meta).also {
+                cachedMetaKey = meta
+                cachedMediaMetadata = it
+            }
+        }
         val wantsNextPrev =
             cfg.actions.contains("next") || cfg.actions.contains("previous")
-        val items = buildPlaylist(meta, mediaMetadata, pb.seekable, wantsNextPrev)
-        val currentIndex = if (items.size == 3) 1 else 0
+        // Include a prev/next placeholder only when navigation is actually
+        // available, so Media3 greys the skip buttons out at playlist bounds.
+        // A single item / external queue keeps both (hasNext/Prev=true).
+        val showPrev = wantsNextPrev && cfg.actions.contains("previous") && pb.hasPrevious
+        val showNext = wantsNextPrev && cfg.actions.contains("next") && pb.hasNext
+        val items = buildPlaylist(meta, mediaMetadata, pb.seekable, showPrev, showNext)
+        val currentIndex = if (showPrev) 1 else 0
         // While a scrub is in flight the slider pins at the drop target
         // until Dart confirms the landed position (see MediaSessionManager).
         val positionMs = mgr.scrubFreezeMs ?: pb.positionMs
@@ -70,7 +90,17 @@ internal class MpvControllerPlayer(looper: Looper) : SimpleBasePlayer(looper) {
             .setAvailableCommands(
                 MediaSessionMappers.buildCommands(cfg.actions, pb.seekable),
             )
-            .setPlaybackState(Player.STATE_READY)
+            // STATE_ENDED at true end-of-content (Dart's eof-reached) so the OS
+            // parks the scrubber at duration and renders a finished track;
+            // STATE_BUFFERING while loading so the OS shows a spinner. Falling
+            // edges are re-published Dart-side as READY.
+            .setPlaybackState(
+                when {
+                    pb.completed -> Player.STATE_ENDED
+                    pb.buffering -> Player.STATE_BUFFERING
+                    else -> Player.STATE_READY
+                },
+            )
             // The INTENT axis: playWhenReady binds to `playing`
             // (playWhenReady Dart-side), which is stable across seeks.
             // Never re-derive it from anything else.
@@ -88,10 +118,21 @@ internal class MpvControllerPlayer(looper: Looper) : SimpleBasePlayer(looper) {
             .setShuffleModeEnabled(pb.shuffle)
             .setPlaylist(items)
             .setCurrentMediaItemIndex(currentIndex)
-            // A static anchor: the OS extrapolates forward from here using
-            // the speed while playWhenReady && READY. Position is pushed on
-            // play/pause/seek, never per tick.
-            .setContentPositionMs(positionMs)
+            // Extrapolate the scrub position from this anchor while audio is
+            // genuinely advancing (not paused / buffering / scrub-frozen), so
+            // the OS notification seek bar moves smoothly between pushes instead
+            // of freezing on a constant value. A constant supplier holds it
+            // pinned otherwise.
+            .setContentPositionMs(
+                if (pb.actualPlaying && mgr.scrubFreezeMs == null) {
+                    SimpleBasePlayer.PositionSupplier.getExtrapolating(
+                        positionMs,
+                        pb.rate.toFloat().coerceAtLeast(0.01f),
+                    )
+                } else {
+                    SimpleBasePlayer.PositionSupplier.getConstant(positionMs)
+                },
+            )
             .setSeekBackIncrementMs(cfg.rewindIntervalMs)
             .setSeekForwardIncrementMs(cfg.fastForwardIntervalMs)
             .build()
@@ -124,7 +165,8 @@ internal class MpvControllerPlayer(looper: Looper) : SimpleBasePlayer(looper) {
         meta: MediaSessionManager.MetadataSnapshot,
         mediaMetadata: MediaMetadata,
         seekable: Boolean,
-        wantsNextPrev: Boolean,
+        showPrev: Boolean,
+        showNext: Boolean,
     ): List<MediaItemData> {
         val durationUs =
             meta.durationMs?.takeIf { it > 0 }?.let { it * 1000L } ?: C.TIME_UNSET
@@ -136,8 +178,11 @@ internal class MpvControllerPlayer(looper: Looper) : SimpleBasePlayer(looper) {
             .setIsSeekable(seekable)
             .build()
 
-        if (!wantsNextPrev) return listOf(current)
-        return listOf(placeholder("mpv-prev"), current, placeholder("mpv-next"))
+        val items = mutableListOf<MediaItemData>()
+        if (showPrev) items.add(placeholder("mpv-prev"))
+        items.add(current)
+        if (showNext) items.add(placeholder("mpv-next"))
+        return items
     }
 
     private fun placeholder(uid: String): MediaItemData =
@@ -158,6 +203,8 @@ internal class MpvControllerPlayer(looper: Looper) : SimpleBasePlayer(looper) {
         val mm = item?.mediaMetadata
         val playbackState = when {
             st.playbackState == Player.STATE_IDLE -> "stopped"
+            st.playbackState == Player.STATE_ENDED -> "completed"
+            st.playbackState == Player.STATE_BUFFERING -> "buffering"
             st.playWhenReady -> "playing"
             else -> "paused"
         }
@@ -170,7 +217,8 @@ internal class MpvControllerPlayer(looper: Looper) : SimpleBasePlayer(looper) {
             "durationMs" to mgr.metadata.durationMs,
             "positionMs" to (mgr.scrubFreezeMs ?: mgr.playback.positionMs),
             "rate" to st.playbackParameters.speed.toDouble(),
-            "hasArtwork" to (mgr.metadata.artworkBytes != null),
+            "hasArtwork" to
+                (mgr.metadata.artworkBytes != null || mgr.metadata.artworkUri != null),
             "seekable" to st.availableCommands
                 .contains(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM),
             "loop" to MediaSessionMappers.repeatModeToLoop(st.repeatMode),

@@ -204,12 +204,16 @@ GVariant* MprisServer::RootGetProperty(GDBusConnection*, const gchar*,
         self->app_name_.empty() ? "mpv_audio_kit" : self->app_name_.c_str());
   }
   if (!strcmp(property, "DesktopEntry")) {
-    // Must be a .desktop basename (no extension / spaces), NOT a display name.
-    // Reuse the sanitized bus suffix; fall back to the package id.
-    std::string entry = self->app_name_.empty()
-                            ? "mpv_audio_kit"
-                            : SanitizeBusSuffix(self->app_name_);
-    return g_variant_new_string(entry.c_str());
+    // The basename of the installed .desktop file, supplied verbatim by the
+    // consumer. If unset, OMIT the property (return an error so it reads as
+    // absent) rather than emitting a guessed value that resolves to the wrong
+    // icon — a sanitized display name almost never matches an installed file.
+    if (self->desktop_entry_.empty()) {
+      g_set_error(error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_PROPERTY,
+                  "DesktopEntry not set");
+      return nullptr;
+    }
+    return g_variant_new_string(self->desktop_entry_.c_str());
   }
   if (!strcmp(property, "SupportedUriSchemes") ||
       !strcmp(property, "SupportedMimeTypes")) {
@@ -229,10 +233,11 @@ void MprisServer::PlayerMethodCall(GDBusConnection*, const gchar*, const gchar*,
                                    GDBusMethodInvocation* invocation,
                                    gpointer user_data) {
   auto* self = static_cast<MprisServer*>(user_data);
+  const bool can_seek = self->seekable_ && self->actions_.count("seek") > 0;
   if (!strcmp(method, "Next")) {
-    self->Emit("next");
+    if (self->actions_.count("next") > 0) self->Emit("next");
   } else if (!strcmp(method, "Previous")) {
-    self->Emit("previous");
+    if (self->actions_.count("previous") > 0) self->Emit("previous");
   } else if (!strcmp(method, "Pause")) {
     self->Emit("pause");
   } else if (!strcmp(method, "Play")) {
@@ -242,34 +247,42 @@ void MprisServer::PlayerMethodCall(GDBusConnection*, const gchar*, const gchar*,
   } else if (!strcmp(method, "Stop")) {
     self->Emit("stop");
   } else if (!strcmp(method, "Seek")) {
-    gint64 offset_us = 0;
-    g_variant_get(params, "(x)", &offset_us);
-    FlValue* m = fl_value_new_map();
-    fl_value_set_string_take(m, "type", fl_value_new_string("seekBy"));
-    fl_value_set_string_take(m, "offsetMs", fl_value_new_int(offset_us / 1000));
-    self->EmitWith(m);
+    // Ignore (but still ack) when not seekable — CanSeek is advertised false.
+    if (can_seek) {
+      gint64 offset_us = 0;
+      g_variant_get(params, "(x)", &offset_us);
+      FlValue* m = fl_value_new_map();
+      fl_value_set_string_take(m, "type", fl_value_new_string("seekBy"));
+      fl_value_set_string_take(m, "offsetMs", fl_value_new_int(offset_us / 1000));
+      self->EmitWith(m);
+    }
   } else if (!strcmp(method, "SetPosition")) {
     const gchar* track_id = nullptr;
     gint64 pos_us = 0;
     g_variant_get(params, "(&ox)", &track_id, &pos_us);
-    std::string current =
-        std::string("/org/mpris/MediaPlayer2/Track/") +
-        std::to_string(self->track_no_);
-    if (track_id && current == track_id) {
+    // Per spec: ignore if the trackid doesn't match the current track, the
+    // source isn't seekable, or the position is out of [0, length].
+    const int64_t length_us = self->duration_ms_ * 1000;
+    const bool in_bounds =
+        pos_us >= 0 && (!self->has_duration_ || pos_us <= length_us);
+    if (can_seek && in_bounds && track_id && self->track_id_ == track_id) {
       FlValue* m = fl_value_new_map();
       fl_value_set_string_take(m, "type", fl_value_new_string("seekTo"));
       fl_value_set_string_take(m, "positionMs", fl_value_new_int(pos_us / 1000));
       self->EmitWith(m);
     }
   }
-  // OpenUri and anything else: acknowledged, no-op.
+  // Anything else: acknowledged, no-op.
   g_dbus_method_invocation_return_value(invocation, nullptr);
 }
 
 GVariant* MprisServer::PlayerPropertyValue(const char* property) {
   if (!strcmp(property, "PlaybackStatus")) {
+    // `completed_` (end-of-content) reports Stopped while the session stays
+    // enabled, so a finished track doesn't linger as "Paused at full length".
     return g_variant_new_string(
-        !enabled_ ? "Stopped" : (playing_ ? "Playing" : "Paused"));
+        (!enabled_ || completed_) ? "Stopped"
+                                  : (playing_ ? "Playing" : "Paused"));
   }
   if (!strcmp(property, "LoopStatus")) {
     return g_variant_new_string(LoopToStatus(loop_));
@@ -277,20 +290,27 @@ GVariant* MprisServer::PlayerPropertyValue(const char* property) {
   if (!strcmp(property, "Rate")) return g_variant_new_double(rate_);
   if (!strcmp(property, "Shuffle")) return g_variant_new_boolean(shuffle_);
   if (!strcmp(property, "Metadata")) return BuildMetadata();
-  if (!strcmp(property, "Volume")) return g_variant_new_double(volume_);
   if (!strcmp(property, "Position")) {
     return g_variant_new_int64(ExtrapolatedPositionUs());
   }
   if (!strcmp(property, "MinimumRate")) return g_variant_new_double(min_rate_);
   if (!strcmp(property, "MaximumRate")) return g_variant_new_double(max_rate_);
   if (!strcmp(property, "CanGoNext")) {
-    return g_variant_new_boolean(enabled_ && actions_.count("next") > 0);
+    return g_variant_new_boolean(enabled_ && actions_.count("next") > 0 &&
+                                 has_next_);
   }
   if (!strcmp(property, "CanGoPrevious")) {
-    return g_variant_new_boolean(enabled_ && actions_.count("previous") > 0);
+    return g_variant_new_boolean(enabled_ && actions_.count("previous") > 0 &&
+                                 has_prev_);
   }
-  if (!strcmp(property, "CanPlay")) return g_variant_new_boolean(enabled_);
-  if (!strcmp(property, "CanPause")) return g_variant_new_boolean(enabled_);
+  // CanPlay/CanPause require real content, not just an enabled session, so a
+  // pre-load shell doesn't advertise actionable transport.
+  if (!strcmp(property, "CanPlay")) {
+    return g_variant_new_boolean(enabled_ && has_title_);
+  }
+  if (!strcmp(property, "CanPause")) {
+    return g_variant_new_boolean(enabled_ && has_title_);
+  }
   if (!strcmp(property, "CanSeek")) {
     return g_variant_new_boolean(enabled_ && seekable_ &&
                                  actions_.count("seek") > 0);
@@ -350,21 +370,20 @@ gboolean MprisServer::PlayerSetProperty(GDBusConnection*, const gchar*,
     self->EmitWith(m);
     return TRUE;
   }
-  // Volume is read-only (advertised `read` in the introspection XML) — there
-  // is no volume command in the wire protocol, so a writable slider would be
-  // a dead control. Reject any write.
+  // No volume command exists in the wire protocol, so Volume is not advertised
+  // at all (removed from the introspection XML) rather than exposed as a dead
+  // read-only slider. Reject any other write defensively.
   return FALSE;
 }
 
 GVariant* MprisServer::BuildMetadata() {
   GVariantBuilder b;
   g_variant_builder_init(&b, G_VARIANT_TYPE("a{sv}"));
-  if (enabled_ && has_title_) {
-    std::string track_id =
-        std::string("/org/mpris/MediaPlayer2/Track/") +
-        std::to_string(track_no_);
+  // An empty a{sv} on end-of-content (Stopped) clears the finished track from
+  // the GNOME/KDE popup instead of pinning it at full length.
+  if (enabled_ && has_title_ && !completed_) {
     g_variant_builder_add(&b, "{sv}", "mpris:trackid",
-                          g_variant_new_object_path(track_id.c_str()));
+                          g_variant_new_object_path(track_id_.c_str()));
     if (has_duration_) {
       g_variant_builder_add(&b, "{sv}", "mpris:length",
                             g_variant_new_int64(duration_ms_ * 1000));
@@ -379,6 +398,28 @@ GVariant* MprisServer::BuildMetadata() {
     if (!album_.empty()) {
       g_variant_builder_add(&b, "{sv}", "xesam:album",
                             g_variant_new_string(album_.c_str()));
+    }
+    if (!album_artist_.empty()) {
+      const char* arr[] = {album_artist_.c_str(), nullptr};
+      g_variant_builder_add(&b, "{sv}", "xesam:albumArtist",
+                            g_variant_new_strv(arr, -1));
+    }
+    if (!genre_.empty()) {
+      const char* arr[] = {genre_.c_str(), nullptr};
+      g_variant_builder_add(&b, "{sv}", "xesam:genre",
+                            g_variant_new_strv(arr, -1));
+    }
+    if (xesam_track_ > 0) {
+      g_variant_builder_add(&b, "{sv}", "xesam:trackNumber",
+                            g_variant_new_int32(static_cast<gint32>(xesam_track_)));
+    }
+    if (xesam_disc_ > 0) {
+      g_variant_builder_add(&b, "{sv}", "xesam:discNumber",
+                            g_variant_new_int32(static_cast<gint32>(xesam_disc_)));
+    }
+    if (!xesam_url_.empty()) {
+      g_variant_builder_add(&b, "{sv}", "xesam:url",
+                            g_variant_new_string(xesam_url_.c_str()));
     }
     if (!art_url_.empty()) {
       g_variant_builder_add(&b, "{sv}", "mpris:artUrl",
@@ -435,7 +476,7 @@ void MprisServer::FlushChanged() {
 void MprisServer::RepublishAll() {
   static const char* kProps[] = {
       "PlaybackStatus", "LoopStatus",    "Rate",          "Shuffle",
-      "Metadata",       "Volume",        "MinimumRate",   "MaximumRate",
+      "Metadata",       "MinimumRate",   "MaximumRate",
       "CanGoNext",      "CanGoPrevious", "CanPlay",       "CanPause",
       "CanSeek"};
   for (const char* p : kProps) MarkChanged(p);
@@ -460,7 +501,9 @@ void MprisServer::EmitWith(FlValue* command) {
 
 int64_t MprisServer::ExtrapolatedPositionUs() const {
   int64_t us = base_position_ms_ * 1000;
-  if (playing_) {
+  // Advance only while audio is genuinely playing (not during a buffer stall or
+  // a seek transient where intent stays true) so the slider doesn't over-run.
+  if (actual_playing_) {
     gint64 now = g_get_monotonic_time();
     us += static_cast<int64_t>((now - base_monotonic_us_) * rate_);
   }
@@ -484,6 +527,12 @@ void MprisServer::AnchorPosition() {
 void MprisServer::WriteArtwork(const std::vector<uint8_t>& bytes,
                                const std::string& mime) {
   if (bytes.empty()) {
+    // Switching to no-art: remove the previous temp file too, or it leaks
+    // on disk until disable/SweepArtwork.
+    if (!prev_art_path_.empty()) {
+      g_remove(prev_art_path_.c_str());
+      prev_art_path_.clear();
+    }
     art_url_.clear();
     has_artwork_ = false;
     art_cache_key_.clear();
@@ -528,6 +577,20 @@ void MprisServer::WriteArtwork(const std::vector<uint8_t>& bytes,
   }
 }
 
+void MprisServer::SetExternalArtwork(const std::string& url) {
+  // The consumer (or the extras['art'] fallback) handed us a ready-to-use
+  // URL — MPRIS's `mpris:artUrl` is itself a URL, so pass it through directly
+  // and skip the temp-file dance WriteArtwork does for embedded bytes. Drop
+  // any temp file a previous embedded cover left behind.
+  if (!prev_art_path_.empty()) {
+    g_remove(prev_art_path_.c_str());
+    prev_art_path_.clear();
+  }
+  art_cache_key_.clear();
+  art_url_ = url;
+  has_artwork_ = !url.empty();
+}
+
 void MprisServer::SweepArtwork() {
   if (!prev_art_path_.empty()) {
     g_remove(prev_art_path_.c_str());
@@ -554,6 +617,7 @@ void MprisServer::Enable(FlValue* config, FlValue* metadata, FlValue* playback) 
     }
   }
   app_name_ = FlString(config, "appName");
+  desktop_entry_ = FlString(config, "desktopEntry");
   // supportedPlaybackRates → MinimumRate/MaximumRate. A Dart List<double>
   // arrives as a generic list (FL_VALUE_TYPE_LIST); a Float64List would arrive
   // as FL_VALUE_TYPE_FLOAT_LIST — handle both.
@@ -599,10 +663,14 @@ void MprisServer::Enable(FlValue* config, FlValue* metadata, FlValue* playback) 
   UpdateMetadata(metadata);  // parses metadata + writes artwork
   // playback (anchor without seek detection on enable)
   playing_ = FlBool(playback, "playing", false);
+  actual_playing_ = FlBool(playback, "actualPlaying", false);
+  completed_ = FlBool(playback, "completed", false);
   int64_t pos = 0;
   if (FlInt(playback, "positionMs", &pos)) position_ms_ = pos;
   rate_ = FlDouble(playback, "rate", 1.0);
   seekable_ = FlBool(playback, "seekable", false);
+  has_next_ = FlBool(playback, "hasNext", true);
+  has_prev_ = FlBool(playback, "hasPrevious", true);
   loop_ = FlString(playback, "loop");
   if (loop_.empty()) loop_ = "off";
   shuffle_ = FlBool(playback, "shuffle", false);
@@ -641,12 +709,30 @@ void MprisServer::UpdateConfig(FlValue* config) {
 void MprisServer::UpdateMetadata(FlValue* metadata) {
   std::string new_title = FlString(metadata, "title");
   bool new_has_title = !new_title.empty();
-  // A title change implies a new track → bump the trackid object path.
-  if (new_has_title && new_title != title_) track_no_++;
+  bool title_presence_changed = new_has_title != has_title_;
+  // A title change implies a new track → bump the trackid object path and
+  // rebuild the cached object-path string.
+  bool new_track = new_has_title && new_title != title_;
+  if (new_track) {
+    track_no_++;
+    track_id_ = "/org/mpris/MediaPlayer2/Track/" + std::to_string(track_no_);
+    // Reset the extrapolation anchor so the Position getter doesn't briefly
+    // over-run by extrapolating from the previous track's playhead before the
+    // next UpdatePlayback lands.
+    position_ms_ = 0;
+    AnchorPosition();
+  }
   title_ = new_title;
   has_title_ = new_has_title;
   artist_ = FlString(metadata, "artist");
   album_ = FlString(metadata, "album");
+  album_artist_ = FlString(metadata, "albumArtist");
+  genre_ = FlString(metadata, "genre");
+  xesam_url_ = FlString(metadata, "url");
+  int64_t tn = 0;
+  xesam_track_ = FlInt(metadata, "trackNumber", &tn) ? tn : 0;
+  int64_t dn = 0;
+  xesam_disc_ = FlInt(metadata, "discNumber", &dn) ? dn : 0;
 
   int64_t dur = 0;
   if (FlInt(metadata, "durationMs", &dur)) {
@@ -656,10 +742,15 @@ void MprisServer::UpdateMetadata(FlValue* metadata) {
     has_duration_ = false;
   }
 
+  std::string art_uri = FlString(metadata, "artworkUri");
   FlValue* art =
       metadata ? fl_value_lookup_string(metadata, "artworkBytes") : nullptr;
   std::string mime = FlString(metadata, "artworkMime");
-  if (art && fl_value_get_type(art) == FL_VALUE_TYPE_UINT8_LIST) {
+  if (!art_uri.empty()) {
+    // A URL the desktop can fetch itself (e.g. a transcoded stream's cover) —
+    // no embedded bytes to write out.
+    SetExternalArtwork(art_uri);
+  } else if (art && fl_value_get_type(art) == FL_VALUE_TYPE_UINT8_LIST) {
     size_t n = fl_value_get_length(art);
     const uint8_t* d = fl_value_get_uint8_list(art);
     WriteArtwork(std::vector<uint8_t>(d, d + n), mime);
@@ -667,27 +758,41 @@ void MprisServer::UpdateMetadata(FlValue* metadata) {
     WriteArtwork({}, "");
   }
 
-  if (enabled_) MarkChanged("Metadata");
+  if (enabled_) {
+    MarkChanged("Metadata");
+    // CanPlay/CanPause/CanSeek depend on has_title_ → re-advertise on a
+    // content load/clear boundary.
+    if (title_presence_changed) {
+      MarkChanged("CanPlay");
+      MarkChanged("CanPause");
+      MarkChanged("CanSeek");
+    }
+  }
   ++publish_count_;
 }
 
 void MprisServer::UpdatePlayback(FlValue* playback) {
-  // Detect a seek against the position we'd have extrapolated to by now,
-  // BEFORE re-anchoring.
   int64_t new_pos_ms = 0;
   bool have_pos = FlInt(playback, "positionMs", &new_pos_ms);
-  int64_t expected_us = ExtrapolatedPositionUs();
+  // The Dart side flags a snapshot that originates from a seek landing, so we
+  // emit `Seeked` deterministically — no magnitude threshold that would miss a
+  // sub-second scrub (which otherwise snaps the OS slider back).
+  bool is_seek = FlBool(playback, "seek", false);
 
+  bool was_completed = completed_;
+  bool was_next = has_next_;
+  bool was_prev = has_prev_;
   playing_ = FlBool(playback, "playing", false);
+  actual_playing_ = FlBool(playback, "actualPlaying", false);
+  completed_ = FlBool(playback, "completed", false);
   if (have_pos) position_ms_ = new_pos_ms;
   rate_ = FlDouble(playback, "rate", 1.0);
   seekable_ = FlBool(playback, "seekable", false);
+  has_next_ = FlBool(playback, "hasNext", true);
+  has_prev_ = FlBool(playback, "hasPrevious", true);
   loop_ = FlString(playback, "loop");
   if (loop_.empty()) loop_ = "off";
   shuffle_ = FlBool(playback, "shuffle", false);
-
-  int64_t new_us = position_ms_ * 1000;
-  bool seeked = have_pos && llabs(new_us - expected_us) > 1000000;
   AnchorPosition();
 
   if (enabled_) {
@@ -696,10 +801,15 @@ void MprisServer::UpdatePlayback(FlValue* playback) {
     MarkChanged("LoopStatus");
     MarkChanged("Shuffle");
     MarkChanged("CanSeek");
-    if (seeked && connection_) {
+    if (has_next_ != was_next) MarkChanged("CanGoNext");
+    if (has_prev_ != was_prev) MarkChanged("CanGoPrevious");
+    // A completed transition flips Metadata visibility (full ↔ empty).
+    if (completed_ != was_completed) MarkChanged("Metadata");
+    if (is_seek && have_pos && connection_) {
       g_dbus_connection_emit_signal(connection_, nullptr, kObjectPath,
                                     kPlayerIface, "Seeked",
-                                    g_variant_new("(x)", new_us), nullptr);
+                                    g_variant_new("(x)", position_ms_ * 1000),
+                                    nullptr);
     }
   }
   ++publish_count_;
@@ -717,13 +827,21 @@ void MprisServer::Disable() {
 
   actions_.clear();
   app_name_.clear();
+  desktop_entry_.clear();
   title_.clear();
   artist_.clear();
   album_.clear();
+  album_artist_.clear();
+  genre_.clear();
+  xesam_url_.clear();
+  xesam_track_ = 0;
+  xesam_disc_ = 0;
   has_title_ = false;
   duration_ms_ = 0;
   has_duration_ = false;
   playing_ = false;
+  actual_playing_ = false;
+  completed_ = false;
   position_ms_ = 0;
   rate_ = 1.0;
   seekable_ = false;
@@ -741,10 +859,12 @@ FlValue* MprisServer::DebugState() {
   FlValue* m = fl_value_new_map();
   fl_value_set_string_take(m, "publishCount", fl_value_new_int(publish_count_));
   const char* state =
-      !enabled_ ? "stopped" : (playing_ ? "playing" : "paused");
+      !enabled_ ? "stopped"
+                : (completed_ ? "completed" : (playing_ ? "playing" : "paused"));
   fl_value_set_string_take(m, "playbackState", fl_value_new_string(state));
 
-  bool active = enabled_ && has_title_;
+  // Metadata is cleared on the OS surface at end-of-content; mirror that here.
+  bool active = enabled_ && has_title_ && !completed_;
   fl_value_set_string_take(
       m, "title",
       active ? fl_value_new_string(title_.c_str()) : fl_value_new_null());

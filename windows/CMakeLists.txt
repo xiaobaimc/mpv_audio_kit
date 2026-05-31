@@ -65,6 +65,11 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
 # Windows SDK already on the MSVC include path — no NuGet, no extra toolchain.
 target_link_libraries(${PLUGIN_NAME} PRIVATE windowsapp)
 
+# shell32 provides SetCurrentProcessExplicitAppUserModelID, used to give the
+# process a stable AppUserModelID so the SystemMediaTransportControls card shows
+# a consistent source identity on unpackaged .exe builds.
+target_link_libraries(${PLUGIN_NAME} PRIVATE shell32)
+
 # ── libmpv Bundling ──────────────────────────────────────────────────────────
 # libmpv.dll is auto-downloaded from GitHub Releases per target arch. Two
 # arches are supported (x86_64, arm64) and the binaries live in arch-scoped

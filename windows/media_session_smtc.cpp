@@ -90,6 +90,9 @@ SmtcController::SmtcController(
     : command_sink_(std::move(command_sink)) {}
 
 SmtcController::~SmtcController() {
+  // Stop in-flight OS handlers from dereferencing command_sink_ before we revoke
+  // their tokens (revoke does not join a handler already running on a pool thread).
+  alive_.store(false);
   if (created_) {
     smtc_.ButtonPressed(button_token_);
     smtc_.PlaybackPositionChangeRequested(position_token_);
@@ -131,6 +134,7 @@ void SmtcController::EnsureCreated() {
   position_token_ = smtc_.PlaybackPositionChangeRequested(
       [this](wm::SystemMediaTransportControls const&,
              wm::PlaybackPositionChangeRequestedEventArgs const& args) {
+        if (!alive_.load()) return;
         command_sink_(flutter::EncodableValue(flutter::EncodableMap{
             {flutter::EncodableValue("type"), flutter::EncodableValue("seekTo")},
             {flutter::EncodableValue("positionMs"),
@@ -141,6 +145,7 @@ void SmtcController::EnsureCreated() {
   repeat_token_ = smtc_.AutoRepeatModeChangeRequested(
       [this](wm::SystemMediaTransportControls const&,
              wm::AutoRepeatModeChangeRequestedEventArgs const& args) {
+        if (!alive_.load()) return;
         command_sink_(flutter::EncodableValue(flutter::EncodableMap{
             {flutter::EncodableValue("type"),
              flutter::EncodableValue("setRepeatMode")},
@@ -152,6 +157,7 @@ void SmtcController::EnsureCreated() {
   shuffle_token_ = smtc_.ShuffleEnabledChangeRequested(
       [this](wm::SystemMediaTransportControls const&,
              wm::ShuffleEnabledChangeRequestedEventArgs const& args) {
+        if (!alive_.load()) return;
         command_sink_(flutter::EncodableValue(flutter::EncodableMap{
             {flutter::EncodableValue("type"), flutter::EncodableValue("setShuffle")},
             {flutter::EncodableValue("shuffle"),
@@ -162,6 +168,7 @@ void SmtcController::EnsureCreated() {
   rate_token_ = smtc_.PlaybackRateChangeRequested(
       [this](wm::SystemMediaTransportControls const&,
              wm::PlaybackRateChangeRequestedEventArgs const& args) {
+        if (!alive_.load()) return;
         command_sink_(flutter::EncodableValue(flutter::EncodableMap{
             {flutter::EncodableValue("type"),
              flutter::EncodableValue("setPlaybackRate")},
@@ -174,6 +181,7 @@ void SmtcController::EnsureCreated() {
 }
 
 void SmtcController::OnButton(wm::SystemMediaTransportControlsButton button) {
+  if (!alive_.load()) return;
   using B = wm::SystemMediaTransportControlsButton;
   switch (button) {
     case B::Play:
@@ -223,17 +231,20 @@ void SmtcController::ConfigureButtons() {
   smtc_.IsPlayEnabled(has("play") || has("playPause"));
   smtc_.IsPauseEnabled(has("pause") || has("playPause"));
   smtc_.IsStopEnabled(has("stop"));
-  smtc_.IsNextEnabled(has("next"));
-  smtc_.IsPreviousEnabled(has("previous"));
+  // Gate skip buttons on real navigability so they grey out at playlist bounds.
+  smtc_.IsNextEnabled(has("next") && playback_.has_next);
+  smtc_.IsPreviousEnabled(has("previous") && playback_.has_previous);
   smtc_.IsFastForwardEnabled(has("fastForward"));
   smtc_.IsRewindEnabled(has("rewind"));
 }
 
 void SmtcController::PublishMetadata() {
   if (!enabled_) return;
-  const std::string title = metadata_.title.value_or("");
-  // No content-less publish — wait until a real title exists.
-  if (title.empty()) return;
+  std::string title = metadata_.title.value_or("");
+  // Tagless source (internet radio / untagged file): fall back to the app name
+  // rather than skipping the publish. SMTC needs Type + Update() even with no
+  // other metadata, or the control stays blank despite IsEnabled(true).
+  if (title.empty()) title = config_.app_name;
 
   auto du = smtc_.DisplayUpdater();
   du.Type(wm::MediaPlaybackType::Music);
@@ -241,18 +252,43 @@ void SmtcController::PublishMetadata() {
   mp.Title(winrt::to_hstring(title));
   mp.Artist(winrt::to_hstring(metadata_.artist.value_or("")));
   mp.AlbumTitle(winrt::to_hstring(metadata_.album.value_or("")));
+  mp.AlbumArtist(winrt::to_hstring(metadata_.album_artist.value_or("")));
+  if (metadata_.track_number.has_value() && *metadata_.track_number > 0) {
+    mp.TrackNumber(static_cast<uint32_t>(*metadata_.track_number));
+  }
+  if (metadata_.genre.has_value() && !metadata_.genre->empty()) {
+    mp.Genres().Append(winrt::to_hstring(*metadata_.genre));
+  }
 
   if (!metadata_.artwork.empty()) {
     if (metadata_.artwork != artwork_cache_key_) {
       wss::RandomAccessStreamReference thumb = MakeThumbnail(metadata_.artwork);
       du.Thumbnail(thumb);
       artwork_cache_key_ = metadata_.artwork;
+      artwork_uri_cache_key_.clear();
+    }
+  } else if (metadata_.artwork_uri.has_value() &&
+             !metadata_.artwork_uri->empty()) {
+    // A URL the OS fetches itself (e.g. a transcoded stream's cover, which
+    // has no embedded bytes) — hand SMTC a stream reference built straight
+    // from the URI rather than shipping a blob across the channel.
+    if (*metadata_.artwork_uri != artwork_uri_cache_key_) {
+      try {
+        winrt::Windows::Foundation::Uri uri{
+            winrt::to_hstring(*metadata_.artwork_uri)};
+        du.Thumbnail(wss::RandomAccessStreamReference::CreateFromUri(uri));
+      } catch (const winrt::hresult_error&) {
+        du.Thumbnail(wss::RandomAccessStreamReference{nullptr});
+      }
+      artwork_uri_cache_key_ = *metadata_.artwork_uri;
+      artwork_cache_key_.clear();
     }
   } else {
     // A bare `nullptr` is ambiguous for the projected property setter — pass an
     // explicitly typed empty reference to clear the thumbnail.
     du.Thumbnail(wss::RandomAccessStreamReference{nullptr});
     artwork_cache_key_.clear();
+    artwork_uri_cache_key_.clear();
   }
   du.Update();  // mandatory — nothing renders without it.
 }
@@ -261,13 +297,22 @@ void SmtcController::PublishPlayback() {
   if (!enabled_) return;
 
   // Intent axis: the OS button binds to `playing`, stable across seeks.
-  smtc_.PlaybackStatus(playback_.playing ? wm::MediaPlaybackStatus::Playing
-                                         : wm::MediaPlaybackStatus::Paused);
+  // While buffering, report `Changing` so the SMTC shows a transitional state
+  // instead of a stale play/pause icon.
+  smtc_.PlaybackStatus(playback_.buffering ? wm::MediaPlaybackStatus::Changing
+                       : playback_.playing ? wm::MediaPlaybackStatus::Playing
+                                           : wm::MediaPlaybackStatus::Paused);
 
   // Set these at least once so their *ChangeRequested events can fire.
   smtc_.AutoRepeatMode(LoopToRepeat(playback_.loop));
   smtc_.ShuffleEnabled(playback_.shuffle);
   smtc_.PlaybackRate(playback_.rate <= 0.0 ? 1.0 : playback_.rate);
+
+  // Re-apply skip enablement here too: ConfigureButtons runs only on
+  // enable/config, but navigability changes arrive on playback (track advance).
+  const auto& acts = config_.actions;
+  smtc_.IsNextEnabled(acts.count("next") > 0 && playback_.has_next);
+  smtc_.IsPreviousEnabled(acts.count("previous") > 0 && playback_.has_previous);
 
   const int64_t dur = metadata_.duration_ms.value_or(0);
   const bool can_scrub =
