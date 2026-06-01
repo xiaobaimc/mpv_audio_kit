@@ -15,7 +15,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'mpv_audio_kit'
-  s.version          = '0.2.3'
+  s.version          = '0.3.0'
   s.summary          = 'Flutter audio player powered by libmpv.'
   s.description      = <<-DESC
     Supports audio filters, pitch control, equalizer, and all mpv audio features.
@@ -53,7 +53,7 @@ Pod::Spec.new do |s|
   # Run `make checksums` to refresh the SHA-256 after a libmpv rebuild —
   # the helper script updates both this file and Package.swift.
   s.prepare_command = <<-CMD
-    MPV_RELEASE_VERSION="libmpv-r7"
+    MPV_RELEASE_VERSION="libmpv-r8"
     EXPECTED_SHA256="8500923392ee5ae5d4e3263e12a68e29aa805596b85d56a9a26f2239c91173e0"
     URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_ios.xcframework.zip"
 

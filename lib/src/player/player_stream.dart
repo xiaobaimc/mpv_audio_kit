@@ -125,6 +125,7 @@ class PlayerStream {
         audioOutputState = reactives.audioOutputState.stream,
         coverArtAuto = reactives.coverArtAuto.stream,
         prefetchState = reactives.prefetchState.stream,
+        prefetchCacheDuration = reactives.prefetchCacheDuration.stream,
         prefetchPlaylist = reactives.prefetchPlaylist.stream,
         audioPts = reactives.audioPts.stream,
         timeRemaining = reactives.timeRemaining.stream,
@@ -463,6 +464,12 @@ class PlayerStream {
   /// across HLS, DASH, raw HTTP, SMB, and local files.
   final Stream<MpvPrefetchState> prefetchState;
 
+  /// How much of the next track is buffered ahead by the background
+  /// prefetch, as a [Duration]. Pair with [prefetchState] for a
+  /// determinate "Prefetching X%" indicator (divide by your configured
+  /// cache target). Emits `Duration.zero` while no prefetch is in flight.
+  final Stream<Duration> prefetchCacheDuration;
+
   /// Whether mpv prefetches the next playlist item in the background.
   /// Toggle via [Player.setPrefetchPlaylist].
   final Stream<bool> prefetchPlaylist;
@@ -677,6 +684,12 @@ class PlayerStream {
   /// **Listener-gated** — the native analyzer runs and the pipeline
   /// polls only while a listener is attached; the cost of a waveform
   /// nobody is listening to is zero.
+  ///
+  /// **Single active analysis per process.** The background analyzer is a
+  /// process-global singleton: the most recent `open()` wins, so with
+  /// multiple [Player]s alive only the last-loaded file's waveform is
+  /// computed. This matches the single-player-per-app usage this package
+  /// targets; don't rely on concurrent waveforms across players.
   final Stream<WaveformData?> waveform;
 
   // ── Media session ──────────────────────────────────────────────────

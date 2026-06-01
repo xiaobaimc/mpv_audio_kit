@@ -12,6 +12,15 @@ import 'package:meta/meta.dart';
 import '../models/pcm_frame.dart';
 import '../mpv_bindings.dart';
 
+/// Upper bound on the channel count reported by the native filter tap.
+///
+/// The C side (`mak_tap.c`, `convert_aframe`) clamps to `TAP_MAX_CHANNELS`
+/// before writing the ring, so a well-formed frame is always within this
+/// bound. This mirror is a defensive guard: if that native limit is ever
+/// bumped on one side only, a desynced `channels` value can't drive a
+/// bogus `PcmFrame` downstream.
+const int _kMaxTapChannels = 8;
+
 /// Per-filter pre/post audio tap pipeline.
 ///
 /// Backed by the `audio-tap-frames` and `analyzer-taps` properties
@@ -53,6 +62,10 @@ class FilterTapPipeline {
   final Map<_TapKey, StreamController<PcmFrame>> _controllers = {};
   // Refcount per (name, side) — drives the analyzer-taps CSV.
   final Map<_TapKey, int> _refs = {};
+  // Last native write generation (ring `seq`) dispatched per (name, side).
+  // Lets the poll loop skip a redundant decode + add() when the ring is
+  // unchanged (e.g. while paused / at EOF the writer isn't advancing it).
+  final Map<_TapKey, int> _lastSeq = {};
 
   Timer? _pollTimer;
   bool _disposed = false;
@@ -180,17 +193,33 @@ class FilterTapPipeline {
         final key = _TapKey(filterName, isPost);
         final ctrl = _controllers[key];
         if (ctrl == null || !ctrl.hasListener) continue;
-        final frame = _decodeRing(ringNode.u.list.ref);
+        final ring = ringNode.u.list.ref;
+        // Skip the decode + dispatch when the native write generation is
+        // unchanged since the last poll. The C side bumps the ring `seq`
+        // on every write and holds it stable while paused / at EOF, so an
+        // unchanged seq means an identical slice — re-emitting it only
+        // churns a Float32List + StreamController.add() for no new data.
+        // seq == 0 means "unavailable"; fall back to always emitting.
+        final seq = _ringSeq(ring);
+        if (seq != 0 && _lastSeq[key] == seq) continue;
+        _lastSeq[key] = seq;
+        final frame = _decodeRing(ring);
         if (frame == null) continue;
-        // No pts dedup: the C side returns a fresh slice on every
-        // poll because the read window is anchored to the AO
-        // playback PTS, which advances monotonically with the audio
-        // output. Repeating the same slice would only happen during
-        // playback pause or EOF, in which case still emitting is
-        // harmless (consumer sees a flat signal).
         if (!ctrl.isClosed) ctrl.add(frame);
       }
     }
+  }
+
+  /// Reads just the native write generation (`seq`) from a ring node,
+  /// without decoding the samples. Returns 0 when the key is absent.
+  int _ringSeq(MpvNodeList ring) {
+    for (var i = 0; i < ring.num; i++) {
+      if (ring.keys[i].cast<Utf8>().toDartString() == 'seq') {
+        final node = (ring.values + i).ref;
+        return node.format == MpvFormat.mpvFormatInt64 ? node.u.int64 : 0;
+      }
+    }
+    return 0;
   }
 
   PcmFrame? _decodeRing(MpvNodeList ring) {
@@ -228,6 +257,7 @@ class FilterTapPipeline {
     if (samples == null ||
         sampleRate <= 0 ||
         channels <= 0 ||
+        channels > _kMaxTapChannels ||
         ptsNs == 0) {
       return null;
     }
@@ -256,6 +286,7 @@ class FilterTapPipeline {
     }
     _controllers.clear();
     _refs.clear();
+    _lastSeq.clear();
     await Future.wait(closes);
   }
 }

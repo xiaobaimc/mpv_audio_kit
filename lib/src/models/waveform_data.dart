@@ -38,11 +38,22 @@ final class WaveformData {
   /// Per-bin maximum sample value, range `[-1.0, +1.0]`.
   final Float32List max;
 
+  /// Per-bin coverage flag (one byte per bin, length matches [min]): `1`
+  /// for a bin that has real data, `0` for one not yet covered.
+  ///
+  /// For a fully-analysed (local-file) waveform every bin is `1`. For a
+  /// progressively-grown one (network / transcode streams, filled as
+  /// playback advances) bins ahead of the playhead — or skipped by a seek
+  /// — are `0`, so a renderer can draw them as a baseline instead of a
+  /// misleading flat-zero spike.
+  final Uint8List filled;
+
   /// Creates a waveform. Used internally by the waveform pipeline.
   const WaveformData({
     required this.duration,
     required this.min,
     required this.max,
+    required this.filled,
   });
 
   /// Number of bins. Convenience accessor — equal to `min.length`.

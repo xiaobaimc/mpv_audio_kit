@@ -40,8 +40,12 @@ let package = Package(
             // SwiftPM packages without duplicating the Swift code.
             path: "Sources/mpv_audio_kit",
             // Apple privacy manifest, embedded into the built bundle —
-            // required for App Store submission. Same shared darwin/ file the
-            // Swift sources symlink to; .process places it at the bundle root.
+            // required for App Store submission. Unlike the Swift sources,
+            // this is a real per-platform file (NOT a symlink into darwin/):
+            // SwiftPM does not dereference a symlinked resource during the
+            // copy phase, so a symlink here fails the build with "no such
+            // file". Keep the iOS/macOS copies in sync by hand. .process
+            // places it at the bundle root.
             resources: [
                 .process("PrivacyInfo.xcprivacy"),
             ],

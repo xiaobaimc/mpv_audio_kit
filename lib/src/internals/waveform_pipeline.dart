@@ -130,6 +130,7 @@ class WaveformPipeline {
       var durationUs = 0;
       Float32List? min;
       Float32List? max;
+      Uint8List? filled;
       for (var i = 0; i < map.num; i++) {
         final key = map.keys[i].cast<Utf8>().toDartString();
         final node = (map.values + i).ref;
@@ -146,6 +147,8 @@ class WaveformPipeline {
             min = _decodeFloat32(node);
           case 'max':
             max = _decodeFloat32(node);
+          case 'filled':
+            filled = _decodeBytes(node);
         }
       }
 
@@ -161,6 +164,11 @@ class WaveformPipeline {
           duration: Duration(microseconds: durationUs),
           min: min,
           max: max,
+          // Fall back to all-covered if the native side omitted/mismatched
+          // the flags (older binary), so the renderer never misreads it.
+          filled: (filled != null && filled.length == min.length)
+              ? filled
+              : (Uint8List(min.length)..fillRange(0, min.length, 1)),
         );
         if (ready) {
           // Bulk envelope is final: cache it and stop polling.
@@ -197,5 +205,15 @@ class WaveformPipeline {
     final n = ba.size ~/ 4;
     final src = ba.data.cast<Float>().asTypedList(n);
     return Float32List(n)..setAll(0, src);
+  }
+
+  /// Copies a byte-array node (one byte per bin) into a fresh [Uint8List],
+  /// detaching it from the mpv-owned buffer freed at the end of the poll.
+  Uint8List? _decodeBytes(MpvNode node) {
+    if (node.format != MpvFormat.mpvFormatByteArray) return null;
+    final ba = node.u.ba.ref;
+    if (ba.size <= 0) return null;
+    final src = ba.data.cast<Uint8>().asTypedList(ba.size);
+    return Uint8List(ba.size)..setAll(0, src);
   }
 }

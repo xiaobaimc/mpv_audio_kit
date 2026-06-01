@@ -553,7 +553,8 @@ void main() {
         // Cover art
         'cover-art-auto',
         // Patched / stream-only
-        'prefetch-state', 'audio-output-state', 'prefetch-playlist',
+        'prefetch-state', 'prefetch-cache-duration', 'audio-output-state',
+        'prefetch-playlist',
         // Playback timing extras
         'audio-pts', 'time-remaining', 'playtime-remaining', 'eof-reached',
         // Stream capability

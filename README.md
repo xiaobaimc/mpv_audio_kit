@@ -1642,6 +1642,21 @@ player.stream.prefetchState.listen((state) {
 
 </details>
 
+For a determinate progress bar instead of a spinner, pair the state with
+`player.stream.prefetchCacheDuration` — how much of the next track is
+already buffered ahead, as a `Duration`. Divide it by your configured
+cache target for a percentage; it emits `Duration.zero` while no prefetch
+is in flight.
+
+```dart
+player.stream.prefetchCacheDuration.listen((buffered) {
+  const target = Duration(seconds: 30); // your cache target
+  final pct = (buffered.inMilliseconds / target.inMilliseconds)
+      .clamp(0.0, 1.0);
+  showPrefetchProgress(pct); // 0.0 → 1.0
+});
+```
+
 #### 9.12 Aggregate lifecycle
 
 `player.stream.playbackState` collapses the four underlying flags

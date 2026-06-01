@@ -6,9 +6,14 @@
 - `MediaSession` configures the advertised transport buttons (`MediaAction`), the artwork choice (`MediaSessionArtwork`), the skip-forward / rewind intervals, the supported-speed set, the audio-interruption response via `InterruptionPolicy` — `pauseAndResume` (default), `pauseOnly`, or `keepPlaying` (focused-listening mode that stays at full volume; iOS / Android, no-op on desktop) — and the app identity (`appName`, plus `desktopEntry` to resolve the app icon next to the Linux media controls).
 - `Player.state.playWhenReady` / `Player.stream.playWhenReady`: the play/pause *intent* axis, set by `play` / `pause` / `open` / `stop`. Unlike `playing` (which mirrors actual audio output and toggles transiently while seeking or buffering), it stays stable across seeks — bind your play/pause button to this. "Actually emitting audio" is `playWhenReady && playing`.
 - `Player.setLogLevel(LogLevel)`: changes the engine-side log verbosity at runtime (the initial value still comes from `PlayerConfiguration.logLevel`). Raise it on demand to surface more diagnostics on `Player.stream.log`, or lower it to cut log volume.
+- `Player.stream.prefetchCacheDuration`: how much of the next track the background prefetch has buffered ahead, as a `Duration`. Pair it with `Player.stream.prefetchState` for a determinate "Prefetching…" progress indicator (divide by your cache target); emits `Duration.zero` when no prefetch is in flight.
 
 ### Fixed
 - The OS media-session play/pause button no longer flickers while scrubbing the system Now Playing scrub bar. The button now follows play/pause intent rather than the engine's actual-output state, which momentarily reports "paused" on every seek.
+- `Player.stream.audioOutputState` / `state.audioOutputState` now report `AudioOutputState.failed` when the audio output cannot initialize (e.g. no usable device). Previously the `failed` state was never delivered — the stream only ever settled on `closed`.
+- `Player.stream.prefetchState` no longer occasionally stays on `loading` when a prefetch is cancelled before its opener starts.
+- `Player.stream.waveform` no longer renders a short flat segment at the end of the overview on files whose declared duration slightly overshoots the decoded audio.
+- `Player.stream.tap(...)` no longer re-emits an identical PCM frame on every poll while playback is paused or stopped at end of content, so visualizers driven from it stop churning when there is nothing new.
 - When a single track or the whole playlist finishes, the play/pause button now settles back on "play" and `state.completed` / `MpvPlaybackState.completed` now report the end of the track. Previously the button stayed showing the pause icon and `completed` was never reached at the natural end of content.
 - `setRawProperty('pause', …)` is now rejected: writing `pause` directly bypassed the play/pause intent and silently desynced the OS button from what was actually playing. Use `Player.play()` / `Player.pause()`.
 - A failed first `open(play: true)` (e.g. a missing file) no longer leaves the play/pause button stuck on "pause".
@@ -17,6 +22,7 @@
 ### Build
 - Migrated the Android build to Flutter's Built-in Kotlin model: the Kotlin Gradle Plugin is now applied conditionally (only on AGP < 9) and `kotlinOptions` was replaced with `compilerOptions`, so the plugin won't fail to build on future Flutter / AGP 9 releases while still building on current Flutter. The module's own `buildscript {}` classpath (which pinned AGP 8.7.2 / KGP 2.0.21) was removed — AGP and Kotlin are now inherited from the consuming app, so the plugin no longer forces toolchain versions and no longer holds KGP below the 2.2.10 that AGP 9 requires.
 - iOS and macOS now ship an Apple privacy manifest that is actually embedded in the built framework: `PrivacyInfo.xcprivacy` is declared via `resource_bundles` (CocoaPods) and `resources: [.process(...)]` (Swift Package Manager). Previously the file existed in the repo but was packaged by neither channel, so it never reached an App Store build. The manifest is a single shared file under `darwin/`, symlinked into both platforms like the Swift sources.
+- Updated libmpv to `libmpv-r8` across all platforms.
 
 ## [0.2.3] - 25-05-2026
 

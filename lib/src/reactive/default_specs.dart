@@ -226,6 +226,14 @@ class DefaultPropertyReactives {
   final ReactiveProperty<MpvPrefetchState> prefetchState =
       ReactiveProperty<MpvPrefetchState>(MpvPrefetchState.idle);
 
+  /// Seconds of audio buffered ahead in the background prefetch
+  /// (`prefetch-cache-duration`), as a [Duration]. Pair with
+  /// [prefetchState] for a determinate "Prefetching X%" bar. Stream-only,
+  /// exposed through [PlayerStream.prefetchCacheDuration]; `Duration.zero`
+  /// when no prefetch is in flight.
+  final ReactiveProperty<Duration> prefetchCacheDuration =
+      ReactiveProperty<Duration>(Duration.zero);
+
   /// Whether the next playlist entry is prefetched during playback
   /// (`prefetch-playlist`).
   final ReactiveProperty<bool> prefetchPlaylist = ReactiveProperty<bool>(false);
@@ -728,6 +736,14 @@ List<MpvPropertySpec<Object?>> buildDefaultSpecs(
       name: 'prefetch-state',
       reactive: r.prefetchState,
       parse: (raw, _) => MpvPrefetchState.fromMpv(raw),
+      reduce: (_, s) => s,
+    ),
+    // `prefetch-cache-duration` is stream-only (no PlayerState field) —
+    // exposed through `Player.stream.prefetchCacheDuration`.
+    MpvPropertySpec<Duration>.double(
+      name: 'prefetch-cache-duration',
+      reactive: r.prefetchCacheDuration,
+      parse: (raw, _) => Duration(microseconds: (raw * 1e6).round()),
       reduce: (_, s) => s,
     ),
     MpvPropertySpec<AudioOutputState>.string(
