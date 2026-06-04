@@ -70,11 +70,20 @@ class MediaSession {
 
   // ── Capabilities ───────────────────────────────────────────────────
 
-  /// Capabilities advertised to the OS. The system shows only the
-  /// buttons it has UI space for (lockscreens typically show 3–4),
-  /// but the wider set is offered to Siri / Google Assistant /
-  /// Android Auto / CarPlay surfaces.
+  /// Capabilities advertised to the OS. What actually renders is
+  /// **platform-gated**, not just space-gated: each native media UI draws
+  /// only a subset (a lockscreen typically shows 3–4 of those), and the wider
+  /// set is offered to Siri / Google Assistant / Android Auto / CarPlay.
+  /// Advertising an action a platform doesn't render is harmless. See the
+  /// per-platform support matrix in the README's *OS media session* section,
+  /// and the per-value notes on [MediaAction].
   final Set<MediaAction> actions;
+
+  /// Whether the "like" / favourite control ([MediaAction.like]) shows as
+  /// active (the filled star) on surfaces that render it (the iOS lock
+  /// screen). Flip it in response to [MediaSessionCommandLike]. Default
+  /// `false`; ignored where the action isn't rendered.
+  final bool isFavorite;
 
   // ── Audio interruption handling ────────────────────────────────────
 
@@ -138,6 +147,7 @@ class MediaSession {
       MediaAction.previous,
       MediaAction.seek,
     },
+    this.isFavorite = false,
     this.interruptionPolicy = InterruptionPolicy.pauseAndResume,
     this.fastForwardInterval = const Duration(seconds: 15),
     this.rewindInterval = const Duration(seconds: 15),
@@ -160,6 +170,7 @@ class MediaSession {
     MediaSessionArtwork? artwork,
     Object? duration = unset,
     Set<MediaAction>? actions,
+    bool? isFavorite,
     InterruptionPolicy? interruptionPolicy,
     Duration? fastForwardInterval,
     Duration? rewindInterval,
@@ -175,6 +186,7 @@ class MediaSession {
         duration:
             identical(duration, unset) ? this.duration : duration as Duration?,
         actions: actions ?? this.actions,
+        isFavorite: isFavorite ?? this.isFavorite,
         interruptionPolicy: interruptionPolicy ?? this.interruptionPolicy,
         fastForwardInterval: fastForwardInterval ?? this.fastForwardInterval,
         rewindInterval: rewindInterval ?? this.rewindInterval,
@@ -195,6 +207,7 @@ class MediaSession {
         other.album != album ||
         other.artwork != artwork ||
         other.duration != duration ||
+        other.isFavorite != isFavorite ||
         other.interruptionPolicy != interruptionPolicy ||
         other.fastForwardInterval != fastForwardInterval ||
         other.rewindInterval != rewindInterval ||
@@ -225,6 +238,7 @@ class MediaSession {
         artwork,
         duration,
         Object.hashAllUnordered(actions),
+        isFavorite,
         interruptionPolicy,
         fastForwardInterval,
         rewindInterval,
@@ -236,7 +250,7 @@ class MediaSession {
   @override
   String toString() => 'MediaSession(title: $title, artist: $artist, '
       'album: $album, artwork: $artwork, duration: $duration, '
-      'actions: $actions, '
+      'actions: $actions, isFavorite: $isFavorite, '
       'interruptionPolicy: $interruptionPolicy, '
       'fastForwardInterval: $fastForwardInterval, '
       'rewindInterval: $rewindInterval, '

@@ -74,6 +74,13 @@ sealed class MediaSessionCommand {
   /// [MediaSession.supportedPlaybackRates].
   const factory MediaSessionCommand.setPlaybackRate(double rate) =
       MediaSessionCommandSetPlaybackRate._;
+
+  /// The "like" / favourite control was pressed (advertise it with
+  /// [MediaAction.like]). **Emit-only:** NOT auto-applied — there is no
+  /// built-in favourite concept, so react to it on
+  /// [PlayerStream.mediaSessionCommands] and reflect the new state back via
+  /// [MediaSession.isFavorite] (fills/empties the star).
+  static const MediaSessionCommand like = MediaSessionCommandLike._();
 }
 
 /// The [MediaSessionCommand.play] variant — start or resume playback.
@@ -125,6 +132,15 @@ final class MediaSessionCommandPrevious extends MediaSessionCommand {
 
   @override
   String toString() => 'MediaSessionCommand.previous';
+}
+
+/// The [MediaSessionCommand.like] variant — the favourite/like control was
+/// pressed. Emit-only (no built-in player effect).
+final class MediaSessionCommandLike extends MediaSessionCommand {
+  const MediaSessionCommandLike._() : super._();
+
+  @override
+  String toString() => 'MediaSessionCommand.like';
 }
 
 /// The [MediaSessionCommand.seekTo] variant — seek to an absolute

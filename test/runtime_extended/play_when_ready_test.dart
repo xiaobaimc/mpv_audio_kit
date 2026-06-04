@@ -23,9 +23,7 @@ import '../_helpers/setter_test_helpers.dart';
 ///
 /// 1. It emits `true` on the FIRST autoplay open — the case mpv's
 ///    `pause` property cannot signal (it defaults to `no` and fires no
-///    PROPERTY_CHANGE on the first load → playing transition). This is
-///    the exact regression that historically pushed the project onto
-///    `core-idle`.
+///    PROPERTY_CHANGE on the first load → playing transition).
 /// 2. It NEVER flips to `false` during a seek. mpv flips `core-idle`
 ///    (→ `state.playing`) transiently on every seek; `playWhenReady`
 ///    must stay stable so the OS scrub bar's play/pause button does not
@@ -40,10 +38,10 @@ void main() {
   group('playWhenReady intent axis (end-to-end)', () {
     test('open(play: true) emits playWhenReady=true on the FIRST load',
         () async {
-      // The historical bug: binding intent to mpv's `pause` stream left
-      // the play/pause button stuck because `pause` is silent on the
-      // first autoplay. Intent is set optimistically at the open()
-      // call-site, so it must surface even on a cold player.
+      // Binding intent to mpv's `pause` stream would leave the play/pause
+      // button stuck — `pause` is silent on the first autoplay. Intent is
+      // set optimistically at the open() call-site, so it must surface
+      // even on a cold player.
       final player = await buildPlayer();
       addTearDown(player.dispose);
 

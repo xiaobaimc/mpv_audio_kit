@@ -100,7 +100,7 @@ dependencies {
     // lock-screen / Android-11+ media controls, hardware & Bluetooth
     // media keys). The custom SimpleBasePlayer adapter is a controller
     // only — libmpv decodes in-process; Media3 never touches audio.
-    val media3Version = "1.6.1"
+    val media3Version = "1.10.1"
     implementation("androidx.media3:media3-session:$media3Version")
     implementation("androidx.media3:media3-common:$media3Version")
 
@@ -118,15 +118,15 @@ val downloadMpvTask = tasks.register("downloadMpvLibraries") {
     val abis = mapOf(
         "arm64-v8a" to mapOf(
             "file" to "libmpv_android-arm64-v8a.so",
-            "sha256" to "9573d0d75b77b56f0bc25737ce03e2b4013ccd3c99bb4eb5c9688e56837f7c26"
+            "sha256" to "fd402308079a08addbd489ffa4b6f00231ea2ce259d0db9cddc2e1e5cee41b0e"
         ),
         "armeabi-v7a" to mapOf(
             "file" to "libmpv_android-armeabi-v7a.so",
-            "sha256" to "8727856376ed3bc86e7ccd4e0207c0f1bbde4945b398de4ef27affdfa52a5233"
+            "sha256" to "efbb587bd7687a5d01e4c425f598ed21e1276feb2fb80cc8084eab051f9eb017"
         ),
         "x86_64" to mapOf(
             "file" to "libmpv_android-x86_64.so",
-            "sha256" to "a218796a0ee93f6968cfd6dc3ef67fb6b8b11cb69bfbe997a325c387b843619b"
+            "sha256" to "88f1caf059e00e416d6e47b21f54f7c44d0101fc193d896d11eda14f1d82b3d1"
         )
     )
     
@@ -180,8 +180,15 @@ val downloadMpvTask = tasks.register("downloadMpvLibraries") {
     }
 }
 
-tasks.configureEach {
-    if (name.contains("preBuild") || name.contains("externalNativeBuild")) {
-        dependsOn(downloadMpvTask)
-    }
-}
+// The remote download wiring is toggled by the build kit's "Libs" actions:
+// active in REMOTE mode (downloadMpvTask fetches each ABI's libmpv.so from
+// GitHub when the local jniLibs copy is absent / stale), commented out in LOCAL
+// mode (use the bundled jniLibs only, never download). The kit comments /
+// uncomments this block — do not hand-edit the mpvkit: markers.
+// mpvkit:remote:begin
+// tasks.configureEach {
+    // if (name.contains("preBuild") || name.contains("externalNativeBuild")) {
+        // dependsOn(downloadMpvTask)
+    // }
+// }
+// mpvkit:remote:end

@@ -78,6 +78,35 @@ mixin _PlaybackModule on _PlayerBase {
         _reactives.currentChapter, index,);
   }
 
+  /// Replaces the current file's chapter markers with [chapters] — an
+  /// "external chapters" injection for sources whose container carries none.
+  ///
+  /// The canonical case is a resolved YouTube / `googlevideo` audio stream:
+  /// YouTube's chapters live in the video description
+  /// not in the audio container, so a freshly-loaded stream has an empty
+  /// `chapter-list`. This writes the list directly through the stable C API
+  /// (`mpv_set_property` on `chapter-list`), so [PlayerStream.chapters] /
+  /// [PlayerState.chapters] then reflect them and [setChapter] navigates them
+  /// natively — no demuxer chapters required. Pass an empty list to clear.
+  ///
+  /// Timing: call this AFTER the file is loaded (e.g. on the first
+  /// [PlayerStream.duration] event for the track). mpv resets `chapter-list`
+  /// to the demuxer's own chapters on each load, so a write issued before the
+  /// load settles would be overwritten.
+  Future<void> setChapters(List<Chapter> chapters) async {
+    _checkNotDisposed();
+    await _ready;
+    final rc = _setChapterListNode(chapters);
+    if (rc < 0) {
+      throw MpvException(
+          name: 'chapter-list', code: rc, message: _errorString(rc),);
+    }
+    // Reflect optimistically; the `chapter-list` observer confirms with mpv's
+    // normalized view (e.g. clamped/sorted times) on the next event.
+    final list = List<Chapter>.unmodifiable(chapters);
+    _updateField((s) => s.copyWith(chapters: list), _reactives.chapters, list);
+  }
+
   // ── A-B loop ───────────────────────────────────────────────────────────────
 
   /// Sets the A-B loop start point. Pass `null` to disable.

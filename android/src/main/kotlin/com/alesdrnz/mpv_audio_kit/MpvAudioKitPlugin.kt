@@ -18,9 +18,8 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 
 /**
- * MpvAudioKitPlugin
- *
- * Android implementation for mpv_audio_kit.
+ * Android entry point. The package itself is direct FFI to libmpv; this plugin
+ * only wires the OS media session (Media3) and its method/event channels.
  */
 class MpvAudioKitPlugin :
     FlutterPlugin,

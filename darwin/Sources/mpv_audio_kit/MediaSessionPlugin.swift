@@ -61,8 +61,8 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   private static weak var currentInstance: MediaSessionPlugin?
 
   // ── State (main-queue only) ─────────────────────────────────────────
-  // `internal` (not private) so the in-tree headless test driver under
-  // `test/media_session/darwin/` can assert against it directly.
+  // `internal` (not private) so the headless test driver can assert
+  // against it directly.
 
   internal var enabled = false
   internal var currentConfig: [String: Any] = [:]
@@ -206,10 +206,9 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
       result(nil)
 
     case "debugNowPlayingInfo":
-      // Test seam: returns the OS-visible Now Playing snapshot so the
-      // `test_app` integration test can assert against the REAL
-      // `MPNowPlayingInfoCenter` from the running app. Not part of the
-      // public Dart API.
+      // Test seam: returns the OS-visible Now Playing snapshot for the
+      // integration probe to assert against `MPNowPlayingInfoCenter`. Not
+      // part of the public Dart API.
       onMain { result(self.debugNowPlayingSnapshot()) }
 
     default:
@@ -494,8 +493,7 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     // an empty / paused `nowPlayingInfo` before there's real media drops
     // the app from Control Center (the system reverts to the Music app)
     // and a later `.playing` won't resurface — so publish only once a
-    // title exists. IINA (also mpv-based) documents the same launch
-    // ordering pitfall.
+    // title exists.
     guard let resolvedTitle = (currentMetadata["title"] as? String)
       .flatMap({ $0.isEmpty ? nil : $0 })
     else { return }
@@ -886,9 +884,19 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     }
     MediaSessionPlugin.sharedCommandTargets.append((skipBack, skipBackTarget))
 
+    // "Like"/favourite is the one feedback command that surfaces in practice
+    // (iOS lock screen / CarPlay / watchOS; macOS Control Center renders no
+    // feedback buttons). The press is decoded on the Dart side into
+    // MediaSessionCommandLike — it's emit-only (NOT auto-applied, since there
+    // is no built-in favourite concept), so the consumer app reacts to it and
+    // reflects state back via isFavorite. Enablement is gated per-action in
+    // configureCommands().
+    Self.installSimple(center.likeCommand, type: "like")
+
+    // The remaining feedback / language / continuous-seek commands don't
+    // render usefully on any target surface here, so they stay pinned off.
     let unsupported: [MPRemoteCommand] = [
       center.ratingCommand,
-      center.likeCommand,
       center.dislikeCommand,
       center.bookmarkCommand,
       center.enableLanguageOptionCommand,
@@ -973,6 +981,14 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     center.changeShuffleModeCommand.isEnabled = actions.contains("setShuffle")
     center.changePlaybackRateCommand.isEnabled =
       actions.contains("setPlaybackRate")
+
+    // "Like"/favourite: gated per-action, titled, and its active (filled)
+    // state driven by the consumer's `isFavorite`. The press is delivered to
+    // Dart (installSimple emits "like") → MediaSessionCommandLike.
+    center.likeCommand.isEnabled = actions.contains("like")
+    center.likeCommand.localizedTitle = "Favorite"
+    center.likeCommand.isActive = currentConfig["isFavorite"] as? Bool ?? false
+
     applySkipIntervals()
     applySupportedPlaybackRates()
     refreshSeekableGate()
@@ -993,6 +1009,11 @@ public class MediaSessionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
       ?? Int(Self.defaultSkipIntervalSeconds * 1000)
     let backMs = (currentConfig["rewindIntervalMs"] as? Int)
       ?? Int(Self.defaultSkipIntervalSeconds * 1000)
+    // NOTE: just set the intervals — do NOT bounce `isEnabled` to "force a
+    // redraw". iOS reflects a live `preferredIntervals` change immediately;
+    // macOS Control Center caches the skip glyph and only re-reads on a fresh
+    // now-playing session, but bouncing isEnabled doesn't fix that and only
+    // adds a flicker on iOS. The stale macOS number is an OS quirk, not ours.
     center.skipForwardCommand.preferredIntervals =
       [NSNumber(value: Double(fwdMs) / 1000.0)]
     center.skipBackwardCommand.preferredIntervals =

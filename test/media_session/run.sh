@@ -10,9 +10,9 @@
 #
 # Platforms:
 #   • darwin  — macOS + iOS (Swift; runs on macOS host).
-#   • linux   — TBD (will be C++/GLib when MPRIS integration lands).
-#   • windows — TBD (will be C++ when SMTC integration lands).
-#   • android — TBD (will be Kotlin/JVM when MediaSession integration lands).
+#   • linux   — C++/GLib MPRIS suite not yet ported.
+#   • windows — C++ SMTC suite not yet ported.
+#   • android — Kotlin/JVM MediaSession suite not yet ported.
 #
 # Usage (from anywhere in the repo):
 #   bash test/media_session/run.sh

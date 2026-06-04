@@ -239,6 +239,7 @@ class MediaSessionChannel {
   Map<String, Object?> _encodeConfig(MediaSession s) {
     final config = <String, Object?>{
       'actions': [for (final a in s.actions) a.name],
+      'isFavorite': s.isFavorite,
       'interruptionPolicy': s.interruptionPolicy.name,
       'fastForwardIntervalMs': s.fastForwardInterval.inMilliseconds,
       'rewindIntervalMs': s.rewindInterval.inMilliseconds,
@@ -319,6 +320,8 @@ class MediaSessionChannel {
         return MediaSessionCommand.next;
       case 'previous':
         return MediaSessionCommand.previous;
+      case 'like':
+        return MediaSessionCommand.like;
       case 'seekTo':
         final pos = raw['positionMs'];
         if (pos is! int) return null;

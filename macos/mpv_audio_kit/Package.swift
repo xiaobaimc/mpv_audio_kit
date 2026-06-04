@@ -56,10 +56,20 @@ let package = Package(
                 .linkedFramework("MediaPlayer"),
             ]
         ),
+        // The libmpv binary source is toggled by the build kit's "Libs"
+        // actions (local / remote / clean). Exactly ONE region below is active
+        // at a time — the kit comments/uncomments these blocks; do not hand-edit
+        // the mpvkit: markers.
+        // mpvkit:local:begin
         .binaryTarget(
             name: "libmpv",
             path: "Frameworks/libmpv.xcframework"),
-        //  url: "https://github.com/ales-drnz/mpv_audio_kit/releases/download/libmpv-r8/libmpv_macos.xcframework.zip",
-        //  checksum: "6f9941244a0f14d15e2a306519649350501f0181698050b63c095e4d11645ed3"),
+        // mpvkit:local:end
+        // mpvkit:remote:begin
+        // .binaryTarget(
+            // name: "libmpv",
+            // url: "https://github.com/ales-drnz/mpv_audio_kit/releases/download/libmpv-r8/libmpv_macos.xcframework.zip",
+            // checksum: "dd89385e0bfd47e4d5099fef44f1996d00ba9c097e34ebaa897e89f132c7d7e6"),
+        // mpvkit:remote:end
     ]
 )

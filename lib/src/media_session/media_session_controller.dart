@@ -235,13 +235,10 @@ class MediaSessionController {
     final mpvMeta = state.metadata;
 
     // The currently-playing queue item. Its consumer-attached
-    // [Media.extras] are the metadata fallback for files that carry no
-    // tags of their own — most importantly transcoded streams (HLS/DASH
-    // segments demuxed from an upstream server): mpv sees no `title` /
-    // `artist` / `album` tag and reports the stream URL as `media-title`,
-    // so without this the OS lockscreen would show the raw URL. extras
-    // sit *below* mpv's real tags (a tagged file still wins) but *above*
-    // the filename-derived `media-title`.
+    // [Media.extras] are the metadata fallback for tag-less files — most
+    // importantly transcoded streams (HLS/DASH), where mpv sees no tags and
+    // reports the stream URL as `media-title`. extras sit below mpv's real
+    // tags but above the filename-derived `media-title`.
     final playlist = state.playlist;
     final item =
         (playlist.index >= 0 && playlist.index < playlist.items.length)

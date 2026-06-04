@@ -3,6 +3,7 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import '../generated/audio_effects_settings.dart';
+import '../models/chapter.dart';
 import '../models/device.dart';
 import '../models/media.dart';
 import '../models/media_session.dart';
@@ -92,6 +93,14 @@ abstract interface class PlayerApi {
 
   /// Jumps to the 0-based chapter [index] in the current file.
   Future<void> setChapter(int index);
+
+  /// Replaces the current file's chapter markers with [chapters] — an
+  /// external-chapters injection for sources whose container carries none
+  /// (e.g. a resolved YouTube / `googlevideo` audio stream). Writes mpv's
+  /// `chapter-list` directly, so [PlayerStream.chapters] reflect them and
+  /// [setChapter] navigates them. Call after the file is loaded; an empty
+  /// list clears them.
+  Future<void> setChapters(List<Chapter> chapters);
 
   /// Sets the A-B loop start point; `null` disables it.
   Future<void> setAbLoopA(Duration? position);

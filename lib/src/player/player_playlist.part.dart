@@ -16,7 +16,7 @@ mixin _PlaylistModule on _PlayerBase {
   Future<void> add(Media media) async {
     _checkNotDisposed();
     await _ready;
-    _validateHttpHeaders(media.httpHeaders);
+    _validateLoadOptions(media);
     _mediaCache[media.uri] = media;
     // TLS gate: HTTPS appends right after construction must see
     // `tls-ca-file` before loadfile fires.
@@ -28,7 +28,7 @@ mixin _PlaylistModule on _PlayerBase {
       return;
     }
     _mediaCache[resolved.uri] = media;
-    final opts = _buildLoadfileOptions(media.httpHeaders);
+    final opts = _buildLoadfileOptions(media);
     if (opts.isEmpty) {
       _command(['loadfile', resolved.uri, 'append']);
     } else {
@@ -89,7 +89,7 @@ mixin _PlaylistModule on _PlayerBase {
   Future<void> replace(int index, Media media) async {
     _checkNotDisposed();
     await _ready;
-    _validateHttpHeaders(media.httpHeaders);
+    _validateLoadOptions(media);
     _mediaCache[media.uri] = media;
     final tls = _tlsBundleReady;
     final resolved = await resolveUri(media.uri);
@@ -109,7 +109,7 @@ mixin _PlaylistModule on _PlayerBase {
       _lib.mpvFree(ptr.cast());
       return int.tryParse(s) ?? -1;
     });
-    final opts = _buildLoadfileOptions(media.httpHeaders);
+    final opts = _buildLoadfileOptions(media);
     void insertAt(int at) {
       if (opts.isEmpty) {
         _command(['loadfile', resolved.uri, 'insert-at', at.toString()]);

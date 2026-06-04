@@ -8,10 +8,16 @@ package com.alesdrnz.mpv_audio_kit.media_session
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -48,9 +54,11 @@ internal object MediaSessionManager :
         val fastForwardIntervalMs: Long,
         val rewindIntervalMs: Long,
         val supportedPlaybackRates: List<Double>,
+        val isFavorite: Boolean,
     ) {
         companion object {
-            val EMPTY = ConfigSnapshot(emptySet(), "pauseAndResume", 15_000, 15_000, emptyList())
+            val EMPTY =
+                ConfigSnapshot(emptySet(), "pauseAndResume", 15_000, 15_000, emptyList(), false)
         }
     }
 
@@ -116,7 +124,49 @@ internal object MediaSessionManager :
     private var audioFocus: AudioFocusController? = null
     private var publishCount: Int = 0
 
+    /** The last media button preferences pushed to the session — so a
+     *  position-only tick doesn't re-broadcast an identical button row.
+     *  [CommandButton] has value equality (ignoring extras). */
+    private var lastButtons: List<CommandButton> = emptyList()
+
     private val mainHandler = Handler(Looper.getMainLooper())
+
+    /**
+     * The session callback. Advertises the custom favourite (`like`) command so
+     * controllers — including Media3's own media-notification controller — may
+     * send it, and forwards the press to Dart as the `{type: "like"}` wire event
+     * (matching the Apple contract). Transport commands ride on player commands
+     * and never reach here.
+     */
+    private val sessionCallback = object : MediaSession.Callback {
+        override fun onConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+        ): MediaSession.ConnectionResult {
+            val sessionCommands =
+                MediaSession.ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+                    .add(SessionCommand(MediaSessionMappers.LIKE_ACTION, Bundle.EMPTY))
+                    .build()
+            return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
+                .setAvailableSessionCommands(sessionCommands)
+                .build()
+        }
+
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: SessionCommand,
+            args: Bundle,
+        ): ListenableFuture<SessionResult> {
+            if (customCommand.customAction == MediaSessionMappers.LIKE_ACTION) {
+                forwardCommand(mapOf("type" to "like"))
+                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+            }
+            return Futures.immediateFuture(
+                SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED),
+            )
+        }
+    }
 
     fun attach(context: Context) {
         appContext = context.applicationContext
@@ -244,6 +294,7 @@ internal object MediaSessionManager :
         metadata = MetadataSnapshot.EMPTY
         playback = PlaybackSnapshot.EMPTY
         scrubFreezeMs = null
+        lastButtons = emptyList()
         // Publish the idle/empty state first so Media3 removes the
         // notification and demotes the foreground service, THEN release.
         player?.republish()
@@ -274,6 +325,7 @@ internal object MediaSessionManager :
                 )
             }
             val builder = MediaSession.Builder(ctx, player!!)
+                .setCallback(sessionCallback)
             if (pending != null) builder.setSessionActivity(pending)
             session = builder.build()
         }
@@ -315,7 +367,25 @@ internal object MediaSessionManager :
 
     private fun publish() = runOnMain {
         player?.republish()
+        applyButtons()
         publishCount++
+    }
+
+    /** Rebuild the notification button row and push it only when it differs
+     *  from the last one — toggle icons (repeat / shuffle / heart) track state,
+     *  so this re-broadcasts on a loop / shuffle / favourite change but not on a
+     *  plain position tick. Best-effort: a failure never interrupts playback. */
+    private fun applyButtons() {
+        val s = session ?: return
+        val buttons =
+            if (enabled) MediaSessionMappers.buildMediaButtonPreferences(config, playback)
+            else emptyList()
+        if (buttons == lastButtons) return
+        lastButtons = buttons
+        try {
+            s.setMediaButtonPreferences(buttons)
+        } catch (_: Exception) {
+        }
     }
 
     // ── Debug probe (real published State) ──────────────────────────────
@@ -355,6 +425,7 @@ internal object MediaSessionManager :
         rewindIntervalMs = (map["rewindIntervalMs"] as? Number)?.toLong() ?: 15_000,
         supportedPlaybackRates = (map["supportedPlaybackRates"] as? List<*>)
             ?.mapNotNull { (it as? Number)?.toDouble() } ?: emptyList(),
+        isFavorite = map["isFavorite"] as? Boolean ?: false,
     )
 
     private fun parseMetadata(map: Map<*, *>) = MetadataSnapshot(

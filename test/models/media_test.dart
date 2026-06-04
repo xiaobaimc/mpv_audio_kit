@@ -12,16 +12,67 @@ void main() {
       expect(media.uri, 'https://example.com/a.mp3');
       expect(media.extras, isNull);
       expect(media.httpHeaders, isNull);
+      expect(media.httpChunkSize, isNull);
     });
 
-    test('full constructor with extras + headers', () {
+    test('full constructor with extras + headers + chunk size', () {
       const media = Media(
         'https://example.com/a.mp3',
         extras: {'title': 'Song', 'artist': 'Artist'},
         httpHeaders: {'X-Token': 'abc'},
+        httpChunkSize: 8 * 1024 * 1024,
       );
       expect(media.extras, {'title': 'Song', 'artist': 'Artist'});
       expect(media.httpHeaders, {'X-Token': 'abc'});
+      expect(media.httpChunkSize, 8 * 1024 * 1024);
+    });
+
+    test('demuxerLavfOptions carried through', () {
+      const media = Media(
+        'https://example.com/a.mp3',
+        demuxerLavfOptions: {'seg_format_options': 'advanced_editlist=0'},
+      );
+      expect(
+        media.demuxerLavfOptions,
+        {'seg_format_options': 'advanced_editlist=0'},
+      );
+    });
+  });
+
+  group('Media.demuxerLavfOptions copyWith', () {
+    test('omitted keeps the current value', () {
+      const a = Media('a', demuxerLavfOptions: {'k': 'v'});
+      expect(a.copyWith(uri: 'b').demuxerLavfOptions, {'k': 'v'});
+    });
+
+    test('set overrides', () {
+      const a = Media('a');
+      expect(
+        a.copyWith(demuxerLavfOptions: {'k': 'v2'}).demuxerLavfOptions,
+        {'k': 'v2'},
+      );
+    });
+
+    test('explicit null clears', () {
+      const a = Media('a', demuxerLavfOptions: {'k': 'v'});
+      expect(a.copyWith(demuxerLavfOptions: null).demuxerLavfOptions, isNull);
+    });
+  });
+
+  group('Media.httpChunkSize copyWith', () {
+    test('omitted keeps the current value', () {
+      const a = Media('a', httpChunkSize: 4096);
+      expect(a.copyWith(uri: 'b').httpChunkSize, 4096);
+    });
+
+    test('set overrides', () {
+      const a = Media('a');
+      expect(a.copyWith(httpChunkSize: 8192).httpChunkSize, 8192);
+    });
+
+    test('explicit null clears', () {
+      const a = Media('a', httpChunkSize: 8192);
+      expect(a.copyWith(httpChunkSize: null).httpChunkSize, isNull);
     });
   });
 
@@ -41,6 +92,24 @@ void main() {
       const a = Media('a');
       const b = Media('a', httpHeaders: {'X-Token': 'foo'});
       expect(a, isNot(b));
+    });
+
+    test('httpChunkSize participates in equality', () {
+      const a = Media('a');
+      const b = Media('a', httpChunkSize: 8 * 1024 * 1024);
+      expect(a, isNot(b));
+      expect(a.hashCode, isNot(b.hashCode));
+    });
+
+    test('demuxerLavfOptions participate in equality', () {
+      const a = Media('a');
+      const b = Media('a', demuxerLavfOptions: {'seg_format_options': 'x=1'});
+      expect(a, isNot(b));
+      expect(a.hashCode, isNot(b.hashCode));
+
+      const c = Media('a', demuxerLavfOptions: {'seg_format_options': 'x=1'});
+      expect(b, c);
+      expect(b.hashCode, c.hashCode);
     });
   });
 }

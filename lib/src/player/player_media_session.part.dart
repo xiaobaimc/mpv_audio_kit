@@ -127,6 +127,11 @@ mixin _MediaSessionModule on _PlayerBase {
         if (_state.playlist.items.length > 1) {
           unawaited((this as Player).previous());
         }
+      case MediaSessionCommandLike():
+        // Emit-only: there is no built-in favourite concept, so it is not
+        // auto-applied. The consumer reacts on the stream below and reflects
+        // the new state via `MediaSession.isFavorite` (fills/empties the star).
+        break;
       case MediaSessionCommandSeekTo(:final position):
         unawaited((this as Player).seek(position));
       case MediaSessionCommandSeekBy(:final offset):

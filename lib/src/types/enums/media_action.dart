@@ -11,6 +11,13 @@
 /// by which platform exposes which action; some surfaces (e.g. a
 /// Bluetooth headset's hardware play button) ignore the advertised set
 /// and fire [playPause] regardless.
+///
+/// **Which actions actually render differs sharply per platform** — e.g.
+/// macOS Control Center draws no stop / repeat / shuffle / rate / like
+/// control, and Android's system notification auto-renders only transport +
+/// seek bar. Advertising an action it doesn't render is harmless (it's just
+/// not drawn). See the README's *OS media session* section for the full
+/// per-platform support matrix.
 enum MediaAction {
   /// Start playback. Default-on.
   play,
@@ -64,4 +71,17 @@ enum MediaAction {
   /// by [MediaSession.supportedPlaybackRates]. Command arrives as
   /// [MediaSessionCommandSetPlaybackRate].
   setPlaybackRate,
+
+  /// "Like" / favourite feedback (Apple `MPFeedbackCommand.likeCommand`).
+  ///
+  /// Rendered only on the iOS lock-screen Now Playing (and CarPlay / watchOS):
+  /// the macOS Control Center widget and Windows SMTC draw no feedback button,
+  /// Linux MPRIS has no like concept, and Android's system controls have no
+  /// built-in like slot.
+  ///
+  /// The press arrives as [MediaSessionCommandLike] on
+  /// [PlayerStream.mediaSessionCommands] — emit-only (not auto-applied, since
+  /// there is no built-in favourite concept). Reflect the chosen state back
+  /// via [MediaSession.isFavorite] to fill or empty the star.
+  like,
 }

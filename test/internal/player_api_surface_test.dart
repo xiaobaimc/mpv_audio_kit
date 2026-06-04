@@ -57,6 +57,9 @@ class _ApiProbe implements PlayerApi {
   Future<void> setChapter(int index) => _record('setChapter');
 
   @override
+  Future<void> setChapters(List<Chapter> chapters) => _record('setChapters');
+
+  @override
   Future<void> setAbLoopA(Duration? position) => _record('setAbLoopA');
 
   @override

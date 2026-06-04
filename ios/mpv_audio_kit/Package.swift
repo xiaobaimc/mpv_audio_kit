@@ -58,10 +58,20 @@ let package = Package(
                 .linkedFramework("AVFoundation"),
             ]
         ),
+        // The libmpv binary source is toggled by the build kit's "Libs"
+        // actions (local / remote / clean). Exactly ONE region below is active
+        // at a time — the kit comments/uncomments these blocks; do not hand-edit
+        // the mpvkit: markers.
+        // mpvkit:local:begin
         .binaryTarget(
             name: "libmpv",
-        //  path: "Frameworks/libmpv.xcframework"),
-            url: "https://github.com/ales-drnz/mpv_audio_kit/releases/download/libmpv-r7/libmpv_ios.xcframework.zip",
-            checksum: "8500923392ee5ae5d4e3263e12a68e29aa805596b85d56a9a26f2239c91173e0"),
+            path: "Frameworks/libmpv.xcframework"),
+        // mpvkit:local:end
+        // mpvkit:remote:begin
+        // .binaryTarget(
+            // name: "libmpv",
+            // url: "https://github.com/ales-drnz/mpv_audio_kit/releases/download/libmpv-r8/libmpv_ios.xcframework.zip",
+            // checksum: "342116cafd7bacd8523c0c68372ae0461e2011c772f50bef749ea5b0932f9dba"),
+        // mpvkit:remote:end
     ]
 )

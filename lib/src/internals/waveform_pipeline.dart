@@ -128,6 +128,8 @@ class WaveformPipeline {
       final map = result.ref.u.list.ref;
       String? state;
       var durationUs = 0;
+      var rangeStartUs = 0;
+      var rangeEndUs = 0;
       Float32List? min;
       Float32List? max;
       Uint8List? filled;
@@ -143,6 +145,14 @@ class WaveformPipeline {
             if (node.format == MpvFormat.mpvFormatInt64) {
               durationUs = node.u.int64;
             }
+          case 'range_start_us':
+            if (node.format == MpvFormat.mpvFormatInt64) {
+              rangeStartUs = node.u.int64;
+            }
+          case 'range_end_us':
+            if (node.format == MpvFormat.mpvFormatInt64) {
+              rangeEndUs = node.u.int64;
+            }
           case 'min':
             min = _decodeFloat32(node);
           case 'max':
@@ -154,21 +164,42 @@ class WaveformPipeline {
 
       final ready = state == 'ready';
       final progressive = state == 'progressive';
-      if ((ready || progressive) &&
-          durationUs > 0 &&
-          min != null &&
+      final rolling = state == 'rolling';
+
+      final haveBins = min != null &&
           max != null &&
           min.isNotEmpty &&
-          min.length == max.length) {
+          min.length == max.length;
+
+      // Fall back to all-covered if the native side omitted/mismatched the
+      // flags, so the renderer never misreads it.
+      Uint8List safeFilled(Float32List m) =>
+          (filled != null && filled.length == m.length)
+              ? filled
+              : (Uint8List(m.length)..fillRange(0, m.length, 1));
+
+      // ROLLING (true live, unknown total): a sliding window keyed to the
+      // demuxer cache. The native side reports the absolute range it holds;
+      // the envelope grows and slides, so never cache it — keep polling.
+      if (rolling && haveBins && rangeEndUs > rangeStartUs) {
+        final data = WaveformData(
+          start: Duration(microseconds: rangeStartUs),
+          duration: Duration(microseconds: rangeEndUs - rangeStartUs),
+          min: min,
+          max: max,
+          filled: safeFilled(min),
+          live: true,
+        );
+        _emit(data);
+        return;
+      }
+
+      if ((ready || progressive) && durationUs > 0 && haveBins) {
         final data = WaveformData(
           duration: Duration(microseconds: durationUs),
           min: min,
           max: max,
-          // Fall back to all-covered if the native side omitted/mismatched
-          // the flags (older binary), so the renderer never misreads it.
-          filled: (filled != null && filled.length == min.length)
-              ? filled
-              : (Uint8List(min.length)..fillRange(0, min.length, 1)),
+          filled: safeFilled(min),
         );
         if (ready) {
           // Bulk envelope is final: cache it and stop polling.
@@ -189,6 +220,12 @@ class WaveformPipeline {
         _pollTimer = null;
         _emit(null);
       }
+    } catch (_) {
+      // A single malformed / unexpected waveform-data node must never
+      // escape the Timer.periodic callback: an uncaught throw there would
+      // tear down the poll loop and freeze the waveform until app restart.
+      // Swallow it — the node is freed in `finally` and the next tick
+      // retries against fresh native state.
     } finally {
       _lib.mpvFreeNodeContents(result);
       calloc.free(result);
@@ -196,15 +233,23 @@ class WaveformPipeline {
   }
 
   /// Copies a byte-array node holding little-endian Float32 samples
-  /// into a fresh [Float32List]. The copy detaches the result from the
-  /// mpv-owned buffer freed at the end of the poll.
+  /// into a fresh [Float32List]. The bytes are copied out first — this
+  /// detaches the result from the mpv-owned buffer freed at the end of the
+  /// poll AND removes any alignment dependency (the mpv buffer carries no
+  /// 4-byte alignment guarantee, so `cast<Float>()` on it would be unsafe).
+  /// Decoded as explicit little-endian, the layout the native side writes.
   Float32List? _decodeFloat32(MpvNode node) {
     if (node.format != MpvFormat.mpvFormatByteArray) return null;
     final ba = node.u.ba.ref;
-    if (ba.size <= 0) return null;
+    if (ba.size < 4) return null;
     final n = ba.size ~/ 4;
-    final src = ba.data.cast<Float>().asTypedList(n);
-    return Float32List(n)..setAll(0, src);
+    final bytes = Uint8List.fromList(ba.data.cast<Uint8>().asTypedList(n * 4));
+    final view = bytes.buffer.asByteData();
+    final out = Float32List(n);
+    for (var i = 0; i < n; i++) {
+      out[i] = view.getFloat32(i * 4, Endian.little);
+    }
+    return out;
   }
 
   /// Copies a byte-array node (one byte per bin) into a fresh [Uint8List],

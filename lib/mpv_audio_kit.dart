@@ -81,6 +81,7 @@ export 'src/types/sealed/media_session_command.dart'
         MediaSessionCommandStop,
         MediaSessionCommandNext,
         MediaSessionCommandPrevious,
+        MediaSessionCommandLike,
         MediaSessionCommandSeekTo,
         MediaSessionCommandSeekBy,
         MediaSessionCommandSetRepeatMode,

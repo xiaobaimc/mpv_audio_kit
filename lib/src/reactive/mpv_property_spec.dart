@@ -172,8 +172,8 @@ class MpvPropertySpec<T> {
   /// state — the `idle-active` / `eof-reached` hooks that settle the
   /// transport — builds on the reduced state instead of being overwritten by
   /// the caller assigning this method's return value afterwards. When
-  /// [commit] is null the behaviour is the historical one (onChange runs
-  /// against the pre-commit state and the caller assigns the result itself).
+  /// [commit] is null, onChange runs against the pre-commit state and the
+  /// caller assigns the result itself.
   PlayerState? parseAndDispatch(
     dynamic raw,
     PlayerState state, {

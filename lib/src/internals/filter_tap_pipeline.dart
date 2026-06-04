@@ -14,11 +14,10 @@ import '../mpv_bindings.dart';
 
 /// Upper bound on the channel count reported by the native filter tap.
 ///
-/// The C side (`mak_tap.c`, `convert_aframe`) clamps to `TAP_MAX_CHANNELS`
-/// before writing the ring, so a well-formed frame is always within this
-/// bound. This mirror is a defensive guard: if that native limit is ever
-/// bumped on one side only, a desynced `channels` value can't drive a
-/// bogus `PcmFrame` downstream.
+/// The native side clamps to this before writing the ring, so a well-formed
+/// frame is always within bound. This mirror is a defensive guard: if the two
+/// sides ever drift, a desynced `channels` value can't build a bogus
+/// `PcmFrame` downstream.
 const int _kMaxTapChannels = 8;
 
 /// Per-filter pre/post audio tap pipeline.

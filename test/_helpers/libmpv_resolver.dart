@@ -20,17 +20,25 @@ import 'dart:io';
 String? resolveLibmpv() {
   final root = Directory.current.path;
   if (Platform.isMacOS) {
-    // SwiftPM moved the xcframework one level deeper into the plugin
-    // module directory (`macos/mpv_audio_kit/Frameworks/…`). Keep the
-    // pre-SwiftPM path as a fallback so older test checkouts still
-    // resolve.
-    const tail = 'libmpv.xcframework/macos-arm64_x86_64/'
-        'libmpv.framework/libmpv';
-    for (final p in [
-      '$root/macos/mpv_audio_kit/Frameworks/$tail',
-      '$root/macos/Frameworks/$tail',
+    // The xcframework may carry the universal slice (a release build) or a
+    // single-arch slice (a dev build, e.g. `go run . macos-arm64`). Try the
+    // universal name first, then the host-arch one. Two base dirs cover the
+    // SwiftPM layout (`macos/mpv_audio_kit/Frameworks/…`) and the older
+    // pre-SwiftPM one.
+    final archSlice = switch (Abi.current()) {
+      Abi.macosArm64 => 'macos-arm64',
+      Abi.macosX64 => 'macos-x86_64',
+      _ => null,
+    };
+    final slices = ['macos-arm64_x86_64', if (archSlice != null) archSlice];
+    for (final base in [
+      '$root/macos/mpv_audio_kit/Frameworks',
+      '$root/macos/Frameworks',
     ]) {
-      if (File(p).existsSync()) return p;
+      for (final slice in slices) {
+        final p = '$base/libmpv.xcframework/$slice/libmpv.framework/libmpv';
+        if (File(p).existsSync()) return p;
+      }
     }
     return null;
   }

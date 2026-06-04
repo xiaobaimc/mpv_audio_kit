@@ -46,6 +46,10 @@ bool _mapEq(Map<String, String>? a, Map<String, String>? b) {
 ///     'User-Agent': 'mpv_audio_kit',
 ///   },
 /// );
+///
+/// // Opt in to chunked range requests so a throttling CDN (YouTube /
+/// // googlevideo) keeps serving at full speed after a seek.
+/// final yt = Media(googlevideoUrl, httpChunkSize: 8 * 1024 * 1024);
 /// ```
 ///
 /// Equality considers all fields ([uri], [extras] and [httpHeaders]) so two
@@ -80,17 +84,55 @@ final class Media {
   /// `file-local-options/http-header-fields` from the handler.
   final Map<String, String>? httpHeaders;
 
+  /// Optional per-track options for libmpv's libavformat (`lavf`) demuxer,
+  /// applied as the file-local `demuxer-lavf-o` — the demuxer-side analogue of
+  /// [httpHeaders]. Each `key: value` becomes one `key=value` entry, scoped to
+  /// this exact playlist entry.
+  ///
+  /// A common use is reaching the segment demuxer of an HLS/DASH stream via the
+  /// HLS demuxer's `seg_format_options` dictionary, e.g.
+  /// `{'seg_format_options': 'advanced_editlist=0'}`.
+  ///
+  /// Values must not contain a comma; keys must be non-empty. `null` (default)
+  /// sets nothing.
+  final Map<String, String>? demuxerLavfOptions;
+
+  /// Opt-in maximum size, in bytes, of each HTTP range request for this
+  /// source. `null` (default) leaves mpv's normal behaviour — one open-ended
+  /// request for the rest of the file.
+  ///
+  /// Set it to fetch the stream in bounded chunks instead. Some CDNs —
+  /// notably progressive YouTube / `googlevideo` audio — rate-limit a single
+  /// open-ended request for the whole file to a crawl, so seeking back
+  /// freezes once the buffered audio drains. Capping each request below the
+  /// CDN's threshold (a common value is `8 * 1024 * 1024`, 8 MiB) keeps it
+  /// serving at full speed. The same technique yt-dlp uses (`--http-chunk-size`).
+  ///
+  /// Leave it `null` for fast, trusted servers (Plex, Jellyfin, your own
+  /// library) where one large request buffers fastest. Like [httpHeaders],
+  /// the value is scoped to this exact `loadfile` and never leaks onto other
+  /// playlist entries. Must be positive when set.
+  final int? httpChunkSize;
+
   /// Creates an immutable media item for [uri], with optional consumer
-  /// [extras] and per-request [httpHeaders].
-  const Media(this.uri, {this.extras, this.httpHeaders});
+  /// [extras], per-request [httpHeaders] and [httpChunkSize].
+  const Media(
+    this.uri, {
+    this.extras,
+    this.httpHeaders,
+    this.httpChunkSize,
+    this.demuxerLavfOptions,
+  });
 
   /// Returns a copy with the given fields replaced. Pass `null` for
-  /// [extras] or [httpHeaders] to clear them; omitted fields keep their
-  /// current value.
+  /// [extras], [httpHeaders], [httpChunkSize] or [demuxerLavfOptions] to
+  /// clear them; omitted fields keep their current value.
   Media copyWith({
     String? uri,
     Object? extras = unset,
     Object? httpHeaders = unset,
+    Object? httpChunkSize = unset,
+    Object? demuxerLavfOptions = unset,
   }) =>
       Media(
         uri ?? this.uri,
@@ -100,6 +142,12 @@ final class Media {
         httpHeaders: identical(httpHeaders, unset)
             ? this.httpHeaders
             : httpHeaders as Map<String, String>?,
+        httpChunkSize: identical(httpChunkSize, unset)
+            ? this.httpChunkSize
+            : httpChunkSize as int?,
+        demuxerLavfOptions: identical(demuxerLavfOptions, unset)
+            ? this.demuxerLavfOptions
+            : demuxerLavfOptions as Map<String, String>?,
       );
 
   @override
@@ -107,12 +155,15 @@ final class Media {
       identical(this, other) ||
       (other is Media &&
           other.uri == uri &&
+          other.httpChunkSize == httpChunkSize &&
           _mapEqDyn(extras, other.extras) &&
-          _mapEq(httpHeaders, other.httpHeaders));
+          _mapEq(httpHeaders, other.httpHeaders) &&
+          _mapEq(demuxerLavfOptions, other.demuxerLavfOptions));
 
   @override
   int get hashCode => Object.hash(
         uri,
+        httpChunkSize,
         extras == null
             ? null
             : Object.hashAllUnordered(
@@ -123,9 +174,16 @@ final class Media {
             : Object.hashAllUnordered(
                 httpHeaders!.entries.map((e) => Object.hash(e.key, e.value)),
               ),
+        demuxerLavfOptions == null
+            ? null
+            : Object.hashAllUnordered(
+                demuxerLavfOptions!.entries
+                    .map((e) => Object.hash(e.key, e.value)),
+              ),
       );
 
   @override
-  String toString() =>
-      'Media(uri: $uri, extras: $extras, httpHeaders: $httpHeaders)';
+  String toString() => 'Media(uri: $uri, extras: $extras, '
+      'httpHeaders: $httpHeaders, httpChunkSize: $httpChunkSize, '
+      'demuxerLavfOptions: $demuxerLavfOptions)';
 }

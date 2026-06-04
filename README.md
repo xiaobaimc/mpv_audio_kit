@@ -55,9 +55,9 @@ dependencies:
 | :--- | :--- | :--- | :---: | :---:
 | **Android** | 7.0 (SDK 24) | arm64-v8a, armeabi-v7a, x86_64 | ✅ | ✅ |
 | **iOS** | 15.0 | arm64, x86_64 | ✅ | ✅ |
-| **macOS** | 12.0 | arm64, x86_64 | ✅ | – |
-| **Windows**| 10 | arm64, x86_64 | ✅ | – |
-| **Linux** | Ubuntu 24.04 | aarch64, x86_64 | ✅ | – |
+| **macOS** | 12.0 | arm64, x86_64 | ✅ | - |
+| **Windows**| 10 | arm64, x86_64 | ✅ | - |
+| **Linux** | Ubuntu 24.04 | aarch64, x86_64 | ✅ | - |
 
 ---
 
@@ -82,6 +82,7 @@ dependencies:
     * [2.1 Supported URI schemes](#21-supported-uri-schemes)
     * [2.2 HTTP headers](#22-http-headers)
     * [2.3 Extras](#23-extras)
+    * [2.4 Demuxer options](#24-demuxer-options)
 
     </details>
 
@@ -127,7 +128,7 @@ dependencies:
     * [6.2 Exclusive mode](#62-exclusive-mode)
     * [6.3 Device selection](#63-device-selection)
     * [6.4 Output format](#64-output-format)
-    * [6.5 S/PDIF passthrough](#65-spdif-passthrough)
+    * [6.5 SPDIF passthrough](#65-spdif-passthrough)
     * [6.6 Audio client name](#66-audio-client-name)
     * [6.7 Audio track selection](#67-audio-track-selection)
     * [6.8 Reload audio](#68-reload-audio)
@@ -140,11 +141,12 @@ dependencies:
     * [7.1 Cache configuration](#71-cache-configuration)
     * [7.2 Demuxer memory pool](#72-demuxer-memory-pool)
     * [7.3 Network timeout](#73-network-timeout)
-    * [7.4 TLS/SSL verification](#74-tlsssl-verification)
+    * [7.4 TLS and SSL verification](#74-tls-and-ssl-verification)
     * [7.5 Audio buffer](#75-audio-buffer)
     * [7.6 Audio stream silence](#76-audio-stream-silence)
     * [7.7 Untimed null output](#77-untimed-null-output)
     * [7.8 Radio and live streams](#78-radio-and-live-streams)
+    * [7.9 Throttling CDNs and chunked requests](#79-throttling-cdns-and-chunked-requests)
 
     </details>
 
@@ -173,6 +175,7 @@ dependencies:
     * [9.12 Aggregate lifecycle](#912-aggregate-lifecycle)
     * [9.13 Complete state snapshot](#913-complete-state-snapshot)
     * [9.14 Spectrum and PCM streams](#914-spectrum-and-pcm-streams)
+    * [9.15 Media session streams](#915-media-session-streams)
 
     </details>
 
@@ -236,25 +239,47 @@ dependencies:
 
 ## Visuals
 
-The screenshots below are from **[MPV Studio](https://github.com/ales-drnz/mpv_studio)** — the standalone showcase app built on `mpv_audio_kit`, with a full DSP rack, queue, visualizers and per-platform settings. The bundled `example/` is a deliberately minimal single-file demo; **MPV Studio is the complete reference client**.
+<table>
+<tr>
+<td valign="middle" width="90"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/mpv_studio.png" width="70" alt="MPV Studio"></td>
+<td valign="middle">The screenshots below are from <b><a href="https://github.com/ales-drnz/mpv_studio">MPV Studio</a></b>, the standalone showcase app built on <code>mpv_audio_kit</code>, with a full DSP rack, queue, visualizers and per-platform settings. The bundled <code>example/</code> is a deliberately minimal single-file demo; <b>MPV Studio is the complete reference client</b>.</td>
+</tr>
+</table>
 
-#### Desktop
+#### Playback
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/desktop_player_console.gif" width="100%">
+  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/playback.gif" width="100%">
 </p>
 
+#### Queue
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/desktop_settings_grid.png" width="100%">
+  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/queue.gif" width="100%">
 </p>
 
-#### Mobile
+#### Stream
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/mobile_player.png" width="23%" hspace="5">
-  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/mobile_queue.png" width="23%" hspace="5">
-  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/mobile_filters.png" width="23%" hspace="5">
-  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/mobile_audio_hardware.png" width="23%" hspace="5">
+  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/stream.gif" width="100%">
+</p>
+
+#### Effects
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/effects.gif" width="100%">
+</p>
+
+#### Settings
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/settings.gif" width="100%">
+</p>
+
+#### Console
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/console.gif" width="100%">
 </p>
 
 ---
@@ -290,13 +315,13 @@ The screenshots below are from **[MPV Studio](https://github.com/ales-drnz/mpv_s
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/layers.png" width="32"></td>
 <td valign="middle"><b>Multi-track audio</b><br>typed <a href="#67-audio-track-selection">track selection</a> for multilingual containers (MKV, MP4) with codec, language, and gain metadata per track.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/cpu.png" width="32"></td>
-<td valign="middle"><b>Hardware control</b><br><a href="#62-exclusive-mode">exclusive mode</a>, <a href="#63-device-selection">device selection</a>, <a href="#64-output-format">bit-perfect sample-rate and format</a>, <a href="#65-spdif-passthrough">S/PDIF passthrough</a>.</td>
+<td valign="middle"><b>Hardware control</b><br><a href="#62-exclusive-mode">exclusive mode</a>, <a href="#63-device-selection">device selection</a>, <a href="#64-output-format">bit-perfect sample-rate and format</a>, <a href="#65-spdif-passthrough">SPDIF passthrough</a>.</td>
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/tag.png" width="32"></td>
 <td valign="middle"><b>Metadata and cover art</b><br><a href="#82-cover-art">embedded artwork</a> as raw bytes plus a Flutter <a href="#82-cover-art"><code>ImageProvider</code></a> helper, and <a href="#81-metadata-tags">tags</a>.</td>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/globe.png" width="32"></td>
-<td valign="middle"><b>Network streams</b><br>HLS, DASH, SMB and HTTP/HTTPS.</td>
+<td valign="middle"><b>Network streams</b><br>HLS, DASH, SMB, HTTP and HTTPS.</td>
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/package.png" width="32"></td>
@@ -358,7 +383,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         // Bind the button to the intent axis (`playWhenReady`), not
-        // `playing` — `playing` toggles transiently during seeks.
+        // `playing`. `playing` toggles transiently during seeks.
         onPressed: () =>
             player.state.playWhenReady ? player.pause() : player.play(),
         child: const Icon(Icons.play_arrow),
@@ -394,7 +419,7 @@ void main() async {
 final player = Player(
   configuration: const PlayerConfiguration(
     logLevel: LogLevel.info, // mpv log verbosity
-    initialVolume: 100.0, // Volume at startup (0–100)
+    initialVolume: 100.0, // Volume at startup (0 to 100)
     autoPlay: true,       // Start playing automatically on open()
   ),
 );
@@ -502,6 +527,25 @@ final media = Media(
 
 Access later via `player.state.playlist.items[index].extras`.
 
+#### 2.4 Demuxer options
+
+Pass per-track options straight to libmpv's libavformat demuxer with
+`Media.demuxerLavfOptions` (applied as the file-local `demuxer-lavf-o`, scoped
+to that entry). A common use is reaching the *segment* demuxer of an HLS/DASH
+stream through the HLS demuxer's `seg_format_options` dictionary:
+
+```dart
+final media = Media(
+  'https://server/Audio/123/main.m3u8?…',
+  demuxerLavfOptions: {
+    // forward an option to the HLS segment demuxer
+    'seg_format_options': 'advanced_editlist=0',
+  },
+);
+```
+
+Values must not contain a comma; keys must be non-empty.
+
 ---
 
 ### 3. Playlist management
@@ -608,8 +652,8 @@ await player.play();    // Start or resume
 await player.pause();   // Pause
 await player.stop();    // Stop and unload current file
 
-// Toggle pattern — bind to `playWhenReady` (the intent axis), not
-// `playing`, so the button stays stable while seeking/buffering.
+// Toggle pattern: bind to `playWhenReady` (the intent axis), not
+// `playing`, so the button stays stable while seeking or buffering.
 player.state.playWhenReady ? await player.pause() : await player.play();
 ```
 
@@ -653,7 +697,7 @@ await player.setAbLoopB(null);
 #### 4.4 Speed and pitch
 
 ```dart
-await player.setRate(1.5);              // 1.5× speed (0.01 – 100.0)
+await player.setRate(1.5);              // 1.5× speed (0.01 to 100.0)
 await player.setPitch(0.9);             // Lower pitch without affecting speed
 await player.setPitchCorrection(true);  // Pitch correction when changing rate
 ```
@@ -668,7 +712,7 @@ DSP bundle.
 #### 4.5 Volume and mute
 
 ```dart
-await player.setVolume(80.0);     // 0–100 (values above 100 amplify)
+await player.setVolume(80.0);     // 0 to 100 (values above 100 amplify)
 await player.setMute(true);
 await player.setMute(false);
 
@@ -906,7 +950,7 @@ of the chain.
 | `crossfeed` | Headphone crossfeed |
 | `dialoguenhance` | Centre-channel dialogue enhancement |
 | `earwax` | Headphone listening enhancement |
-| `extrastereo` | Increase the L/R difference signal |
+| `extrastereo` | Increase the left-right difference signal |
 | `haas` | Haas effect (precedence-based stereo widening) |
 | `headphone` | HRTF-based binaural headphone rendering |
 | `pan` | Mix channels with explicit per-channel gains |
@@ -1115,10 +1159,10 @@ await player.setAudioChannels(
 );
 ```
 
-#### 6.5 S/PDIF passthrough
+#### 6.5 SPDIF passthrough
 
 Send compressed audio (AC3, DTS, TrueHD, …) directly to an AV receiver
-over S/PDIF or HDMI:
+over SPDIF or HDMI:
 
 ```dart
 // Home-theater Dolby + DTS-HD passthrough
@@ -1236,7 +1280,7 @@ await player.setDemuxerMaxBackBytes(0);
 await player.setNetworkTimeout(const Duration(seconds: 10)); // Fail after 10 seconds of no data
 ```
 
-#### 7.4 TLS/SSL verification
+#### 7.4 TLS and SSL verification
 
 ```dart
 await player.setTlsVerify(true); // Enable; uses the bundled CA pem
@@ -1288,6 +1332,21 @@ await player.open(Media(
 ));
 ```
 
+#### 7.9 Throttling CDNs and chunked requests
+
+Some CDNs — notably progressive YouTube / `googlevideo` audio — rate-limit a single open-ended HTTP range request (the whole rest of the file) to a crawl. Playback is fine from the start but **freezes after a seek**, once the buffered audio drains and the throttled connection can't refill it.
+
+Opt in to bounded range requests for that source via `Media.httpChunkSize` — the same technique yt-dlp uses (`--http-chunk-size`). Each request stays below the CDN's threshold, so it keeps serving at full speed:
+
+```dart
+await player.open(Media(
+  googlevideoUrl,
+  httpChunkSize: 8 * 1024 * 1024, // 8 MiB chunks
+));
+```
+
+It is opt-in and scoped to that exact track. Leave it `null` (the default) for fast, trusted servers (Plex, Jellyfin, your own library) where one large request buffers fastest. Must be a positive byte count when set.
+
 ---
 
 ### 8. Metadata and cover art
@@ -1301,7 +1360,7 @@ player.stream.metadata.listen((tags) {
   final album = tags['album'];
   final date = tags['date'];
   final trackNumber = tags['track'];
-  print('Now playing: $title — $artist');
+  print('Now playing: $title, $artist');
 });
 
 // Synchronous access
@@ -1415,8 +1474,8 @@ local-file player that wants disk-side artwork.
 
 | Stream | Type | Notes |
 | :--- | :--- | :--- |
-| `playWhenReady` | `bool` | User intent to play (the play/pause axis). Set by `play` / `pause` / `open` / `stop`; **stable across seeks and buffering** — bind your play/pause button (and the OS media controls already do) to this, not to `playing`. |
-| `playing` | `bool` | `true` only while audio is actually being produced; tracks mpv's `core-idle` (inverted). **Toggles transiently during seeks/buffering** — use for a spinner, not a play/pause button. "Actually emitting audio" is `playWhenReady && playing`. |
+| `playWhenReady` | `bool` | User intent to play (the play-pause axis). Set by `play`, `pause`, `open` and `stop`; **stable across seeks and buffering**, so bind your play-pause button (and the OS media controls already do) to this, not to `playing`. |
+| `playing` | `bool` | `true` only while audio is actually being produced; tracks mpv's `core-idle` (inverted). **Toggles transiently during seeks and buffering**, so use for a spinner, not a play-pause button. "Actually emitting audio" is `playWhenReady && playing`. |
 | `completed` | `bool` | `true` once the current track reaches natural EOF. |
 | `eofReached` | `bool` | mpv's `eof-reached`; `true` while paused at the end of a file with `keep-open=yes`. |
 | `position` | `Duration` | Current playhead, throttled to ~30 Hz. |
@@ -1425,8 +1484,8 @@ local-file player that wants disk-side artwork.
 | `buffering` | `bool` | `true` between `start-file` and `file-loaded`. |
 | `buffer` | `Duration` | Absolute timestamp the demuxer has buffered up to. |
 | `bufferDuration` | `Duration` | Headroom ahead of the playhead (`demuxer-cache-duration`). |
-| `bufferingPercentage` | `double` (0–100) | Wrapper-computed cache fill against `state.cache.secs`. |
-| `volume` | `double` | 0–100; values above 100 amplify. |
+| `bufferingPercentage` | `double` (0-100) | Wrapper-computed cache fill against `state.cache.secs`. |
+| `volume` | `double` | 0-100; values above 100 amplify. |
 | `mute` | `bool` | |
 | `rate` | `double` | Playback speed multiplier. |
 | `pitch` | `double` | Pitch multiplier. |
@@ -1510,7 +1569,7 @@ local-file player that wants disk-side artwork.
 | `pausedForCache` | `bool` | _(observed; auto-pause signal)_ |
 | `demuxerViaNetwork` | `bool` | _(observed)_ |
 | `cacheSpeed` | `double` (bytes/s) | _(observed)_ |
-| `cacheBufferingState` | `int` (0–100) | _(observed)_ |
+| `cacheBufferingState` | `int` (0-100) | _(observed)_ |
 | `demuxerMaxBytes` | `int` | `setDemuxerMaxBytes` |
 | `demuxerMaxBackBytes` | `int` | `setDemuxerMaxBackBytes` |
 | `demuxerReadaheadSecs` | `int` | `setDemuxerReadaheadSecs` |
@@ -1585,7 +1644,7 @@ local-file player that wants disk-side artwork.
 | Stream | Type | mpv property |
 | :--- | :--- | :--- |
 | `seeking` | `bool` | `seeking` (UI gate against concurrent seeks) |
-| `percentPos` | `double` (0–100) | `percent-pos` |
+| `percentPos` | `double` (0-100) | `percent-pos` |
 | `currentDemuxer` | `String` | `current-demuxer` |
 | `currentAo` | `String` | `current-ao` |
 | `demuxerStartTime` | `Duration` | `demuxer-start-time` (initial timestamp offset) |
@@ -1643,7 +1702,7 @@ player.stream.prefetchState.listen((state) {
 </details>
 
 For a determinate progress bar instead of a spinner, pair the state with
-`player.stream.prefetchCacheDuration` — how much of the next track is
+`player.stream.prefetchCacheDuration`: how much of the next track is
 already buffered ahead, as a `Duration`. Divide it by your configured
 cache target for a percentage; it emits `Duration.zero` while no prefetch
 is in flight.
@@ -1731,6 +1790,21 @@ player.stream.fft.listen((frame) {
   }
 });
 ```
+
+#### 9.15 Media session streams
+
+Two streams expose the OS media session. See
+[§14](#14-os-media-session) for the full setup and command surface.
+
+<details>
+<summary><b>2 streams</b> (click to expand)</summary>
+
+| Stream                          | Type                            | What it carries |
+|---------------------------------|---------------------------------|-----------------|
+| `stream.mediaSession`           | `Stream<MediaSession?>`         | The active session config (or `null` when none is published); mirrors `state.mediaSession`. |
+| `stream.mediaSessionCommands`   | `Stream<MediaSessionCommand>`   | Transport commands the OS sends back (play, pause, next, seek and so on). Auto-applied to the player; surfaced here for analytics or interception. |
+
+</details>
 
 ---
 
@@ -2000,7 +2074,7 @@ player.stream.hook.listen((event) async {
 
 #### 12.3 HTTP headers via hook
 
-`file-local-options/http-header-fields` sets headers only for the current file. They are applied at the mpv/libmpv layer and work correctly for direct HTTP streams.
+`file-local-options/http-header-fields` sets headers only for the current file. They are applied at the mpv and libmpv layer and work correctly for direct HTTP streams.
 
 Important note for HLS streams: when mpv opens an HLS playlist, the actual segment downloads are handled directly by ffmpeg's lavf, which does not inherit `http-header-fields` set via the hook. If your server requires authentication on the HLS segments, embed the credentials in the URL as query parameters instead:
 
@@ -2108,11 +2182,11 @@ await player.updateSpectrum((s) => s.copyWith(attackSmoothing: 0.7));
 | Field             | Default        | Range or choice |
 |-------------------|----------------|----------------|
 | `fftSize`         | 2048           | Power of 2: 256, 512, 1024, 2048, 4096 |
-| `bandCount`       | 64             | Typical 32–128 |
+| `bandCount`       | 64             | Typical 32-128 |
 | `bandLowHz`       | 20.0           | Bottom of human hearing |
 | `bandHighHz`      | 20000.0        | Clamped to Nyquist (`sampleRate / 2`) |
 | `window`          | `WindowFunction.hann` | Hann, Blackman-Harris, Rectangular |
-| `emitInterval`    | 33 ms (~30 fps)| 8–67 ms (~120–15 fps) |
+| `emitInterval`    | 33 ms (~30 fps)| 8-67 ms (~120-15 fps) |
 | `attackSmoothing` | 0.5            | EMA when band rises; higher = snappier |
 | `releaseSmoothing`| 0.1            | EMA when band falls; lower = slower decay |
 | `minDb`, `maxDb`  | -100, -30      | dB clip range mapped to `[0, 1]`. Matches Web Audio API `AnalyserNode.minDecibels` / `maxDecibels` defaults. |
@@ -2134,7 +2208,7 @@ animate the held frame client-side.
 `Player.stream.pcm` emits [PcmFrame]s on the same cadence as
 `fft`, carrying the raw post-DSP samples instead of the
 frequency-domain transform. Use it for time-domain visualisations:
-oscilloscope-style waveforms, accurate VU/peak meters, custom feature
+oscilloscope-style waveforms, accurate VU and peak meters, custom feature
 extractors that need amplitude.
 
 ```dart
@@ -2156,7 +2230,7 @@ count.
 
 `player.stream.tap(filter, side: ...)` captures raw audio samples at
 either side of a single filter in the `af` chain. The slot is named
-through the typed `AudioEffect` enum — same 86 values surfaced as
+through the typed `AudioEffect` enum, the same 86 values surfaced as
 `*Settings` fields on `AudioEffects`, so every reachable filter is
 chosen at compile time. The side is one of `TapSide.pre` (before the
 filter's DSP runs) or `TapSide.post` (after).
@@ -2171,8 +2245,8 @@ player.stream
     .listen((pcm) => paintOutputWaveform(pcm.samples));
 ```
 
-For frequency-domain bands run the samples through `BandProcessor` —
-the same FFT / windowing / smoothing the library uses for the global
+For frequency-domain bands run the samples through `BandProcessor`,
+the same FFT, windowing and smoothing the library uses for the global
 visualizer, so per-filter and global curves pulse with the exact same
 ballistic:
 
@@ -2189,7 +2263,7 @@ final tapSub = player.stream
 ```
 
 `AudioEffectsX.active` cross-links the singular `AudioEffect` enum
-with the `AudioEffects` bundle — yields the enum value for every slot
+with the `AudioEffects` bundle, yielding the enum value for every slot
 flagged `enabled: true`, so you can iterate the live rack:
 
 ```dart
@@ -2198,29 +2272,37 @@ for (final f in player.state.audioEffects.active) {
 }
 ```
 
-The taps are lazy in the same way the global pipeline is — the
+The taps are lazy in the same way the global pipeline is: the
 matching engine hook activates only while at least one listener is
 attached and tears down on the last cancel.
 
 #### 13.5 Waveform
 
-A whole-file mono min/max envelope of the loaded track is exposed
-via [PlayerStream.waveform], computed in the background by libmpv on
-a worker thread when the file loads. It's a single static envelope
-(~2000 min/max bins) — enough to paint a waveform overview or a
+A mono min and max envelope of the loaded track is exposed via
+[PlayerStream.waveform], computed in the background on a worker thread:
+~2000 min and max bins, enough to paint a waveform overview or a
 waveform-style seekbar.
+
+For local files the whole envelope arrives in a single emit. For streams
+that can't be decoded ahead of time (network or transcode sources) it
+**grows progressively**, re-emitting as playback advances. The
+`wave.filled` flag (one byte per bin: `1` covered, `0` not yet) marks
+which bins hold real data, so a renderer can draw the un-analysed ones as
+a baseline instead of a misleading flat-zero spike. Local files arrive
+fully covered.
 
 The stream is **listener-gated**: the analyzer runs only while
 something is subscribed to `player.stream.waveform`, and costs
-nothing when nobody listens. No configuration, no opt-in setter —
+nothing when nobody listens. No configuration, no opt-in setter,
 just listen.
 
 ```dart
 player.stream.waveform.listen((wave) {
-  if (wave == null) return; // null on track change, until ready
-  // wave.min / wave.max — Float32List, range [-1, +1], wave.bins long.
+  if (wave == null) return; // null on track change, until the first bins land
+  // wave.min and wave.max: Float32List, range [-1, +1], wave.bins long.
   // Bin i spans [i / wave.bins * wave.duration, (i + 1) / … ).
   for (var i = 0; i < wave.bins; i++) {
+    if (wave.filled[i] == 0) continue; // not yet analysed, draw a baseline
     // draw a vertical bar from wave.min[i] to wave.max[i]
   }
 });
@@ -2230,9 +2312,9 @@ player.stream.waveform.listen((wave) {
 
 ### 14. OS media session
 
-Publish the player to the operating system's media controls — the
+Publish the player to the operating system's media controls (the
 **Now Playing** panel, Control Center and lockscreen on iOS and macOS,
-MPRIS on Linux, SMTC on Windows, and the media notification on Android —
+MPRIS on Linux, SMTC on Windows, and the media notification on Android)
 and receive the transport commands the OS sends back (lockscreen
 buttons, a Bluetooth headset, Siri, CarPlay, keyboard media keys).
 
@@ -2246,7 +2328,7 @@ releases it automatically.
 #### 14.1 Enabling the session
 
 Title, artist, album, artwork and duration are derived from the playing
-file automatically — you don't have to push anything.
+file automatically, you don't have to push anything.
 
 ```dart
 await player.setMediaSession(const MediaSession());  // enable
@@ -2269,8 +2351,9 @@ await player.setMediaSession(
 Artwork is a typed choice on the `artwork` field:
 
 ```dart
-MediaSessionArtwork.embedded            // default — the file's embedded cover
+MediaSessionArtwork.embedded            // default, the file's embedded cover
 MediaSessionArtwork.custom(myCoverArt)  // your own image, ignoring the file cover
+MediaSessionArtwork.uri(myArtUrl)       // a URL the OS fetches itself (only the URL crosses the channel)
 MediaSessionArtwork.none                // no artwork
 ```
 
@@ -2286,7 +2369,7 @@ player.stream.mediaSessionCommands.listen((command) {
     case MediaSessionCommandSeekTo(:final position):
       log('scrubbed to $position');
     case MediaSessionCommandNext():
-      // next / previous drive mpv's playlist when one is loaded; with a
+      // next and previous drive mpv's playlist when one is loaded; with a
       // single track they only emit here, so advance your own queue.
       myQueue.next();
     case _:
@@ -2297,8 +2380,11 @@ player.stream.mediaSessionCommands.listen((command) {
 
 #### 14.4 Capabilities, intervals and speeds
 
-`actions` advertises the controls the OS may surface — it shows the
-subset that fits each space (a lockscreen typically shows 3–4):
+`actions` advertises the controls the OS may surface. What actually renders
+is **platform-gated, not just space-gated**: each native media UI draws only a
+subset (and a lockscreen typically shows 3 to 4 of those). Advertising an
+action a platform doesn't render is harmless — it simply isn't drawn. The full
+enum also includes `MediaAction.stop` and `MediaAction.like` (a favourite/star).
 
 ```dart
 const MediaSession(
@@ -2313,23 +2399,42 @@ const MediaSession(
 );
 ```
 
+**Which actions each platform's native media UI actually draws:**
+
+| Action | iOS | macOS | Android | Windows | Linux¹ |
+|---|:--:|:--:|:--:|:--:|:--:|
+| `play` / `pause` / `playPause` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `next` / `previous` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `seek` (scrubber) | ✓ | ✓ | ✓ | ✓ | KDE |
+| `fastForward` / `rewind` | ✓ | ✓ | ✓ | ✓ | ✗ |
+| `stop` | ✗ | ✗ | ✗ | ✓ | ✗ |
+| `setRepeatMode` / `setShuffle` | ✗ | ✗ | ✓ | ✗² | KDE |
+| `setPlaybackRate` | ✗ | ✗ | ✗ | ✗² | KDE |
+| `like` | ✓ | ✗ | ✓ | ✗ | ✗ |
+
+¹ Linux depends on the desktop's MPRIS consumer, KDE Plasma draws
+seek/repeat/shuffle/rate toggles, GNOME's built-in popup shows only
+prev/play-pause/next.
+² Windows SMTC exposes repeat/shuffle/rate as settable *properties* but the
+native flyout draws no toggle for them; SMTC has no rate or like button.
+
 #### 14.5 Audio interruptions
 
 `interruptionPolicy` decides what happens on a phone call, Siri, or
 another app taking audio focus:
 
 ```dart
-InterruptionPolicy.pauseAndResume // default — pause, resume when the OS allows
+InterruptionPolicy.pauseAndResume // default, pause then resume when the OS allows
 InterruptionPolicy.pauseOnly      // pause, never auto-resume
 InterruptionPolicy.keepPlaying    // stay at full volume, never auto-pause
 ```
 
-`keepPlaying` is the "focused listening / always max" mode. Honest
-limits: on iOS an accepted phone / FaceTime call or Siri still takes the
-audio route (OS-enforced — it can't be overridden), and on Android 12+
+`keepPlaying` is the "focused listening, always max" mode. Honest
+limits: on iOS an accepted phone or FaceTime call or Siri still takes the
+audio route (OS-enforced, it can't be overridden), and on Android 12+
 the system may fade the app out when another app gains focus. A
 headphone unplug always pauses, even in `keepPlaying` (Apple HIG). The
-policy is a no-op on macOS / Linux / Windows (no per-app audio session).
+policy is a no-op on macOS, Linux and Windows (no per-app audio session).
 
 > **iOS:** background playback also needs the host app's `Info.plist` to
 > declare `UIBackgroundModes` → `audio`.
@@ -2342,8 +2447,8 @@ ignore these fields.
 
 ```dart
 const MediaSession(
-  appName: 'My Player',               // name shown by MPRIS / SMTC
-  desktopEntry: 'com.example.myapp',  // Linux only — see below
+  appName: 'My Player',               // name shown by MPRIS and SMTC
+  desktopEntry: 'com.example.myapp',  // Linux only, see below
 );
 ```
 

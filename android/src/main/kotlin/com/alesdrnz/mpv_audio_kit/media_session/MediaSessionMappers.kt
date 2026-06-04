@@ -6,9 +6,12 @@
 package com.alesdrnz.mpv_audio_kit.media_session
 
 import android.net.Uri
+import android.os.Bundle
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.session.CommandButton
+import androidx.media3.session.SessionCommand
 
 /**
  * Pure, stateless translation between the Dart wire contract and the
@@ -19,6 +22,14 @@ import androidx.media3.common.util.UnstableApi
  */
 @UnstableApi
 internal object MediaSessionMappers {
+
+    /**
+     * Custom session-command action for the favourite (heart) button. `like`
+     * has no Media3 player command, so it ships as a [SessionCommand] the
+     * session advertises in `onConnect` and handles in `onCustomCommand`,
+     * forwarding the same `{type: "like"}` wire event the Dart side decodes.
+     */
+    const val LIKE_ACTION = "com.alesdrnz.mpv_audio_kit.LIKE"
 
     /** Wire loop string → Media3 repeat-mode constant. */
     fun loopToRepeatMode(loop: String): Int = when (loop) {
@@ -65,6 +76,88 @@ internal object MediaSessionMappers {
         if ("setShuffle" in actions) b.add(Player.COMMAND_SET_SHUFFLE_MODE)
         if ("setPlaybackRate" in actions) b.add(Player.COMMAND_SET_SPEED_AND_PITCH)
         return b.build()
+    }
+
+    /**
+     * Builds the notification button row from the advertised actions. The
+     * `DefaultMediaNotificationProvider` only auto-draws play/pause + prev/next
+     * + the seek bar; everything else needs an explicit [CommandButton] in the
+     * session's media button preferences.
+     *
+     * Rewind / fast-forward / repeat / shuffle ride on a *player* command, so
+     * Media3 executes them with no custom handling — they route straight to the
+     * matching `handleX` on [MpvControllerPlayer], which forwards to Dart.
+     * `setRepeatMode` carries the *next* mode as the button parameter (the
+     * command is a no-op without one); `setShuffle` carries the target boolean.
+     * Each toggle's icon reflects the *current* state, so the caller must
+     * rebuild and re-publish whenever the loop / shuffle / favourite state
+     * changes (see [MediaSessionManager.publish]).
+     *
+     * `like` has no player command — it's a custom [SessionCommand]; the heart
+     * fills/empties from [ConfigSnapshot.isFavorite].
+     */
+    fun buildMediaButtonPreferences(
+        config: MediaSessionManager.ConfigSnapshot,
+        playback: MediaSessionManager.PlaybackSnapshot,
+    ): List<CommandButton> {
+        val actions = config.actions
+        val buttons = mutableListOf<CommandButton>()
+
+        if ("rewind" in actions) {
+            buttons.add(
+                CommandButton.Builder(CommandButton.ICON_REWIND)
+                    .setDisplayName("Rewind")
+                    .setPlayerCommand(Player.COMMAND_SEEK_BACK)
+                    .build(),
+            )
+        }
+        if ("fastForward" in actions) {
+            buttons.add(
+                CommandButton.Builder(CommandButton.ICON_FAST_FORWARD)
+                    .setDisplayName("Fast forward")
+                    .setPlayerCommand(Player.COMMAND_SEEK_FORWARD)
+                    .build(),
+            )
+        }
+        if ("setRepeatMode" in actions) {
+            // Icon = current mode; parameter = next in the off → all → one cycle.
+            val (icon, next) = when (playback.loop) {
+                "playlist" -> CommandButton.ICON_REPEAT_ALL to Player.REPEAT_MODE_ONE
+                "file" -> CommandButton.ICON_REPEAT_ONE to Player.REPEAT_MODE_OFF
+                else -> CommandButton.ICON_REPEAT_OFF to Player.REPEAT_MODE_ALL
+            }
+            buttons.add(
+                CommandButton.Builder(icon)
+                    .setDisplayName("Repeat")
+                    .setPlayerCommand(Player.COMMAND_SET_REPEAT_MODE, next)
+                    .build(),
+            )
+        }
+        if ("setShuffle" in actions) {
+            val icon =
+                if (playback.shuffle) CommandButton.ICON_SHUFFLE_ON else CommandButton.ICON_SHUFFLE_OFF
+            buttons.add(
+                CommandButton.Builder(icon)
+                    .setDisplayName("Shuffle")
+                    .setPlayerCommand(Player.COMMAND_SET_SHUFFLE_MODE, !playback.shuffle)
+                    .build(),
+            )
+        }
+        if ("like" in actions) {
+            val icon =
+                if (config.isFavorite) {
+                    CommandButton.ICON_HEART_FILLED
+                } else {
+                    CommandButton.ICON_HEART_UNFILLED
+                }
+            buttons.add(
+                CommandButton.Builder(icon)
+                    .setDisplayName("Favorite")
+                    .setSessionCommand(SessionCommand(LIKE_ACTION, Bundle.EMPTY))
+                    .build(),
+            )
+        }
+        return buttons
     }
 
     /** Resolved metadata snapshot → Media3 [MediaMetadata]. */

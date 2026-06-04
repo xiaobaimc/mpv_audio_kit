@@ -29,7 +29,6 @@ pubspec.lock
 
 # Docs
 /docs/
-/scripts/
 
 # AI tooling
 .claude/

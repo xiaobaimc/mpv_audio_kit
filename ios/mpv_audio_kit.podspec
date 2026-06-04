@@ -54,7 +54,7 @@ Pod::Spec.new do |s|
   # the helper script updates both this file and Package.swift.
   s.prepare_command = <<-CMD
     MPV_RELEASE_VERSION="libmpv-r8"
-    EXPECTED_SHA256="8500923392ee5ae5d4e3263e12a68e29aa805596b85d56a9a26f2239c91173e0"
+    EXPECTED_SHA256="342116cafd7bacd8523c0c68372ae0461e2011c772f50bef749ea5b0932f9dba"
     URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_ios.xcframework.zip"
 
     mkdir -p mpv_audio_kit/Frameworks
@@ -74,20 +74,26 @@ Pod::Spec.new do |s|
       DOWNLOAD_NEEDED=0
     fi
 
-    if [ $DOWNLOAD_NEEDED -eq 1 ]; then
-      echo "Downloading libmpv_ios.xcframework.zip from $URL..."
-      curl -L -o "$ZIP_FILE" "$URL"
+    # Remote download — toggled by the build kit's "Libs" actions: active in
+    # REMOTE mode (fetch from GitHub when the vendored xcframework is absent /
+    # stale), commented out in LOCAL mode (use the vendored copy only). The kit
+    # comments/uncomments this block — do not hand-edit the mpvkit: markers.
+    # mpvkit:remote:begin
+    # if [ $DOWNLOAD_NEEDED -eq 1 ]; then
+      # echo "Downloading libmpv_ios.xcframework.zip from $URL..."
+      # curl -L -o "$ZIP_FILE" "$URL"
 
-      ACTUAL_SHA256=$(shasum -a 256 "$ZIP_FILE" | awk '{ print $1 }')
-      if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
-        echo "ERROR: SHA-256 verification failed for downloaded file!"
-        rm -f "$ZIP_FILE"
-        exit 1
-      fi
+      # ACTUAL_SHA256=$(shasum -a 256 "$ZIP_FILE" | awk '{ print $1 }')
+      # if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+        # echo "ERROR: SHA-256 verification failed for downloaded file!"
+        # rm -f "$ZIP_FILE"
+        # exit 1
+      # fi
 
-      unzip -o "$ZIP_FILE" -d mpv_audio_kit/Frameworks/
-      rm -f "$ZIP_FILE"
-    fi
+      # unzip -o "$ZIP_FILE" -d mpv_audio_kit/Frameworks/
+      # rm -f "$ZIP_FILE"
+    # fi
+    # mpvkit:remote:end
   CMD
 
   s.vendored_frameworks = 'mpv_audio_kit/Frameworks/libmpv.xcframework'
