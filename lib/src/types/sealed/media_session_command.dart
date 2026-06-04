@@ -26,9 +26,9 @@ import '../enums/loop.dart';
 ///
 /// Commands are also auto-applied to the [Player] by default — the
 /// stream above is for analytics / interception only. The package
-/// routes [next] / [previous] to mpv's playlist when one is loaded;
-/// otherwise the command is emit-only (the consumer's queue logic
-/// handles it).
+/// routes [next] / [previous] to mpv's playlist when it holds more than
+/// one entry; otherwise the command is emit-only (the consumer's queue
+/// logic handles it).
 sealed class MediaSessionCommand {
   const MediaSessionCommand._();
 

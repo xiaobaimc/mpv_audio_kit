@@ -335,6 +335,12 @@ dependencies:
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/terminal.png" width="32"></td>
 <td valign="middle"><b>Raw access</b><br>read or write any mpv property or command; failures surface as typed <a href="#10-raw-api"><code>MpvException</code></a>.</td>
 </tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/media-session.png" width="32"></td>
+<td valign="middle"><b>OS media session</b><br>publish the player to the <a href="#14-os-media-session">system media controls</a>. Now Playing, Control Center and lockscreen, MPRIS on Linux, SMTC on Windows, and the Android media notification.</td>
+<td valign="middle"></td>
+<td valign="middle"></td>
+</tr>
 </table>
 
 ---
@@ -2315,8 +2321,7 @@ player.stream.waveform.listen((wave) {
 Publish the player to the operating system's media controls (the
 **Now Playing** panel, Control Center and lockscreen on iOS and macOS,
 MPRIS on Linux, SMTC on Windows, and the media notification on Android)
-and receive the transport commands the OS sends back (lockscreen
-buttons, a Bluetooth headset, Siri, CarPlay, keyboard media keys).
+and receive the transport commands the OS sends back.
 
 Everything goes through one setter, `Player.setMediaSession`. Pass
 `null` to remove the entry. Only one `Player` per process may own the
@@ -2403,12 +2408,12 @@ const MediaSession(
 
 | Action | iOS | macOS | Android | Windows | Linux¹ |
 |---|:--:|:--:|:--:|:--:|:--:|
-| `play` / `pause` / `playPause` | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `next` / `previous` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `play`, `pause`, `playPause` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `next`, `previous` | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `seek` (scrubber) | ✓ | ✓ | ✓ | ✓ | KDE |
-| `fastForward` / `rewind` | ✓ | ✓ | ✓ | ✓ | ✗ |
+| `fastForward`, `rewind` | ✓ | ✓ | ✓ | ✓ | ✗ |
 | `stop` | ✗ | ✗ | ✗ | ✓ | ✗ |
-| `setRepeatMode` / `setShuffle` | ✗ | ✗ | ✓ | ✗² | KDE |
+| `setRepeatMode`, `setShuffle` | ✗ | ✗ | ✓ | ✗² | KDE |
 | `setPlaybackRate` | ✗ | ✗ | ✗ | ✗² | KDE |
 | `like` | ✓ | ✗ | ✓ | ✗ | ✗ |
 
@@ -2416,7 +2421,7 @@ const MediaSession(
 seek/repeat/shuffle/rate toggles, GNOME's built-in popup shows only
 prev/play-pause/next.
 ² Windows SMTC exposes repeat/shuffle/rate as settable *properties* but the
-native flyout draws no toggle for them; SMTC has no rate or like button.
+native flyout draws no toggle for them.
 
 #### 14.5 Audio interruptions
 

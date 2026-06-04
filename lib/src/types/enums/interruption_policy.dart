@@ -28,10 +28,6 @@ enum InterruptionPolicy {
   /// focus.
   ///
   /// Observability: because this policy never pauses, an interruption
-  /// emits NO command on [PlayerStream.mediaSessionCommands]. (Under the
-  /// other policies the auto-pause/resume surfaces as a generic
-  /// `MediaSessionCommand.pause` / `MediaSessionCommand.play`, which is
-  /// indistinguishable from a lockscreen play/pause tap — there is no
-  /// dedicated interruption event.)
+  /// emits NO command on [PlayerStream.mediaSessionCommands].
   keepPlaying,
 }

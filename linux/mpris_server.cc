@@ -555,8 +555,8 @@ void MprisServer::WriteArtwork(const std::vector<uint8_t>& bytes,
   } else if (mime.find("webp") != std::string::npos) {
     ext = "webp";
   }
-  // Unique filename per track — GNOME caches artUrl by URL, so reusing a path
-  // would show stale art.
+  // Unique filename per track: desktops cache mpris:artUrl by URL, so reusing
+  // a path can show stale art.
   std::string path = art_dir_ + "/art-" + std::to_string(++art_counter_) + "." +
                      ext;
 

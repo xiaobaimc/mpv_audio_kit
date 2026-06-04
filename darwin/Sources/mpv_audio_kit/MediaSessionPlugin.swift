@@ -37,7 +37,8 @@ import MediaPlayer
 ///   (static targets + weak `currentInstance`); re-adding per track is
 ///   the classic double-fire bug.
 /// - **Scrub freeze**: publish the target with `rate = 0` so the slider
-///   pins there while the engine seeks; cleared by the next `updatePlayback`.
+///   pins there while the engine seeks; cleared by the `updatePlayback`
+///   that lands on the target (backstopped by a timer).
 /// - **iOS only**: activate `AVAudioSession` `.playback` (needed for
 ///   background + Now Playing) and react to interruptions per the
 ///   consumer's `interruptionPolicy`; headphone unplug always pauses

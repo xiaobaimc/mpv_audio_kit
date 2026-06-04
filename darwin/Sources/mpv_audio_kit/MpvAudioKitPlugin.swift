@@ -15,10 +15,9 @@ import FlutterMacOS
 /// Most of the package's surface is delivered via direct FFI calls to
 /// `libmpv`; this class only exists to:
 ///
-/// - register a `mpv_audio_kit` method channel for the few platform
-///   bridges that still need it (currently unused — the only consumer,
-///   Android `openFileDescriptor` for content:// URIs, is iOS/macOS
-///   N/A), and
+/// - register the `mpv_audio_kit` method channel (unused on Apple — its
+///   only method, `openFileDescriptor` for `content://` URIs, is
+///   Android-only), and
 /// - hand control off to `MediaSessionPlugin.register(with:)` so the
 ///   OS Now Playing widget / Control Center / lockscreen integration
 ///   gets wired up alongside the core plugin.
@@ -39,8 +38,8 @@ public class MpvAudioKitPlugin: NSObject, FlutterPlugin {
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    // Reserved for future platform-bridge methods. Today every
-    // libmpv operation goes through direct FFI from Dart.
+    // The `mpv_audio_kit` channel carries no methods on Apple; libmpv is
+    // driven via FFI from Dart.
     result(FlutterMethodNotImplemented)
   }
 }

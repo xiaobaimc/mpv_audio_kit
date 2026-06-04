@@ -121,10 +121,10 @@ const EncodableMap* SubMap(const EncodableMap& m, const char* key) {
 
 // Give the process a stable AppUserModelID before the SystemMediaTransportControls
 // is created. An unpackaged Flutter `.exe` has no explicit AUMID, so the SMTC
-// card on the volume flyout / lock screen renders with a volatile, process-derived
-// (often blank) source identity. Derived once from the consumer-supplied app name
-// (sanitised to AUMID-legal characters) with a stable package fallback. Must run
-// before SmtcController::EnsureCreated() acquires the SMTC.
+// card would show an unstable source identity. Derived once from the
+// consumer-supplied app name (sanitised to AUMID-legal characters) with a
+// stable package fallback. Must run before SmtcController::EnsureCreated()
+// acquires the SMTC.
 void EnsureProcessIdentity(const std::string& app_name_utf8) {
   static std::atomic_flag done = ATOMIC_FLAG_INIT;
   if (done.test_and_set()) return;

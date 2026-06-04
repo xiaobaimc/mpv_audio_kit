@@ -876,9 +876,9 @@ abstract class _PlayerBase {
           // FILE_LOADED on internal reloads (EDL / segment / gapless / track
           // reinit) for the same audio; resetting there would discard a
           // completed bulk envelope, force a full re-decode, and flash the meter
-          // to empty. Key off the playlist entry `path` — stable across the
-          // PlexTranscode on_load hook (which rewrites stream-open-filename but
-          // not `path`) and distinct per track.
+          // to empty. Key off the playlist entry `path` — stable across an
+          // on_load hook that rewrites stream-open-filename but not `path`,
+          // and distinct per track.
           if (_bringUpCompleted) {
             final src = _getPropStringSync('path');
             if (src != _lastWaveformSource) {

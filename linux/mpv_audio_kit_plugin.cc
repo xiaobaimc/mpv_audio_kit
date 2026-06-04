@@ -34,8 +34,8 @@ G_DEFINE_TYPE(MpvAudioKitPlugin, mpv_audio_kit_plugin, g_object_get_type())
 /**
  * @brief Handles method calls from Dart via the MethodChannel.
  *
- * Currently, this plugin primarily works through direct FFI/C bindings to libmpv,
- * so the MethodChannel is used only for platform-specific interactions if needed.
+ * The package drives libmpv via direct FFI/C bindings, so the MethodChannel
+ * carries no platform methods on Linux.
  *
  * @param self The plugin instance.
  * @param method_call The method call details.
@@ -45,7 +45,7 @@ static void mpv_audio_kit_plugin_handle_method_call(
     FlMethodCall* method_call) {
   g_autoptr(FlMethodResponse) response = nullptr;
 
-  // Platform-specific methods are not yet implemented on Linux.
+  // No platform methods on the main channel; libmpv is driven via FFI.
   response = FL_METHOD_RESPONSE(fl_method_not_implemented_response_new());
 
   fl_method_call_respond(method_call, response, nullptr);

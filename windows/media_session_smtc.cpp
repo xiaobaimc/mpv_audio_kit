@@ -69,8 +69,8 @@ wss::RandomAccessStreamReference MakeThumbnail(const std::vector<uint8_t>& bytes
       wss::DataWriter writer{stream};
       writer.WriteBytes(winrt::array_view<uint8_t const>(
           bytes.data(), bytes.data() + bytes.size()));
-      writer.StoreAsync().get();  // commits the buffer; FlushAsync is a no-op
-      writer.DetachStream();      // (and may throw E_NOTIMPL) on in-memory.
+      writer.StoreAsync().get();  // commits the buffer to the in-memory stream
+      writer.DetachStream();
       stream.Seek(0);
       return wss::RandomAccessStreamReference::CreateFromStream(stream);
     } catch (const winrt::hresult_error&) {
@@ -243,8 +243,8 @@ void SmtcController::PublishMetadata() {
   if (!enabled_) return;
   std::string title = metadata_.title.value_or("");
   // Tagless source (internet radio / untagged file): fall back to the app name
-  // rather than skipping the publish. SMTC needs Type + Update() even with no
-  // other metadata, or the control stays blank despite IsEnabled(true).
+  // rather than skipping the publish. SMTC requires Type + Update() to
+  // publish, even when only the app name is available as a title.
   if (title.empty()) title = config_.app_name;
 
   auto du = smtc_.DisplayUpdater();
@@ -291,7 +291,7 @@ void SmtcController::PublishMetadata() {
     artwork_cache_key_.clear();
     artwork_uri_cache_key_.clear();
   }
-  du.Update();  // mandatory — nothing renders without it.
+  du.Update();  // commits the DisplayUpdater changes to the OS.
 }
 
 void SmtcController::PublishPlayback() {
@@ -304,7 +304,7 @@ void SmtcController::PublishPlayback() {
                        : playback_.playing ? wm::MediaPlaybackStatus::Playing
                                            : wm::MediaPlaybackStatus::Paused);
 
-  // Set these at least once so their *ChangeRequested events can fire.
+  // Initialise these so the OS exposes the repeat / shuffle controls.
   smtc_.AutoRepeatMode(LoopToRepeat(playback_.loop));
   smtc_.ShuffleEnabled(playback_.shuffle);
   smtc_.PlaybackRate(playback_.rate <= 0.0 ? 1.0 : playback_.rate);

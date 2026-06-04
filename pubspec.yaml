@@ -22,18 +22,6 @@ platforms:
 screenshots:
   - description: 'The mpv_audio_kit package logo.'
     path: imgs/mpv_audio_kit.png
-  - description: 'Playback screen.'
-    path: imgs/playback.gif
-  - description: 'Queue screen.'
-    path: imgs/queue.gif
-  - description: 'Stream screen.'
-    path: imgs/stream.gif
-  - description: 'Effects rack.'
-    path: imgs/effects.gif
-  - description: 'Settings screen.'
-    path: imgs/settings.gif
-  - description: 'Console screen.'
-    path: imgs/console.gif
 
 environment:
   sdk: ^3.6.0

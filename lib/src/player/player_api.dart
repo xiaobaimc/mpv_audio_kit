@@ -149,8 +149,8 @@ abstract interface class PlayerApi {
 
   // ── Audio output ───────────────────────────────────────────────────
 
-  /// Sets the output volume in percent (`100` is unattenuated), clamped to
-  /// the current volume-max.
+  /// Sets the output volume in percent (`100` is unattenuated). mpv applies
+  /// its own `volume-max` ceiling.
   Future<void> setVolume(double volume);
 
   /// Sets the playback rate multiplier (`1.0` is normal speed).

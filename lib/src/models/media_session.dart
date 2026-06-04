@@ -125,9 +125,8 @@ class MediaSession {
   /// extension) — used by MPRIS on Linux to resolve the app icon shown beside
   /// the media controls in GNOME / KDE. For
   /// `/usr/share/applications/com.example.myapp.desktop`, pass
-  /// `'com.example.myapp'`. `null` omits the hint entirely (the desktop shows a
-  /// generic placeholder) rather than emitting a guessed value that resolves to
-  /// the wrong icon. Ignored on every non-Linux platform.
+  /// `'com.example.myapp'`. `null` omits the hint. Ignored on every
+  /// non-Linux platform.
   final String? desktopEntry;
 
   /// Creates a media-session configuration. Every field is optional and

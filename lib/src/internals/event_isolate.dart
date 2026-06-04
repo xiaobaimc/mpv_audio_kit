@@ -612,10 +612,8 @@ class MpvEventIsolate {
   // state partially populated.
   final _events = StreamController<MpvIsolateEvent>();
 
-  /// The post-init event stream. Single-subscription so the initial
-  /// property-change burst (one per observed property, emitted the
-  /// moment the isolate starts polling) is buffered until the main-side
-  /// listener attaches, rather than dropped.
+  /// The post-init event stream; single-subscription with buffering (see
+  /// the [_events] field for why the initial burst must not be dropped).
   Stream<MpvIsolateEvent> get events => _events.stream;
 
   /// Spawns the event isolate, runs the heavy mpv init recipe inside

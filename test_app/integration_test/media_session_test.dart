@@ -151,8 +151,8 @@ void main() {
       expect((np['duration'] as num?)?.toDouble() ?? 0, greaterThan(1.5),
           reason: 'snapshot=$np',);
       expect(np['playbackState'], 'playing', reason: 'snapshot=$np');
-      // Embedded cover only resolves where libmpv is patched for it
-      // (macOS desktop). iOS currently ships an unpatched libmpv.
+      // Embedded cover art reaches the OS now-playing info on every
+      // shipped platform; this suite asserts it on macOS only.
       if (Platform.isMacOS) {
         expect(np['hasArtwork'], true, reason: 'snapshot=$np');
       }
@@ -206,7 +206,8 @@ void main() {
 
       // The settled OS state: elapsed moved to ~1.5s, and the play
       // state stayed playing — i.e. mpv's transient pause during the
-      // seek did NOT leak to the OS (suppression). The frame-level
+      // seek did NOT leak to the OS — the published play state binds to
+      // the playWhenReady intent axis, stable across seeks. The frame-level
       // proof of no-flicker is the Dart controller unit test; here we
       // assert the real settled end-to-end state.
       final np = await pumpUntil(

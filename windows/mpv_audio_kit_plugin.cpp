@@ -68,8 +68,8 @@ MpvAudioKitPlugin::~MpvAudioKitPlugin() {}
 /**
  * @brief Handles method calls from Dart via the MethodChannel.
  * 
- * Like other platforms, this plugin primarily uses direct FFI/C bindings to libmpv,
- * so this handler remains minimal for now.
+ * The package drives libmpv via direct FFI/C bindings, so the main
+ * MethodChannel is unused on Windows and this handler is minimal.
  * 
  * @param method_call The incoming method call from Dart.
  * @param result The result object to send a response back.

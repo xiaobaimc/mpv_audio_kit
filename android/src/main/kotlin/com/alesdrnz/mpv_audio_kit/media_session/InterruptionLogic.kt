@@ -17,9 +17,10 @@ import android.media.AudioManager
  * Mirrors the Apple `AVAudioSession` behaviour in `MediaSessionPlugin.swift`:
  * - `pauseAndResume`: pause on loss; resume only after a *transient* loss.
  * - `pauseOnly`: pause on loss; never auto-resume.
- * - `keepPlaying`: never auto-pause (the system still auto-ducks).
- * A headphone unplug ("becoming noisy") pauses regardless of policy (Apple
- * HIG parity), and never arms auto-resume — re-plugging must not restart.
+ * - `keepPlaying`: never auto-pause on focus loss (the system still auto-ducks).
+ * A headphone unplug ("becoming noisy") always pauses, even under
+ * `keepPlaying` (Apple HIG: don't blast the speaker), and never arms
+ * auto-resume — re-plugging must not restart.
  */
 internal object InterruptionLogic {
 
@@ -113,11 +114,8 @@ internal object InterruptionLogic {
     }
 
     /** Reaction to `ACTION_AUDIO_BECOMING_NOISY` (headphones unplugged / BT
-     *  disconnect). Pause unless keepPlaying; never arm auto-resume. */
-    fun onBecomingNoisy(policy: String): Reaction =
-        if (policy == KEEP_PLAYING) {
-            Reaction(command = null, resumeOnFocusGain = false, abandonFocus = false)
-        } else {
-            Reaction(command = PAUSE, resumeOnFocusGain = false, abandonFocus = false)
-        }
+     *  disconnect). Always pauses, even under keepPlaying (Apple HIG: don't
+     *  blast the speaker); never arms auto-resume — re-plugging must not restart. */
+    fun onBecomingNoisy(): Reaction =
+        Reaction(command = PAUSE, resumeOnFocusGain = false, abandonFocus = false)
 }

@@ -48,10 +48,3 @@ analysis_options.yaml
 # Assets — whitelist only the screenshots referenced by pubspec.yaml
 /imgs/*
 !/imgs/mpv_audio_kit.png
-!/imgs/mpv_studio.png
-!/imgs/playback.gif
-!/imgs/queue.gif
-!/imgs/stream.gif
-!/imgs/effects.gif
-!/imgs/settings.gif
-!/imgs/console.gif

@@ -49,7 +49,7 @@ internal class AudioFocusController(
     private val noisyReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action != AudioManager.ACTION_AUDIO_BECOMING_NOISY) return
-            val r = InterruptionLogic.onBecomingNoisy(policy())
+            val r = InterruptionLogic.onBecomingNoisy()
             resumeOnFocusGain = r.resumeOnFocusGain
             r.command?.let { emit(mapOf("type" to it)) }
         }

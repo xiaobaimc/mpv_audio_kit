@@ -18,7 +18,7 @@ import '../_helpers/libmpv_resolver.dart';
 import '../_helpers/setter_test_helpers.dart';
 
 // End-to-end coverage for the opt-in [Media.httpChunkSize]: a throttling CDN
-// (modelled on googlevideo) rate-limits a single open-ended `Range: bytes=N-`
+// rate-limits a single open-ended `Range: bytes=N-`
 // request, so after a seek the buffer drains and playback freezes. Setting
 // `httpChunkSize` makes ffmpeg issue bounded requests instead, which the CDN
 // serves at full speed — the freeze is gone.

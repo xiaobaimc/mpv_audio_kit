@@ -160,17 +160,13 @@ class InterruptionLogicTest {
     // ── Becoming noisy (headphones unplugged) ───────────────────────────
 
     @Test
-    fun `becoming noisy pauses under pause policies and never arms resume`() {
-        for (policy in listOf("pauseAndResume", "pauseOnly")) {
-            val r = InterruptionLogic.onBecomingNoisy(policy)
+    fun `becoming noisy always pauses and never arms resume`() {
+        // Headphone unplug / BT disconnect pauses under every policy,
+        // including keepPlaying (Apple HIG parity); never arms auto-resume.
+        for (policy in listOf("pauseAndResume", "pauseOnly", "keepPlaying")) {
+            val r = InterruptionLogic.onBecomingNoisy()
             assertEquals(InterruptionLogic.PAUSE, r.command, "policy=$policy")
             assertFalse(r.resumeOnFocusGain, "re-plugging must not auto-resume (policy=$policy)")
         }
-    }
-
-    @Test
-    fun `becoming noisy is a no-op under keepPlaying`() {
-        val r = InterruptionLogic.onBecomingNoisy("keepPlaying")
-        assertNull(r.command)
     }
 }

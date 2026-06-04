@@ -7,7 +7,7 @@
 // stable across seeks — so no seek-transient masking is needed and the
 // scrub-bar button never flickers. These tests pin that wiring: intent
 // changes propagate, seek landings re-sync position, and a `core-idle`
-// transient (which the controller no longer observes) cannot reach the
+// transient (which the controller does not observe) cannot reach the
 // OS.
 //
 // The native publish (composing `MPNowPlayingInfoCenter`) is covered by

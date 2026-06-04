@@ -21,8 +21,8 @@ set(PLUGIN_NAME "mpv_audio_kit_plugin")
 # arch-scoped subdirectories: linux/libs/<arch>/libmpv.so. The CMake config
 # detects the build's target arch and picks the matching subdir.
 set(MPV_RELEASE_VERSION "libmpv-r8")
-set(EXPECTED_SHA256_X86_64  "62c2580e239091a0fd41c2f9793cdbd3f5dcfc63c453feac90868d36cbb543eb")
-set(EXPECTED_SHA256_AARCH64  "bad00511dd9de188a098e94bee6e7cff4ee8193512166680116684a07d09eaa7")
+set(EXPECTED_SHA256_X86_64  "46ba7bc74fef60a4ed4b2549c2f20a704f415811f6e826b6d72745fa2bcc7a65")
+set(EXPECTED_SHA256_AARCH64  "64ac33f5a0114e22076e20df089f4328bc585984dd3024f56fbb83106b312985")
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
   set(_MPV_ARCH "aarch64")
@@ -55,22 +55,22 @@ endif()
 # commented out in LOCAL mode (use the bundled binary only, never download). The
 # kit comments/uncomments this block — do not hand-edit the mpvkit: markers.
 # mpvkit:remote:begin
-# if(DOWNLOAD_NEEDED)
-  # message(STATUS "[mpv_audio_kit] Downloading ${_MPV_RELEASE_NAME} from GitHub Releases...")
-  # file(MAKE_DIRECTORY "${_MPV_LIB_DIR}")
-  # file(DOWNLOAD
-    # "https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/${_MPV_RELEASE_NAME}"
-    # "${_BUNDLED_MPV}"
-    # SHOW_PROGRESS
-    # EXPECTED_HASH SHA256=${_MPV_EXPECTED_SHA}
-    # STATUS DOWNLOAD_STATUS
-  # )
-  # list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
-  # if(NOT STATUS_CODE EQUAL 0)
-    # list(GET DOWNLOAD_STATUS 1 ERROR_MSG)
-    # message(FATAL_ERROR "[mpv_audio_kit] Failed to download ${_MPV_RELEASE_NAME}: ${ERROR_MSG}. Place it manually at ${_BUNDLED_MPV}")
-  # endif()
-# endif()
+if(DOWNLOAD_NEEDED)
+  message(STATUS "[mpv_audio_kit] Downloading ${_MPV_RELEASE_NAME} from GitHub Releases...")
+  file(MAKE_DIRECTORY "${_MPV_LIB_DIR}")
+  file(DOWNLOAD
+    "https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/${_MPV_RELEASE_NAME}"
+    "${_BUNDLED_MPV}"
+    SHOW_PROGRESS
+    EXPECTED_HASH SHA256=${_MPV_EXPECTED_SHA}
+    STATUS DOWNLOAD_STATUS
+  )
+  list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
+  if(NOT STATUS_CODE EQUAL 0)
+    list(GET DOWNLOAD_STATUS 1 ERROR_MSG)
+    message(FATAL_ERROR "[mpv_audio_kit] Failed to download ${_MPV_RELEASE_NAME}: ${ERROR_MSG}. Place it manually at ${_BUNDLED_MPV}")
+  endif()
+endif()
 # mpvkit:remote:end
 
 if(EXISTS "${_BUNDLED_MPV}")

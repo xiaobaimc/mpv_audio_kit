@@ -1,9 +1,6 @@
-## [0.3.0] - WIP
+## [0.3.0] - 5-06-2026
 
-### Example
-- The example app has moved to its own repository as a standalone app, [MPV Studio](https://github.com/ales-drnz/mpv_studio). The bundled `example/` is now a minimal single-file demo.
-
-### Added 
+### Added
 - `Player.setMediaSession(MediaSession?)`: publishes the player to the OS media session (Now Playing, Control Center, lockscreen, MPRIS, SMTC, Android notification). Metadata and artwork come from the playing file or override per field; `null` removes the entry.
 - `Player.stream.mediaSessionCommands`: transport commands the OS sends back (play, pause, next, seek, repeat, shuffle, speed, and the favourite/like press). Auto-applied to the player and surfaced here for analytics or interception; `MediaSessionCommandLike` is emit-only (no built-in favourite concept).
 - `MediaSession`: configures the advertised buttons (`MediaAction`, including the `like`/favourite feedback with its `isFavorite` filled-star state), artwork (`MediaSessionArtwork`), skip intervals, supported speeds, the interruption response (`InterruptionPolicy`), and the app identity (`appName`, `desktopEntry`).
@@ -20,14 +17,16 @@
 - `Player.stream.waveform` no longer renders a short flat segment at the end when a file's declared duration overshoots the decoded audio.
 - `Player.stream.tap(...)` no longer re-emits an identical PCM frame on every poll while paused or stopped at end of content.
 - A finished track or playlist now settles the play/pause button back on "play" and reports `state.completed` / `MpvPlaybackState.completed` at the natural end of content.
-- `setRawProperty('pause', …)` is now rejected , it bypassed play/pause intent and desynced the OS button; use `Player.play()` / `Player.pause()`.
+- `setRawProperty('pause', …)` is now rejected — it bypassed play/pause intent and desynced the OS button; use `Player.play()` / `Player.pause()`.
 - A failed first `open(play: true)` no longer leaves the play/pause button stuck on "pause".
 - `setAudioDriver('auto')` (and an empty string) now selects mpv's auto-probe instead of failing with "Audio output auto not found".
+
+### Example
+- The example app has moved to its own repository as a standalone app, [MPV Studio](https://github.com/ales-drnz/mpv_studio). The bundled `example/` is now a minimal single-file demo.
 
 ### Build
 - Updated `cacert.pem` to version 1.33.
 - Migrated the Android build to Flutter's Built-in Kotlin model.
-- New progressive/rolling waveform analyzer.
 - The bundled libmpv's `smb2://` protocol now percent-decodes the URL path, user and share (previously only the password).
 - Updated libmpv to `libmpv-r8` across all platforms.
 

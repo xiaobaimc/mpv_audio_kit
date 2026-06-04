@@ -130,7 +130,7 @@ mixin _MediaSessionModule on _PlayerBase {
       case MediaSessionCommandLike():
         // Emit-only: there is no built-in favourite concept, so it is not
         // auto-applied. The consumer reacts on the stream below and reflects
-        // the new state via `MediaSession.isFavorite` (fills/empties the star).
+        // the new state via `MediaSession.isFavorite`.
         break;
       case MediaSessionCommandSeekTo(:final position):
         unawaited((this as Player).seek(position));
