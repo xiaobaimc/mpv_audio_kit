@@ -7,8 +7,12 @@
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Storage.Streams.h>
 
+#include <fstream>
 #include <chrono>
 #include <future>
+
+#include <shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
 
 namespace mpv_audio_kit {
 
@@ -75,6 +79,44 @@ wss::RandomAccessStreamReference MakeThumbnail(const std::vector<uint8_t>& bytes
       return wss::RandomAccessStreamReference::CreateFromStream(stream);
     } catch (const winrt::hresult_error&) {
       // Undecodable / bad blob → no thumbnail rather than a crashed thread.
+      return wss::RandomAccessStreamReference{nullptr};
+    }
+  }).get();
+}
+
+// Builds an in-memory thumbnail stream reference by reading a local file.
+// Uses PathCreateFromUrlW to resolve a `file://` URI to a Win32 path, then
+// reads the bytes and forwards them to MakeThumbnail — same MTA-safe pattern.
+wss::RandomAccessStreamReference MakeThumbnailFromFile(
+    const std::wstring& path) {
+  return std::async(std::launch::async,
+                    [path]() -> wss::RandomAccessStreamReference {
+    try {
+      winrt::init_apartment(winrt::apartment_type::multi_threaded);
+    } catch (const winrt::hresult_error&) {
+    }
+    try {
+      std::ifstream file(path, std::ios::binary | std::ios::ate);
+      if (!file.is_open())
+        return wss::RandomAccessStreamReference{nullptr};
+      const auto size = file.tellg();
+      if (size <= 0)
+        return wss::RandomAccessStreamReference{nullptr};
+      file.seekg(0);
+      std::vector<uint8_t> bytes(static_cast<size_t>(size));
+      file.read(reinterpret_cast<char*>(bytes.data()), size);
+      if (!file)
+        return wss::RandomAccessStreamReference{nullptr};
+
+      wss::InMemoryRandomAccessStream stream;
+      wss::DataWriter writer{stream};
+      writer.WriteBytes(winrt::array_view<uint8_t const>(
+          bytes.data(), bytes.data() + bytes.size()));
+      writer.StoreAsync().get();
+      writer.DetachStream();
+      stream.Seek(0);
+      return wss::RandomAccessStreamReference::CreateFromStream(stream);
+    } catch (...) {
       return wss::RandomAccessStreamReference{nullptr};
     }
   }).get();
@@ -274,14 +316,33 @@ void SmtcController::PublishMetadata() {
     // has no embedded bytes) — hand SMTC a stream reference built straight
     // from the URI rather than shipping a blob across the channel.
     if (*metadata_.artwork_uri != artwork_uri_cache_key_) {
-      try {
-        winrt::Windows::Foundation::Uri uri{
-            winrt::to_hstring(*metadata_.artwork_uri)};
-        du.Thumbnail(wss::RandomAccessStreamReference::CreateFromUri(uri));
-      } catch (const winrt::hresult_error&) {
-        du.Thumbnail(wss::RandomAccessStreamReference{nullptr});
+      const std::string& uri_str = *metadata_.artwork_uri;
+      const bool is_file_uri =
+          uri_str.size() >= 7 &&
+          uri_str.compare(0, 7, "file://") == 0;
+      if (is_file_uri) {
+        // `RandomAccessStreamReference::CreateFromUri` does not support
+        // `file://` URIs — resolve to a Win32 path and read the bytes.
+        std::wstring wide_uri =
+            winrt::to_hstring(uri_str).c_str();
+        wchar_t win_path[MAX_PATH] = {};
+        DWORD path_len = MAX_PATH;
+        if (SUCCEEDED(PathCreateFromUrlW(wide_uri.c_str(), win_path,
+                                        &path_len, 0))) {
+          du.Thumbnail(MakeThumbnailFromFile(win_path));
+        } else {
+          du.Thumbnail(wss::RandomAccessStreamReference{nullptr});
+        }
+      } else {
+        try {
+          winrt::Windows::Foundation::Uri uri{
+              winrt::to_hstring(uri_str)};
+          du.Thumbnail(wss::RandomAccessStreamReference::CreateFromUri(uri));
+        } catch (const winrt::hresult_error&) {
+          du.Thumbnail(wss::RandomAccessStreamReference{nullptr});
+        }
       }
-      artwork_uri_cache_key_ = *metadata_.artwork_uri;
+      artwork_uri_cache_key_ = uri_str;
       artwork_cache_key_.clear();
     }
   } else {

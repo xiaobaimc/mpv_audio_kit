@@ -1,3 +1,8 @@
+## [0.3.2] - 5-06-2026
+
+### Fixed
+- Windows SMTC: artwork supplied as a `file://` URI (e.g. local cache paths) is now displayed correctly. 
+
 ## [0.3.1] - 5-06-2026
 
 ### Fixed
