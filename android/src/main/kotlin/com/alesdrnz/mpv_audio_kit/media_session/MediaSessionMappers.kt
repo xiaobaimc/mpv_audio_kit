@@ -100,62 +100,57 @@ internal object MediaSessionMappers {
         config: MediaSessionManager.ConfigSnapshot,
         playback: MediaSessionManager.PlaybackSnapshot,
     ): List<CommandButton> {
-        val actions = config.actions
         val buttons = mutableListOf<CommandButton>()
 
-        if ("rewind" in actions) {
-            buttons.add(
-                CommandButton.Builder(CommandButton.ICON_REWIND)
-                    .setDisplayName("Rewind")
-                    .setPlayerCommand(Player.COMMAND_SEEK_BACK)
-                    .build(),
-            )
-        }
-        if ("fastForward" in actions) {
-            buttons.add(
-                CommandButton.Builder(CommandButton.ICON_FAST_FORWARD)
-                    .setDisplayName("Fast forward")
-                    .setPlayerCommand(Player.COMMAND_SEEK_FORWARD)
-                    .build(),
-            )
-        }
-        if ("setRepeatMode" in actions) {
-            // Icon = current mode; parameter = next in the off → all → one cycle.
-            val (icon, next) = when (playback.loop) {
-                "playlist" -> CommandButton.ICON_REPEAT_ALL to Player.REPEAT_MODE_ONE
-                "file" -> CommandButton.ICON_REPEAT_ONE to Player.REPEAT_MODE_OFF
-                else -> CommandButton.ICON_REPEAT_OFF to Player.REPEAT_MODE_ALL
-            }
-            buttons.add(
-                CommandButton.Builder(icon)
-                    .setDisplayName("Repeat")
-                    .setPlayerCommand(Player.COMMAND_SET_REPEAT_MODE, next)
-                    .build(),
-            )
-        }
-        if ("setShuffle" in actions) {
-            val icon =
-                if (playback.shuffle) CommandButton.ICON_SHUFFLE_ON else CommandButton.ICON_SHUFFLE_OFF
-            buttons.add(
-                CommandButton.Builder(icon)
-                    .setDisplayName("Shuffle")
-                    .setPlayerCommand(Player.COMMAND_SET_SHUFFLE_MODE, !playback.shuffle)
-                    .build(),
-            )
-        }
-        if ("like" in actions) {
-            val icon =
-                if (config.isFavorite) {
-                    CommandButton.ICON_HEART_FILLED
-                } else {
-                    CommandButton.ICON_HEART_UNFILLED
+        // Build in the consumer's advertised order (preserved end-to-end as a
+        // LinkedHashSet from the Dart `actions`). Android renders only a few
+        // media-button slots, so the order IS the priority: whichever buttons
+        // come first win the visible slots and the rest overflow. Non-custom
+        // actions (play/pause/next/previous/seek/stop/rate) aren't buttons here.
+        for (action in config.actions) {
+            val button = when (action) {
+                "rewind" ->
+                    CommandButton.Builder(CommandButton.ICON_REWIND)
+                        .setDisplayName("Rewind")
+                        .setPlayerCommand(Player.COMMAND_SEEK_BACK)
+                        .build()
+                "fastForward" ->
+                    CommandButton.Builder(CommandButton.ICON_FAST_FORWARD)
+                        .setDisplayName("Fast forward")
+                        .setPlayerCommand(Player.COMMAND_SEEK_FORWARD)
+                        .build()
+                "setRepeatMode" -> {
+                    // Icon = current mode; parameter = next in the off → all → one cycle.
+                    val (icon, next) = when (playback.loop) {
+                        "playlist" -> CommandButton.ICON_REPEAT_ALL to Player.REPEAT_MODE_ONE
+                        "file" -> CommandButton.ICON_REPEAT_ONE to Player.REPEAT_MODE_OFF
+                        else -> CommandButton.ICON_REPEAT_OFF to Player.REPEAT_MODE_ALL
+                    }
+                    CommandButton.Builder(icon)
+                        .setDisplayName("Repeat")
+                        .setPlayerCommand(Player.COMMAND_SET_REPEAT_MODE, next)
+                        .build()
                 }
-            buttons.add(
-                CommandButton.Builder(icon)
-                    .setDisplayName("Favorite")
-                    .setSessionCommand(SessionCommand(LIKE_ACTION, Bundle.EMPTY))
-                    .build(),
-            )
+                "setShuffle" -> {
+                    val icon =
+                        if (playback.shuffle) CommandButton.ICON_SHUFFLE_ON else CommandButton.ICON_SHUFFLE_OFF
+                    CommandButton.Builder(icon)
+                        .setDisplayName("Shuffle")
+                        .setPlayerCommand(Player.COMMAND_SET_SHUFFLE_MODE, !playback.shuffle)
+                        .build()
+                }
+                "like" -> {
+                    val icon =
+                        if (config.isFavorite) CommandButton.ICON_HEART_FILLED
+                        else CommandButton.ICON_HEART_UNFILLED
+                    CommandButton.Builder(icon)
+                        .setDisplayName("Favorite")
+                        .setSessionCommand(SessionCommand(LIKE_ACTION, Bundle.EMPTY))
+                        .build()
+                }
+                else -> null
+            }
+            if (button != null) buttons.add(button)
         }
         return buttons
     }

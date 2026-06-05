@@ -6,6 +6,7 @@
 package com.alesdrnz.mpv_audio_kit.media_session
 
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -13,9 +14,11 @@ import android.os.Handler
 import android.os.Looper
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.CommandButton
+import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
+import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import io.flutter.plugin.common.EventChannel
@@ -122,6 +125,13 @@ internal object MediaSessionManager :
     private var player: MpvControllerPlayer? = null
     private var session: MediaSession? = null
     private var audioFocus: AudioFocusController? = null
+
+    // A self-connected controller binds [MpvMediaSessionService] so Media3
+    // promotes it to the foreground and posts (and keeps updating) the media
+    // notification. `startService` alone runs the service but never engages its
+    // MediaNotificationManager, so without this binding the notification — and
+    // the lock-screen / shade media controls it drives — never appear.
+    private var controllerFuture: ListenableFuture<MediaController>? = null
     private var publishCount: Int = 0
 
     /** The last media button preferences pushed to the session — so a
@@ -299,6 +309,10 @@ internal object MediaSessionManager :
         // notification and demotes the foreground service, THEN release.
         player?.republish()
         publishCount++
+        // Release the foreground-holding controller before stopping the
+        // service so Media3 drops the notification and demotes the FGS.
+        controllerFuture?.let { MediaController.releaseFuture(it) }
+        controllerFuture = null
         stopService()
         // Media3's documented onDestroy order: release the Player BEFORE the
         // MediaSession it wraps, or the player's release-time notifications hit
@@ -354,6 +368,16 @@ internal object MediaSessionManager :
             // Background-start restriction (Android 8+) — enable() is
             // user-initiated in the foreground, so this rarely fires; if it
             // does, the session still exists, only the notification is absent.
+        }
+        // Bind a controller to the service. This is what makes Media3 promote
+        // the service to the foreground and post the media notification — a
+        // bare startService never engages its notification manager. The
+        // controller drives nothing (playback is owned by Dart); it exists
+        // only to hold the service foreground for the session's lifetime.
+        if (controllerFuture == null) {
+            val token =
+                SessionToken(ctx, ComponentName(ctx, MpvMediaSessionService::class.java))
+            controllerFuture = MediaController.Builder(ctx, token).buildAsync()
         }
     }
 

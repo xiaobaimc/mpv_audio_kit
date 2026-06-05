@@ -73,7 +73,9 @@ class MediaSession {
   /// Capabilities advertised to the OS. What actually renders is
   /// **platform-gated**, not just space-gated: each native media UI draws
   /// only a subset (a lockscreen typically shows 3–4 of those), and the wider
-  /// set is offered to Siri / Google Assistant / Android Auto / CarPlay.
+  /// set is offered to Siri / Google Assistant / Android Auto / CarPlay. The
+  /// iteration order is preserved when pushing the configuration to native
+  /// media sessions.
   /// Advertising an action a platform doesn't render is harmless. See the
   /// per-platform support matrix in the README's *OS media session* section,
   /// and the per-value notes on [MediaAction].
@@ -214,10 +216,7 @@ class MediaSession {
         other.desktopEntry != desktopEntry) {
       return false;
     }
-    if (other.actions.length != actions.length) return false;
-    for (final a in actions) {
-      if (!other.actions.contains(a)) return false;
-    }
+    if (!_sameActionsInOrder(other.actions, actions)) return false;
     if (other.supportedPlaybackRates.length != supportedPlaybackRates.length) {
       return false;
     }
@@ -236,7 +235,7 @@ class MediaSession {
         album,
         artwork,
         duration,
-        Object.hashAllUnordered(actions),
+        Object.hashAll(actions),
         isFavorite,
         interruptionPolicy,
         fastForwardInterval,
@@ -255,4 +254,17 @@ class MediaSession {
       'rewindInterval: $rewindInterval, '
       'supportedPlaybackRates: $supportedPlaybackRates, '
       'appName: $appName, desktopEntry: $desktopEntry)';
+}
+
+bool _sameActionsInOrder(
+  Set<MediaAction> a,
+  Set<MediaAction> b,
+) {
+  if (a.length != b.length) return false;
+  final ait = a.iterator;
+  final bit = b.iterator;
+  while (ait.moveNext() && bit.moveNext()) {
+    if (ait.current != bit.current) return false;
+  }
+  return true;
 }
