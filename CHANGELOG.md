@@ -1,3 +1,8 @@
+## [0.3.1] - 5-06-2026
+
+### Fixed
+- Old build tag in macOS podspec.
+
 ## [0.3.0] - 5-06-2026
 
 ### Added
