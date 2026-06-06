@@ -46,5 +46,19 @@ void main() {
       expect(a, b);
       expect(a.hashCode, b.hashCode);
     });
+
+    test('autoApplyPlaylistNavigation participates in equality and copyWith', () {
+      const a = MediaSession(autoApplyPlaylistNavigation: true);
+      const b = MediaSession(autoApplyPlaylistNavigation: false);
+
+      expect(a.autoApplyPlaylistNavigation, isTrue);
+      expect(b.autoApplyPlaylistNavigation, isFalse);
+      expect(a, isNot(b));
+      expect(a.hashCode, isNot(b.hashCode));
+
+      final copied = a.copyWith(autoApplyPlaylistNavigation: false);
+      expect(copied.autoApplyPlaylistNavigation, isFalse);
+      expect(copied, b);
+    });
   });
 }
