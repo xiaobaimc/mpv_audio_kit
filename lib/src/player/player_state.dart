@@ -239,6 +239,11 @@ final class PlayerState {
   /// Whether audio exclusive mode is enabled.
   final bool audioExclusive;
 
+  /// Whether mpv tags the stream's media role as "music" on the OS audio
+  /// server (`audio-set-media-role`; PulseAudio / PipeWire). Set via
+  /// [Player.setAudioMediaRole].
+  final bool audioMediaRole;
+
   /// Audio buffer size.
   final Duration audioBuffer;
 
@@ -516,6 +521,7 @@ final class PlayerState {
     this.tlsVerify = false,
     this.tlsCaFile = '',
     this.audioExclusive = false,
+    this.audioMediaRole = false,
     this.audioBuffer = const Duration(milliseconds: 200),
     this.audioStreamSilence = false,
     this.audioNullUntimed = false,
@@ -612,6 +618,7 @@ final class PlayerState {
     bool? tlsVerify,
     String? tlsCaFile,
     bool? audioExclusive,
+    bool? audioMediaRole,
     Duration? audioBuffer,
     bool? audioStreamSilence,
     bool? audioNullUntimed,
@@ -710,6 +717,7 @@ final class PlayerState {
         tlsVerify: tlsVerify ?? this.tlsVerify,
         tlsCaFile: tlsCaFile ?? this.tlsCaFile,
         audioExclusive: audioExclusive ?? this.audioExclusive,
+        audioMediaRole: audioMediaRole ?? this.audioMediaRole,
         audioBuffer: audioBuffer ?? this.audioBuffer,
         audioStreamSilence: audioStreamSilence ?? this.audioStreamSilence,
         audioNullUntimed: audioNullUntimed ?? this.audioNullUntimed,
@@ -820,6 +828,7 @@ final class PlayerState {
           other.tlsVerify == tlsVerify &&
           other.tlsCaFile == tlsCaFile &&
           other.audioExclusive == audioExclusive &&
+          other.audioMediaRole == audioMediaRole &&
           other.audioBuffer == audioBuffer &&
           other.audioStreamSilence == audioStreamSilence &&
           other.audioNullUntimed == audioNullUntimed &&
@@ -915,6 +924,7 @@ final class PlayerState {
         tlsVerify,
         tlsCaFile,
         audioExclusive,
+        audioMediaRole,
         audioBuffer,
         audioStreamSilence,
         audioNullUntimed,

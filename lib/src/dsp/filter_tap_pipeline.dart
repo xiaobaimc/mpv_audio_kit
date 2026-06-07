@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 
 import '../models/pcm_frame.dart';
 import '../mpv_bindings.dart';
+import 'pcm_node_decode.dart';
 
 /// Upper bound on the channel count reported by the native filter tap.
 ///
@@ -243,14 +244,7 @@ class FilterTapPipeline {
             ptsNs = node.u.int64;
           }
         case 'samples':
-          if (node.format == MpvFormat.mpvFormatByteArray) {
-            final ba = node.u.ba.ref;
-            if (ba.size > 0) {
-              final n = ba.size ~/ 4;
-              final src = ba.data.cast<Float>().asTypedList(n);
-              samples = Float32List(n)..setAll(0, src);
-            }
-          }
+          samples = decodeInterleavedFloat32(node);
       }
     }
     if (samples == null ||

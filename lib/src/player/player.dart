@@ -9,6 +9,9 @@ import 'dart:ffi';
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
+import '../dsp/filter_tap_pipeline.dart';
+import '../dsp/spectrum_pipeline.dart';
+import '../dsp/waveform_pipeline.dart';
 import '../events/mpv_exception.dart';
 import '../events/mpv_hook_event.dart';
 import '../events/mpv_log_entry.dart';
@@ -17,14 +20,11 @@ import '../generated/audio_effects_settings.dart';
 import '../internals/cover_art_extractor.dart';
 import '../internals/duration_seconds.dart';
 import '../internals/event_isolate.dart';
-import '../internals/filter_tap_pipeline.dart';
 import '../internals/library_loader.dart';
 import '../internals/orphan_handle_tracker.dart';
 import '../internals/player_finalizer.dart';
-import '../internals/spectrum_pipeline.dart';
 import '../internals/tls_ca_bundle.dart';
 import '../internals/uri_resolver.dart';
-import '../internals/waveform_pipeline.dart';
 import '../media_session/media_session_controller.dart';
 import '../media_session/media_session_inputs.dart';
 import '../models/chapter.dart';
@@ -38,6 +38,7 @@ import '../models/pcm_frame.dart';
 import '../models/playlist.dart';
 import '../models/waveform_data.dart';
 import '../mpv_bindings.dart' hide MpvEndFileReason;
+import '../reactive/default_reactives.dart';
 import '../reactive/default_specs.dart';
 import '../reactive/node_parsers.dart';
 import '../reactive/property_registry.dart';
@@ -86,12 +87,16 @@ export 'player_configuration.dart';
 export 'player_state.dart';
 export 'player_stream.dart';
 
-part 'player_audio.part.dart';
-part 'player_hooks.part.dart';
-part 'player_media_session.part.dart';
-part 'player_network.part.dart';
-part 'player_playback.part.dart';
-part 'player_playlist.part.dart';
+part 'mixins/player_audio.part.dart';
+part 'mixins/player_dispatch.part.dart';
+part 'mixins/player_ffi.part.dart';
+part 'mixins/player_hooks.part.dart';
+part 'mixins/player_init.part.dart';
+part 'mixins/player_load_validation.part.dart';
+part 'mixins/player_media_session.part.dart';
+part 'mixins/player_network.part.dart';
+part 'mixins/player_playback.part.dart';
+part 'mixins/player_playlist.part.dart';
 
 /// A high-performance audio player powered by libmpv.
 ///
@@ -100,6 +105,10 @@ part 'player_playlist.part.dart';
 /// (`class MockPlayer extends Mock implements PlayerApi {}`).
 class Player extends _PlayerBase
     with
+        _FfiModule,
+        _LoadValidationModule,
+        _InitModule,
+        _DispatchModule,
         _PlaybackModule,
         _PlaylistModule,
         _AudioModule,
@@ -305,140 +314,6 @@ class Player extends _PlayerBase
     _command(['loadlist', resolved.uri, 'replace']);
   }
 
-  /// Reads any mpv property as a string.
-  ///
-  /// **Escape hatch for properties not surfaced by the typed API.** For
-  /// observed properties (`volume`, `pause`, `cache-secs`, …), prefer
-  /// `player.state.<field>` — the cached value is updated on every
-  /// property-change event from mpv and avoids an FFI round-trip.
-  ///
-  /// Returns `null` if the property doesn't exist or the FFI call
-  /// fails. Throws [StateError] if the player has been disposed.
-  @override
-  Future<String?> getRawProperty(String name) async {
-    _checkNotDisposed();
-    await _ready;
-    return using((arena) {
-      final n = name.toNativeUtf8(allocator: arena);
-      final ptr = _lib.mpvGetPropertyString(_handle, n);
-      if (ptr == nullptr) {
-        return null;
-      }
-      final s = ptr.cast<Utf8>().toDartString();
-      _lib.mpvFree(ptr.cast());
-      return s;
-    });
-  }
-
-  /// Writes any mpv property as a string.
-  ///
-  /// **Warning:** this is an escape hatch for properties the typed API
-  /// doesn't yet cover. If [name] is one of the registry-observed
-  /// properties (volume, cache-*, replaygain*, ao, …), the
-  /// resulting state mutation will *also* flow through the property
-  /// observer on mpv's side, so `player.state` and `player.stream` will
-  /// stay consistent — but expect a one-event-loop-tick delay between
-  /// the call returning and the cached state catching up. Prefer the
-  /// typed setters (`setVolume`, `setCache`, `setReplayGain`, …) when
-  /// they exist, both for type-safety and for synchronous state update.
-  ///
-  /// Two properties are reserved and rejected:
-  /// - `af` — owned by the typed [AudioEffects] bundle (including raw
-  ///   passthroughs via [AudioEffects.custom]); a raw write would silently
-  ///   desync `state.audioEffects`. Use [setAudioEffects] /
-  ///   [updateAudioEffects].
-  /// - `pause` — owned by the transport intent axis. It is deliberately not
-  ///   observed (see [PlayerState.playWhenReady]), so a raw write would
-  ///   change actual playback while leaving `state.playWhenReady` (and the
-  ///   OS play/pause button bound to it) reporting the old intent. Use
-  ///   [play] / [pause].
-  ///
-  /// Throws [StateError] if the player has been disposed,
-  /// [ArgumentError] if [name] is reserved, or [MpvException] if mpv
-  /// rejects the property write (unknown name, out-of-range value, etc.).
-  @override
-  Future<void> setRawProperty(String name, String value) async {
-    _checkNotDisposed();
-    await _ready;
-    if (name == 'af') {
-      throw ArgumentError.value(
-        name,
-        'name',
-        'Property `af` is owned by the typed AudioEffects bundle. '
-            'Use Player.setAudioEffects / updateAudioEffects, and pass '
-            'experimental or expression-based filters via '
-            'AudioEffects.custom.',
-      );
-    }
-    if (name == 'pause') {
-      throw ArgumentError.value(
-        name,
-        'name',
-        'Property `pause` is owned by the transport intent axis and is not '
-            'observed, so a raw write would desync state.playWhenReady (and '
-            'the OS play/pause button) from actual playback. '
-            'Use Player.play() / Player.pause() instead.',
-      );
-    }
-    _prop(name, value);
-  }
-
-  /// Sends a raw mpv command.
-  ///
-  /// **Escape hatch.** Same caveats as [setRawProperty]: prefer the
-  /// typed playback / playlist methods (`play`, `pause`, `seek`,
-  /// `add`, `jump`, …) when they cover your use case.
-  ///
-  /// Throws [StateError] if the player has been disposed, or
-  /// [MpvException] if mpv rejects the command (unknown command,
-  /// invalid argument, etc.). A successful return guarantees mpv
-  /// accepted the command; the actual side-effect on playback state
-  /// is observed asynchronously via [Player.stream].
-  @override
-  Future<void> sendRawCommand(List<String> args) async {
-    _checkNotDisposed();
-    await _ready;
-    // Symmetric guard with `setRawProperty('af', ...)`: mpv exposes
-    // `af` and `af-command` as commands that mutate the audio chain
-    // incrementally — bypassing the typed `AudioEffects` bundle and
-    // desynchronizing `state.audioEffects`. The bundle is the single
-    // writer of mpv's `af` property; raw incremental mutation goes
-    // through `AudioEffects.custom` instead.
-    if (args.isNotEmpty && (args.first == 'af' || args.first == 'af-command')) {
-      throw ArgumentError.value(
-        args.first,
-        'args[0]',
-        'Command `${args.first}` is owned by the typed AudioEffects bundle. '
-            'Use Player.setAudioEffects / updateAudioEffects, and pass '
-            'experimental or expression-based filters via AudioEffects.custom.',
-      );
-    }
-    final rc = _command(args);
-    if (rc < 0) {
-      throw MpvException(
-        name: args.isEmpty ? '<empty>' : args.first,
-        code: rc,
-        message: _errorString(rc),
-      );
-    }
-  }
-
-  @override
-  Future<void> setLogLevel(LogLevel level) async {
-    _checkNotDisposed();
-    await _ready;
-    // `mpv_request_log_messages` is thread-safe and operates on the shared
-    // client handle the same way the main-thread getRawProperty path does,
-    // so there's no need to round-trip through the event isolate.
-    // [LogLevel.off] already maps to mpv's `no`.
-    using(
-      (arena) => _lib.mpvRequestLogMessages(
-        _handle,
-        level.mpvValue.toNativeUtf8(allocator: arena),
-      ),
-    );
-  }
-
   @override
   Future<void> dispose() async {
     // Release the OS media session BEFORE tearing libmpv down. After
@@ -592,6 +467,34 @@ abstract class _PlayerBase {
   /// Test-only; `null` outside [Player.testInstrumented].
   final int? _wakeupCounterAddress;
 
+  // ── Cross-mixin surface ──────────────────────────────────────────────────
+  // These members live in the `.part` mixins below but are declared here
+  // (abstract) so `_PlayerBase`'s constructor / `dispose` and the sibling
+  // domain mixins can call across part boundaries — `on _PlayerBase` only
+  // exposes what `_PlayerBase` itself declares.
+
+  /// See `_FfiModule` (player_ffi.part.dart).
+  void _prop(String name, String value);
+  int _propRc(String name, String value);
+  int _command(List<String> args);
+  int _setChapterListNode(List<Chapter> chapters);
+  String _errorString(int code);
+
+  /// See `_LoadValidationModule` (player_load_validation.part.dart).
+  String _buildLoadfileOptions(Media media);
+  void _validateLoadOptions(Media media);
+
+  /// See `_InitModule` (player_init.part.dart) — called by the constructor.
+  Future<void> _bringUpInIsolate();
+
+  /// See `_DispatchModule` (player_dispatch.part.dart) — wired as the event
+  /// isolate's `onEvent` during bring-up.
+  void _handleEvent(MpvIsolateEvent event);
+
+  /// See `_DispatchModule` — `setAudioDevice` reuses it to optimistically
+  /// resolve the device description from the parsed `audio-device-list`.
+  void _updateActiveAudioDevice(String name);
+
   _PlayerBase({
     this.configuration = const PlayerConfiguration(),
     int? wakeupCounterAddress,
@@ -730,441 +633,12 @@ abstract class _PlayerBase {
   late final StreamController<SpectrumSettings> _spectrumCtrl;
   late final StreamController<WaveformData?> _waveformCtrl;
 
-  Future<void> _bringUpInIsolate() async {
-    final preOpts = _buildPreInitOptions();
-    final postOpts = _buildPostInitOptions();
-    final observes = _buildObserveSpecs();
-    final logLevel = configuration.logLevel == LogLevel.off
-        ? null
-        : configuration.logLevel.mpvValue;
-
-    final handleAddress = await _eventIsolate.start(
-      libraryPath: MpvAudioKit.libraryPath,
-      onEvent: _handleEvent,
-      preInitOptions: preOpts,
-      postInitOptions: postOpts,
-      observes: observes,
-      logLevel: logLevel,
-      wakeupCounterAddress: _wakeupCounterAddress,
-    );
-
-    if (_disposed) return;
-
-    // Re-open the library on the main isolate. The OS keeps libmpv
-    // mapped after the event isolate's first dlopen, so this resolves
-    // in microseconds — no second cold-load cost.
-    _lib = MpvLibrary.open(MpvAudioKit.libraryPath);
-    _handle = Pointer<MpvHandle>.fromAddress(handleAddress);
-    _spectrumPipeline = SpectrumPipeline(lib: _lib, handle: _handle);
-    _spectrumPipeline.fftStream.listen(_fftCtrl.add);
-    _spectrumPipeline.pcmStream.listen(_pcmStreamCtrl.add);
-    _spectrumPipeline.settingsStream.listen(_spectrumCtrl.add);
-    _waveformPipeline = WaveformPipeline(lib: _lib, handle: _handle);
-    _filterTapPipeline = FilterTapPipeline(lib: _lib, handle: _handle);
-    _waveformPipeline.stream.listen(_waveformCtrl.add);
-
-    OrphanHandleTracker.instance.add(_handle);
-    _nativeResources = PlayerNativeResources(_lib, _handle);
-    playerFinalizer.attach(this, _nativeResources, detach: this);
-
-    // Wire `tls-ca-file` to the bundled CA pem so HTTPS verification
-    // works on platforms whose OS trust store the underlying TLS backend
-    // cannot read.
-    _tlsBundleReady = _autoConfigureTlsCaBundle();
-    _bringUpCompleted = true;
-
-    // A waveform subscriber that landed before bring-up finished
-    // missed the `onListen` enable — reconcile it now.
-    if (_waveformCtrl.hasListener) _waveformPipeline.setEnabled(true);
-  }
-
   late final Future<void> _tlsBundleReady;
 
   /// Path of the bundled CA pem extracted to a real filesystem location
   /// by [_autoConfigureTlsCaBundle]. Captured here so [setTlsCaFile]
   /// can restore the default with an empty argument.
   String? _autoTlsCaBundlePath;
-
-  Future<void> _autoConfigureTlsCaBundle() async {
-    try {
-      final path = await TlsCaBundle.extract();
-      _autoTlsCaBundlePath = path;
-      if (_disposed) return;
-      // Mirrors what [setTlsCaFile] does in the network mixin; that
-      // method is not visible from this class so we duplicate the two
-      // wire operations (property set + state update) inline.
-      _prop('tls-ca-file', path);
-      _updateField(
-        (s) => s.copyWith(tlsCaFile: path),
-        _reactives.tlsCaFile,
-        path,
-      );
-    } catch (e, st) {
-      // Surface to the internal-log stream; do NOT throw — the player
-      // still works for non-HTTPS streams or for consumers that bring
-      // their own CA bundle via `setTlsCaFile`.
-      _internalLogCtrl.add(
-        MpvLogEntry(
-          level: LogLevel.warn,
-          prefix: 'mpv_audio_kit',
-          text: 'Failed to auto-configure tls-ca-file: $e\n$st',
-        ),
-      );
-    }
-  }
-
-  // --- Core Lifecycle ---
-
-  /// Recipe of pre-init `mpv_set_option_string` calls executed by the
-  /// event isolate before `mpv_initialize`.
-  Map<String, String> _buildPreInitOptions() => {
-        'vid': 'no',
-        'sid': 'no',
-        'vo': 'null',
-        // Watch-later / resume. Persist only the audio-relevant props (mpv's
-        // default list includes video/sub keys this build can't restore).
-        'resume-playback': configuration.resumePlayback ? 'yes' : 'no',
-        'watch-later-options': 'start,speed,pitch,volume,mute,audio-delay,af,aid',
-        if (configuration.watchLaterDir != null)
-          'watch-later-dir': configuration.watchLaterDir!,
-        if (configuration.forceSeekable) 'force-seekable': 'yes',
-        'hls-bitrate': configuration.hlsBitrate.mpvValue,
-        // If the audio device can't be opened (Bluetooth/AirPlay sink gone,
-        // a stale device id), fall back to the null AO and keep the position
-        // clock running instead of hard-failing playback. The failure is
-        // still surfaced through `audio-output-state`.
-        'audio-fallback-to-null': 'yes',
-        'audio-display': 'embedded-first',
-        'cover-art-auto': 'no',
-        'image-display-duration': 'inf',
-        'keep-open': 'yes',
-        'idle': 'yes',
-        'osc': 'no',
-        'ytdl': 'no',
-        'load-stats-overlay': 'no',
-        'load-console': 'no',
-        'load-commands': 'no',
-        'load-auto-profiles': 'no',
-        'load-select': 'no',
-        'load-context-menu': 'no',
-        'load-positioning': 'no',
-        'load-scripts': 'no',
-        'input-builtin-bindings': 'no',
-        'audio-client-name': 'mpv_audio_kit',
-      };
-
-  Map<String, String> _buildPostInitOptions() => {
-        'volume': configuration.initialVolume.toStringAsFixed(1),
-      };
-
-  /// Specs for `mpv_observe_property` — registry props plus the small
-  /// out-of-registry set kept here for cross-reference clarity.
-  List<MpvObserveSpec> _buildObserveSpecs() {
-    final specs = <MpvObserveSpec>[];
-    var replyId = 1;
-    for (final spec in _registry.specs) {
-      specs.add(MpvObserveSpec(spec.name, spec.format, replyId++));
-    }
-    // Out-of-registry observers. NODE for structured data; STRING for
-    // `loop-*` and `audio-device` (cross-referenced from
-    // `audio-device-list`).
-    final extras = <(String, int)>[
-      ('playlist', MpvFormat.mpvFormatNode),
-      ('audio-device-list', MpvFormat.mpvFormatNode),
-      ('audio-device', MpvFormat.mpvFormatString),
-      ('metadata', MpvFormat.mpvFormatNode),
-      ('demuxer-cache-state', MpvFormat.mpvFormatNode),
-      ('loop-file', MpvFormat.mpvFormatString),
-      ('loop-playlist', MpvFormat.mpvFormatString),
-    ];
-    var extraReplyId = PropertyRegistry.registryReplyIdMax + 1;
-    for (final (name, format) in extras) {
-      specs.add(MpvObserveSpec(name, format, extraReplyId++));
-    }
-    return specs;
-  }
-
-  void _handleEvent(MpvIsolateEvent event) {
-    // Single fence for every controller add() in this method — dispose()
-    // flips `_disposed` before awaiting `_eventSub.cancel()`, so passing
-    // this check guarantees every downstream add() lands on an open
-    // controller without per-call isClosed checks.
-    if (_disposed) return;
-    // A throw from any branch below — most plausibly a malformed observed
-    // NODE property reaching the one unguarded parser path (registry
-    // dispatch) — must never escape this onData callback: the event
-    // subscription registers no onError, so an escaped throw becomes an
-    // unhandled async error (and under a guarded zone can escalate). Contain
-    // and log it; one bad event is dropped, the stream keeps delivering.
-    try {
-      switch (event) {
-        case MpvEventStartFile():
-          // Latch "a file load has been attempted" HERE, not on FILE_LOADED:
-          // START_FILE fires for every load attempt — including one that will
-          // fail to open — so a failed first open() still arms the
-          // idle-active intent reset (otherwise its intent would stick true
-          // forever). START_FILE is always delivered AFTER the cold-start
-          // idle-active burst (FIFO), so the latch still can't be tripped by
-          // the startup burst.
-          _hasLoadedFile = true;
-          _updateLifecycle(buffering: true, completed: false);
-        case MpvEventFileLoaded():
-          // `state.playing` is driven by the `core-idle` observer; here we
-          // only clear buffering/completed and trigger cover-art capture.
-          _updateLifecycle(buffering: false, completed: false);
-          _pollPosition();
-          _pollChapterState();
-          // Cover extraction is pure FFI over an mpv-owned buffer; a rare
-          // malformed / oversized embedded picture (or an mpv buffer in an
-          // unexpected state) must never abort the rest of file-load setup.
-          // Above all it must NOT skip the waveform re-arm below: if it did,
-          // one bad track would freeze the live waveform AND the now-playing
-          // artwork for the whole session (both ride this single handler).
-          try {
-            _extractEmbeddedCover();
-          } catch (e, st) {
-            _internalLog(
-              'Embedded cover extraction failed on file-load: $e\n$st',
-              level: LogLevel.warn,
-            );
-          }
-          // Re-arm the waveform ONLY on a genuine source change. mpv re-emits
-          // FILE_LOADED on internal reloads (EDL / segment / gapless / track
-          // reinit) for the same audio; resetting there would discard a
-          // completed bulk envelope, force a full re-decode, and flash the meter
-          // to empty. Key off the playlist entry `path` — stable across an
-          // on_load hook that rewrites stream-open-filename but not `path`,
-          // and distinct per track.
-          if (_bringUpCompleted) {
-            final src = _getPropStringSync('path');
-            if (src != _lastWaveformSource) {
-              _lastWaveformSource = src;
-              _waveformPipeline.reset();
-            }
-          }
-        case MpvEventPlaybackSeek():
-          // No-op: a seek's landing is observed via PLAYBACK_RESTART
-          // (`seekCompleted`); nothing needs the SEEK event itself.
-          break;
-        case MpvEventPlaybackRestart():
-          _pollPosition();
-          _seekCompletedCtrl.add(null);
-        case MpvEndFileEvent(:final reason, :final error):
-          final typedReason = MpvEndFileReason.fromValue(reason);
-          _endFileCtrl.add(
-            MpvFileEndedEvent(
-              reason: typedReason,
-              error: error,
-            ),
-          );
-          if (error < 0) {
-            _errorCtrl.add(
-              MpvEndFileError(
-                reason: typedReason,
-                code: error,
-                message: _errorString(error),
-              ),
-            );
-          }
-          final isEof = reason == MpvEndFileReason.eof.value;
-          _updateLifecycle(playing: false, buffering: false, completed: isEof);
-        case MpvEventShutdown():
-          _updateLifecycle(playing: false, buffering: false);
-        case MpvEventPropertyDouble(:final name, :final value):
-          _dispatchProperty(name, value);
-        case MpvEventPropertyInt(:final name, :final value):
-          _dispatchProperty(name, value);
-        case MpvEventPropertyString(:final name, :final value):
-          _dispatchProperty(name, value);
-        case MpvEventPropertyNode(:final name, :final value):
-          _dispatchProperty(name, value);
-        case MpvEventLog(:final prefix, :final level, :final text):
-          final typedLevel = LogLevel.fromMpv(level);
-          final entry =
-              MpvLogEntry(prefix: prefix, level: typedLevel, text: text);
-          _logCtrl.add(entry);
-          if (typedLevel == LogLevel.error || typedLevel == LogLevel.fatal) {
-            _errorCtrl.add(
-              MpvLogError(
-                prefix: prefix,
-                level: typedLevel,
-                text: text,
-              ),
-            );
-          }
-        case MpvEventHookFired(:final id, :final name):
-          final hook = Hook.fromMpv(name);
-          if (hook == null) {
-            // Unknown hook name — likely a future mpv build added a new
-            // phase. Auto-continue so mpv never stalls, log it on the
-            // internal channel for diagnostics.
-            _internalLog(
-              'Received unknown hook "$name" (id=$id) — auto-continuing. '
-              'Update the Hook enum if mpv has added a new lifecycle phase.',
-              level: LogLevel.warn,
-            );
-            _lib.mpvHookContinue(_handle, id);
-            return;
-          }
-          _activeHookIds.add(id);
-          final timeout = _hookTimeouts[name];
-          if (timeout != null) _startHookTimeout(id, name, timeout);
-          _hookCtrl.add(MpvHookEvent(id, hook));
-      }
-    } catch (e, st) {
-      _internalLog(
-        'Unhandled error while handling $event: $e\n$st',
-        level: LogLevel.warn,
-      );
-    }
-  }
-
-  /// Test-only entry point that exercises the same dispatch pipeline as
-  /// the real event isolate. Lets integration tests force a property
-  /// transition (e.g. `audio-output-state == failed`) without depending
-  /// on the host AO actually reaching that state.
-  @visibleForTesting
-  void debugDispatchProperty(String name, dynamic raw) =>
-      _dispatchProperty(name, raw);
-
-  /// Routes a property-change to the registry first, then falls back to the
-  /// custom handlers for properties whose update logic doesn't fit a simple
-  /// (parser, reducer) pair (JSON parsing with player-side context, derived
-  /// fields aggregating multiple mpv properties, etc.).
-  void _dispatchProperty(String name, dynamic raw) {
-    // `commit` assigns the reduced state to `_state` BEFORE the spec's
-    // onChange fires, so a hook that reads + mutates `_state` (the
-    // idle-active / eof-reached hooks settling the transport) builds on the
-    // reduced state and isn't clobbered by a late assignment here.
-    final next =
-        _registry.dispatch(name, raw, _state, commit: (s) => _state = s);
-    if (next != null) {
-      return;
-    }
-    if (_registry.specFor(name) != null) {
-      // Spec exists but value was deduplicated — nothing to do.
-      return;
-    }
-    // Custom out-of-registry handlers for the few properties whose update
-    // logic touches more than `(parse → reduce)` (player-side context like
-    // `_mediaCache`, `_state.playlist`, `_state.cache.secs`, or the
-    // two-property aggregation behind `loop`).
-    switch (name) {
-      case 'loop-file':
-      case 'loop-playlist':
-        _updateLoopFromMpv(name, raw as String);
-      case 'playlist':
-        _updatePlaylistFromNode(raw);
-      case 'audio-device':
-        _updateActiveAudioDevice(raw as String);
-      case 'audio-device-list':
-        _updateDevicesFromNode(raw);
-      case 'metadata':
-        _updateMetadataFromNode(raw);
-      case 'demuxer-cache-state':
-        _updateBufferingPercentageFromNode(raw);
-    }
-  }
-
-  // --- Low Level Native Bridge ---
-
-  /// Writes a property and throws [MpvException] on rejection.
-  ///
-  /// All typed setters (setVolume, setRate, setAudioEffects, …) flow
-  /// through this method. Errors are surfaced rather than swallowed so
-  /// the caller can react (out-of-range value, unknown name, malformed
-  /// `af` chain after `AudioEffects.custom`, etc.). `_propRc` is the
-  /// rc-returning variant for the few call sites that need to tolerate
-  /// failures explicitly.
-  void _prop(String name, String value) {
-    final rc = _propRc(name, value);
-    if (rc < 0) {
-      throw MpvException(name: name, code: rc, message: _errorString(rc));
-    }
-  }
-
-  int _propRc(String name, String value) {
-    return using(
-      (arena) => _lib.mpvSetPropertyString(
-        _handle,
-        name.toNativeUtf8(allocator: arena),
-        value.toNativeUtf8(allocator: arena),
-      ),
-    );
-  }
-
-  int _command(List<String> args) {
-    return using((arena) {
-      final arr = arena<Pointer<Utf8>>(args.length + 1);
-      for (var i = 0; i < args.length; i++) {
-        arr[i] = args[i].toNativeUtf8(allocator: arena);
-      }
-      arr[args.length] = nullptr;
-      return _lib.mpvCommand(_handle, arr);
-    });
-  }
-
-  /// Writes [chapters] to mpv's `chapter-list` — a NODE-array property — via
-  /// the stable `mpv_set_property` C API, returning the raw mpv rc.
-  ///
-  /// `chapter-list` is an array of maps `{title: string, time: double secs}`.
-  /// The whole node tree is built in an [Arena]; mpv deep-copies it during
-  /// `set_property`, so every allocation is freed on return. An empty list
-  /// writes an empty array (clears the chapters).
-  int _setChapterListNode(List<Chapter> chapters) {
-    return using((arena) {
-      final n = chapters.length;
-      final arrayList = arena<MpvNodeList>();
-      arrayList.ref.num = n;
-      // Arrays carry no keys (maps do); leave them null.
-      arrayList.ref.keys = nullptr;
-      if (n > 0) {
-        final elements = arena<MpvNode>(n);
-        for (var i = 0; i < n; i++) {
-          final ch = chapters[i];
-          // Two map entries per chapter: title (string) + time (double secs).
-          final entryValues = arena<MpvNode>(2);
-          final entryKeys = arena<Pointer<Utf8>>(2);
-
-          entryKeys[0] = 'title'.toNativeUtf8(allocator: arena);
-          entryValues[0].format = MpvFormat.mpvFormatString;
-          entryValues[0].u.string =
-              (ch.title ?? '').toNativeUtf8(allocator: arena);
-
-          entryKeys[1] = 'time'.toNativeUtf8(allocator: arena);
-          entryValues[1].format = MpvFormat.mpvFormatDouble;
-          entryValues[1].u.double_ = ch.time.inMicroseconds / 1e6;
-
-          final map = arena<MpvNodeList>();
-          map.ref.num = 2;
-          map.ref.values = entryValues;
-          map.ref.keys = entryKeys;
-
-          elements[i].format = MpvFormat.mpvFormatNodeMap;
-          elements[i].u.list = map;
-        }
-        arrayList.ref.values = elements;
-      } else {
-        arrayList.ref.values = nullptr;
-      }
-
-      final root = arena<MpvNode>();
-      root.ref.format = MpvFormat.mpvFormatNodeArray;
-      root.ref.u.list = arrayList;
-
-      return _lib.mpvSetProperty(
-        _handle,
-        'chapter-list'.toNativeUtf8(allocator: arena),
-        MpvFormat.mpvFormatNode,
-        root.cast<Void>(),
-      );
-    });
-  }
-
-  String _errorString(int code) {
-    final p = _lib.mpvErrorString(code);
-    return p == nullptr ? 'error $code' : p.cast<Utf8>().toDartString();
-  }
 
   void _startHookTimeout(int id, String name, Duration timeout) {
     _hookTimers[id] = Timer(timeout, () {
@@ -1198,147 +672,6 @@ abstract class _PlayerBase {
       _lib.mpvHookContinue(_handle, id);
     }
     _activeHookIds.clear();
-  }
-
-  /// Builds the `loadfile` `<options>` argument from a [Media]'s
-  /// `httpHeaders` and `httpChunkSize`. Each value is length-prefixed
-  /// (`%N%`) so the outer option-list parser doesn't split on the commas
-  /// inside it — hence the per-key/value rejection of CR, LF, `,`, NUL
-  /// (and `:` in keys) by [_validateHeaderKey] / [_validateHeaderValue].
-  /// Returns `''` when the media carries neither.
-  String _buildLoadfileOptions(Media media) {
-    final parts = <String>[];
-
-    final headers = media.httpHeaders;
-    if (headers != null && headers.isNotEmpty) {
-      for (final e in headers.entries) {
-        _validateHeaderKey(e.key);
-        _validateHeaderValue(e.value);
-      }
-      final joined =
-          headers.entries.map((e) => '${e.key}: ${e.value}').join(',');
-      parts.add('http-header-fields=%${utf8.encode(joined).length}%$joined');
-    }
-
-    final chunk = media.httpChunkSize;
-    if (chunk != null) {
-      if (chunk <= 0) {
-        throw ArgumentError.value(
-          chunk,
-          'httpChunkSize',
-          'must be a positive byte count (or null to disable)',
-        );
-      }
-      // Cap every HTTP range request to `chunk` bytes so a throttling CDN
-      // (e.g. googlevideo) keeps serving at full speed instead of slowing an
-      // unbounded whole-file request to a crawl; `reconnect_*` recover genuine
-      // drops (mpv already sets `reconnect=1`).
-      //
-      // Why BOTH options (verified against FFmpeg 8.1.1 `libavformat/http.c`):
-      //   • `request_size` bounds EVERY request, the first one included — the
-      //     gate is `if (s->initial_requests || s->request_size)` (http.c:1594)
-      //     and mpv leaves `seekable` unset (→ -1, ≠ 0), so the bounded-range
-      //     branch is taken even for the opening probe.
-      //   • `initial_request_size` only overrides the size used for that probe;
-      //     after the first chunk ffmpeg clears `initial_requests` (http.c:1857),
-      //     so on its own the steady-state reads would revert to an unbounded
-      //     `Range: bytes=off-`.
-      // Setting both keeps the probe AND every steady-state read bounded.
-      // (`request_size` alone would also suffice here; `initial_request_size`
-      // alone would NOT — chunk 2+ would go unbounded.)
-      final value = 'initial_request_size=$chunk,request_size=$chunk,'
-          'reconnect_streamed=1,reconnect_on_network_error=1';
-      parts.add('stream-lavf-o=%${utf8.encode(value).length}%$value');
-    }
-
-    final lavf = media.demuxerLavfOptions;
-    if (lavf != null && lavf.isNotEmpty) {
-      for (final e in lavf.entries) {
-        _validateDemuxerLavfOption(e.key, e.value);
-      }
-      // File-local `demuxer-lavf-o`, scoped to this entry like the options
-      // above. Entries are comma-joined (validated comma-free).
-      final value = lavf.entries.map((e) => '${e.key}=${e.value}').join(',');
-      parts.add('demuxer-lavf-o=%${utf8.encode(value).length}%$value');
-    }
-
-    return parts.join(',');
-  }
-
-  static final RegExp _kForbiddenInHeaderKey = RegExp(r'[\r\n,:\x00]');
-  static final RegExp _kForbiddenInHeaderValue = RegExp(r'[\r\n,\x00]');
-
-  /// Up-front validator for a [Media]'s load-time options, called by every
-  /// load entry point before `resolveUri` runs so a bad value fails fast,
-  /// before any optimistic state write.
-  void _validateLoadOptions(Media media) {
-    final headers = media.httpHeaders;
-    if (headers != null && headers.isNotEmpty) {
-      for (final e in headers.entries) {
-        _validateHeaderKey(e.key);
-        _validateHeaderValue(e.value);
-      }
-    }
-    final chunk = media.httpChunkSize;
-    if (chunk != null && chunk <= 0) {
-      throw ArgumentError.value(
-        chunk,
-        'httpChunkSize',
-        'must be a positive byte count (or null to disable)',
-      );
-    }
-    final lavf = media.demuxerLavfOptions;
-    if (lavf != null && lavf.isNotEmpty) {
-      for (final e in lavf.entries) {
-        _validateDemuxerLavfOption(e.key, e.value);
-      }
-    }
-  }
-
-  static final RegExp _kForbiddenInLavfOption = RegExp(r'[\r\n,\x00]');
-
-  /// A `demuxer-lavf-o` entry sits in a comma-separated list, so its key/value
-  /// must be non-empty and free of comma / CR / LF / NUL. Mirrors the header
-  /// validators.
-  void _validateDemuxerLavfOption(String key, String value) {
-    if (key.isEmpty) {
-      throw ArgumentError.value(
-        key,
-        'demuxerLavfOptions key',
-        'must not be empty',
-      );
-    }
-    if (_kForbiddenInLavfOption.hasMatch(key) ||
-        _kForbiddenInLavfOption.hasMatch(value)) {
-      throw ArgumentError.value(
-        '$key=$value',
-        'demuxerLavfOptions',
-        'must not contain CR, LF, NUL, or comma',
-      );
-    }
-  }
-
-  void _validateHeaderKey(String key) {
-    if (key.isEmpty) {
-      throw ArgumentError.value(key, 'header name', 'must not be empty');
-    }
-    if (_kForbiddenInHeaderKey.hasMatch(key)) {
-      throw ArgumentError.value(
-        key,
-        'header name',
-        'must not contain CR, LF, NUL, comma, or colon',
-      );
-    }
-  }
-
-  void _validateHeaderValue(String value) {
-    if (_kForbiddenInHeaderValue.hasMatch(value)) {
-      throw ArgumentError.value(
-        value,
-        'header value',
-        'must not contain CR, LF, NUL, or comma (would split or inject the HTTP request)',
-      );
-    }
   }
 
   void _checkNotDisposed() {
@@ -1437,168 +770,6 @@ abstract class _PlayerBase {
     return items.isEmpty || _state.playlist.index >= items.length - 1;
   }
 
-  // --- Custom property handlers (JSON / derived) ---
-
-  void _updateLoopFromMpv(String name, String value) {
-    final next = deriveLoop(name, value, _state.loop);
-    if (next == null) return;
-    _updateField(
-      (s) => s.copyWith(loop: next),
-      _loop,
-      next,
-    );
-  }
-
-  void _updatePlaylistFromNode(dynamic raw) {
-    try {
-      final playlist = parsePlaylistNode(
-        raw: raw,
-        mediaCache: _mediaCache,
-        previous: _state.playlist,
-      );
-      _updateField((s) => s.copyWith(playlist: playlist), _playlist, playlist);
-    } catch (e) {
-      _internalLog('Failed to parse playlist: $e', level: LogLevel.warn);
-    }
-  }
-
-  void _updateActiveAudioDevice(String name) {
-    // mpv only echoes the device name back on `audio-device`. Recover
-    // the proper description by looking it up in the parsed
-    // `audio-device-list` (state.audioDevices). Falls back to the name
-    // on cache miss — typical at boot, before the list arrives.
-    final list = _state.audioDevices;
-    String description = name;
-    for (final d in list) {
-      if (d.name == name) {
-        description = d.description;
-        break;
-      }
-    }
-    final device = Device(name: name, description: description);
-    _updateField(
-      (s) => s.copyWith(audioDevice: device),
-      _reactives.audioDevice,
-      device,
-    );
-  }
-
-  void _updateDevicesFromNode(dynamic raw) {
-    try {
-      final devices = parseDeviceListNode(raw);
-      _updateField(
-        (s) => s.copyWith(audioDevices: devices),
-        _audioDevices,
-        devices,
-      );
-    } catch (e) {
-      _internalLog('Failed to parse audio devices: $e', level: LogLevel.warn);
-    }
-  }
-
-  void _updateMetadataFromNode(dynamic raw) {
-    try {
-      final metadata = parseMetadataNode(raw);
-      if (metadata == null) return;
-      _updateField((s) => s.copyWith(metadata: metadata), _metadata, metadata);
-    } catch (e) {
-      _internalLog('Failed to parse metadata: $e', level: LogLevel.warn);
-    }
-  }
-
-  void _updateBufferingPercentageFromNode(dynamic raw) {
-    try {
-      final pct = parseDemuxerCacheStateNode(raw, _state.cache.secs);
-      _updateField(
-        (s) => s.copyWith(bufferingPercentage: pct),
-        _bufferingPercentage,
-        pct,
-      );
-      final cacheState = parseDemuxerCacheStateFull(raw);
-      _updateField(
-        (s) => s.copyWith(demuxerCacheState: cacheState),
-        _demuxerCacheState,
-        cacheState,
-      );
-    } catch (e) {
-      _internalLog('Failed to parse cache state: $e', level: LogLevel.warn);
-    }
-  }
-
-  // --- Misc helpers ---
-
-  void _pollPosition() {
-    if (_disposed) return;
-    using((arena) {
-      final n = 'time-pos'.toNativeUtf8(allocator: arena);
-      final buf = arena<Double>();
-      final rc = _lib.mpvGetProperty(
-        _handle,
-        n,
-        MpvFormat.mpvFormatDouble,
-        buf.cast(),
-      );
-      if (rc == MpvError.mpvErrorSuccess) {
-        final pos = Duration(microseconds: (buf.value * 1e6).round());
-        _updateField(
-          (s) => s.copyWith(position: pos),
-          _reactives.position,
-          pos,
-        );
-      }
-    });
-  }
-
-  /// Force-refreshes [PlayerState.chapters] and
-  /// [PlayerState.currentChapter] by reading the underlying mpv
-  /// properties directly. mpv's observer queue dedupes on
-  /// `equal_mpv_value` (see `player/client.c::send_client_property_changes`),
-  /// so two consecutive tracks with structurally-equal `chapter-list`
-  /// (e.g. an audiobook where consecutive parts share the same chapter
-  /// pattern) would skip the PROPERTY_CHANGE event and strand the
-  /// wrapper at whatever the previous file left behind. Polling on
-  /// FILE_LOADED bypasses the dedup so the wrapper always carries the
-  /// truth for the current file.
-  void _pollChapterState() {
-    if (_disposed) return;
-    // chapter index — INT64 scalar.
-    using((arena) {
-      final n = 'chapter'.toNativeUtf8(allocator: arena);
-      final buf = arena<Int64>();
-      final rc =
-          _lib.mpvGetProperty(_handle, n, MpvFormat.mpvFormatInt64, buf.cast());
-      if (rc == MpvError.mpvErrorSuccess) {
-        // mpv exposes -1 / -2 etc. as "no chapter active"; surface as null.
-        final idx = buf.value < 0 ? null : buf.value.toInt();
-        _updateField(
-          (s) => s.copyWith(currentChapter: idx),
-          _reactives.currentChapter,
-          idx,
-        );
-      }
-    });
-    // chapter-list — NODE_ARRAY. Allocate, read, decode, dispatch
-    // through the registry (re-using the parser), free the node tree.
-    using((arena) {
-      final n = 'chapter-list'.toNativeUtf8(allocator: arena);
-      final nodePtr = arena<MpvNode>();
-      final rc = _lib.mpvGetProperty(
-        _handle,
-        n,
-        MpvFormat.mpvFormatNode,
-        nodePtr.cast(),
-      );
-      if (rc == MpvError.mpvErrorSuccess) {
-        final decoded = decodeMpvNode(nodePtr.ref);
-        try {
-          _dispatchProperty('chapter-list', decoded);
-        } finally {
-          _lib.mpvFreeNodeContents(nodePtr);
-        }
-      }
-    });
-  }
-
   /// Internal log helper — emits on the library-side log channel
   /// ([PlayerStream.internalLog]), kept separate from mpv's engine log
   /// stream ([PlayerStream.log]).
@@ -1606,30 +777,6 @@ abstract class _PlayerBase {
       _internalLogCtrl.add(
         MpvLogEntry(prefix: 'mpv_audio_kit', level: level, text: message),
       );
-
-  void _extractEmbeddedCover() {
-    if (_disposed) return;
-    // Emit unconditionally — `null` signals "no cover on the new
-    // file" so subscribers can clear stale artwork on track changes.
-    final cover = CoverArtExtractor.capture(_lib, _handle);
-    _state = _state.copyWith(coverArt: cover);
-    _coverArtCtrl.add(cover);
-  }
-
-  /// Synchronous string-property read for use inside the event handler (the
-  /// public [getRawProperty] is async). Returns null if the handle is gone or
-  /// the property is unavailable.
-  String? _getPropStringSync(String name) {
-    if (_handle == nullptr) return null;
-    return using<String?>((arena) {
-      final n = name.toNativeUtf8(allocator: arena);
-      final ptr = _lib.mpvGetPropertyString(_handle, n);
-      if (ptr == nullptr) return null;
-      final s = ptr.cast<Utf8>().toDartString();
-      _lib.mpvFree(ptr.cast());
-      return s;
-    });
-  }
 
   /// Tears down the player.
   ///

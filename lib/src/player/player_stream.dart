@@ -22,7 +22,7 @@ import 'package:mpv_audio_kit/src/models/pcm_frame.dart';
 import 'package:mpv_audio_kit/src/models/playlist.dart';
 import 'package:mpv_audio_kit/src/models/waveform_data.dart';
 import 'package:mpv_audio_kit/src/player/mpv_playback_state_derive.dart';
-import 'package:mpv_audio_kit/src/reactive/default_specs.dart';
+import 'package:mpv_audio_kit/src/reactive/default_reactives.dart';
 import 'package:mpv_audio_kit/src/reactive/reactive_property.dart';
 import 'package:mpv_audio_kit/src/types/enums/cover.dart';
 import 'package:mpv_audio_kit/src/types/enums/format.dart';
@@ -116,6 +116,7 @@ class PlayerStream {
         pausedForCache = reactives.pausedForCache.stream,
         demuxerViaNetwork = reactives.demuxerViaNetwork.stream,
         audioExclusive = reactives.audioExclusive.stream,
+        audioMediaRole = reactives.audioMediaRole.stream,
         audioBuffer = reactives.audioBuffer.stream,
         audioStreamSilence = reactives.audioStreamSilence.stream,
         audioNullUntimed = reactives.audioNullUntimed.stream,
@@ -397,6 +398,10 @@ class PlayerStream {
 
   /// Emits whether audio exclusive mode is enabled.
   final Stream<bool> audioExclusive;
+
+  /// Emits whether the "music" media role is reported to the audio server
+  /// (`audio-set-media-role`).
+  final Stream<bool> audioMediaRole;
 
   /// Emits the audio buffer duration.
   final Stream<Duration> audioBuffer;

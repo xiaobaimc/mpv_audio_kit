@@ -179,6 +179,9 @@ class _ApiProbe implements PlayerApi {
       _record('setAudioExclusive');
 
   @override
+  Future<void> setAudioMediaRole(bool enable) => _record('setAudioMediaRole');
+
+  @override
   Future<void> setAudioSpdif(Set<Spdif> codecs) => _record('setAudioSpdif');
 
   @override

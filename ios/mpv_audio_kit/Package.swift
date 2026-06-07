@@ -32,20 +32,17 @@ let package = Package(
                 "libmpv",
                 .product(name: "FlutterFramework", package: "FlutterFramework"),
             ],
-            // Swift sources are physically under `darwin/Sources/mpv_audio_kit/`
-            // and exposed here via symlinks. SwiftPM rejects `path:`
-            // values that escape the package root (`outside the package
-            // root` error), so the symlinks are the canonical way to
-            // expose the shared darwin/ tree to both iOS and macOS
-            // SwiftPM packages without duplicating the Swift code.
+            // The Swift here is real-file copies, intentionally NOT
+            // symlinks: `dart pub publish` flattens symlinks into regular
+            // files whose body is the link-target path, which then fails to
+            // compile in the consumer's Xcode. (SwiftPM also rejects a
+            // `path:` that escapes the package root, ruling out one shared
+            // dir.)
             path: "Sources/mpv_audio_kit",
             // Apple privacy manifest, embedded into the built bundle —
-            // required for App Store submission. Unlike the Swift sources,
-            // this is a real per-platform file (NOT a symlink into darwin/):
-            // SwiftPM does not dereference a symlinked resource during the
-            // copy phase, so a symlink here fails the build with "no such
-            // file". Keep the iOS/macOS copies in sync by hand. .process
-            // places it at the bundle root.
+            // required for App Store submission. A real per-platform file;
+            // keep the iOS/macOS copies in sync by hand. .process places it
+            // at the bundle root.
             resources: [
                 .process("PrivacyInfo.xcprivacy"),
             ],

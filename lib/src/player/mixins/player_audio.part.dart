@@ -1,7 +1,7 @@
 // Copyright © 2026 & onwards, Alessandro Di Ronza <ales.drnz@gmail.com>.
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
-part of 'player.dart';
+part of '../player.dart';
 
 /// Audio setters: volume, mute, output device, format / channel layout,
 /// the [AudioEffects] DSP pipeline, and the cover-art display options.
@@ -231,6 +231,18 @@ mixin _AudioModule on _PlayerBase {
     _prop('audio-exclusive', exclusive ? 'yes' : 'no');
     _updateField((s) => s.copyWith(audioExclusive: exclusive),
         _reactives.audioExclusive, exclusive,);
+  }
+
+  /// Whether mpv reports a "music" media role to the OS audio server
+  /// (mpv's `audio-set-media-role`). On PulseAudio / PipeWire (Linux) this
+  /// lets the server apply the right routing / volume profile for music;
+  /// a no-op on backends without a media-role concept.
+  Future<void> setAudioMediaRole(bool enable) async {
+    _checkNotDisposed();
+    await _ready;
+    _prop('audio-set-media-role', enable ? 'yes' : 'no');
+    _updateField((s) => s.copyWith(audioMediaRole: enable),
+        _reactives.audioMediaRole, enable,);
   }
 
   /// Sets HDMI/S/PDIF audio passthrough codecs.

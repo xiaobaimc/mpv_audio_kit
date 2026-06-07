@@ -9,11 +9,12 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
-import '../dsp/band_processor.dart';
 import '../models/fft_frame.dart';
 import '../models/pcm_frame.dart';
 import '../mpv_bindings.dart';
 import '../types/settings/spectrum_settings.dart';
+import 'band_processor.dart';
+import 'pcm_node_decode.dart';
 
 /// Real-time FFT + raw PCM pipeline backed by the mpv `pcm-tap-frame`
 /// property.
@@ -162,14 +163,7 @@ class SpectrumPipeline {
               ptsNs = node.u.int64;
             }
           case 'samples':
-            if (node.format == MpvFormat.mpvFormatByteArray) {
-              final ba = node.u.ba.ref;
-              if (ba.size > 0) {
-                final floatCount = ba.size ~/ 4;
-                final src = ba.data.cast<Float>().asTypedList(floatCount);
-                samples = Float32List(floatCount)..setAll(0, src);
-              }
-            }
+            samples = decodeInterleavedFloat32(node);
         }
       }
 

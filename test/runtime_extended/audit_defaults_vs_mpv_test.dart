@@ -11,7 +11,7 @@
 @TestOn('mac-os || linux || windows')
 library;
 
-import 'package:mpv_audio_kit/src/reactive/default_specs.dart';
+import 'package:mpv_audio_kit/src/reactive/default_reactives.dart';
 import 'package:test/test.dart';
 
 import '../_helpers/setter_test_helpers.dart';
@@ -45,6 +45,7 @@ void main() {
       ('network-timeout', dur(r.networkTimeout.value)),
       ('tls-verify', r.tlsVerify.value ? 'yes' : 'no'),
       ('audio-exclusive', r.audioExclusive.value ? 'yes' : 'no'),
+      ('audio-set-media-role', r.audioMediaRole.value ? 'yes' : 'no'),
       ('audio-buffer', dur(r.audioBuffer.value)),
       ('audio-stream-silence', r.audioStreamSilence.value ? 'yes' : 'no'),
       ('ao-null-untimed', r.audioNullUntimed.value ? 'yes' : 'no'),

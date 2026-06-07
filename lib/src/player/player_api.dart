@@ -234,6 +234,10 @@ abstract interface class PlayerApi {
   /// Opens the audio device in exclusive mode when [exclusive] is true.
   Future<void> setAudioExclusive(bool exclusive);
 
+  /// Reports a "music" media role to the OS audio server (PulseAudio /
+  /// PipeWire) when [enable] is true (mpv's `audio-set-media-role`).
+  Future<void> setAudioMediaRole(bool enable);
+
   /// Sets the set of codecs to pass through as bitstream rather than
   /// decode.
   Future<void> setAudioSpdif(Set<Spdif> codecs);

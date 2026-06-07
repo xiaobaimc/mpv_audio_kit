@@ -2,8 +2,9 @@
 // All rights reserved.
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
-/// Internal enum for the 41 named layouts mpv recognises (mirror of mpv's
-/// `std_layout_names[]` table). Private — consumers use the [Channels]
+/// Internal enum for the 41 named layouts mpv recognises (mpv's
+/// `std_layout_names[]` table minus its leading `empty` placeholder, which is
+/// not a usable output layout). Private — consumers use the [Channels]
 /// static fields (`Channels.stereo`, `Channels.fiveOneSide`, …) which
 /// wrap each member in a [Channels] instance.
 enum _Named {

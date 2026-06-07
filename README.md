@@ -46,7 +46,7 @@ Add `mpv_audio_kit` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mpv_audio_kit: ^0.3.2
+  mpv_audio_kit: ^0.3.3
 ```
 
 ## Platforms requirements
@@ -107,6 +107,7 @@ dependencies:
     * [4.4 Speed and pitch](#44-speed-and-pitch)
     * [4.5 Volume and mute](#45-volume-and-mute)
     * [4.6 Audio delay](#46-audio-delay)
+    * [4.7 Resume playback (watch later)](#47-resume-playback-watch-later)
 
     </details>
 
@@ -132,6 +133,7 @@ dependencies:
     * [6.6 Audio client name](#66-audio-client-name)
     * [6.7 Audio track selection](#67-audio-track-selection)
     * [6.8 Reload audio](#68-reload-audio)
+    * [6.9 Media role](#69-media-role)
 
     </details>
 
@@ -147,6 +149,7 @@ dependencies:
     * [7.7 Untimed null output](#77-untimed-null-output)
     * [7.8 Radio and live streams](#78-radio-and-live-streams)
     * [7.9 Throttling CDNs and chunked requests](#79-throttling-cdns-and-chunked-requests)
+    * [7.10 Monitoring the demuxer cache](#710-monitoring-the-demuxer-cache)
 
     </details>
 
@@ -434,13 +437,19 @@ final player = Player(
 All `PlayerConfiguration` fields are optional. Their defaults:
 
 <details>
-<summary><b>3 configuration fields</b> (click to expand)</summary>
+<summary><b>9 configuration fields</b> (click to expand)</summary>
 
 | Field | Default | Description |
 | :--- | :--- | :--- |
 | `autoPlay` | `false` | Whether `open()` starts playback immediately |
 | `initialVolume` | `100.0` | Volume at startup |
 | `logLevel` | `LogLevel.warn` | Threshold forwarded to `player.stream.log`. Typed enum: `LogLevel.off`, `.fatal`, `.error`, `.warn`, `.info`, `.v`, `.debug`, `.trace` |
+| `resumePlayback` | `true` | Restore the saved position on reopen (watch-later). Only audio-relevant props are persisted — ideal for audiobook / podcast resume |
+| `watchLaterDir` | `null` | Directory for the watch-later resume configs. Often not writable on mobile — point this at an app-writable path |
+| `forceSeekable` | `false` | Allow in-cache seeking on streams mpv reports as non-seekable (direct-HTTP / HLS audio) |
+| `hlsBitrate` | `HlsBitrate.max` | Which variant mpv selects from an adaptive HLS playlist (`HlsBitrate.no` / `.min` / `.max`). Use `.min` to save bandwidth on metered links |
+| `normalizeDownmix` | `false` | Loudness-normalize surround content downmixed to fewer channels, avoiding clipping on 5.1→stereo |
+| `demuxerCacheDir` | `null` | Directory for the on-disk demuxer cache (companion of `CacheSettings.onDisk`). Point it at a writable path on mobile |
 
 </details>
 
@@ -577,6 +586,11 @@ await player.openAll([track1, track2, track3], index: 1);
 
 // Override auto-play
 await player.openAll([track1, track2], play: false);
+
+// Load a playlist FILE or URL (.m3u / .m3u8 / .pls / .cue) — its entries
+// are expanded into player.stream.playlist (internet-radio station lists,
+// remote playlists). open() loads a single entry; openPlaylistFile parses it.
+await player.openPlaylistFile(Media('https://example.com/stations.m3u'));
 ```
 
 > Per-track HTTP headers from `Media.httpHeaders` are applied
@@ -601,10 +615,18 @@ await player.clearPlaylist();        // Remove all tracks (stops playback)
 #### 3.4 Navigation
 
 ```dart
-await player.next();       // Skip to the next track
-await player.previous();   // Skip to the previous track
-await player.jump(2);      // Jump to track at index 2 (0-indexed)
+await player.next();              // Skip to the next track
+await player.previous();          // Skip to the previous track
+await player.jump(2);             // Jump to track at index 2 (0-indexed)
+
+await player.next(force: true);   // Past the last entry: stop playback
+await player.nextPlaylist();      // Jump to the next source playlist
+await player.previousPlaylist();  // …and back across concatenated playlists
 ```
+
+For internet-radio station lists and remote `.m3u` / `.pls` playlists, load
+the playlist file itself with `openPlaylistFile` (see [§3.2](#32-opening-multiple-tracks));
+unlike `open`, it expands the entries into `player.stream.playlist`.
 
 #### 3.5 Repeat and shuffle
 
@@ -672,6 +694,15 @@ await player.seek(const Duration(seconds: 30));
 // Seek forward or backward relative to current position
 await player.seek(const Duration(seconds: 10), relative: true);
 await player.seek(const Duration(seconds: -5), relative: true);
+
+// Sample-accurate (vs keyframe) seeking
+await player.seek(const Duration(seconds: 30), exact: true);
+
+// Percentage-based seeking (for progress-bar scrubbing)
+await player.seekToPercent(0.5); // jump to the half-way point
+
+// Undo the last seek
+await player.revertSeek();
 ```
 
 mpv uses the `absolute` seek mode by default, which works correctly on
@@ -717,13 +748,33 @@ DSP bundle.
 
 #### 4.5 Volume and mute
 
+There are two independent volume layers: the **soft** volume (mpv's own
+software gain) and the **system** volume (the OS per-app mixer).
+
 ```dart
+// Soft volume / mute (mpv's software gain — always available)
 await player.setVolume(80.0);     // 0 to 100 (values above 100 amplify)
 await player.setMute(true);
 await player.setMute(false);
 
 await player.setVolumeMax(150.0); // Raise the software volume ceiling
-await player.setVolumeGain(6.0);  // Pre-amplify by +6 dB
+await player.setVolumeGain(6.0);  // Decoder-side pre-amp, in dB
+
+// Clamp the dB range setVolumeGain accepts (defaults -96 / +12)
+await player.setVolumeGainMin(-60.0);
+await player.setVolumeGainMax(6.0);
+```
+
+The **system** volume / mute drive the OS per-app mixer (mpv's `ao-volume` /
+`ao-mute`), distinct from the soft volume. They are best-effort: silently
+ignored (no throw) when the active audio backend doesn't expose system
+volume, in which case `state.systemVolume` / `state.systemMute` stay `null`.
+
+```dart
+if (player.state.systemVolume != null) {        // backend supports it
+  await player.setSystemVolume(70.0);
+  await player.setSystemMute(false);
+}
 ```
 
 #### 4.6 Audio delay
@@ -734,6 +785,34 @@ await player.setAudioDelay(const Duration(milliseconds: 50));
 
 // Shift backward by 200 ms
 await player.setAudioDelay(const Duration(milliseconds: -200));
+```
+
+#### 4.7 Resume playback (watch later)
+
+For audiobooks and podcasts, the player can save a resume point for the
+current file and restore it the next time that file is opened. Only
+audio-relevant properties are persisted (position, speed, pitch, volume,
+mute, audio delay, the effect chain, and the selected track).
+
+Restore-on-reopen is controlled at build time by
+`PlayerConfiguration.resumePlayback` (default `true`). Point
+`watchLaterDir` at an app-writable directory on mobile — the platform
+default is often not writable.
+
+```dart
+final player = Player(
+  configuration: const PlayerConfiguration(
+    resumePlayback: true,                 // restore on reopen (default)
+    watchLaterDir: '/path/to/app/support/watch_later',
+  ),
+);
+
+// Save a resume point for the current file (e.g. on background / pause)
+await player.writeResumeConfig();
+
+// Clear it — for the current file, or a specific one by filename
+await player.deleteResumeConfig();
+await player.deleteResumeConfig(filename: '/music/audiobook.m4b');
 ```
 
 ---
@@ -1125,6 +1204,8 @@ await player.setAudioFormat(Format.s16);           // 16-bit signed, interleaved
 await player.setAudioFormat(Format.s16Planar);     // 16-bit signed, planar
 await player.setAudioFormat(Format.s32);           // 32-bit signed, interleaved
 await player.setAudioFormat(Format.s32Planar);     // 32-bit signed, planar
+await player.setAudioFormat(Format.s64);           // 64-bit signed, interleaved
+await player.setAudioFormat(Format.s64Planar);     // 64-bit signed, planar
 await player.setAudioFormat(Format.float32);       // 32-bit float, interleaved
 await player.setAudioFormat(Format.float32Planar); // 32-bit float, planar
 await player.setAudioFormat(Format.float64);       // 64-bit float, interleaved
@@ -1164,6 +1245,10 @@ await player.setAudioChannels(
   const Channels.custom('fl-fr-fc-bl-br-sl-sr-lfe'),
 );
 ```
+
+> When you force a downmix (e.g. 5.1 → stereo), set
+> `PlayerConfiguration.normalizeDownmix: true` to loudness-normalize the
+> result and avoid clipping. It is a build-time option (default `false`).
 
 #### 6.5 SPDIF passthrough
 
@@ -1216,12 +1301,24 @@ await player.setAudioTrack(Track.auto);
 
 // Disable audio output entirely (e.g. show only metadata + cover art)
 await player.setAudioTrack(Track.off);
+
+// Load an external audio file as an extra selectable track on the current
+// file (a separate-language dub, a commentary track), then remove it.
+await player.addAudioTrack(Media('commentary.mka'), title: 'Commentary');
+await player.removeAudioTrack(const Track.id(3));
+
+// Re-scan sidecar external files (auto-loaded audio / cover art) without
+// reopening the current file.
+await player.rescanExternalFiles();
 ```
 
 `MpvTrack` ships rich per-track introspection: codec, decoder, sample
 rate, channel count, ReplayGain tags, language, default and forced
-flags, and `image` and `albumArt` flags so you can skip embedded picture
-streams when populating a track-switcher UI.
+flags, `image` and `albumArt` flags so you can skip embedded picture
+streams when populating a track-switcher UI, plus `external` /
+`externalFilename` (whether the track was loaded from a separate file,
+and its path) and `codecProfile` (the codec profile string when the
+container reports one).
 
 #### 6.8 Reload audio
 
@@ -1231,15 +1328,27 @@ Force the audio output to reinitialize:
 await player.reloadAudio();
 ```
 
+#### 6.9 Media role
+
+On Linux, tag the stream's media role as "music" so the audio server
+(PulseAudio / PipeWire) applies the right routing and per-role volume
+profile. On Android the audtrack / aaudio backends honour it too; it is a
+no-op elsewhere.
+
+```dart
+await player.setAudioMediaRole(true);
+// Observe via player.stream.audioMediaRole / player.state.audioMediaRole
+```
+
 ---
 
 ### 7. Network and caching
 
 #### 7.1 Cache configuration
 
-The five mpv cache properties (`cache`, `cache-secs`,
-`cache-on-disk`, `cache-pause`, `cache-pause-wait`) are all set
-in one call through `setCache(CacheSettings)`:
+The six mpv cache properties (`cache`, `cache-secs`,
+`cache-on-disk`, `cache-pause`, `cache-pause-wait`, `cache-pause-initial`)
+are all set in one call through `setCache(CacheSettings)`:
 
 ```dart
 await player.setCache(const CacheSettings(
@@ -1248,6 +1357,7 @@ await player.setCache(const CacheSettings(
   onDisk: true,                        // spill overflow cache to disk
   pause: true,                         // auto-pause when cache runs dry
   pauseWait: Duration(seconds: 3),     // pre-buffer required before resume
+  pauseInitial: true,                  // buffer before playback starts (and after seek)
 ));
 
 // Tweak a single field via copyWith
@@ -1258,6 +1368,12 @@ await player.setCache(
 // Subscribe to live changes
 player.stream.cache.listen((cfg) => print('cache: ${cfg.mode} ${cfg.secs}'));
 ```
+
+`pauseInitial` buffers before playback starts — and again after each seek —
+until the cache fills, for a smoother start on network sources (web-radio,
+HLS, Plex). When `onDisk` is set, point the on-disk cache at a writable
+directory with the build-time `PlayerConfiguration.demuxerCacheDir` (it
+defaults to mpv's location, which is often not writable on mobile).
 
 #### 7.2 Demuxer memory pool
 
@@ -1270,8 +1386,8 @@ await player.setDemuxerMaxBytes(50 * 1024 * 1024); // 50 MiB
 // Maximum bytes for the seekback buffer (default: 50 MiB)
 await player.setDemuxerMaxBackBytes(20 * 1024 * 1024);
 
-// How many seconds ahead the demuxer should read (default: 1)
-await player.setDemuxerReadaheadSecs(5);
+// How far ahead the demuxer should read (default: 1s)
+await player.setDemuxerReadaheadSecs(const Duration(seconds: 5));
 ```
 
 For radio streams or live content where seeking is not needed, reduce the back buffer to zero to save memory:
@@ -1338,6 +1454,21 @@ await player.open(Media(
 ));
 ```
 
+Two build-time `PlayerConfiguration` knobs tune streaming behaviour:
+
+```dart
+final player = Player(
+  configuration: const PlayerConfiguration(
+    // Allow in-cache seeking on streams mpv reports as non-seekable
+    // (direct-HTTP / HLS audio). Default false.
+    forceSeekable: true,
+    // Which rendition mpv picks from an adaptive HLS playlist. Default
+    // .max; use .min to save bandwidth on metered links.
+    hlsBitrate: HlsBitrate.min,
+  ),
+);
+```
+
 #### 7.9 Throttling CDNs and chunked requests
 
 Some CDNs — notably progressive YouTube / `googlevideo` audio — rate-limit a single open-ended HTTP range request (the whole rest of the file) to a crawl. Playback is fine from the start but **freezes after a seek**, once the buffered audio drains and the throttled connection can't refill it.
@@ -1352,6 +1483,28 @@ await player.open(Media(
 ```
 
 It is opt-in and scoped to that exact track. Leave it `null` (the default) for fast, trusted servers (Plex, Jellyfin, your own library) where one large request buffers fastest. Must be a positive byte count when set.
+
+#### 7.10 Monitoring the demuxer cache
+
+`player.stream.demuxerCacheState` (and `player.state.demuxerCacheState`)
+surface a structured `DemuxerCacheState` snapshot for streaming sources:
+the buffered time ranges, the raw download rate, and the eof/bof-cached
+and underrun flags. It is empty for directly-seekable local files.
+
+The `seekableRanges` are what you render as the downloaded (buffered)
+regions of a network seek bar:
+
+```dart
+player.stream.demuxerCacheState.listen((cache) {
+  for (final r in cache.seekableRanges) {
+    // Each CacheRange is a [start, end] Duration window already buffered.
+    print('buffered ${r.start} … ${r.end}');
+  }
+  if (cache.underrun) {
+    // The cache ran dry — show a buffering spinner.
+  }
+});
+```
 
 ---
 
@@ -1521,7 +1674,7 @@ local-file player that wants disk-side artwork.
 #### 9.3 Audio hardware streams
 
 <details>
-<summary><b>18 streams</b> (click to expand)</summary>
+<summary><b>23 streams</b> (click to expand)</summary>
 
 | Stream | Type | Setter |
 | :--- | :--- | :--- |
@@ -1539,10 +1692,15 @@ local-file player that wants disk-side artwork.
 | `audioSpdif` | `Set<Spdif>` | `setAudioSpdif` |
 | `volumeMax` | `double` | `setVolumeMax` |
 | `volumeGain` | `double` | `setVolumeGain` |
+| `volumeGainMin` | `double` | `setVolumeGainMin` |
+| `volumeGainMax` | `double` | `setVolumeGainMax` |
+| `systemVolume` | `double?` | `setSystemVolume` (OS mixer; `null` when unsupported by the active AO) |
+| `systemMute` | `bool?` | `setSystemMute` (OS mixer; `null` when unsupported by the active AO) |
 | `audioSampleRate` | `int` | `setAudioSampleRate` |
 | `audioFormat` | `Format` | `setAudioFormat` |
 | `audioChannels` | `Channels` | `setAudioChannels` |
 | `audioClientName` | `String` | `setAudioClientName` |
+| `audioMediaRole` | `bool` | `setAudioMediaRole` (reports a "music" role to PulseAudio / PipeWire) |
 
 </details>
 
@@ -1565,7 +1723,7 @@ local-file player that wants disk-side artwork.
 #### 9.5 Network and cache streams
 
 <details>
-<summary><b>10 streams</b> (click to expand)</summary>
+<summary><b>11 streams</b> (click to expand)</summary>
 
 | Stream | Type | Setter |
 | :--- | :--- | :--- |
@@ -1574,18 +1732,19 @@ local-file player that wants disk-side artwork.
 | `tlsVerify` | `bool` | `setTlsVerify` |
 | `pausedForCache` | `bool` | _(observed; auto-pause signal)_ |
 | `demuxerViaNetwork` | `bool` | _(observed)_ |
+| `demuxerCacheState` | `DemuxerCacheState` | _(observed; buffered ranges, raw input rate, eof/bof-cached + underrun)_ |
 | `cacheSpeed` | `double` (bytes/s) | _(observed)_ |
 | `cacheBufferingState` | `int` (0-100) | _(observed)_ |
 | `demuxerMaxBytes` | `int` | `setDemuxerMaxBytes` |
 | `demuxerMaxBackBytes` | `int` | `setDemuxerMaxBackBytes` |
-| `demuxerReadaheadSecs` | `int` | `setDemuxerReadaheadSecs` |
+| `demuxerReadaheadSecs` | `Duration` | `setDemuxerReadaheadSecs` |
 
 </details>
 
 #### 9.6 File metadata and path streams
 
 <details>
-<summary><b>11 streams</b> (click to expand)</summary>
+<summary><b>12 streams</b> (click to expand)</summary>
 
 | Stream | Type | mpv property |
 | :--- | :--- | :--- |
@@ -1597,6 +1756,7 @@ local-file player that wants disk-side artwork.
 | `filename` | `String` | `filename` (no directory) |
 | `streamPath` | `String` | `stream-path` (URI as originally requested) |
 | `streamOpenFilename` | `String` | `stream-open-filename` (URI as opened post-redirect) |
+| `playlistPath` | `String` | `playlist-path` (source `.m3u` / `.pls`; empty when not loaded via a playlist) |
 | `seekable` | `bool` | `seekable` |
 | `partiallySeekable` | `bool` | `partially-seekable` (HLS or DASH window) |
 | `demuxerIdle` | `bool` | `demuxer-cache-idle` |

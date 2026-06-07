@@ -11,6 +11,7 @@ import 'package:meta/meta.dart';
 
 import '../models/waveform_data.dart';
 import '../mpv_bindings.dart';
+import 'pcm_node_decode.dart';
 
 /// Static waveform pipeline.
 ///
@@ -154,9 +155,9 @@ class WaveformPipeline {
               rangeEndUs = node.u.int64;
             }
           case 'min':
-            min = _decodeFloat32(node);
+            min = decodeInterleavedFloat32(node);
           case 'max':
-            max = _decodeFloat32(node);
+            max = decodeInterleavedFloat32(node);
           case 'filled':
             filled = _decodeBytes(node);
         }
@@ -230,26 +231,6 @@ class WaveformPipeline {
       _lib.mpvFreeNodeContents(result);
       calloc.free(result);
     }
-  }
-
-  /// Copies a byte-array node holding little-endian Float32 samples
-  /// into a fresh [Float32List]. The bytes are copied out first — this
-  /// detaches the result from the mpv-owned buffer freed at the end of the
-  /// poll AND removes any alignment dependency (the mpv buffer carries no
-  /// 4-byte alignment guarantee, so `cast<Float>()` on it would be unsafe).
-  /// Decoded as explicit little-endian, the layout the native side writes.
-  Float32List? _decodeFloat32(MpvNode node) {
-    if (node.format != MpvFormat.mpvFormatByteArray) return null;
-    final ba = node.u.ba.ref;
-    if (ba.size < 4) return null;
-    final n = ba.size ~/ 4;
-    final bytes = Uint8List.fromList(ba.data.cast<Uint8>().asTypedList(n * 4));
-    final view = bytes.buffer.asByteData();
-    final out = Float32List(n);
-    for (var i = 0; i < n; i++) {
-      out[i] = view.getFloat32(i * 4, Endian.little);
-    }
-    return out;
   }
 
   /// Copies a byte-array node (one byte per bin) into a fresh [Uint8List],

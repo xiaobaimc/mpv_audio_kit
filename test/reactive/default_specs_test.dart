@@ -4,6 +4,7 @@
 
 import 'package:mpv_audio_kit/src/internals/duration_seconds.dart';
 import 'package:mpv_audio_kit/src/player/player_state.dart';
+import 'package:mpv_audio_kit/src/reactive/default_reactives.dart';
 import 'package:mpv_audio_kit/src/reactive/default_specs.dart';
 import 'package:mpv_audio_kit/src/reactive/property_registry.dart';
 import 'package:mpv_audio_kit/src/types/enums/cache.dart';
@@ -548,7 +549,8 @@ void main() {
         'demuxer-max-back-bytes', 'network-timeout', 'tls-verify',
         'paused-for-cache', 'demuxer-via-network',
         // Audio output / driver
-        'audio-buffer', 'audio-exclusive', 'audio-stream-silence',
+        'audio-buffer', 'audio-exclusive', 'audio-set-media-role',
+        'audio-stream-silence',
         'ao-null-untimed', 'track-list', 'current-tracks/audio',
         'audio-spdif', 'volume-max', 'ao-volume', 'ao-mute',
         'audio-samplerate', 'audio-format', 'audio-channels',

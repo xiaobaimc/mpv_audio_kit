@@ -15,7 +15,7 @@
 # Edit these two variables, then run the script:
 # =============================================================================
 
-LIB_VERSION="0.3.1"        # Library version (pubspec, podspecs, gradle)
+LIB_VERSION="0.3.3"        # Library version (pubspec, podspecs, gradle)
 RELEASE_VERSION="libmpv-r8" # Binary release tag (GitHub release download URL)
 
 # =============================================================================

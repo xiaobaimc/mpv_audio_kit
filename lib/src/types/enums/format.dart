@@ -29,6 +29,12 @@ enum Format {
   /// 32-bit signed integer (planar).
   s32Planar('s32p'),
 
+  /// 64-bit signed integer (interleaved).
+  s64('s64'),
+
+  /// 64-bit signed integer (planar).
+  s64Planar('s64p'),
+
   /// 32-bit float (interleaved).
   float32('float'),
 
@@ -55,6 +61,8 @@ enum Format {
         's16p' => s16Planar,
         's32' => s32,
         's32p' => s32Planar,
+        's64' => s64,
+        's64p' => s64Planar,
         'float' => float32,
         'floatp' => float32Planar,
         'double' => float64,

@@ -151,9 +151,16 @@ void main() {
       final missing =
           '${Directory.current.path}/test/fixtures/__does_not_exist__.mka';
       await player.open(Media(missing), play: true);
-      // END_FILE(error) -> idle-active -> intent reset (gated on the
-      // START_FILE latch, which arms even for a failed load).
-      await Future<void>.delayed(const Duration(seconds: 2));
+      // `open(play: true)` writes the optimistic intent synchronously, so the
+      // button reads `true` here. The failed load then runs START_FILE (arms
+      // the latch even for a failed open) -> END_FILE(error) -> idle-active ->
+      // intent reset. Poll the resting state until it flips instead of a fixed
+      // delay: under full-suite load the event chain can take longer than a
+      // couple of seconds, which is what made the fixed-delay version flake.
+      final deadline = DateTime.now().add(const Duration(seconds: 12));
+      while (player.state.playWhenReady && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 25));
+      }
 
       expect(player.state.playWhenReady, isFalse,
           reason: 'a failed load loads nothing; the button must not stick',);

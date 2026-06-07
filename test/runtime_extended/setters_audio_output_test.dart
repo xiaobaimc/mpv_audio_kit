@@ -34,6 +34,11 @@ void main() {
       await player.setAudioExclusive(false);
       expect(player.state.audioExclusive, isFalse);
 
+      await player.setAudioMediaRole(true);
+      expect(player.state.audioMediaRole, isTrue);
+      await player.setAudioMediaRole(false);
+      expect(player.state.audioMediaRole, isFalse);
+
       await player.setAudioSpdif({Spdif.ac3});
       expect(player.state.audioSpdif, {Spdif.ac3});
       // The full set of codecs mpv accepts round-trips through real libmpv.
@@ -49,6 +54,10 @@ void main() {
 
       await player.setAudioFormat(Format.s16);
       expect(player.state.audioFormat, Format.s16);
+
+      // 64-bit PCM formats mpv accepts on audio-format.
+      await player.setAudioFormat(Format.s64);
+      expect(player.state.audioFormat, Format.s64);
 
       await player.setAudioChannels(Channels.stereo);
       expect(player.state.audioChannels, Channels.stereo);

@@ -28,6 +28,19 @@ void main() {
       expect(await p.getRawProperty('hls-bitrate'), 'min');
     }, timeout: const Timeout(Duration(seconds: 15)),);
 
+    test('normalizeDownmix + demuxerCacheDir reach the real libmpv', () async {
+      final p = await buildPlayer(
+        configuration: const PlayerConfiguration(
+          logLevel: LogLevel.off,
+          normalizeDownmix: true,
+          demuxerCacheDir: '/tmp/mak-cache',
+        ),
+      );
+      addTearDown(p.dispose);
+      expect(await p.getRawProperty('audio-normalize-downmix'), 'yes');
+      expect(await p.getRawProperty('demuxer-cache-dir'), '/tmp/mak-cache');
+    }, timeout: const Timeout(Duration(seconds: 15)),);
+
     test('defaults match mpv: force-seekable off, hls-bitrate max', () async {
       final p = await buildPlayer(); // default config
       addTearDown(p.dispose);

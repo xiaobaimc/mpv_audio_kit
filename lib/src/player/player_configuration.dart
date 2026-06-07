@@ -53,6 +53,18 @@ class PlayerConfiguration {
   /// (mpv's default). Set [HlsBitrate.min] to save bandwidth on metered links.
   final HlsBitrate hlsBitrate;
 
+  /// Loudness-normalize surround content downmixed to fewer channels
+  /// (mpv's `--audio-normalize-downmix`). Read when the resampler is built.
+  /// Default `false` (mpv's default): off risks clipping on 5.1→stereo, on
+  /// may sound quieter. Enable for 5.1 music played on stereo output.
+  final bool normalizeDownmix;
+
+  /// Directory for the on-disk demuxer cache (mpv's `--demuxer-cache-dir`),
+  /// the companion of [CacheSettings.onDisk]. `null` uses mpv's default
+  /// location (often not writable on mobile) — point this at an app-writable
+  /// path (e.g. `getTemporaryDirectory()`) when spilling the cache to disk.
+  final String? demuxerCacheDir;
+
   /// Creates a configuration; every field defaults to its documented value.
   const PlayerConfiguration({
     this.autoPlay = false,
@@ -62,5 +74,7 @@ class PlayerConfiguration {
     this.watchLaterDir,
     this.forceSeekable = false,
     this.hlsBitrate = HlsBitrate.max,
+    this.normalizeDownmix = false,
+    this.demuxerCacheDir,
   });
 }

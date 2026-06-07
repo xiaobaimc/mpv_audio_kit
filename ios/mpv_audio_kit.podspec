@@ -15,7 +15,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'mpv_audio_kit'
-  s.version          = '0.3.2'
+  s.version          = '0.3.3'
   s.summary          = 'Flutter audio player powered by libmpv.'
   s.description      = <<-DESC
     Supports audio filters, pitch control, equalizer, and all mpv audio features.
@@ -24,18 +24,16 @@ Pod::Spec.new do |s|
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'mpv_audio_kit' => 'ales-drnz.com' }
   s.source           = { :path => '.' }
-  # Swift sources are physically under `darwin/Sources/mpv_audio_kit/`
-  # and exposed in this Pod via symlinks. We can't reference them as
-  # `'../darwin/...'` directly because SwiftPM (the other distribution
-  # channel for this plugin) rejects `path:` values that escape the
-  # package root, so the symlinks are the canonical way to keep both
-  # build systems happy with one set of Swift sources.
+  # These Swift files are real copies, intentionally NOT symlinks:
+  # `dart pub publish` flattens symlinks into regular files whose body is
+  # the link-target path, which then fails to compile in the consumer's
+  # Xcode. (SwiftPM, this plugin's other build channel, also rejects a
+  # `path:` that escapes the package root, ruling out one shared dir.)
   s.source_files     = 'mpv_audio_kit/Sources/mpv_audio_kit/**/*.swift'
   # Apple privacy manifest. Shipped as a CocoaPods resource bundle so it is
   # embedded (and codesigned) into the built framework — required for App
-  # Store submission. The file is the shared one under `darwin/`, reached
-  # through the same Sources symlink as the Swift code. Kept out of
-  # `source_files` (which is now `*.swift`) so it isn't double-referenced.
+  # Store submission. Kept out of `source_files` (which is `*.swift`) so it
+  # isn't double-referenced.
   s.resource_bundles = {
     'mpv_audio_kit_privacy' => ['mpv_audio_kit/Sources/mpv_audio_kit/PrivacyInfo.xcprivacy'],
   }
