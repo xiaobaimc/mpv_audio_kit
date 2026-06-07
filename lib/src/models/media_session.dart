@@ -116,6 +116,15 @@ class MediaSession {
   /// surface (CarPlay, lockscreen, Control Center).
   final List<double> supportedPlaybackRates;
 
+  /// Whether the package automatically calls [Player.next] and [Player.previous]
+  /// when the active playlist has multiple items and the OS issues a
+  /// next/previous track command.
+  ///
+  /// Defaults to `true`. Set to `false` if the application wants to intercept
+  /// and handle next/previous track commands manually (e.g. for custom skip
+  /// behavior, seeking, or server-driven playlists).
+  final bool autoApplyPlaylistNavigation;
+
   // ── App identity ───────────────────────────────────────────────────
 
   /// Display name shown by MPRIS (Linux) and SMTC (Windows) for the
@@ -153,6 +162,7 @@ class MediaSession {
     this.fastForwardInterval = const Duration(seconds: 15),
     this.rewindInterval = const Duration(seconds: 15),
     this.supportedPlaybackRates = const [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0],
+    this.autoApplyPlaylistNavigation = true,
     this.appName,
     this.desktopEntry,
   });
@@ -176,6 +186,7 @@ class MediaSession {
     Duration? fastForwardInterval,
     Duration? rewindInterval,
     List<double>? supportedPlaybackRates,
+    bool? autoApplyPlaylistNavigation,
     Object? appName = unset,
     Object? desktopEntry = unset,
   }) =>
@@ -193,6 +204,8 @@ class MediaSession {
         rewindInterval: rewindInterval ?? this.rewindInterval,
         supportedPlaybackRates:
             supportedPlaybackRates ?? this.supportedPlaybackRates,
+        autoApplyPlaylistNavigation:
+            autoApplyPlaylistNavigation ?? this.autoApplyPlaylistNavigation,
         appName: identical(appName, unset) ? this.appName : appName as String?,
         desktopEntry: identical(desktopEntry, unset)
             ? this.desktopEntry
@@ -212,6 +225,7 @@ class MediaSession {
         other.interruptionPolicy != interruptionPolicy ||
         other.fastForwardInterval != fastForwardInterval ||
         other.rewindInterval != rewindInterval ||
+        other.autoApplyPlaylistNavigation != autoApplyPlaylistNavigation ||
         other.appName != appName ||
         other.desktopEntry != desktopEntry) {
       return false;
@@ -241,6 +255,7 @@ class MediaSession {
         fastForwardInterval,
         rewindInterval,
         Object.hashAll(supportedPlaybackRates),
+        autoApplyPlaylistNavigation,
         appName,
         desktopEntry,
       );
@@ -253,6 +268,7 @@ class MediaSession {
       'fastForwardInterval: $fastForwardInterval, '
       'rewindInterval: $rewindInterval, '
       'supportedPlaybackRates: $supportedPlaybackRates, '
+      'autoApplyPlaylistNavigation: $autoApplyPlaylistNavigation, '
       'appName: $appName, desktopEntry: $desktopEntry)';
 }
 

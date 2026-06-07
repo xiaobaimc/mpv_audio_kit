@@ -2561,8 +2561,14 @@ const MediaSession(
   fastForwardInterval: Duration(seconds: 30),     // skip-forward button
   rewindInterval: Duration(seconds: 15),          // skip-back button
   supportedPlaybackRates: [1.0, 1.25, 1.5, 2.0],  // speed picker
+  autoApplyPlaylistNavigation: false,             // handle next/prev yourself
 );
 ```
+
+Set `autoApplyPlaylistNavigation: false` to handle the next/previous buttons
+yourself — e.g. a ±30s skip on a multi-file audiobook — instead of the package
+switching track. The command still arrives on
+[`stream.mediaSessionCommands`](#915-media-session-streams).
 
 **Which actions each platform's native media UI actually draws:**
 

@@ -120,11 +120,13 @@ mixin _MediaSessionModule on _PlayerBase {
       case MediaSessionCommandStop():
         unawaited((this as Player).stop());
       case MediaSessionCommandNext():
-        if (_state.playlist.items.length > 1) {
+        if ((_state.mediaSession?.autoApplyPlaylistNavigation ?? true) &&
+            _state.playlist.items.length > 1) {
           unawaited((this as Player).next());
         }
       case MediaSessionCommandPrevious():
-        if (_state.playlist.items.length > 1) {
+        if ((_state.mediaSession?.autoApplyPlaylistNavigation ?? true) &&
+            _state.playlist.items.length > 1) {
           unawaited((this as Player).previous());
         }
       case MediaSessionCommandLike():

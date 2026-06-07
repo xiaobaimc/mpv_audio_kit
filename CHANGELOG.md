@@ -1,4 +1,7 @@
-## [0.3.3]
+## [0.3.3] - 7-06-2026
+
+### Contributions
+- [@ketanchoyal](https://github.com/ketanchoyal): `MediaSession.autoApplyPlaylistNavigation` — opt out of automatic media-session next/previous track handling ([#11](https://github.com/ales-drnz/mpv_audio_kit/pull/11)).
 
 ### Added
 - `Player.openPlaylistFile(Media, {bool? play})`: loads a playlist file or URL (`.m3u` / `.m3u8` / `.pls` / `.cue`) via mpv's `loadlist`, expanding its entries into `Player.stream.playlist` — for internet-radio station lists and remote playlists. (`open` still loads a single entry.)
@@ -20,6 +23,7 @@
 - `Player.setVolumeGainMin` / `Player.setVolumeGainMax` (+ `state` / `stream` `volumeGainMin` / `volumeGainMax`): configure the dB clamps applied to `setVolumeGain` (mpv's `volume-gain-min` / `volume-gain-max`, defaults -96 / +12). Previously the dartdoc advertised these bounds as configurable but no setter existed.
 - `Player.setSystemVolume` / `Player.setSystemMute` (+ nullable `state` / `stream` `systemVolume` / `systemMute`): control the OS per-app mixer (mpv's `ao-volume` / `ao-mute`), distinct from the soft volume/mute. Best-effort — silently ignored (no throw) when the active audio backend doesn't expose system volume/mute; the state is `null` in that case.
 - `CacheSettings.pauseInitial` (mpv's `cache-pause-initial`): buffer before playback starts — and again after each seek — until the cache fills, for a smoother start on network sources (web-radio, HLS, Plex). Default `false`.
+- `MediaSession.autoApplyPlaylistNavigation` (default `true`): set `false` to stop the package auto-calling `Player.next` / `Player.previous` on OS media-session next/previous, so the app can handle those buttons itself (e.g. ±30s skip).
 
 ### Changed
 - `Player.seek` gained an `exact` flag for sample-accurate (vs keyframe) seeking; the default behaviour is unchanged.
@@ -29,8 +33,10 @@
 - `CacheSettings.secs` now defaults to mpv's own `--cache-secs` default (~1000 h) instead of 1 h, so every cache default mirrors mpv exactly. Effective cache memory is still bounded by `demuxerMaxBytes` (150 MiB by default).
 
 ### Fixed
-- iOS/macOS builds now succeed when the package is consumed from pub.dev. The shared Apple plugin sources ship as regular files rather than symlinks, which the pub.dev tarball did not preserve — previously Xcode failed with "Expressions are not allowed at the top level".
-- Playback no longer hard-fails when the audio device can't be opened (e.g. a Bluetooth/AirPlay sink disconnects, or a stale device id): it falls back to a null output and keeps the position clock running, with the failure still reported on `Player.stream.audioOutputState`.
+- Playback no longer hard-fails when the audio device can't be opened it falls back to a null output and keeps the position clock running, with the failure still reported on `Player.stream.audioOutputState`.
+
+### Build
+- The shared Apple plugin sources ship as regular files rather than symlinks (this would cause issues with compilers).
 
 ## [0.3.2] - 5-06-2026
 
