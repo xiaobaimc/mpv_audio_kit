@@ -43,18 +43,41 @@ mixin _PlaylistModule on _PlayerBase {
     _command(['playlist-remove', index.toString()]);
   }
 
-  /// Skips to the next track.
-  Future<void> next() async {
+  /// Skips to the next track. With [force] `true`, advancing past the last
+  /// entry stops playback (mpv's `force` flag); the default (`weak`) does
+  /// nothing when the last entry is already playing.
+  Future<void> next({bool force = false}) async {
     _checkNotDisposed();
     await _ready;
-    _command(['playlist-next']);
+    _command(['playlist-next', force ? 'force' : 'weak']);
   }
 
-  /// Skips to the previous track.
-  Future<void> previous() async {
+  /// Skips to the previous track. With [force] `true`, going back past the
+  /// first entry stops playback; the default (`weak`) does nothing when the
+  /// first entry is already playing.
+  Future<void> previous({bool force = false}) async {
     _checkNotDisposed();
     await _ready;
-    _command(['playlist-prev']);
+    _command(['playlist-prev', force ? 'force' : 'weak']);
+  }
+
+  /// Jumps to the next entry whose source playlist (`playlist-path`) differs
+  /// from the current one — for navigating across concatenated playlists
+  /// (e.g. several internet-radio `.m3u` lists appended into one queue).
+  /// No-op when no later entry comes from a different playlist.
+  Future<void> nextPlaylist() async {
+    _checkNotDisposed();
+    await _ready;
+    _command(['playlist-next-playlist']);
+  }
+
+  /// Jumps to the first of the previous entries whose source playlist
+  /// (`playlist-path`) differs from the current one. The reverse of
+  /// [nextPlaylist].
+  Future<void> previousPlaylist() async {
+    _checkNotDisposed();
+    await _ready;
+    _command(['playlist-prev-playlist']);
   }
 
   /// Jumps to the track at [index] in the playlist and starts playback.

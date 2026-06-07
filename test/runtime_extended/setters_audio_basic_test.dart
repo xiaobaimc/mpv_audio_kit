@@ -46,6 +46,12 @@ void main() {
       await player.setVolumeGain(-3.5);
       expect(player.state.volumeGain, -3.5);
 
+      // Gain bounds (volume-gain-min / volume-gain-max) round-trip.
+      await player.setVolumeGainMin(-60.0);
+      expect(player.state.volumeGainMin, -60.0);
+      await player.setVolumeGainMax(24.0);
+      expect(player.state.volumeGainMax, 24.0);
+
       await player.setVolumeMax(200.0);
       expect(player.state.volumeMax, 200.0);
 

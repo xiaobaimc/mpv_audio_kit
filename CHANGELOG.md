@@ -1,3 +1,32 @@
+## [0.3.3]
+
+### Added
+- `Player.openPlaylistFile(Media, {bool? play})`: loads a playlist file or URL (`.m3u` / `.m3u8` / `.pls` / `.cue`) via mpv's `loadlist`, expanding its entries into `Player.stream.playlist` — for internet-radio station lists and remote playlists. (`open` still loads a single entry.)
+- `Player.addAudioTrack(Media, {select, title, lang})` / `Player.removeAudioTrack(Track)`: load or remove an external audio file as a selectable track on the current file (mpv's `audio-add` / `audio-remove`) — e.g. a separate-language dub or a commentary track.
+- `MpvTrack.external` / `MpvTrack.externalFilename` / `MpvTrack.codecProfile`: surface whether a track was loaded from a separate file (and its source path), plus the codec profile string when the container reports one.
+- `Player.rescanExternalFiles({keepSelection})`: re-scan sidecar external files (auto-loaded audio / cover art) for the current file without reopening it (mpv's `rescan-external-files`).
+- `Player.stream.demuxerCacheState` / `Player.state.demuxerCacheState` (`DemuxerCacheState` + `CacheRange`): structured demuxer-cache snapshot for streaming — the buffered time ranges (render the downloaded regions of a network seek bar), the raw download rate, and the eof/bof-cached / underrun flags. Empty for directly-seekable local files.
+- Resume playback ("watch later"): `Player.writeResumeConfig()` / `Player.deleteResumeConfig({filename})` save or clear a resume point for the current file, and `PlayerConfiguration.resumePlayback` (default `true`) / `PlayerConfiguration.watchLaterDir` control restore-on-reopen and where the configs live (point `watchLaterDir` at a writable path on mobile). Only audio-relevant props are persisted — ideal for audiobook / podcast resume.
+- `PlayerConfiguration.forceSeekable` (mpv's `--force-seekable`): allow in-cache seeking on streams mpv reports as non-seekable (direct-HTTP / HLS audio). Default off.
+- `PlayerConfiguration.hlsBitrate` (`HlsBitrate.no` / `min` / `max`, mpv's `--hls-bitrate`): which variant mpv selects from an adaptive HLS playlist. Default `max`; use `min` to save bandwidth on metered links.
+- `Player.seekToPercent(double percent, {relative, exact})` and `Player.revertSeek()`: percentage-based seeking (for progress-bar scrubbing) and undo-the-last-seek (mpv's `seek …-percent` / `revert-seek`).
+- `Player.next` / `Player.previous` gained a `force` flag: advancing past the last entry (or rewinding past the first) stops playback; the default behaviour is unchanged.
+- `Player.nextPlaylist()` / `Player.previousPlaylist()`: jump to the next/previous entry from a different source playlist, for navigating across concatenated playlists.
+- `Player.stream.playlistPath` / `Player.state.playlistPath`: the source playlist (`.m3u` / `.pls`) the current entry was expanded from; empty when the file was not loaded via a playlist.
+- `Player.setVolumeGainMin` / `Player.setVolumeGainMax` (+ `state` / `stream` `volumeGainMin` / `volumeGainMax`): configure the dB clamps applied to `setVolumeGain` (mpv's `volume-gain-min` / `volume-gain-max`, defaults -96 / +12). Previously the dartdoc advertised these bounds as configurable but no setter existed.
+- `Player.setSystemVolume` / `Player.setSystemMute` (+ nullable `state` / `stream` `systemVolume` / `systemMute`): control the OS per-app mixer (mpv's `ao-volume` / `ao-mute`), distinct from the soft volume/mute. Best-effort — silently ignored (no throw) when the active audio backend doesn't expose system volume/mute; the state is `null` in that case.
+- `CacheSettings.pauseInitial` (mpv's `cache-pause-initial`): buffer before playback starts — and again after each seek — until the cache fills, for a smoother start on network sources (web-radio, HLS, Plex). Default `false`.
+
+### Changed
+- `Player.seek` gained an `exact` flag for sample-accurate (vs keyframe) seeking; the default behaviour is unchanged.
+- Removed `MpvTrack.demuxDuration`. mpv's track list never populated it (it was always `null`); use `Player.state.duration` for the playing file's length.
+- Removed `Spdif.aac` and `Spdif.mp3`. mpv's `audio-spdif` passthrough only accepts `ac3`, `dts`, `dts-hd`, `eac3`, `truehd`; passing either of the dropped values to `setAudioSpdif` would have thrown.
+- `setDemuxerReadaheadSecs`, `PlayerState.demuxerReadaheadSecs`, and `Player.stream.demuxerReadaheadSecs` now use `Duration` instead of `int`. mpv's `demuxer-readahead-secs` is fractional seconds, so the old `int` silently truncated sub-second values (1.5s → 1s).
+- `CacheSettings.secs` now defaults to mpv's own `--cache-secs` default (~1000 h) instead of 1 h, so every cache default mirrors mpv exactly. Effective cache memory is still bounded by `demuxerMaxBytes` (150 MiB by default).
+
+### Fixed
+- Playback no longer hard-fails when the audio device can't be opened (e.g. a Bluetooth/AirPlay sink disconnects, or a stale device id): it falls back to a null output and keeps the position clock running, with the failure still reported on `Player.stream.audioOutputState`.
+
 ## [0.3.2] - 5-06-2026
 
 ### Fixed

@@ -26,13 +26,14 @@ void main() {
       await player.dispose();
     });
 
-    test('writes 5 backing properties atomically', () async {
+    test('writes 6 backing properties atomically', () async {
       const cfg = CacheSettings(
         mode: Cache.yes,
         secs: Duration(seconds: 5),
         onDisk: true,
         pause: false,
         pauseWait: Duration(seconds: 2),
+        pauseInitial: true,
       );
       await player.setCache(cfg);
       expect(player.state.cache.mode, Cache.yes);
@@ -40,6 +41,8 @@ void main() {
       expect(player.state.cache.onDisk, isTrue);
       expect(player.state.cache.pause, isFalse);
       expect(player.state.cache.pauseWait, const Duration(seconds: 2));
+      // #6: buffer-before-start knob round-trips through real libmpv.
+      expect(player.state.cache.pauseInitial, isTrue);
     }, timeout: const Timeout(Duration(seconds: 30)),);
   });
 }

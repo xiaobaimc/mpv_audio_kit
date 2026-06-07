@@ -5,10 +5,10 @@
 /// S/PDIF (or HDMI) compressed-audio passthrough codec.
 ///
 /// Mirrors mpv's `--audio-spdif=<codecs>` option: the wire-level value is
-/// a comma-separated list of codec tokens. The dataset is fixed by mpv's
-/// internal whitelist (`audio/decode/ad_spdif.c`), so [Spdif] is a closed
-/// enum — codecs unknown to mpv are silently dropped on parse to preserve
-/// forward-compat with future mpv builds.
+/// a comma-separated list of codec tokens. mpv's `audio-spdif` accepts
+/// exactly `ac3`, `dts`, `dts-hd`, `eac3`, `truehd`, so [Spdif] is a closed
+/// enum over that set; tokens unknown to mpv are silently dropped on parse
+/// to stay forward-compatible with future mpv builds.
 ///
 /// Pass a [Set] (any size, including empty) to [Player.setAudioSpdif] to
 /// enable passthrough atomically. An empty set disables passthrough.
@@ -26,9 +26,6 @@
 /// the standard DTS path. Specifying both `dts` and `dtsHd` is equivalent
 /// to specifying `dtsHd` alone.
 enum Spdif {
-  /// Advanced Audio Coding passthrough.
-  aac('aac'),
-
   /// Dolby Digital (AC-3) passthrough.
   ac3('ac3'),
 
@@ -42,9 +39,6 @@ enum Spdif {
   /// Dolby Digital Plus (Enhanced AC-3) passthrough.
   eac3('eac3'),
 
-  /// MPEG-1 Audio Layer III passthrough.
-  mp3('mp3'),
-
   /// Dolby TrueHD passthrough — high-bitrate lossless over HDMI.
   trueHd('truehd');
 
@@ -57,12 +51,10 @@ enum Spdif {
   /// unknown values (forward-compat with future mpv builds adding new
   /// passthrough codecs).
   static Spdif? fromMpv(String raw) => switch (raw) {
-        'aac' => aac,
         'ac3' => ac3,
         'dts' => dts,
         'dts-hd' => dtsHd,
         'eac3' => eac3,
-        'mp3' => mp3,
         'truehd' => trueHd,
         _ => null,
       };

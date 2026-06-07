@@ -144,9 +144,9 @@ mixin _AudioModule on _PlayerBase {
   /// Sets volume gain in dB (pre-amplification on top of [setVolume]).
   ///
   /// Hard range: -150 to +150 dB. The default soft clamp mpv applies is
-  /// -96 to +12 dB (configurable with mpv's `volume-gain-min` /
-  /// `volume-gain-max`). 0 dB = unity. Values above ~+6 dB risk clipping
-  /// unless [setReplayGain] or a downstream limiter is in the chain.
+  /// -96 to +12 dB, configurable via [setVolumeGainMin] / [setVolumeGainMax].
+  /// 0 dB = unity. Values above ~+6 dB risk clipping unless [setReplayGain]
+  /// or a downstream limiter is in the chain.
   Future<void> setVolumeGain(double gainDb) async {
     _checkNotDisposed();
     await _ready;
@@ -154,6 +154,59 @@ mixin _AudioModule on _PlayerBase {
     _prop('volume-gain', gainDb.toStringAsFixed(2));
     _updateField(
         (s) => s.copyWith(volumeGain: gainDb), _reactives.volumeGain, gainDb,);
+  }
+
+  /// Sets the lower clamp applied to [setVolumeGain], in dB
+  /// (mpv's `volume-gain-min`). Range -150 to 0; default -96.
+  Future<void> setVolumeGainMin(double gainDb) async {
+    _checkNotDisposed();
+    await _ready;
+    _checkFinite(gainDb, 'gainDb');
+    _prop('volume-gain-min', gainDb.toStringAsFixed(2));
+    _updateField((s) => s.copyWith(volumeGainMin: gainDb),
+        _reactives.volumeGainMin, gainDb,);
+  }
+
+  /// Sets the upper clamp applied to [setVolumeGain], in dB
+  /// (mpv's `volume-gain-max`). Range 0 to 150; default +12.
+  Future<void> setVolumeGainMax(double gainDb) async {
+    _checkNotDisposed();
+    await _ready;
+    _checkFinite(gainDb, 'gainDb');
+    _prop('volume-gain-max', gainDb.toStringAsFixed(2));
+    _updateField((s) => s.copyWith(volumeGainMax: gainDb),
+        _reactives.volumeGainMax, gainDb,);
+  }
+
+  /// Sets the OS per-app mixer volume in percent (`ao-volume`) — the system
+  /// volume slider for this app, distinct from the soft [setVolume].
+  ///
+  /// Best-effort: when the active audio output doesn't expose system volume
+  /// (the null AO, or a backend without per-app volume) the call is silently
+  /// ignored — it does NOT throw, and [PlayerState.systemVolume] stays `null`.
+  Future<void> setSystemVolume(double volume) async {
+    _checkNotDisposed();
+    await _ready;
+    _checkFinite(volume, 'volume');
+    final rc = _propRc('ao-volume', volume.toStringAsFixed(1));
+    if (rc >= 0) {
+      _updateField((s) => s.copyWith(systemVolume: volume),
+          _reactives.systemVolume, volume,);
+    }
+  }
+
+  /// Sets the OS per-app mute (`ao-mute`), distinct from the soft [setMute].
+  ///
+  /// Best-effort, like [setSystemVolume]: silently ignored (no throw) when the
+  /// active audio output doesn't expose system mute (e.g. coreaudio on macOS).
+  Future<void> setSystemMute(bool mute) async {
+    _checkNotDisposed();
+    await _ready;
+    final rc = _propRc('ao-mute', mute ? 'yes' : 'no');
+    if (rc >= 0) {
+      _updateField(
+          (s) => s.copyWith(systemMute: mute), _reactives.systemMute, mute,);
+    }
   }
 
   /// Sets the upper bound the user-facing volume scale is clamped to.
@@ -208,11 +261,69 @@ mixin _AudioModule on _PlayerBase {
     _prop('aid', track.mpvValue);
   }
 
+  /// Loads an external audio file as an additional selectable track on the
+  /// currently-playing file (mpv's `audio-add`) — e.g. a separate-language
+  /// dub or a commentary track. The new track appears in
+  /// [PlayerState.tracks]; switch to it with [setAudioTrack].
+  ///
+  /// [select] `true` (default) selects the new track immediately; `false`
+  /// adds it without switching. [title] / [lang] tag it for the track list.
+  /// Requires a file to be loaded first. Per-[Media] options
+  /// (`httpHeaders`, …) are validated but not applied — `audio-add` has no
+  /// file-local options slot.
+  Future<void> addAudioTrack(
+    Media file, {
+    bool select = true,
+    String? title,
+    String? lang,
+  }) async {
+    _checkNotDisposed();
+    await _ready;
+    _validateLoadOptions(file);
+    final tls = _tlsBundleReady;
+    final resolved = await resolveUri(file.uri);
+    await tls;
+    if (_disposed) {
+      await resolved.dispose?.call();
+      return;
+    }
+    final args = <String>['audio-add', resolved.uri, select ? 'select' : 'auto'];
+    // mpv's args are positional: to pass `lang` you must also pass `title`.
+    if (title != null || lang != null) args.add(title ?? '');
+    if (lang != null) args.add(lang);
+    _command(args);
+  }
+
+  /// Removes an audio track (mpv's `audio-remove`). Pass [Track.id] to remove
+  /// a specific track (typically one added via [addAudioTrack]); [Track.auto]
+  /// removes the currently-selected audio track. The track-list observer
+  /// folds the removal back into [PlayerState.tracks].
+  Future<void> removeAudioTrack(Track track) async {
+    _checkNotDisposed();
+    await _ready;
+    _command(track is TrackId
+        ? ['audio-remove', '${track.trackId}']
+        : ['audio-remove'],);
+  }
+
   /// Forcibly reloads the audio output.
   Future<void> reloadAudio() async {
     _checkNotDisposed();
     await _ready;
     _command(['ao-reload']);
+  }
+
+  /// Re-scans sidecar external files (auto-loaded audio / cover art) for the
+  /// current file — mpv's `rescan-external-files`. Use after dropping a cover
+  /// or companion audio file next to the playing file so it gets picked up
+  /// without reopening. With [keepSelection] the current track selection is
+  /// preserved; otherwise mpv reselects the default streams. Newly found
+  /// tracks / cover art fold into [PlayerState.tracks] / the cover-art stream.
+  Future<void> rescanExternalFiles({bool keepSelection = false}) async {
+    _checkNotDisposed();
+    await _ready;
+    _command(
+        ['rescan-external-files', keepSelection ? 'keep-selection' : 'reselect'],);
   }
 
   // ── DSP pipeline ────────────────────────────────────────────────────

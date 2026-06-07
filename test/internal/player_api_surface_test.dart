@@ -41,6 +41,10 @@ class _ApiProbe implements PlayerApi {
       _record('openAll');
 
   @override
+  Future<void> openPlaylistFile(Media playlist, {bool? play}) =>
+      _record('openPlaylistFile');
+
+  @override
   Future<void> play() => _record('play');
 
   @override
@@ -50,7 +54,16 @@ class _ApiProbe implements PlayerApi {
   Future<void> stop() => _record('stop');
 
   @override
-  Future<void> seek(Duration position, {bool relative = false}) =>
+  Future<void> seekToPercent(double percent,
+          {bool relative = false, bool exact = false,}) =>
+      _record('seekToPercent');
+
+  @override
+  Future<void> revertSeek() => _record('revertSeek');
+
+  @override
+  Future<void> seek(Duration position,
+          {bool relative = false, bool exact = false,}) =>
       _record('seek');
 
   @override
@@ -69,16 +82,29 @@ class _ApiProbe implements PlayerApi {
   Future<void> setAbLoopCount(int? count) => _record('setAbLoopCount');
 
   @override
+  Future<void> writeResumeConfig() => _record('writeResumeConfig');
+
+  @override
+  Future<void> deleteResumeConfig({String? filename}) =>
+      _record('deleteResumeConfig');
+
+  @override
   Future<void> add(Media media) => _record('add');
 
   @override
   Future<void> remove(int index) => _record('remove');
 
   @override
-  Future<void> next() => _record('next');
+  Future<void> next({bool force = false}) => _record('next');
 
   @override
-  Future<void> previous() => _record('previous');
+  Future<void> previous({bool force = false}) => _record('previous');
+
+  @override
+  Future<void> nextPlaylist() => _record('nextPlaylist');
+
+  @override
+  Future<void> previousPlaylist() => _record('previousPlaylist');
 
   @override
   Future<void> jump(int index) => _record('jump');
@@ -134,7 +160,19 @@ class _ApiProbe implements PlayerApi {
   Future<void> setVolumeGain(double gainDb) => _record('setVolumeGain');
 
   @override
+  Future<void> setVolumeGainMin(double gainDb) => _record('setVolumeGainMin');
+
+  @override
+  Future<void> setVolumeGainMax(double gainDb) => _record('setVolumeGainMax');
+
+  @override
   Future<void> setVolumeMax(double limit) => _record('setVolumeMax');
+
+  @override
+  Future<void> setSystemVolume(double volume) => _record('setSystemVolume');
+
+  @override
+  Future<void> setSystemMute(bool mute) => _record('setSystemMute');
 
   @override
   Future<void> setAudioExclusive(bool exclusive) =>
@@ -147,7 +185,19 @@ class _ApiProbe implements PlayerApi {
   Future<void> setAudioTrack(Track track) => _record('setAudioTrack');
 
   @override
+  Future<void> addAudioTrack(Media file,
+          {bool select = true, String? title, String? lang,}) =>
+      _record('addAudioTrack');
+
+  @override
+  Future<void> removeAudioTrack(Track track) => _record('removeAudioTrack');
+
+  @override
   Future<void> reloadAudio() => _record('reloadAudio');
+
+  @override
+  Future<void> rescanExternalFiles({bool keepSelection = false}) =>
+      _record('rescanExternalFiles');
 
   @override
   Future<void> setAudioEffects(AudioEffects effects) =>
@@ -212,7 +262,7 @@ class _ApiProbe implements PlayerApi {
       _record('setDemuxerMaxBackBytes');
 
   @override
-  Future<void> setDemuxerReadaheadSecs(int seconds) =>
+  Future<void> setDemuxerReadaheadSecs(Duration readahead) =>
       _record('setDemuxerReadaheadSecs');
 
   @override
@@ -271,7 +321,7 @@ void main() {
       await typed.setCache(const CacheSettings());
       await typed.setDemuxerMaxBytes(1);
       await typed.setDemuxerMaxBackBytes(1);
-      await typed.setDemuxerReadaheadSecs(1);
+      await typed.setDemuxerReadaheadSecs(const Duration(seconds: 1));
       await typed.setAudioBuffer(const Duration(milliseconds: 200));
       await typed.setAudioStreamSilence(false);
       await typed.setAudioNullUntimed(false);

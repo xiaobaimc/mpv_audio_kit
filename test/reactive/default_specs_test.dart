@@ -269,6 +269,7 @@ void main() {
         'https://cdn.example/redirected.flac',
         (s) => s.streamOpenFilename,
       ),
+      ('playlist-path', '/music/radio.m3u', (s) => s.playlistPath),
       ('seeking', true, (s) => s.seeking),
       ('percent-pos', 42.5, (s) => s.percentPos),
       ('cache-speed', 65536.0, (s) => s.cacheSpeed),
@@ -403,13 +404,14 @@ void main() {
           reason: 'preamp from the previous dispatch must survive',);
     });
 
-    test('cache: dispatching one property preserves the other 4', () {
-      // Seed all 5 fields via dispatch (see replayGain test for rationale).
+    test('cache: dispatching one property preserves the other 5', () {
+      // Seed all 6 fields via dispatch (see replayGain test for rationale).
       dispatch('cache', 'yes');
       dispatch('cache-secs', 30.0);
       dispatch('cache-on-disk', true);
       dispatch('cache-pause', false);
       dispatch('cache-pause-wait', 5.0);
+      dispatch('cache-pause-initial', true);
       expect(
           state.cache,
           const CacheSettings(
@@ -418,6 +420,7 @@ void main() {
             onDisk: true,
             pause: false,
             pauseWait: Duration(seconds: 5),
+            pauseInitial: true,
           ),);
 
       dispatch('cache-secs', 60.0);
@@ -426,6 +429,7 @@ void main() {
       expect(state.cache.onDisk, isTrue);
       expect(state.cache.pause, isFalse);
       expect(state.cache.pauseWait, const Duration(seconds: 5));
+      expect(state.cache.pauseInitial, isTrue);
 
       dispatch('cache-pause', true);
       expect(state.cache.pause, isTrue);
@@ -536,15 +540,17 @@ void main() {
         // ReplayGain & gapless
         'gapless-audio', 'replaygain', 'replaygain-preamp',
         'replaygain-fallback', 'replaygain-clip', 'volume-gain',
+        'volume-gain-min', 'volume-gain-max',
         // Cache / network
         'cache', 'cache-secs', 'cache-on-disk', 'cache-pause',
-        'cache-pause-wait', 'demuxer-max-bytes', 'demuxer-readahead-secs',
+        'cache-pause-wait', 'cache-pause-initial',
+        'demuxer-max-bytes', 'demuxer-readahead-secs',
         'demuxer-max-back-bytes', 'network-timeout', 'tls-verify',
         'paused-for-cache', 'demuxer-via-network',
         // Audio output / driver
         'audio-buffer', 'audio-exclusive', 'audio-stream-silence',
         'ao-null-untimed', 'track-list', 'current-tracks/audio',
-        'audio-spdif', 'volume-max',
+        'audio-spdif', 'volume-max', 'ao-volume', 'ao-mute',
         'audio-samplerate', 'audio-format', 'audio-channels',
         'audio-client-name', 'ao',
         // NOTE: `af` is NOT observed — the typed [AudioEffects] bundle
@@ -567,6 +573,7 @@ void main() {
         'chapter', 'chapter-list',
         // Path / URI introspection
         'path', 'filename', 'stream-path', 'stream-open-filename',
+        'playlist-path',
         // A-B loop
         'ab-loop-a', 'ab-loop-b', 'ab-loop-count', 'remaining-ab-loops',
         // Tier 2 introspection

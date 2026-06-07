@@ -47,8 +47,15 @@ void main() {
       await player.setDemuxerMaxBackBytes(25 * 1024 * 1024);
       expect(player.state.demuxerMaxBackBytes, 25 * 1024 * 1024);
 
-      await player.setDemuxerReadaheadSecs(10);
-      expect(player.state.demuxerReadaheadSecs, 10);
+      await player.setDemuxerReadaheadSecs(const Duration(seconds: 10));
+      expect(player.state.demuxerReadaheadSecs, const Duration(seconds: 10));
+
+      // Sub-second precision survives the round-trip. Regression for the old
+      // int model, which truncated fractional readahead to whole seconds
+      // (mpv's demuxer-readahead-secs is a fractional-seconds Double).
+      await player.setDemuxerReadaheadSecs(const Duration(milliseconds: 1500));
+      expect(player.state.demuxerReadaheadSecs,
+          const Duration(milliseconds: 1500),);
     }, timeout: const Timeout(Duration(seconds: 15)),);
 
     test('audioBuffer / audioStreamSilence / audioNullUntimed round-trip',

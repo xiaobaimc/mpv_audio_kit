@@ -4,8 +4,8 @@
 
 import 'package:mpv_audio_kit/src/types/enums/cache.dart';
 
-/// Aggregate of mpv's five cache properties (`cache`, `cache-secs`,
-/// `cache-on-disk`, `cache-pause`, `cache-pause-wait`).
+/// Aggregate of mpv's six cache properties (`cache`, `cache-secs`,
+/// `cache-on-disk`, `cache-pause`, `cache-pause-wait`, `cache-pause-initial`).
 ///
 /// Apply atomically via [Player.setCache]. For one-off tweaks use
 /// `state.cache.copyWith(...)`. Read the current configuration via
@@ -14,10 +14,10 @@ final class CacheSettings {
   /// Caching policy. Default mirrors mpv's `--cache=auto`.
   final Cache mode;
 
-  /// Target cache duration ahead of the playhead. Default 1 hour
-  /// mirrors mpv's `--cache-secs=3600`. Actual memory usage is bounded
-  /// by [PlayerState.demuxerMaxBytes] (150 MiB by default), whichever
-  /// comes first.
+  /// Target cache duration ahead of the playhead. Matches mpv's
+  /// `--cache-secs` default (~1000 h — effectively unbounded by time):
+  /// actual memory is bounded by [PlayerState.demuxerMaxBytes] (150 MiB by
+  /// default), which is what governs in practice.
   final Duration secs;
 
   /// Whether to spill cache to disk instead of holding it in memory.
@@ -30,14 +30,22 @@ final class CacheSettings {
   /// 1 second mirrors mpv's `--cache-pause-wait=1.0`.
   final Duration pauseWait;
 
-  /// Creates a cache configuration. Each default mirrors the
-  /// corresponding mpv property default.
+  /// Whether to enter the buffering/paused state before playback starts —
+  /// and again after every seek restart — until the cache fills. The fix
+  /// for choppy start-up on network sources (web-radio / HLS / Plex).
+  /// Default `false`, matching mpv's `--cache-pause-initial=no`; only takes
+  /// effect when [pause] is enabled.
+  final bool pauseInitial;
+
+  /// Creates a cache configuration. Each default mirrors the corresponding
+  /// mpv property default.
   const CacheSettings({
     this.mode = Cache.auto,
-    this.secs = const Duration(hours: 1),
+    this.secs = const Duration(hours: 1000),
     this.onDisk = false,
     this.pause = true,
     this.pauseWait = const Duration(seconds: 1),
+    this.pauseInitial = false,
   });
 
   /// Returns a copy with the given fields replaced. Omitted fields keep
@@ -48,6 +56,7 @@ final class CacheSettings {
     bool? onDisk,
     bool? pause,
     Duration? pauseWait,
+    bool? pauseInitial,
   }) =>
       CacheSettings(
         mode: mode ?? this.mode,
@@ -55,6 +64,7 @@ final class CacheSettings {
         onDisk: onDisk ?? this.onDisk,
         pause: pause ?? this.pause,
         pauseWait: pauseWait ?? this.pauseWait,
+        pauseInitial: pauseInitial ?? this.pauseInitial,
       );
 
   @override
@@ -65,13 +75,15 @@ final class CacheSettings {
           other.secs == secs &&
           other.onDisk == onDisk &&
           other.pause == pause &&
-          other.pauseWait == pauseWait);
+          other.pauseWait == pauseWait &&
+          other.pauseInitial == pauseInitial);
 
   @override
-  int get hashCode => Object.hash(mode, secs, onDisk, pause, pauseWait);
+  int get hashCode =>
+      Object.hash(mode, secs, onDisk, pause, pauseWait, pauseInitial);
 
   @override
   String toString() =>
       'CacheSettings(mode: $mode, secs: $secs, onDisk: $onDisk, '
-      'pause: $pause, pauseWait: $pauseWait)';
+      'pause: $pause, pauseWait: $pauseWait, pauseInitial: $pauseInitial)';
 }

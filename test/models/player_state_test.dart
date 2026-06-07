@@ -36,8 +36,8 @@ void main() {
       expect(s.duration, Duration.zero);
       expect(s.buffer, Duration.zero);
       expect(s.audioDelay, Duration.zero);
-      expect(s.cache.secs, const Duration(hours: 1),
-          reason: 'matches mpv `--cache-secs=3600`',);
+      expect(s.cache.secs, const Duration(hours: 1000),
+          reason: 'matches mpv `--cache-secs` default (~1000h)',);
       expect(s.cache.pauseWait, const Duration(seconds: 1),
           reason: 'matches mpv `--cache-pause-wait=1.0`',);
       expect(s.networkTimeout, const Duration(seconds: 60),
@@ -70,7 +70,7 @@ void main() {
 
       expect(s.cache, const CacheSettings());
       expect(s.cache.mode, Cache.auto);
-      expect(s.cache.secs, const Duration(hours: 1));
+      expect(s.cache.secs, const Duration(hours: 1000));
       expect(s.cache.onDisk, isFalse);
       expect(s.cache.pause, isTrue);
       expect(s.cache.pauseWait, const Duration(seconds: 1));

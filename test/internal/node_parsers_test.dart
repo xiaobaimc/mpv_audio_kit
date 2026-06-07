@@ -405,6 +405,7 @@ void main() {
           'demux-samplerate': 48000,
           'demux-channels': 'stereo',
           'demux-channel-count': 2,
+          'codec-profile': 'lossless',
         },
         {
           'id': 2,
@@ -412,6 +413,8 @@ void main() {
           'codec': 'aac',
           'lang': 'jpn',
           'title': 'Surround',
+          'external': true,
+          'external-filename': '/ext/dub.aac',
         },
         {
           'id': 3,
@@ -436,9 +439,14 @@ void main() {
       expect(tracks[0].sampleRate, 48000);
       expect(tracks[0].channels, 'stereo');
       expect(tracks[0].channelCount, 2);
+      expect(tracks[0].codecProfile, 'lossless');
+      expect(tracks[0].external, isFalse,
+          reason: 'container track is not external',);
 
       expect(tracks[1].selected, isFalse);
       expect(tracks[1].defaultTrack, isFalse);
+      expect(tracks[1].external, isTrue);
+      expect(tracks[1].externalFilename, '/ext/dub.aac');
 
       // Cover-art track is recognisable via image / albumArt flags so a
       // "switch audio track" UI can skip it.
@@ -474,7 +482,6 @@ void main() {
           'decoder-desc': 'FLAC reference decoder',
           'format-name': 'fltp',
           'demux-bitrate': 850000.0,
-          'demux-duration': 184.5,
           'hls-bitrate': 192000.0,
           'dependent': false,
           'visual-impaired': false,
@@ -498,7 +505,6 @@ void main() {
       expect(t.decoderDesc, contains('FLAC'));
       expect(t.formatName, 'fltp');
       expect(t.demuxBitrate, 850000.0);
-      expect(t.demuxDuration, const Duration(milliseconds: 184500));
       expect(t.hlsBitrate, 192000.0);
       expect(t.replayGainTrackGain, -3.5);
       expect(t.replayGainTrackPeak, 0.98);
@@ -518,7 +524,6 @@ void main() {
       expect(t.decoder, isNull);
       expect(t.formatName, isNull);
       expect(t.demuxBitrate, isNull);
-      expect(t.demuxDuration, isNull);
       expect(t.replayGainTrackGain, isNull);
       expect(t.metadata, isEmpty);
     });
@@ -543,6 +548,48 @@ void main() {
       expect(parseCurrentTrackNode(null), isNull);
       expect(parseCurrentTrackNode('garbage'), isNull);
       expect(parseCurrentTrackNode(<dynamic>[]), isNull);
+    });
+  });
+
+  group('parseDemuxerCacheStateFull', () {
+    test('parses seekable-ranges + network-cache flags from the node', () {
+      final s = parseDemuxerCacheStateFull(<String, dynamic>{
+        'seekable-ranges': [
+          {'start': 0.0, 'end': 4.9},
+          {'start': 10.0, 'end': 12.5},
+        ],
+        'raw-input-rate': 133268,
+        'eof-cached': true,
+        'bof-cached': true,
+        'underrun': false,
+      });
+      expect(s.seekableRanges, hasLength(2));
+      expect(s.seekableRanges[0].start, Duration.zero);
+      expect(s.seekableRanges[0].end, const Duration(milliseconds: 4900));
+      expect(s.seekableRanges[1].start, const Duration(seconds: 10));
+      expect(s.seekableRanges[1].end, const Duration(milliseconds: 12500));
+      expect(s.rawInputRate, 133268.0);
+      expect(s.eofCached, isTrue);
+      expect(s.bofCached, isTrue);
+      expect(s.underrun, isFalse);
+    });
+
+    test('malformed range entries are skipped', () {
+      final s = parseDemuxerCacheStateFull(<String, dynamic>{
+        'seekable-ranges': [
+          {'start': 1.0, 'end': 2.0},
+          {'start': 3.0}, // missing end → dropped
+          'garbage',
+        ],
+      });
+      expect(s.seekableRanges, hasLength(1));
+    });
+
+    test('non-map / empty input → empty state', () {
+      expect(parseDemuxerCacheStateFull(null), DemuxerCacheState.empty);
+      expect(parseDemuxerCacheStateFull('garbage'), DemuxerCacheState.empty);
+      expect(parseDemuxerCacheStateFull(<String, dynamic>{}).seekableRanges,
+          isEmpty,);
     });
   });
 }

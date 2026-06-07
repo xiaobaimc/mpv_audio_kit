@@ -30,6 +30,29 @@ mixin _PlaybackModule on _PlayerBase {
     _prop('pause', 'yes');
   }
 
+  /// Writes mpv's "watch later" resume config for the current file, saving the
+  /// playback position (plus a curated set of audio props) so a later
+  /// [Player.open] of the same file resumes from here. Playback continues.
+  ///
+  /// Pairs with [PlayerConfiguration.resumePlayback] (on by default) and
+  /// [PlayerConfiguration.watchLaterDir]. On mobile, set `watchLaterDir` to a
+  /// writable path or the write silently fails.
+  Future<void> writeResumeConfig() async {
+    _checkNotDisposed();
+    await _ready;
+    _command(['write-watch-later-config']);
+  }
+
+  /// Deletes the "watch later" resume config — for the current file, or for
+  /// [filename] when given — clearing any saved resume point.
+  Future<void> deleteResumeConfig({String? filename}) async {
+    _checkNotDisposed();
+    await _ready;
+    _command(filename == null
+        ? ['delete-watch-later-config']
+        : ['delete-watch-later-config', filename],);
+  }
+
   /// Stops playback and unloads the current file. Distinct from [pause]:
   /// the demuxer is torn down, the playhead is reset, and the next call
   /// must be [open] (not [play]) to start a new track.
@@ -56,12 +79,37 @@ mixin _PlaybackModule on _PlayerBase {
   /// await player.seek(const Duration(seconds: -10), relative: true);   // skip back 10s
   /// await player.seek(const Duration(seconds: 30), relative: true);    // skip forward 30s
   /// ```
-  Future<void> seek(Duration position, {bool relative = false}) async {
+  Future<void> seek(Duration position,
+      {bool relative = false, bool exact = false,}) async {
     _checkNotDisposed();
     await _ready;
     final secs = position.inMicroseconds / 1e6;
+    final mode = relative ? 'relative' : 'absolute';
     _command(
-        ['seek', secs.toStringAsFixed(6), relative ? 'relative' : 'absolute'],);
+        ['seek', secs.toStringAsFixed(6), exact ? '$mode+exact' : mode],);
+  }
+
+  /// Seeks by percentage of the file duration (0–100). Absolute by default,
+  /// or relative to the current percent position when [relative] is true.
+  /// [exact] forces a sample-accurate (slower) seek instead of snapping to a
+  /// keyframe. Counterpart of [seek] for progress-bar scrubbing.
+  Future<void> seekToPercent(double percent,
+      {bool relative = false, bool exact = false,}) async {
+    _checkNotDisposed();
+    await _ready;
+    _checkFinite(percent, 'percent');
+    final mode = relative ? 'relative-percent' : 'absolute-percent';
+    _command(
+        ['seek', percent.toStringAsFixed(4), exact ? '$mode+exact' : mode],);
+  }
+
+  /// Undoes the last [seek] / [seekToPercent], jumping back to the position
+  /// before it; calling it again undoes the revert. Works only within the
+  /// current file (mpv's `revert-seek`).
+  Future<void> revertSeek() async {
+    _checkNotDisposed();
+    await _ready;
+    _command(['revert-seek']);
   }
 
   /// Jumps to the chapter at [index] in the current file.

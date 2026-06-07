@@ -5,6 +5,7 @@
 import '../internals/duration_seconds.dart';
 import '../models/audio_params.dart';
 import '../models/chapter.dart';
+import '../models/demuxer_cache_state.dart';
 import '../models/device.dart';
 import '../models/media.dart';
 import '../models/mpv_track.dart';
@@ -119,6 +120,32 @@ double parseDemuxerCacheStateNode(
   return (cacheDuration / targetSecs * 100.0).clamp(0.0, 100.0);
 }
 
+/// Decodes the rich part of mpv's `demuxer-cache-state` node — the buffered
+/// time ranges and network-cache flags useful to a streaming UI. Empty for
+/// directly-seekable local files (mpv leaves the cache state unpopulated).
+DemuxerCacheState parseDemuxerCacheStateFull(dynamic raw) {
+  if (raw is! Map) return DemuxerCacheState.empty;
+  final ranges = <CacheRange>[];
+  final rangesRaw = raw['seekable-ranges'];
+  if (rangesRaw is List) {
+    for (final r in rangesRaw) {
+      if (r is! Map) continue;
+      final s = (r['start'] as num?)?.toDouble();
+      final e = (r['end'] as num?)?.toDouble();
+      if (s != null && e != null) {
+        ranges.add(CacheRange(secondsToDuration(s), secondsToDuration(e)));
+      }
+    }
+  }
+  return DemuxerCacheState(
+    seekableRanges: ranges,
+    rawInputRate: (raw['raw-input-rate'] as num?)?.toDouble(),
+    eofCached: raw['eof-cached'] == true,
+    bofCached: raw['bof-cached'] == true,
+    underrun: raw['underrun'] == true,
+  );
+}
+
 /// Decodes mpv's `audio-params` (or `audio-out-params`) property
 /// (`MPV_FORMAT_NODE_MAP`) into an [AudioParams] populated with the 5 fields
 /// mpv exposes on the wire (`format`, `sampleRate`, `channels`,
@@ -163,7 +190,6 @@ MpvTrack? parseCurrentTrackNode(dynamic raw) {
 
 MpvTrack _parseTrackEntry(dynamic entry) {
   final m = entry is Map ? entry : const <String, dynamic>{};
-  final demuxDurationSecs = (m['demux-duration'] as num?)?.toDouble();
   return MpvTrack(
     id: m['id'] is int ? m['id'] as int : -1,
     type: m['type'] is String ? m['type'] as String : '',
@@ -177,8 +203,11 @@ MpvTrack _parseTrackEntry(dynamic entry) {
     hearingImpaired: m['hearing-impaired'] == true,
     image: m['image'] == true,
     albumArt: m['albumart'] == true,
+    external: m['external'] == true,
+    externalFilename: _stringOrNull(m['external-filename']),
     codec: _stringOrNull(m['codec']),
     codecDesc: _stringOrNull(m['codec-desc']),
+    codecProfile: _stringOrNull(m['codec-profile']),
     decoder: _stringOrNull(m['decoder']),
     decoderDesc: _stringOrNull(m['decoder-desc']),
     formatName: _stringOrNull(m['format-name']),
@@ -186,9 +215,6 @@ MpvTrack _parseTrackEntry(dynamic entry) {
     channels: _stringOrNull(m['demux-channels']),
     channelCount: _intOrNull(m['demux-channel-count']),
     demuxBitrate: _doubleOrNull(m['demux-bitrate']),
-    demuxDuration: demuxDurationSecs != null && demuxDurationSecs > 0
-        ? secondsToDuration(demuxDurationSecs)
-        : null,
     hlsBitrate: _doubleOrNull(m['hls-bitrate']),
     replayGainTrackGain: _doubleOrNull(m['replaygain-track-gain']),
     replayGainTrackPeak: _doubleOrNull(m['replaygain-track-peak']),

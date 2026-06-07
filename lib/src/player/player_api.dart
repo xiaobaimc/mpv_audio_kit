@@ -73,6 +73,13 @@ abstract interface class PlayerApi {
   /// multi-item counterpart of [open].
   Future<void> openAll(List<Media> medias, {bool? play, int index = 0});
 
+  /// Loads a playlist file or URL (`.m3u` / `.m3u8` / `.pls` / `.cue`) as the
+  /// new playlist via mpv's `loadlist`, expanding its entries into the
+  /// playlist — the path for internet-radio station lists and remote `.m3u`
+  /// playlists. Contrast with [open], which loads a single entry. See
+  /// [Player.openPlaylistFile] for the per-[Media] option caveats.
+  Future<void> openPlaylistFile(Media playlist, {bool? play});
+
   // ── Playback ───────────────────────────────────────────────────────
 
   /// Starts or resumes playback (sets the play/pause intent to play).
@@ -88,8 +95,16 @@ abstract interface class PlayerApi {
 
   /// Seeks within the current file. With [relative] `false` [position] is
   /// an absolute timestamp; with `true` it is a signed offset from the
-  /// playhead.
-  Future<void> seek(Duration position, {bool relative = false});
+  /// playhead. [exact] forces a sample-accurate (slower) seek.
+  Future<void> seek(Duration position, {bool relative, bool exact});
+
+  /// Seeks by percentage of the file duration (0–100). See
+  /// [Player.seekToPercent].
+  Future<void> seekToPercent(double percent, {bool relative, bool exact});
+
+  /// Undoes the last seek, returning to the prior position (mpv's
+  /// `revert-seek`). See [Player.revertSeek].
+  Future<void> revertSeek();
 
   /// Jumps to the 0-based chapter [index] in the current file.
   Future<void> setChapter(int index);
@@ -111,6 +126,14 @@ abstract interface class PlayerApi {
   /// Sets the number of A-B loop repetitions; `null` loops infinitely.
   Future<void> setAbLoopCount(int? count);
 
+  /// Saves a "watch later" resume point for the current file (mpv's
+  /// `write-watch-later-config`). See [Player.writeResumeConfig].
+  Future<void> writeResumeConfig();
+
+  /// Deletes the "watch later" resume point for the current file, or for
+  /// [filename] when given. See [Player.deleteResumeConfig].
+  Future<void> deleteResumeConfig({String? filename});
+
   // ── Playlist ───────────────────────────────────────────────────────
 
   /// Appends [media] to the end of the playlist.
@@ -119,11 +142,21 @@ abstract interface class PlayerApi {
   /// Removes the playlist entry at [index].
   Future<void> remove(int index);
 
-  /// Advances to the next playlist entry.
-  Future<void> next();
+  /// Advances to the next playlist entry. With [force] true, advancing past
+  /// the last entry stops playback; the default does nothing at the end.
+  Future<void> next({bool force});
 
-  /// Returns to the previous playlist entry.
-  Future<void> previous();
+  /// Returns to the previous playlist entry. With [force] true, going back
+  /// past the first entry stops playback; the default does nothing at the start.
+  Future<void> previous({bool force});
+
+  /// Jumps to the next entry from a different source playlist
+  /// (`playlist-path`) — navigation across concatenated playlists.
+  Future<void> nextPlaylist();
+
+  /// Jumps to the first of the previous entries from a different source
+  /// playlist (`playlist-path`). The reverse of [nextPlaylist].
+  Future<void> previousPlaylist();
 
   /// Jumps to the playlist entry at [index] and plays it.
   Future<void> jump(int index);
@@ -180,8 +213,23 @@ abstract interface class PlayerApi {
   /// Sets the decoder-side gain in dB applied on top of the volume.
   Future<void> setVolumeGain(double gainDb);
 
+  /// Sets the lower clamp on the volume gain, in dB (`volume-gain-min`).
+  Future<void> setVolumeGainMin(double gainDb);
+
+  /// Sets the upper clamp on the volume gain, in dB (`volume-gain-max`).
+  Future<void> setVolumeGainMax(double gainDb);
+
   /// Sets the upper bound the [setVolume] setter accepts, in percent.
   Future<void> setVolumeMax(double limit);
+
+  /// Sets the OS per-app mixer volume in percent (`ao-volume`), distinct from
+  /// the soft [setVolume]. Best-effort: silently ignored (no throw) when the
+  /// active audio output doesn't expose system volume.
+  Future<void> setSystemVolume(double volume);
+
+  /// Sets the OS per-app mute (`ao-mute`), distinct from the soft [setMute].
+  /// Best-effort: silently ignored (no throw) when unsupported by the AO.
+  Future<void> setSystemMute(bool mute);
 
   /// Opens the audio device in exclusive mode when [exclusive] is true.
   Future<void> setAudioExclusive(bool exclusive);
@@ -193,8 +241,22 @@ abstract interface class PlayerApi {
   /// Selects the active audio [track].
   Future<void> setAudioTrack(Track track);
 
+  /// Loads an external audio file as an extra selectable track on the current
+  /// file (mpv's `audio-add`). See [Player.addAudioTrack].
+  Future<void> addAudioTrack(Media file,
+      {bool select, String? title, String? lang,});
+
+  /// Removes an audio track (mpv's `audio-remove`); [Track.id] removes a
+  /// specific one, [Track.auto] the current. See [Player.removeAudioTrack].
+  Future<void> removeAudioTrack(Track track);
+
   /// Reloads the current audio track, reopening the decoder and output.
   Future<void> reloadAudio();
+
+  /// Re-scans sidecar external files (auto-loaded audio / cover art) for the
+  /// current file (mpv's `rescan-external-files`). See
+  /// [Player.rescanExternalFiles].
+  Future<void> rescanExternalFiles({bool keepSelection});
 
   /// Replaces the whole DSP rack atomically with [effects].
   Future<void> setAudioEffects(AudioEffects effects);
@@ -259,8 +321,9 @@ abstract interface class PlayerApi {
   /// Sets the backward demuxer cache size cap in bytes.
   Future<void> setDemuxerMaxBackBytes(int bytes);
 
-  /// Sets the minimum read-ahead the demuxer keeps buffered, in seconds.
-  Future<void> setDemuxerReadaheadSecs(int seconds);
+  /// Sets the minimum read-ahead the demuxer keeps buffered. Accepts
+  /// sub-second precision (mpv's `demuxer-readahead-secs` is fractional).
+  Future<void> setDemuxerReadaheadSecs(Duration readahead);
 
   /// Runs the null audio output untimed when [enable] is true.
   Future<void> setAudioNullUntimed(bool enable);

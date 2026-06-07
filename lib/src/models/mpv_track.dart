@@ -69,11 +69,24 @@ final class MpvTrack {
   /// Whether this track is specifically marked as album art.
   final bool albumArt;
 
+  /// Whether this track was loaded from a separate file (via
+  /// [Player.addAudioTrack] or mpv's external-file auto-load) rather than the
+  /// container itself. Mirrors mpv's `external`.
+  final bool external;
+
+  /// Path/URI of the external file backing this track, or `null` for tracks
+  /// embedded in the main container. Mirrors mpv's `external-filename`.
+  final String? externalFilename;
+
   /// Codec short name (e.g. `'flac'`, `'aac'`).
   final String? codec;
 
   /// Human-readable codec description from libavcodec.
   final String? codecDesc;
+
+  /// Codec profile string when the container reports one (e.g. `'LC'`,
+  /// `'HE-AAC'`). `null` when unknown. Mirrors mpv's `codec-profile`.
+  final String? codecProfile;
 
   /// Short decoder name actually used by mpv at runtime (`'flac'`,
   /// `'libfdk-aac'`, …). Differs from [codec] when multiple decoders
@@ -100,10 +113,6 @@ final class MpvTrack {
   /// Complements [codec] when the source's bitrate is variable or when
   /// the container's metadata doesn't carry it elsewhere.
   final double? demuxBitrate;
-
-  /// Track duration as reported by the demuxer. May differ from the
-  /// file/container duration in multi-track or chapter-edited files.
-  final Duration? demuxDuration;
 
   /// HLS variant bitrate when the source is an HLS playlist, in bits
   /// per second. `null` for non-HLS sources.
@@ -147,8 +156,11 @@ final class MpvTrack {
     this.hearingImpaired = false,
     this.image = false,
     this.albumArt = false,
+    this.external = false,
+    this.externalFilename,
     this.codec,
     this.codecDesc,
+    this.codecProfile,
     this.decoder,
     this.decoderDesc,
     this.formatName,
@@ -156,7 +168,6 @@ final class MpvTrack {
     this.channels,
     this.channelCount,
     this.demuxBitrate,
-    this.demuxDuration,
     this.hlsBitrate,
     this.replayGainTrackGain,
     this.replayGainTrackPeak,
@@ -180,8 +191,11 @@ final class MpvTrack {
     bool? hearingImpaired,
     bool? image,
     bool? albumArt,
+    bool? external,
+    Object? externalFilename = unset,
     Object? codec = unset,
     Object? codecDesc = unset,
+    Object? codecProfile = unset,
     Object? decoder = unset,
     Object? decoderDesc = unset,
     Object? formatName = unset,
@@ -189,7 +203,6 @@ final class MpvTrack {
     Object? channels = unset,
     Object? channelCount = unset,
     Object? demuxBitrate = unset,
-    Object? demuxDuration = unset,
     Object? hlsBitrate = unset,
     Object? replayGainTrackGain = unset,
     Object? replayGainTrackPeak = unset,
@@ -210,9 +223,16 @@ final class MpvTrack {
         hearingImpaired: hearingImpaired ?? this.hearingImpaired,
         image: image ?? this.image,
         albumArt: albumArt ?? this.albumArt,
+        external: external ?? this.external,
+        externalFilename: identical(externalFilename, unset)
+            ? this.externalFilename
+            : externalFilename as String?,
         codec: identical(codec, unset) ? this.codec : codec as String?,
         codecDesc:
             identical(codecDesc, unset) ? this.codecDesc : codecDesc as String?,
+        codecProfile: identical(codecProfile, unset)
+            ? this.codecProfile
+            : codecProfile as String?,
         decoder: identical(decoder, unset) ? this.decoder : decoder as String?,
         decoderDesc: identical(decoderDesc, unset)
             ? this.decoderDesc
@@ -230,9 +250,6 @@ final class MpvTrack {
         demuxBitrate: identical(demuxBitrate, unset)
             ? this.demuxBitrate
             : demuxBitrate as double?,
-        demuxDuration: identical(demuxDuration, unset)
-            ? this.demuxDuration
-            : demuxDuration as Duration?,
         hlsBitrate: identical(hlsBitrate, unset)
             ? this.hlsBitrate
             : hlsBitrate as double?,
@@ -267,8 +284,11 @@ final class MpvTrack {
           other.hearingImpaired == hearingImpaired &&
           other.image == image &&
           other.albumArt == albumArt &&
+          other.external == external &&
+          other.externalFilename == externalFilename &&
           other.codec == codec &&
           other.codecDesc == codecDesc &&
+          other.codecProfile == codecProfile &&
           other.decoder == decoder &&
           other.decoderDesc == decoderDesc &&
           other.formatName == formatName &&
@@ -276,7 +296,6 @@ final class MpvTrack {
           other.channels == channels &&
           other.channelCount == channelCount &&
           other.demuxBitrate == demuxBitrate &&
-          other.demuxDuration == demuxDuration &&
           other.hlsBitrate == hlsBitrate &&
           other.replayGainTrackGain == replayGainTrackGain &&
           other.replayGainTrackPeak == replayGainTrackPeak &&
@@ -298,8 +317,11 @@ final class MpvTrack {
         hearingImpaired,
         image,
         albumArt,
+        external,
+        externalFilename,
         codec,
         codecDesc,
+        codecProfile,
         decoder,
         decoderDesc,
         formatName,
@@ -307,7 +329,6 @@ final class MpvTrack {
         channels,
         channelCount,
         demuxBitrate,
-        demuxDuration,
         hlsBitrate,
         replayGainTrackGain,
         replayGainTrackPeak,

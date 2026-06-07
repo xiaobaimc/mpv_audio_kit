@@ -8,9 +8,9 @@ part of 'player.dart';
 mixin _NetworkModule on _PlayerBase {
   /// Sets the cache configuration atomically.
   ///
-  /// Writes the five backing mpv properties (`cache`, `cache-secs`,
-  /// `cache-on-disk`, `cache-pause`, `cache-pause-wait`) in one shot.
-  /// Modify a single field via
+  /// Writes the six backing mpv properties (`cache`, `cache-secs`,
+  /// `cache-on-disk`, `cache-pause`, `cache-pause-wait`, `cache-pause-initial`)
+  /// in one shot. Modify a single field via
   /// `await player.setCache(state.cache.copyWith(secs: const Duration(seconds: 30)))`.
   Future<void> setCache(CacheSettings settings) async {
     _checkNotDisposed();
@@ -37,6 +37,11 @@ mixin _NetworkModule on _PlayerBase {
         'cache-pause-wait',
         durationToSeconds(settings.pauseWait).toStringAsFixed(3),
         durationToSeconds(previous.pauseWait).toStringAsFixed(3)
+      ),
+      (
+        'cache-pause-initial',
+        settings.pauseInitial ? 'yes' : 'no',
+        previous.pauseInitial ? 'yes' : 'no'
       ),
     ];
     final committed = <(String, String)>[];
@@ -149,13 +154,16 @@ mixin _NetworkModule on _PlayerBase {
         _reactives.demuxerMaxBackBytes, bytes,);
   }
 
-  /// Sets the demuxer readahead time.
-  Future<void> setDemuxerReadaheadSecs(int seconds) async {
+  /// Sets the demuxer readahead time — the minimum amount of audio the
+  /// demuxer keeps buffered ahead of the playhead. Accepts sub-second
+  /// precision (`demuxer-readahead-secs` is a fractional-seconds value).
+  Future<void> setDemuxerReadaheadSecs(Duration readahead) async {
     _checkNotDisposed();
     await _ready;
-    _prop('demuxer-readahead-secs', seconds.toString());
-    _updateField((s) => s.copyWith(demuxerReadaheadSecs: seconds),
-        _reactives.demuxerReadaheadSecs, seconds,);
+    final seconds = readahead.inMicroseconds / 1000000;
+    _prop('demuxer-readahead-secs', seconds.toStringAsFixed(6));
+    _updateField((s) => s.copyWith(demuxerReadaheadSecs: readahead),
+        _reactives.demuxerReadaheadSecs, readahead,);
   }
 
   /// Whether to fallback to untimed null output if audio output fails.

@@ -137,31 +137,31 @@ void main() {
       // seed value. Asserting on both `next.field` and `reactive.value`
       // catches a future divergence between state reduction and reactive
       // update.
-      final readahead = ReactiveProperty<int>(1);
+      final maxBytes = ReactiveProperty<int>(0);
       final registry = PropertyRegistry()
         ..register(MpvPropertySpec<int>.int64(
-          name: 'demuxer-readahead-secs',
-          reactive: readahead,
+          name: 'demuxer-max-bytes',
+          reactive: maxBytes,
           parse: (raw, _) => raw,
-          reduce: (v, s) => s.copyWith(demuxerReadaheadSecs: v),
+          reduce: (v, s) => s.copyWith(demuxerMaxBytes: v),
         ),);
 
       const initial = PlayerState();
-      final next = registry.dispatch('demuxer-readahead-secs', 5, initial);
+      final next = registry.dispatch('demuxer-max-bytes', 5, initial);
       expect(next, isNotNull);
-      expect(next!.demuxerReadaheadSecs, 5);
-      expect(readahead.value, 5,
+      expect(next!.demuxerMaxBytes, 5);
+      expect(maxBytes.value, 5,
           reason: 'reactive must update in lockstep with the state reducer',);
 
       // Same value → dedup → no state allocation.
-      expect(registry.dispatch('demuxer-readahead-secs', 5, next), isNull);
-      expect(readahead.value, 5);
+      expect(registry.dispatch('demuxer-max-bytes', 5, next), isNull);
+      expect(maxBytes.value, 5);
 
       // Different value → emits again.
-      final last = registry.dispatch('demuxer-readahead-secs', 7, next);
+      final last = registry.dispatch('demuxer-max-bytes', 7, next);
       expect(last, isNotNull);
-      expect(last!.demuxerReadaheadSecs, 7);
-      expect(readahead.value, 7);
+      expect(last!.demuxerMaxBytes, 7);
+      expect(maxBytes.value, 7);
     });
 
     test('Duration-typed double spec wraps microseconds correctly', () async {

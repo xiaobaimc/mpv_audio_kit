@@ -112,6 +112,23 @@ class DefaultPropertyReactives {
   /// Decoder-side gain applied on top of [volume] (`volume-gain`), in dB.
   final ReactiveProperty<double> volumeGain = ReactiveProperty<double>(0.0);
 
+  /// Lower clamp mpv applies to [volumeGain] (`volume-gain-min`), in dB.
+  final ReactiveProperty<double> volumeGainMin =
+      ReactiveProperty<double>(-96.0);
+
+  /// Upper clamp mpv applies to [volumeGain] (`volume-gain-max`), in dB.
+  final ReactiveProperty<double> volumeGainMax = ReactiveProperty<double>(12.0);
+
+  /// OS per-app mixer volume in percent (`ao-volume`); `null` when the active
+  /// audio output doesn't expose system volume (e.g. the null AO, or a
+  /// backend without per-app volume). Best-effort — distinct from soft
+  /// [volume].
+  final ReactiveProperty<double?> systemVolume = ReactiveProperty<double?>(null);
+
+  /// OS per-app mute (`ao-mute`); `null` when the active audio output doesn't
+  /// expose system mute. Best-effort — distinct from soft [mute].
+  final ReactiveProperty<bool?> systemMute = ReactiveProperty<bool?>(null);
+
   /// Gapless-playback policy across playlist boundaries (`gapless-audio`).
   final ReactiveProperty<Gapless> gapless =
       ReactiveProperty<Gapless>(Gapless.weak);
@@ -127,7 +144,10 @@ class DefaultPropertyReactives {
       ReactiveProperty<int>(150 * 1024 * 1024);
 
   /// Minimum read-ahead the demuxer keeps buffered (`demuxer-readahead-secs`).
-  final ReactiveProperty<int> demuxerReadaheadSecs = ReactiveProperty<int>(1);
+  /// mpv's option is fractional seconds, so this is a [Duration] (sub-second
+  /// values are preserved, not truncated).
+  final ReactiveProperty<Duration> demuxerReadaheadSecs =
+      ReactiveProperty<Duration>(const Duration(seconds: 1));
 
   /// Backward demuxer cache size cap in bytes (`demuxer-max-back-bytes`).
   final ReactiveProperty<int> demuxerMaxBackBytes =
@@ -184,7 +204,8 @@ class DefaultPropertyReactives {
   /// Upper bound the [volume] setter accepts (`volume-max`), in percent.
   final ReactiveProperty<double> volumeMax = ReactiveProperty<double>(130.0);
 
-  /// Decoded audio sample rate in Hz (`audio-samplerate`).
+  /// Forced output sample rate in Hz (`audio-samplerate`); `0` lets mpv
+  /// choose. The *decoded* rate is `audio-params.sampleRate`, not this.
   final ReactiveProperty<int> audioSampleRate = ReactiveProperty<int>(0);
 
   /// Forced output sample format (`audio-format`); [Format.auto] lets mpv
@@ -294,6 +315,11 @@ class DefaultPropertyReactives {
 
   /// Path of the underlying stream after protocol resolution (`stream-path`).
   final ReactiveProperty<String> streamPath = ReactiveProperty<String>('');
+
+  /// Source playlist of the current entry (`playlist-path`) — the original
+  /// `.m3u` / `.pls` path the entry was expanded from. Empty when the current
+  /// file was not loaded via a playlist.
+  final ReactiveProperty<String> playlistPath = ReactiveProperty<String>('');
 
   /// Filename mpv opened the stream with (`stream-open-filename`).
   final ReactiveProperty<String> streamOpenFilename =
@@ -557,9 +583,36 @@ List<MpvPropertySpec<Object?>> buildDefaultSpecs(
       parse: _identityDouble,
       reduce: (v, s) => s.copyWith(volumeGain: v),
     ),
+    MpvPropertySpec<double>.double(
+      name: 'volume-gain-min',
+      reactive: r.volumeGainMin,
+      parse: _identityDouble,
+      reduce: (v, s) => s.copyWith(volumeGainMin: v),
+    ),
+    MpvPropertySpec<double>.double(
+      name: 'volume-gain-max',
+      reactive: r.volumeGainMax,
+      parse: _identityDouble,
+      reduce: (v, s) => s.copyWith(volumeGainMax: v),
+    ),
+    // System-mixer pair. Unavailable on AOs without per-app volume (e.g. the
+    // null AO) — the event isolate drops unavailable emits, so these stay at
+    // their `null` seed until a backend that supports them reports a value.
+    MpvPropertySpec<double?>.double(
+      name: 'ao-volume',
+      reactive: r.systemVolume,
+      parse: (raw, _) => raw,
+      reduce: (v, s) => s.copyWith(systemVolume: v),
+    ),
+    MpvPropertySpec<bool?>.flag(
+      name: 'ao-mute',
+      reactive: r.systemMute,
+      parse: (raw, _) => raw,
+      reduce: (v, s) => s.copyWith(systemMute: v),
+    ),
 
     // ── Cache ────────────────────────────────────────────────────────────
-    // Aggregate cell — five specs share one reactive that dedups on the
+    // Aggregate cell — six specs share one reactive that dedups on the
     // full [CacheSettings].
     MpvPropertySpec<CacheSettings>.string(
       name: 'cache',
@@ -591,16 +644,22 @@ List<MpvPropertySpec<Object?>> buildDefaultSpecs(
       parse: (raw, s) => s.cache.copyWith(pauseWait: secondsToDuration(raw)),
       reduce: (v, s) => s.copyWith(cache: v),
     ),
+    MpvPropertySpec<CacheSettings>.flag(
+      name: 'cache-pause-initial',
+      reactive: r.cache,
+      parse: (raw, s) => s.cache.copyWith(pauseInitial: raw),
+      reduce: (v, s) => s.copyWith(cache: v),
+    ),
     MpvPropertySpec<int>.int64(
       name: 'demuxer-max-bytes',
       reactive: r.demuxerMaxBytes,
       parse: _identityInt,
       reduce: (v, s) => s.copyWith(demuxerMaxBytes: v),
     ),
-    MpvPropertySpec<int>.int64(
+    MpvPropertySpec<Duration>.double(
       name: 'demuxer-readahead-secs',
       reactive: r.demuxerReadaheadSecs,
-      parse: _identityInt,
+      parse: _toDuration,
       reduce: (v, s) => s.copyWith(demuxerReadaheadSecs: v),
     ),
     MpvPropertySpec<int>.int64(
@@ -868,6 +927,12 @@ List<MpvPropertySpec<Object?>> buildDefaultSpecs(
       reactive: r.streamPath,
       parse: _identityString,
       reduce: (v, s) => s.copyWith(streamPath: v),
+    ),
+    MpvPropertySpec<String>.string(
+      name: 'playlist-path',
+      reactive: r.playlistPath,
+      parse: _identityString,
+      reduce: (v, s) => s.copyWith(playlistPath: v),
     ),
     MpvPropertySpec<String>.string(
       name: 'stream-open-filename',

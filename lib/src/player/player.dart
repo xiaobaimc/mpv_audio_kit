@@ -29,6 +29,7 @@ import '../media_session/media_session_controller.dart';
 import '../media_session/media_session_inputs.dart';
 import '../models/chapter.dart';
 import '../models/cover_art.dart';
+import '../models/demuxer_cache_state.dart';
 import '../models/device.dart';
 import '../models/fft_frame.dart';
 import '../models/media.dart';
@@ -265,6 +266,45 @@ class Player extends _PlayerBase
     }
   }
 
+  /// Loads a playlist FILE or URL (`.m3u` / `.m3u8` / `.pls` / `.cue`) and
+  /// optionally starts playback. Unlike [open] — which loads [playlist] as a
+  /// single entry — this parses it with mpv's `loadlist`, so its entries
+  /// become the playlist. This is the path for internet-radio station lists
+  /// and remote `.m3u` playlists.
+  ///
+  /// [PlayerStream.playlist] / [PlayerState.playlist] reflect the parsed
+  /// entries once mpv expands them. When [play] is null the configuration's
+  /// autoplay value decides. Replaces any currently loaded file or playlist.
+  ///
+  /// Per-[Media] options (`httpHeaders`, `demuxerLavfOptions`, `httpChunkSize`)
+  /// are validated but NOT applied to the playlist fetch — `loadlist` has no
+  /// file-local options slot. Entries parsed out of the playlist inherit the
+  /// global network/demuxer settings.
+  @override
+  Future<void> openPlaylistFile(Media playlist, {bool? play}) async {
+    _checkNotDisposed();
+    await _ready;
+    _validateLoadOptions(playlist);
+    final shouldPlay = play ?? configuration.autoPlay;
+    // Optimistic intent written at the call point — same rationale as [open].
+    _updateField(
+      (s) => s.copyWith(playWhenReady: shouldPlay),
+      _reactives.playWhenReady,
+      shouldPlay,
+    );
+    _mediaCache.clear();
+    final tls = _tlsBundleReady;
+    final resolved = await resolveUri(playlist.uri);
+    await tls;
+    if (_disposed) {
+      await resolved.dispose?.call();
+      return;
+    }
+    _clearPerFileState();
+    _prop('pause', shouldPlay ? 'no' : 'yes');
+    _command(['loadlist', resolved.uri, 'replace']);
+  }
+
   /// Reads any mpv property as a string.
   ///
   /// **Escape hatch for properties not surfaced by the typed API.** For
@@ -489,6 +529,8 @@ abstract class _PlayerBase {
       ReactiveProperty<Map<String, String>>(const <String, String>{});
   final ReactiveProperty<double> _bufferingPercentage =
       ReactiveProperty<double>(0.0);
+  final ReactiveProperty<DemuxerCacheState> _demuxerCacheState =
+      ReactiveProperty<DemuxerCacheState>(DemuxerCacheState.empty);
   // OS media-session config + metadata override. Null = disabled.
   // Updated synchronously by [_MediaSessionModule.setMediaSession].
   final ReactiveProperty<MediaSession?> _mediaSession =
@@ -644,6 +686,7 @@ abstract class _PlayerBase {
       audioDevices: _audioDevices,
       metadata: _metadata,
       bufferingPercentage: _bufferingPercentage,
+      demuxerCacheState: _demuxerCacheState,
       audioEffects: _reactives.audioEffects,
       mediaSession: _mediaSession,
       endFile: _endFileCtrl.stream,
@@ -774,10 +817,23 @@ abstract class _PlayerBase {
 
   /// Recipe of pre-init `mpv_set_option_string` calls executed by the
   /// event isolate before `mpv_initialize`.
-  Map<String, String> _buildPreInitOptions() => const {
+  Map<String, String> _buildPreInitOptions() => {
         'vid': 'no',
         'sid': 'no',
         'vo': 'null',
+        // Watch-later / resume. Persist only the audio-relevant props (mpv's
+        // default list includes video/sub keys this build can't restore).
+        'resume-playback': configuration.resumePlayback ? 'yes' : 'no',
+        'watch-later-options': 'start,speed,pitch,volume,mute,audio-delay,af,aid',
+        if (configuration.watchLaterDir != null)
+          'watch-later-dir': configuration.watchLaterDir!,
+        if (configuration.forceSeekable) 'force-seekable': 'yes',
+        'hls-bitrate': configuration.hlsBitrate.mpvValue,
+        // If the audio device can't be opened (Bluetooth/AirPlay sink gone,
+        // a stale device id), fall back to the null AO and keep the position
+        // clock running instead of hard-failing playback. The failure is
+        // still surfaced through `audio-output-state`.
+        'audio-fallback-to-null': 'yes',
         'audio-display': 'embedded-first',
         'cover-art-auto': 'no',
         'image-display-duration': 'inf',
@@ -1458,6 +1514,12 @@ abstract class _PlayerBase {
         _bufferingPercentage,
         pct,
       );
+      final cacheState = parseDemuxerCacheStateFull(raw);
+      _updateField(
+        (s) => s.copyWith(demuxerCacheState: cacheState),
+        _demuxerCacheState,
+        cacheState,
+      );
     } catch (e) {
       _internalLog('Failed to parse cache state: $e', level: LogLevel.warn);
     }
@@ -1660,6 +1722,7 @@ abstract class _PlayerBase {
       _audioDevices.close(),
       _metadata.close(),
       _bufferingPercentage.close(),
+      _demuxerCacheState.close(),
       _mediaSession.close(),
     ]);
     await Future.wait<void>([

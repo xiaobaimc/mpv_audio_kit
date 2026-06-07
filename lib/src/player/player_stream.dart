@@ -13,6 +13,7 @@ import 'package:mpv_audio_kit/src/generated/audio_effects_settings.dart';
 import 'package:mpv_audio_kit/src/models/audio_params.dart';
 import 'package:mpv_audio_kit/src/models/chapter.dart';
 import 'package:mpv_audio_kit/src/models/cover_art.dart';
+import 'package:mpv_audio_kit/src/models/demuxer_cache_state.dart';
 import 'package:mpv_audio_kit/src/models/device.dart';
 import 'package:mpv_audio_kit/src/models/fft_frame.dart';
 import 'package:mpv_audio_kit/src/models/media_session.dart';
@@ -64,6 +65,7 @@ class PlayerStream {
     required ReactiveProperty<List<Device>> audioDevices,
     required ReactiveProperty<Map<String, String>> metadata,
     required ReactiveProperty<double> bufferingPercentage,
+    required ReactiveProperty<DemuxerCacheState> demuxerCacheState,
     required ReactiveProperty<AudioEffects> audioEffects,
     required ReactiveProperty<MediaSession?> mediaSession,
     required this.endFile,
@@ -101,6 +103,10 @@ class PlayerStream {
         gapless = reactives.gapless.stream,
         replayGain = reactives.replayGain.stream,
         volumeGain = reactives.volumeGain.stream,
+        volumeGainMin = reactives.volumeGainMin.stream,
+        volumeGainMax = reactives.volumeGainMax.stream,
+        systemVolume = reactives.systemVolume.stream,
+        systemMute = reactives.systemMute.stream,
         cache = reactives.cache.stream,
         demuxerMaxBytes = reactives.demuxerMaxBytes.stream,
         demuxerReadaheadSecs = reactives.demuxerReadaheadSecs.stream,
@@ -144,6 +150,7 @@ class PlayerStream {
         filename = reactives.filename.stream,
         streamPath = reactives.streamPath.stream,
         streamOpenFilename = reactives.streamOpenFilename.stream,
+        playlistPath = reactives.playlistPath.stream,
         abLoopA = reactives.abLoopA.stream,
         abLoopB = reactives.abLoopB.stream,
         abLoopCount = reactives.abLoopCount.stream,
@@ -166,6 +173,7 @@ class PlayerStream {
         audioDevices = audioDevices.stream,
         metadata = metadata.stream,
         bufferingPercentage = bufferingPercentage.stream,
+        demuxerCacheState = demuxerCacheState.stream,
         audioEffects = audioEffects.stream,
         mediaSession = mediaSession.stream;
 
@@ -295,6 +303,11 @@ class PlayerStream {
   /// Emits the buffer fill percentage (0.0–100.0).
   final Stream<double> bufferingPercentage;
 
+  /// Emits the rich demuxer cache state (buffered ranges + network flags).
+  /// Empty for local files; populated when streaming. See
+  /// [DemuxerCacheState].
+  final Stream<DemuxerCacheState> demuxerCacheState;
+
   /// Emits the current [Loop] when it changes.
   final Stream<Loop> loop;
 
@@ -339,6 +352,20 @@ class PlayerStream {
   /// Emits the software volume gain in dB.
   final Stream<double> volumeGain;
 
+  /// Emits the lower clamp on [volumeGain] in dB (`volume-gain-min`).
+  final Stream<double> volumeGainMin;
+
+  /// Emits the upper clamp on [volumeGain] in dB (`volume-gain-max`).
+  final Stream<double> volumeGainMax;
+
+  /// Emits the OS per-app mixer volume (`ao-volume`); `null` when the active
+  /// audio output doesn't expose it.
+  final Stream<double?> systemVolume;
+
+  /// Emits the OS per-app mute (`ao-mute`); `null` when the active audio
+  /// output doesn't expose it.
+  final Stream<bool?> systemMute;
+
   /// Aggregate cache configuration — emits a fresh [CacheSettings]
   /// whenever any of mode / secs / onDisk / pause / pauseWait changes.
   /// Set with [Player.setCache].
@@ -347,8 +374,8 @@ class PlayerStream {
   /// Emits the max demuxer bytes.
   final Stream<int> demuxerMaxBytes;
 
-  /// Emits the demuxer readahead duration in seconds.
-  final Stream<int> demuxerReadaheadSecs;
+  /// Emits the demuxer readahead duration.
+  final Stream<Duration> demuxerReadaheadSecs;
 
   /// Emits the max demuxer back bytes.
   final Stream<int> demuxerMaxBackBytes;
@@ -528,6 +555,10 @@ class PlayerStream {
   /// URI as originally requested, before any `on_load` hook redirect.
   /// Mirrors mpv's `stream-path`.
   final Stream<String> streamPath;
+
+  /// Source playlist of the current entry (`playlist-path`) — the `.m3u` /
+  /// `.pls` path it was expanded from; empty when not loaded via a playlist.
+  final Stream<String> playlistPath;
 
   /// URI as actually opened post-redirect. Mirrors mpv's
   /// `stream-open-filename`.

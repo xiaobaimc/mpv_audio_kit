@@ -36,10 +36,13 @@ void main() {
 
       await player.setAudioSpdif({Spdif.ac3});
       expect(player.state.audioSpdif, {Spdif.ac3});
-      await player.setAudioSpdif({Spdif.ac3, Spdif.dts, Spdif.eac3});
+      // The full set of codecs mpv accepts round-trips through real libmpv.
+      // The enum deliberately omits aac/mp3 — mpv's audio-spdif rejects them,
+      // so a setter call with them would throw (see test/models/spdif_test.dart).
+      await player.setAudioSpdif({Spdif.ac3, Spdif.dts, Spdif.eac3, Spdif.trueHd});
       expect(
         player.state.audioSpdif,
-        {Spdif.ac3, Spdif.dts, Spdif.eac3},
+        {Spdif.ac3, Spdif.dts, Spdif.eac3, Spdif.trueHd},
       );
       await player.setAudioSpdif(<Spdif>{});
       expect(player.state.audioSpdif, isEmpty);
@@ -120,12 +123,14 @@ void main() {
               'entry, not be a copy of the name',);
     }, timeout: const Timeout(Duration(seconds: 15)),);
 
-    test('reloadAudio is a fire-and-forget command (no state mutation)',
+    test('reloadAudio / rescanExternalFiles are fire-and-forget commands',
         () async {
-      // Smoke: reloadAudio sends the `ao-reload` command; the only
-      // observable post-condition is that subsequent setters keep
-      // working without throwing.
+      // Smoke: each sends an mpv command with no direct state mutation; the
+      // observable post-condition is that subsequent setters keep working
+      // without throwing.
       await player.reloadAudio();
+      await player.rescanExternalFiles();
+      await player.rescanExternalFiles(keepSelection: true);
       await player.setVolume(80.0);
       expect(player.state.volume, 80.0);
     }, timeout: const Timeout(Duration(seconds: 15)),);

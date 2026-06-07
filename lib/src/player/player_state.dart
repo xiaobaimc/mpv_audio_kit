@@ -7,6 +7,7 @@ import 'package:mpv_audio_kit/src/internals/unset_sentinel.dart';
 import 'package:mpv_audio_kit/src/models/audio_params.dart';
 import 'package:mpv_audio_kit/src/models/chapter.dart';
 import 'package:mpv_audio_kit/src/models/cover_art.dart';
+import 'package:mpv_audio_kit/src/models/demuxer_cache_state.dart';
 import 'package:mpv_audio_kit/src/models/device.dart';
 import 'package:mpv_audio_kit/src/models/media_session.dart';
 import 'package:mpv_audio_kit/src/models/mpv_track.dart';
@@ -125,6 +126,13 @@ final class PlayerState {
   /// Buffer fill percentage (0.0–100.0).
   final double bufferingPercentage;
 
+  /// Rich demuxer cache snapshot — buffered time ranges + network-cache flags
+  /// (mpv's `demuxer-cache-state`). Empty for directly-seekable local files;
+  /// populated when streaming. Render `seekableRanges` as the downloaded
+  /// regions of a network seek bar. Read live via
+  /// [PlayerStream.demuxerCacheState].
+  final DemuxerCacheState demuxerCacheState;
+
   /// Current loop / repeat mode.
   final Loop loop;
 
@@ -168,14 +176,31 @@ final class PlayerState {
   /// Software volume gain in dB.
   final double volumeGain;
 
+  /// Lower clamp mpv applies to [volumeGain], in dB (`volume-gain-min`,
+  /// default -96). Set via [Player.setVolumeGainMin].
+  final double volumeGainMin;
+
+  /// Upper clamp mpv applies to [volumeGain], in dB (`volume-gain-max`,
+  /// default +12). Set via [Player.setVolumeGainMax].
+  final double volumeGainMax;
+
+  /// OS per-app mixer volume in percent (`ao-volume`), distinct from soft
+  /// [volume]. `null` when the active audio output doesn't expose it. Set via
+  /// [Player.setSystemVolume] (best-effort).
+  final double? systemVolume;
+
+  /// OS per-app mute (`ao-mute`), distinct from soft [mute]. `null` when the
+  /// active audio output doesn't expose it. Set via [Player.setSystemMute].
+  final bool? systemMute;
+
   /// Cache configuration. Set via [Player.setCache].
   final CacheSettings cache;
 
   /// Max bytes the demuxer can cache.
   final int demuxerMaxBytes;
 
-  /// Seconds the demuxer fetches ahead.
-  final int demuxerReadaheadSecs;
+  /// How far ahead the demuxer fetches (`demuxer-readahead-secs`).
+  final Duration demuxerReadaheadSecs;
 
   /// Max bytes for seekback buffer.
   final int demuxerMaxBackBytes;
@@ -364,6 +389,11 @@ final class PlayerState {
   /// Mirrors mpv's `stream-open-filename`.
   final String streamOpenFilename;
 
+  /// Source playlist of the current entry (`playlist-path`) — the original
+  /// `.m3u` / `.pls` path it was expanded from. Empty when the current file
+  /// was not loaded via a playlist.
+  final String playlistPath;
+
   /// A-B loop start point. `null` when disabled. Setter:
   /// [Player.setAbLoopA]. Mirrors mpv's `ab-loop-a`.
   final Duration? abLoopA;
@@ -457,6 +487,7 @@ final class PlayerState {
     this.buffering = false,
     this.buffer = Duration.zero,
     this.bufferingPercentage = 0.0,
+    this.demuxerCacheState = DemuxerCacheState.empty,
     this.loop = Loop.off,
     this.shuffle = false,
     this.audioParams = const AudioParams(),
@@ -471,9 +502,13 @@ final class PlayerState {
     this.gapless = Gapless.weak,
     this.replayGain = const ReplayGainSettings(),
     this.volumeGain = 0.0,
+    this.volumeGainMin = -96.0,
+    this.volumeGainMax = 12.0,
+    this.systemVolume,
+    this.systemMute,
     this.cache = const CacheSettings(),
     this.demuxerMaxBytes = _kDemuxerMaxBytesDefault,
-    this.demuxerReadaheadSecs = 1,
+    this.demuxerReadaheadSecs = const Duration(seconds: 1),
     this.demuxerMaxBackBytes = _kDemuxerMaxBackBytesDefault,
     this.networkTimeout = const Duration(seconds: 60),
     this.pausedForCache = false,
@@ -515,6 +550,7 @@ final class PlayerState {
     this.filename = '',
     this.streamPath = '',
     this.streamOpenFilename = '',
+    this.playlistPath = '',
     this.abLoopA,
     this.abLoopB,
     this.abLoopCount,
@@ -547,6 +583,7 @@ final class PlayerState {
     bool? buffering,
     Duration? buffer,
     double? bufferingPercentage,
+    DemuxerCacheState? demuxerCacheState,
     Loop? loop,
     bool? shuffle,
     AudioParams? audioParams,
@@ -561,9 +598,13 @@ final class PlayerState {
     Gapless? gapless,
     ReplayGainSettings? replayGain,
     double? volumeGain,
+    double? volumeGainMin,
+    double? volumeGainMax,
+    Object? systemVolume = unset,
+    Object? systemMute = unset,
     CacheSettings? cache,
     int? demuxerMaxBytes,
-    int? demuxerReadaheadSecs,
+    Duration? demuxerReadaheadSecs,
     int? demuxerMaxBackBytes,
     Duration? networkTimeout,
     bool? pausedForCache,
@@ -605,6 +646,7 @@ final class PlayerState {
     String? filename,
     String? streamPath,
     String? streamOpenFilename,
+    String? playlistPath,
     Object? abLoopA = unset,
     Object? abLoopB = unset,
     Object? abLoopCount = unset,
@@ -634,6 +676,7 @@ final class PlayerState {
         buffering: buffering ?? this.buffering,
         buffer: buffer ?? this.buffer,
         bufferingPercentage: bufferingPercentage ?? this.bufferingPercentage,
+        demuxerCacheState: demuxerCacheState ?? this.demuxerCacheState,
         loop: loop ?? this.loop,
         shuffle: shuffle ?? this.shuffle,
         audioParams: audioParams ?? this.audioParams,
@@ -650,6 +693,13 @@ final class PlayerState {
         gapless: gapless ?? this.gapless,
         replayGain: replayGain ?? this.replayGain,
         volumeGain: volumeGain ?? this.volumeGain,
+        volumeGainMin: volumeGainMin ?? this.volumeGainMin,
+        volumeGainMax: volumeGainMax ?? this.volumeGainMax,
+        systemVolume: identical(systemVolume, unset)
+            ? this.systemVolume
+            : systemVolume as double?,
+        systemMute:
+            identical(systemMute, unset) ? this.systemMute : systemMute as bool?,
         cache: cache ?? this.cache,
         demuxerMaxBytes: demuxerMaxBytes ?? this.demuxerMaxBytes,
         demuxerReadaheadSecs: demuxerReadaheadSecs ?? this.demuxerReadaheadSecs,
@@ -699,6 +749,7 @@ final class PlayerState {
         filename: filename ?? this.filename,
         streamPath: streamPath ?? this.streamPath,
         streamOpenFilename: streamOpenFilename ?? this.streamOpenFilename,
+        playlistPath: playlistPath ?? this.playlistPath,
         abLoopA:
             identical(abLoopA, unset) ? this.abLoopA : abLoopA as Duration?,
         abLoopB:
@@ -740,6 +791,7 @@ final class PlayerState {
           other.buffering == buffering &&
           other.buffer == buffer &&
           other.bufferingPercentage == bufferingPercentage &&
+          other.demuxerCacheState == demuxerCacheState &&
           other.loop == loop &&
           other.shuffle == shuffle &&
           other.audioParams == audioParams &&
@@ -754,6 +806,10 @@ final class PlayerState {
           other.gapless == gapless &&
           other.replayGain == replayGain &&
           other.volumeGain == volumeGain &&
+          other.volumeGainMin == volumeGainMin &&
+          other.volumeGainMax == volumeGainMax &&
+          other.systemVolume == systemVolume &&
+          other.systemMute == systemMute &&
           other.cache == cache &&
           other.demuxerMaxBytes == demuxerMaxBytes &&
           other.demuxerReadaheadSecs == demuxerReadaheadSecs &&
@@ -798,6 +854,7 @@ final class PlayerState {
           other.filename == filename &&
           other.streamPath == streamPath &&
           other.streamOpenFilename == streamOpenFilename &&
+          other.playlistPath == playlistPath &&
           other.abLoopA == abLoopA &&
           other.abLoopB == abLoopB &&
           other.abLoopCount == abLoopCount &&
@@ -828,6 +885,7 @@ final class PlayerState {
         buffering,
         buffer,
         bufferingPercentage,
+        demuxerCacheState,
         loop,
         shuffle,
         audioParams,
@@ -843,6 +901,10 @@ final class PlayerState {
         gapless,
         replayGain,
         volumeGain,
+        volumeGainMin,
+        volumeGainMax,
+        systemVolume,
+        systemMute,
         cache,
         demuxerMaxBytes,
         demuxerReadaheadSecs,
@@ -887,6 +949,7 @@ final class PlayerState {
         filename,
         streamPath,
         streamOpenFilename,
+        playlistPath,
         abLoopA,
         abLoopB,
         abLoopCount,
