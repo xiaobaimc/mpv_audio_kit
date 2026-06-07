@@ -24,15 +24,22 @@ part 'isolate_messages.dart';
 /// progress bar update and keeps the message bus uncluttered.
 const int _kTimePosThrottleMs = 33;
 
-/// `mpv_wait_event` timeout.
+/// `mpv_wait_event` timeout — a BOUNDED floor in every build.
 ///
-/// Release / profile: `-1` blocks until the next mpv event, so there
-/// are zero wake-ups during idle playback. Debug: `0.1` (100 ms) — the
-/// Dart VM cannot interrupt an isolate stuck in a blocking FFI call
-/// (dart-lang/sdk#46680), so Hot Restart would hang under `-1` while a
-/// `Player` is alive; the timeout gives the kill request a checkpoint.
+/// The Dart VM cannot interrupt an isolate parked in a blocking FFI call
+/// (dart-lang/sdk#46680): under an infinite `-1` timeout a `Player` left
+/// undisposed at process exit wedges `WaitForIsolateShutdown` forever — the
+/// macOS Dock-Quit hang — and Hot Restart's kill would hang too. A finite
+/// timeout guarantees the loop re-reads its stop flag, and the VM gets a
+/// safepoint, at least once per window even with zero cooperation.
+///
+/// Product: `1.0` s — one cheap idle wakeup/sec. The graceful dispose path
+/// unblocks the wait instantly via `mpv_wakeup` ([MpvEventIsolate.requestStop]),
+/// so this value is only the no-dispose floor, never the common-case latency.
+/// Debug: `0.1` s (unchanged) for snappy Hot Restart. It MUST stay finite in
+/// product — an infinite timeout reintroduces the quit hang.
 const double _kWaitEventTimeoutSeconds =
-    bool.fromEnvironment('dart.vm.product') ? -1.0 : 0.1;
+    bool.fromEnvironment('dart.vm.product') ? 1.0 : 0.1;
 
 /// Maximum time [MpvEventIsolate.stop] waits for the background isolate
 /// to finish unwinding after `MPV_EVENT_SHUTDOWN`. The loop's natural
@@ -99,7 +106,6 @@ void _isolateEntry(SendPort initialReplyPort) {
   SendPort? toMain;
   Pointer<mpv.MpvHandle>? handle;
   mpv.MpvLibrary? lib;
-  bool running = true;
 
   // Per-isolate deduplication state — not shared across Player instances.
   final lastValues = <String, dynamic>{};
@@ -111,6 +117,7 @@ void _isolateEntry(SendPort initialReplyPort) {
       final wakeupCounter = message.wakeupCounterAddress != null
           ? Pointer<Int64>.fromAddress(message.wakeupCounterAddress!)
           : null;
+      final stopFlag = Pointer<Int32>.fromAddress(message.stopFlagAddress);
       try {
         // The heavy FFI sequence runs here — off the main isolate so
         // the host UI keeps rendering during cold start.
@@ -153,7 +160,7 @@ void _isolateEntry(SendPort initialReplyPort) {
         lib!,
         handle!,
         toMain!,
-        () => running,
+        stopFlag,
         lastValues,
         lastTimestamps,
         wakeupCounter,
@@ -164,12 +171,6 @@ void _isolateEntry(SendPort initialReplyPort) {
       // `Isolate.exit()` would skip those finalizers and leave
       // subsequent Player creations observing degraded process state.
       fromMain.close();
-    } else if (message is _ShutdownMessage) {
-      // Defensive: only reachable if `_InitMessage` never arrived
-      // (race during isolate spawn). The flag-based exit on
-      // `_runEventLoop` is the steady-state path.
-      running = false;
-      fromMain.close();
     }
   });
 }
@@ -178,22 +179,30 @@ void _runEventLoop(
   mpv.MpvLibrary lib,
   Pointer<mpv.MpvHandle> handle,
   SendPort toMain,
-  bool Function() isRunning,
+  Pointer<Int32> stopFlag,
   Map<String, dynamic> lastValues,
   Map<String, int> lastTimestamps,
   Pointer<Int64>? wakeupCounter,
 ) {
-  while (isRunning()) {
+  while (stopFlag.value == 0) {
     // Test-only telemetry; null in production.
     if (wakeupCounter != null) {
       wakeupCounter.value = wakeupCounter.value + 1;
     }
     final event = lib.mpvWaitEvent(handle, _kWaitEventTimeoutSeconds);
+
+    // Re-read the flag the instant the wait returns. `requestStop` sets the
+    // flag THEN calls `mpv_wakeup`, so a wakeup-driven return lands here with
+    // the flag already `1` — this is the lost-wakeup-safe exit edge, and it
+    // does not depend on mpv emitting `MPV_EVENT_SHUTDOWN`.
+    if (stopFlag.value != 0) {
+      break;
+    }
+
     final id = event.ref.eventId;
 
-    // With timeout < 0, MPV_EVENT_NONE is unreachable in steady state
-    // (mpv only returns `none` on positive-timeout expiry). Defensive
-    // continue for spurious wakeups.
+    // MPV_EVENT_NONE on a positive-timeout expiry, or on an `mpv_wakeup` with
+    // no pending event — nothing to dispatch, loop and re-check the flag.
     if (id == mpv.MpvEventId.mpvEventNone) {
       continue;
     }
@@ -417,6 +426,10 @@ class MpvEventIsolate {
   SendPort? _toIsolate;
   ReceivePort? _fromIsolate;
   ReceivePort? _exitPort;
+  // Native stop flag (Int32): the main isolate sets it to 1 in [requestStop],
+  // the worker reads it every loop turn. Allocated in [start], freed in [stop]
+  // ONLY on confirmed worker exit, so no parked reader survives the free.
+  Pointer<Int32>? _stopFlag;
   // Non-broadcast: a single subscriber and buffering for events that
   // arrive between isolate-start and the main-side listen registration.
   // Using a broadcast controller dropped the initial PROPERTY_CHANGE
@@ -450,6 +463,8 @@ class MpvEventIsolate {
     int? wakeupCounterAddress,
   }) async {
     if (onEvent != null) _events.stream.listen(onEvent);
+
+    _stopFlag = calloc<Int32>()..value = 0;
 
     final initPort = ReceivePort();
     _isolate = await Isolate.spawn(_isolateEntry, initPort.sendPort);
@@ -500,30 +515,40 @@ class MpvEventIsolate {
       observes: observes,
       logLevel: logLevel,
       wakeupCounterAddress: wakeupCounterAddress,
+      stopFlagAddress: _stopFlag!.address,
     ),);
 
     return initDone.future;
   }
 
-  /// Signals the isolate to exit and **awaits its actual termination**
-  /// before returning.
+  /// Unblocks the event loop deterministically. Call from the main isolate in
+  /// `Player.dispose()` AFTER `mpv_command(['quit'])`, immediately before
+  /// [stop].
   ///
-  /// The player issues `mpv_command(['quit'])` immediately before
-  /// calling [stop]; mpv processes that asynchronously and fires
-  /// MPV_EVENT_SHUTDOWN, which lets the blocking [mpv_wait_event] in
-  /// the isolate return so the loop unwinds naturally. The matching
-  /// `mpv_terminate_destroy` runs only AFTER [stop] returns — calling
-  /// it earlier would free the handle while the isolate is still
-  /// inside `mpv_wait_event`.
+  /// Order is load-bearing: set the native stop flag FIRST (publish the
+  /// intent), THEN `mpv_wakeup`. A parked `mpv_wait_event` returns at once
+  /// with `MPV_EVENT_NONE`; the worker re-reads the flag and breaks. `mpv_wakeup`
+  /// is thread-safe (libmpv) and guarantees no lost wakeups, so this works even
+  /// if `quit` was dropped (`MPV_ERROR_EVENT_QUEUE_FULL`) or `MPV_EVENT_SHUTDOWN`
+  /// is delayed by a stalled hook. Idempotent and null-safe.
+  void requestStop(mpv.MpvLibrary lib, Pointer<mpv.MpvHandle> handle) {
+    _stopFlag?.value = 1;
+    lib.mpvWakeup(handle);
+  }
+
+  /// Awaits the worker isolate's ACTUAL termination.
   ///
-  /// **Awaiting the isolate exit is load-bearing.** [Isolate.kill] is a
-  /// cooperative request that returns before the isolate has actually
-  /// finished. If `dispose()` returns while the isolate is still inside
-  /// [mpv_wait_event] on a destroyed handle, the next syscall in the
-  /// loop reads freed memory and produces a non-deterministic
-  /// SIGSEGV at process teardown — visible across the whole test
-  /// suite, not just the calling test.
-  Future<void> stop() async {
+  /// Returns `true` iff the exit was confirmed within [_kIsolateExitTimeout].
+  /// On `false` the worker is NOT proven to have left `mpv_wait_event`, so the
+  /// caller MUST NOT `mpv_terminate_destroy` the handle — freeing it while the
+  /// isolate is still inside the syscall reads freed memory and SIGSEGVs at
+  /// teardown. [Isolate.kill] is never used for the same reason (killing
+  /// mid-FFI to libmpv is a non-deterministic crash).
+  ///
+  /// The native stop flag is freed ONLY on confirmed exit, when no parked
+  /// reader can survive the free; on the timeout branch it is intentionally
+  /// leaked (4 bytes, bounded by live Player count, reclaimed at process exit).
+  Future<bool> stop() async {
     _fromIsolate?.close();
     _fromIsolate = null;
     // Fire-and-forget: closing the controller flushes any buffered
@@ -536,29 +561,33 @@ class MpvEventIsolate {
     if (isolate == null || exitPort == null) {
       _toIsolate = null;
       _exitPort = null;
-      return;
+      _freeStopFlag();
+      return true;
     }
 
-    // The main side has already sent `quit` to mpv (in dispose), so
-    // `_runEventLoop` is on its way out via `MPV_EVENT_SHUTDOWN`. The
-    // `_ShutdownMessage` here only covers the corner case where
-    // `_InitMessage` never reached the isolate. `Isolate.kill` is
-    // never used: killing mid-FFI to libmpv yields a non-deterministic
-    // SIGSEGV at process teardown.
-    _toIsolate?.send(_ShutdownMessage());
     _isolate = null;
     _toIsolate = null;
     _exitPort = null;
 
-    // The exit listener was armed in `start()` before the isolate
-    // could possibly tear down. The 2 s timeout is a safety net for a
-    // pathologically stuck libmpv — clean exits land in single-digit ms.
+    // The exit listener was armed in `start()` before the isolate could
+    // possibly tear down. The 2 s timeout is a safety net for a pathologically
+    // stuck libmpv — clean exits land in single-digit ms via `mpv_wakeup`.
     try {
       await exitPort.first.timeout(_kIsolateExitTimeout);
+      _freeStopFlag();
+      return true;
     } on TimeoutException {
-      // Fall through.
+      return false;
     } finally {
       exitPort.close();
+    }
+  }
+
+  void _freeStopFlag() {
+    final flag = _stopFlag;
+    if (flag != null) {
+      calloc.free(flag);
+      _stopFlag = null;
     }
   }
 }

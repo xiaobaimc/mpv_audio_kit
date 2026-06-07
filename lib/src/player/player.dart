@@ -18,6 +18,7 @@ import '../events/mpv_log_entry.dart';
 import '../events/mpv_player_error.dart';
 import '../generated/audio_effects_settings.dart';
 import '../internals/cover_art_extractor.dart';
+import '../internals/debug_log.dart';
 import '../internals/duration_seconds.dart';
 import '../internals/event_isolate.dart';
 import '../internals/library_loader.dart';
@@ -788,19 +789,20 @@ abstract class _PlayerBase {
   /// 2. **Drop the [OrphanHandleTracker] entry** so a hot-restart that
   ///    fires before the destroy completes doesn't try to clean up a
   ///    handle we're already cleaning up.
-  /// 3. **Await `_eventSub.cancel()`** so no further `_handleEvent`
-  ///    invocations land after this point.
-  /// 4. **Send the `quit` command** to mpv. mpv processes it
+  /// 3. **Send the `quit` command** to mpv. mpv processes it
   ///    asynchronously and fires `MPV_EVENT_SHUTDOWN` inside its own
-  ///    event queue, which unblocks the isolate's `mpv_wait_event`
-  ///    on the next iteration.
-  /// 5. **Await `_eventIsolate.stop()`**: waits for the isolate to
-  ///    actually exit (the `quit`-driven `MPV_EVENT_SHUTDOWN` lets the
-  ///    run-loop unwind naturally).
-  /// 6. **`mpvTerminateDestroy(_handle)`** AFTER the isolate is gone.
-  ///    Calling destroy while the isolate is still inside
-  ///    `mpv_wait_event` would race the event-loop thread and crash
-  ///    libmpv when the handle is freed mid-syscall.
+  ///    event queue.
+  /// 4. **`requestStop` (stop flag + `mpv_wakeup`)** so the event loop
+  ///    unwinds deterministically even if `quit` was dropped or
+  ///    `MPV_EVENT_SHUTDOWN` is delayed by a stalled hook.
+  /// 5. **Await `_eventIsolate.stop()`**, which returns `true` only once
+  ///    the isolate has ACTUALLY exited — so it is provably off
+  ///    `mpv_wait_event`.
+  /// 6. **`mpvTerminateDestroy(_handle)`** ONLY when `stop()` confirmed the
+  ///    exit. Destroying the handle while the isolate is still inside
+  ///    `mpv_wait_event` would race the event-loop thread and crash libmpv
+  ///    when the handle is freed mid-syscall; on an unconfirmed exit we skip
+  ///    destroy and let the OS reclaim the handle.
   /// 7. **Close all reactive properties + controllers**. Order within
   ///    this group does not matter for correctness (they tolerate
   ///    `close()` while a listener is attached); grouping by ownership
@@ -827,13 +829,24 @@ abstract class _PlayerBase {
       await _filterTapPipeline.dispose();
       await _waveformPipeline.dispose();
       await _spectrumPipeline.dispose();
-      // Cooperative quit: mpv fires MPV_EVENT_SHUTDOWN, the isolate's
-      // mpv_wait_event returns, and the loop unwinds naturally. Calling
-      // mpv_terminate_destroy here would race the isolate and crash
-      // libmpv when the handle is freed mid-syscall.
+      // Cooperative quit: mpv fires MPV_EVENT_SHUTDOWN and the isolate's
+      // mpv_wait_event returns. requestStop (stop flag + mpv_wakeup) unblocks
+      // the loop deterministically even if `quit` was dropped or SHUTDOWN is
+      // delayed by a stalled hook. mpv_terminate_destroy runs only AFTER the
+      // confirmed exit below — destroying mid-syscall would crash libmpv.
       _command(['quit']);
-      await _eventIsolate.stop();
-      _lib.mpvTerminateDestroy(_handle);
+      _eventIsolate.requestStop(_lib, _handle);
+      final exited = await _eventIsolate.stop();
+      if (exited) {
+        _lib.mpvTerminateDestroy(_handle);
+      } else {
+        // The worker did not confirm it left mpv_wait_event within the bound.
+        // Skip mpv_terminate_destroy: freeing the handle while the isolate may
+        // still be inside the syscall would SIGSEGV. The OS reclaims the handle
+        // (and the leaked stop flag) at process exit.
+        debugLog('mpv_audio_kit: event isolate did not confirm exit; skipping '
+            'mpv_terminate_destroy to avoid a parked-handle crash.');
+      }
     } else {
       // Init failed; the isolate may or may not be alive. Best effort.
       try {

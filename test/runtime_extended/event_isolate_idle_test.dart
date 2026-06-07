@@ -15,10 +15,12 @@ import 'package:mpv_audio_kit/mpv_audio_kit.dart';
 import '../_helpers/setter_test_helpers.dart';
 
 void main() {
-  // L3 — `mpv_wait_event` is now invoked with timeout `-1`
-  // (block-until-event), the idiomatic mpv pattern. Previously the
-  // event isolate spun on a 50 ms timeout, waking ~20× / sec just to
-  // re-enter the syscall during idle.
+  // L3 — `mpv_wait_event` is invoked with a BOUNDED timeout (debug `0.1` s,
+  // product `1.0` s as of 0.3.4), not the old busy-poll. The bounded floor
+  // exists so a Player left undisposed at process exit can't wedge
+  // `WaitForIsolateShutdown` (the macOS Dock-Quit hang); the graceful dispose
+  // path unblocks instantly via `mpv_wakeup`. Previously the event isolate
+  // spun on a 50 ms timeout, waking ~20× / sec just to re-enter the syscall.
   //
   // The wakeup-counter seam (`Player.testInstrumented(wakeupCounterAddress: ...)`) lets
   // us pin the new behaviour deterministically: after the isolate has
@@ -59,14 +61,17 @@ void main() {
 
         // Pre-0.1.2 (timeout = 0.05s): ~40 wakeups in 2s — busy-poll.
         // 0.1.2     (timeout = -1):     near zero — perfect at idle but
-        //                               deadlocks Hot Restart.
-        // 0.1.3     (debug: 0.1s, product: -1): ~20 in 2s under
-        //                               `flutter test` (debug build),
-        //                               near zero in product. The
-        //                               threshold is loosened to <30 to
-        //                               accommodate the 100 ms kill-
-        //                               checkpoint while still catching
-        //                               the pre-0.1.2 busy-poll pattern.
+        //                               deadlocks Hot Restart / app Quit.
+        // 0.1.3     (debug: 0.1s, product: -1): ~20 in 2s under debug,
+        //                               near zero in product — but the
+        //                               product `-1` still hung Quit.
+        // 0.3.4     (debug: 0.1s, product: 1.0s): ~20 in 2s under
+        //                               `flutter test` (debug build), ~2 in
+        //                               2s in product. The bounded product
+        //                               floor kills the Quit hang; the
+        //                               threshold stays <30 to accommodate
+        //                               the debug kill-checkpoint while still
+        //                               catching the pre-0.1.2 busy-poll.
         expect(
           wakeupsDuringIdle,
           lessThan(30),

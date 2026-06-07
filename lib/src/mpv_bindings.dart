@@ -396,6 +396,15 @@ typedef _MpvTerminateDestroyNative = Void Function(Pointer<MpvHandle> ctx);
 /// [ctx], blocking until shutdown completes.
 typedef MpvTerminateDestroy = void Function(Pointer<MpvHandle> ctx);
 
+// void mpv_wakeup(mpv_handle *ctx)
+typedef _MpvWakeupNative = Void Function(Pointer<MpvHandle> ctx);
+
+/// Dart signature for `mpv_wakeup` — interrupts a thread parked in
+/// `mpv_wait_event` on [ctx], making that call return `MPV_EVENT_NONE`. If no
+/// thread is currently waiting, the next `mpv_wait_event` returns immediately
+/// (libmpv guarantees no lost wakeups). Safe to call from any thread.
+typedef MpvWakeup = void Function(Pointer<MpvHandle> ctx);
+
 // int mpv_set_option_string(mpv_handle *ctx, const char *name, const char *data)
 typedef _MpvSetOptionStringNative = Int32 Function(
     Pointer<MpvHandle> ctx, Pointer<Utf8> name, Pointer<Utf8> data,);
@@ -568,6 +577,9 @@ class MpvLibrary {
   /// Bound `mpv_terminate_destroy`.
   late final MpvTerminateDestroy mpvTerminateDestroy;
 
+  /// Bound `mpv_wakeup` — unblocks a parked `mpv_wait_event`.
+  late final MpvWakeup mpvWakeup;
+
   /// Bound `mpv_set_option_string`.
   late final MpvSetOptionString mpvSetOptionString;
 
@@ -642,6 +654,7 @@ class MpvLibrary {
     mpvTerminateDestroy =
         _lib.lookupFunction<_MpvTerminateDestroyNative, MpvTerminateDestroy>(
             'mpv_terminate_destroy',);
+    mpvWakeup = _lib.lookupFunction<_MpvWakeupNative, MpvWakeup>('mpv_wakeup');
     mpvSetOptionString =
         _lib.lookupFunction<_MpvSetOptionStringNative, MpvSetOptionString>(
             'mpv_set_option_string',);

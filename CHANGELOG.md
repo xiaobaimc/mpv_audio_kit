@@ -1,3 +1,12 @@
+## [0.3.4] - 8-06-2026
+
+### Changed
+- Disposing a `Player` now stops the mpv event loop immediately instead of waiting for a shutdown event, so teardown is fast and reliable.
+
+### Fixed
+- The app no longer hangs on exit when a `Player` is left undisposed; shutdown now completes promptly.
+- `Player.dispose()` no longer risks a crash when the event loop hasn't fully stopped.
+
 ## [0.3.3] - 7-06-2026
 
 ### Contributions

@@ -46,7 +46,7 @@ Add `mpv_audio_kit` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mpv_audio_kit: ^0.3.3
+  mpv_audio_kit: ^0.3.4
 ```
 
 ## Platforms requirements
@@ -245,7 +245,7 @@ dependencies:
 <table>
 <tr>
 <td valign="middle" width="90"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/mpv_studio.png" width="70" alt="MPV Studio"></td>
-<td valign="middle">The screenshots below are from <b><a href="https://github.com/ales-drnz/mpv_studio">MPV Studio</a></b>, the standalone showcase app built on <code>mpv_audio_kit</code>, with a full DSP rack, queue, visualizers and per-platform settings. The bundled <code>example/</code> is a deliberately minimal single-file demo; <b>MPV Studio is the complete reference client</b>.</td>
+<td valign="middle">The screenshots below are from <b><a href="https://github.com/ales-drnz/mpv_studio">MPV Studio</a></b>, the standalone showcase app built on <code>mpv_audio_kit</code>. The bundled <code>example/</code> is a deliberately minimal single-file demo.
 </tr>
 </table>
 

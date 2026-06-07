@@ -25,6 +25,13 @@ class _InitMessage {
   /// busy-poll. `null` in production.
   final int? wakeupCounterAddress;
 
+  /// Address of a calloc'd `Int32` stop flag the event loop reads every
+  /// iteration: `0` = keep running, `1` = unwind and exit. The main isolate
+  /// sets it (then calls `mpv_wakeup`) in [MpvEventIsolate.requestStop]. This
+  /// is the only exit mechanism that does not depend on mpv emitting
+  /// `MPV_EVENT_SHUTDOWN`, so it survives a dropped `quit` or a stalled hook.
+  final int stopFlagAddress;
+
   _InitMessage(
     this.toMain, {
     this.libraryPath,
@@ -33,6 +40,7 @@ class _InitMessage {
     required this.observes,
     this.logLevel,
     this.wakeupCounterAddress,
+    required this.stopFlagAddress,
   });
 }
 
@@ -53,9 +61,6 @@ class MpvObserveSpec {
   /// Describes a single property to register via `mpv_observe_property`.
   const MpvObserveSpec(this.name, this.format, this.replyId);
 }
-
-/// Tells the event loop isolate to exit cleanly.
-class _ShutdownMessage {}
 
 // ── Messages: isolate → main (init handshake only) ───────────────────────────
 
