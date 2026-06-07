@@ -20,8 +20,9 @@ import MediaPlayer
 
 /// Shared Apple (iOS + macOS) bridge: publishes the Dart-side `Player`
 /// to the OS Now Playing surface (lockscreen / Control Center / CarPlay)
-/// and forwards `MPRemoteCommandCenter` taps back to Dart. Symlinked
-/// into both platform packages — one source of truth.
+/// and forwards `MPRemoteCommandCenter` taps back to Dart. `darwin/Sources`
+/// is the one source of truth; it is copied (never symlinked) into both
+/// platform packages by `scripts/sync_apple_sources.sh`.
 ///
 /// A renderer, not a state machine: Dart owns playback truth and pushes
 /// resolved snapshots; each push reassigns a fresh `nowPlayingInfo`. The

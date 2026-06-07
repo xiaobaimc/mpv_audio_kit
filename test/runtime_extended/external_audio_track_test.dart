@@ -73,5 +73,15 @@ void main() {
       expect(audioCount(await shrunk), 1,
           reason: 'audio-remove drops the external track',);
     }, timeout: const Timeout(Duration(seconds: 25)),);
+
+    test('removeAudioTrack(Track.off) is rejected — off has no removal meaning',
+        () async {
+      // mpv's `audio-remove` takes an optional id and has no "off" notion, so
+      // removing "no track" is a programming error rather than a silent no-op.
+      await expectLater(
+        player.removeAudioTrack(Track.off),
+        throwsArgumentError,
+      );
+    });
   });
 }

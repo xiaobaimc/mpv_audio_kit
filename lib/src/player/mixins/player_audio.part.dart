@@ -310,8 +310,21 @@ mixin _AudioModule on _PlayerBase {
   /// a specific track (typically one added via [addAudioTrack]); [Track.auto]
   /// removes the currently-selected audio track. The track-list observer
   /// folds the removal back into [PlayerState.tracks].
+  ///
+  /// [Track.off] is rejected with an [ArgumentError]: mpv's `audio-remove`
+  /// takes an optional track id and has no "off" notion, so removing "no
+  /// track" is meaningless. Use [setAudioTrack] with [Track.off] to mute the
+  /// selection instead.
   Future<void> removeAudioTrack(Track track) async {
     _checkNotDisposed();
+    if (track is TrackOff) {
+      throw ArgumentError.value(
+        track,
+        'track',
+        'Track.off has no meaning for removeAudioTrack — pass Track.id to '
+            'remove a specific track or Track.auto to remove the current one.',
+      );
+    }
     await _ready;
     _command(track is TrackId
         ? ['audio-remove', '${track.trackId}']

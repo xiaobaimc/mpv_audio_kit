@@ -1,29 +1,29 @@
 ## [0.3.3] - 7-06-2026
 
 ### Contributions
-- [@ketanchoyal](https://github.com/ketanchoyal): `MediaSession.autoApplyPlaylistNavigation` — opt out of automatic media-session next/previous track handling ([#11](https://github.com/ales-drnz/mpv_audio_kit/pull/11)).
+- [@ketanchoyal](https://github.com/ketanchoyal): `MediaSession.autoApplyPlaylistNavigation`, opt out of automatic media-session next and previous track handling ([#11](https://github.com/ales-drnz/mpv_audio_kit/pull/11)).
 
 ### Added
-- `Player.openPlaylistFile(Media, {bool? play})`: loads a playlist file or URL (`.m3u` / `.m3u8` / `.pls` / `.cue`) via mpv's `loadlist`, expanding its entries into `Player.stream.playlist` — for internet-radio station lists and remote playlists. (`open` still loads a single entry.)
-- `Player.addAudioTrack(Media, {select, title, lang})` / `Player.removeAudioTrack(Track)`: load or remove an external audio file as a selectable track on the current file (mpv's `audio-add` / `audio-remove`) — e.g. a separate-language dub or a commentary track.
-- `MpvTrack.external` / `MpvTrack.externalFilename` / `MpvTrack.codecProfile`: surface whether a track was loaded from a separate file (and its source path), plus the codec profile string when the container reports one.
-- `Player.rescanExternalFiles({keepSelection})`: re-scan sidecar external files (auto-loaded audio / cover art) for the current file without reopening it (mpv's `rescan-external-files`).
-- `Player.stream.demuxerCacheState` / `Player.state.demuxerCacheState` (`DemuxerCacheState` + `CacheRange`): structured demuxer-cache snapshot for streaming — the buffered time ranges (render the downloaded regions of a network seek bar), the raw download rate, and the eof/bof-cached / underrun flags. Empty for directly-seekable local files.
-- `Player.setAudioMediaRole(bool)` (+ `state` / `stream` `audioMediaRole`): report a "music" media role to the OS audio server (PulseAudio / PipeWire) so it applies the right routing / volume profile on Linux (mpv's `audio-set-media-role`).
+- `Player.openPlaylistFile(Media, {bool? play})`: loads a playlist file or URL (`.m3u`, `.m3u8`, `.pls`, `.cue`) via mpv's `loadlist`, expanding its entries into `Player.stream.playlist`, for internet-radio station lists and remote playlists. (`open` still loads a single entry.)
+- `Player.addAudioTrack(Media, {select, title, lang})` and `Player.removeAudioTrack(Track)`: load or remove an external audio file as a selectable track on the current file (mpv's `audio-add` and `audio-remove`), e.g. a separate-language dub or a commentary track.
+- `MpvTrack.external`, `MpvTrack.externalFilename`, and `MpvTrack.codecProfile`: surface whether a track was loaded from a separate file (and its source path), plus the codec profile string when the container reports one.
+- `Player.rescanExternalFiles({keepSelection})`: re-scan sidecar external files (auto-loaded audio and cover art) for the current file without reopening it (mpv's `rescan-external-files`).
+- `Player.stream.demuxerCacheState` and `Player.state.demuxerCacheState` (`DemuxerCacheState` + `CacheRange`): structured demuxer-cache snapshot for streaming, with the buffered time ranges (render the downloaded regions of a network seek bar), the raw download rate, and the eof-cached, bof-cached, and underrun flags. Empty for directly-seekable local files.
+- `Player.setAudioMediaRole(bool)` (+ `state` and `stream` `audioMediaRole`): report a "music" media role to the OS audio server (PulseAudio and PipeWire) so it applies the right routing and volume profile on Linux (mpv's `audio-set-media-role`).
 - `PlayerConfiguration.normalizeDownmix` (mpv's `--audio-normalize-downmix`): loudness-normalize surround content downmixed to fewer channels, avoiding clipping on 5.1→stereo. Default off.
 - `PlayerConfiguration.demuxerCacheDir` (mpv's `--demuxer-cache-dir`): directory for the on-disk demuxer cache (companion of `CacheSettings.onDisk`); point it at a writable path on mobile.
-- `Format.s64` / `Format.s64Planar`: 64-bit signed PCM, which mpv emits in `audio-params` and accepts on `audio-format` (previously folded to `auto`, losing the read-side value).
-- Resume playback ("watch later"): `Player.writeResumeConfig()` / `Player.deleteResumeConfig({filename})` save or clear a resume point for the current file, and `PlayerConfiguration.resumePlayback` (default `true`) / `PlayerConfiguration.watchLaterDir` control restore-on-reopen and where the configs live (point `watchLaterDir` at a writable path on mobile). Only audio-relevant props are persisted — ideal for audiobook / podcast resume.
-- `PlayerConfiguration.forceSeekable` (mpv's `--force-seekable`): allow in-cache seeking on streams mpv reports as non-seekable (direct-HTTP / HLS audio). Default off.
-- `PlayerConfiguration.hlsBitrate` (`HlsBitrate.no` / `min` / `max`, mpv's `--hls-bitrate`): which variant mpv selects from an adaptive HLS playlist. Default `max`; use `min` to save bandwidth on metered links.
-- `Player.seekToPercent(double percent, {relative, exact})` and `Player.revertSeek()`: percentage-based seeking (for progress-bar scrubbing) and undo-the-last-seek (mpv's `seek …-percent` / `revert-seek`).
-- `Player.next` / `Player.previous` gained a `force` flag: advancing past the last entry (or rewinding past the first) stops playback; the default behaviour is unchanged.
-- `Player.nextPlaylist()` / `Player.previousPlaylist()`: jump to the next/previous entry from a different source playlist, for navigating across concatenated playlists.
-- `Player.stream.playlistPath` / `Player.state.playlistPath`: the source playlist (`.m3u` / `.pls`) the current entry was expanded from; empty when the file was not loaded via a playlist.
-- `Player.setVolumeGainMin` / `Player.setVolumeGainMax` (+ `state` / `stream` `volumeGainMin` / `volumeGainMax`): configure the dB clamps applied to `setVolumeGain` (mpv's `volume-gain-min` / `volume-gain-max`, defaults -96 / +12). Previously the dartdoc advertised these bounds as configurable but no setter existed.
-- `Player.setSystemVolume` / `Player.setSystemMute` (+ nullable `state` / `stream` `systemVolume` / `systemMute`): control the OS per-app mixer (mpv's `ao-volume` / `ao-mute`), distinct from the soft volume/mute. Best-effort — silently ignored (no throw) when the active audio backend doesn't expose system volume/mute; the state is `null` in that case.
-- `CacheSettings.pauseInitial` (mpv's `cache-pause-initial`): buffer before playback starts — and again after each seek — until the cache fills, for a smoother start on network sources (web-radio, HLS, Plex). Default `false`.
-- `MediaSession.autoApplyPlaylistNavigation` (default `true`): set `false` to stop the package auto-calling `Player.next` / `Player.previous` on OS media-session next/previous, so the app can handle those buttons itself (e.g. ±30s skip).
+- `Format.s64` and `Format.s64Planar`: 64-bit signed PCM, which mpv emits in `audio-params` and accepts on `audio-format` (previously folded to `auto`, losing the read-side value).
+- Resume playback ("watch later"): `Player.writeResumeConfig()` and `Player.deleteResumeConfig({filename})` save or clear a resume point for the current file, and `PlayerConfiguration.resumePlayback` (default `true`) and `PlayerConfiguration.watchLaterDir` control restore-on-reopen and where the configs live (point `watchLaterDir` at a writable path on mobile). Only audio-relevant props are persisted, ideal for audiobook and podcast resume.
+- `PlayerConfiguration.forceSeekable` (mpv's `--force-seekable`): allow in-cache seeking on streams mpv reports as non-seekable (direct-HTTP or HLS audio). Default off.
+- `PlayerConfiguration.hlsBitrate` (`HlsBitrate.no`, `min`, or `max`, mpv's `--hls-bitrate`): which variant mpv selects from an adaptive HLS playlist. Default `max`; use `min` to save bandwidth on metered links.
+- `Player.seekToPercent(double percent, {relative, exact})` and `Player.revertSeek()`: percentage-based seeking (for progress-bar scrubbing) and undo-the-last-seek (mpv's `seek …-percent` and `revert-seek`).
+- `Player.next` and `Player.previous` gained a `force` flag: advancing past the last entry (or rewinding past the first) stops playback; the default behaviour is unchanged.
+- `Player.nextPlaylist()` and `Player.previousPlaylist()`: jump to the next or previous entry from a different source playlist, for navigating across concatenated playlists.
+- `Player.stream.playlistPath` and `Player.state.playlistPath`: the source playlist (`.m3u` or `.pls`) the current entry was expanded from; empty when the file was not loaded via a playlist.
+- `Player.setVolumeGainMin` and `Player.setVolumeGainMax` (+ `state` and `stream` `volumeGainMin` and `volumeGainMax`): configure the dB clamps applied to `setVolumeGain` (mpv's `volume-gain-min` and `volume-gain-max`, defaults -96 and +12). Previously the dartdoc advertised these bounds as configurable but no setter existed.
+- `Player.setSystemVolume` and `Player.setSystemMute` (+ nullable `state` and `stream` `systemVolume` and `systemMute`): control the OS per-app mixer (mpv's `ao-volume` and `ao-mute`), distinct from the soft volume and mute. Best-effort: silently ignored (no throw) when the active audio backend doesn't expose system volume and mute; the state is `null` in that case.
+- `CacheSettings.pauseInitial` (mpv's `cache-pause-initial`): buffer before playback starts, and again after each seek, until the cache fills, for a smoother start on network sources (web-radio, HLS, Plex). Default `false`.
+- `MediaSession.autoApplyPlaylistNavigation` (default `true`): set `false` to stop the package auto-calling `Player.next` and `Player.previous` on OS media-session next and previous, so the app can handle those buttons itself (e.g. ±30s skip).
 
 ### Changed
 - `Player.seek` gained an `exact` flag for sample-accurate (vs keyframe) seeking; the default behaviour is unchanged.
@@ -33,7 +33,7 @@
 - `CacheSettings.secs` now defaults to mpv's own `--cache-secs` default (~1000 h) instead of 1 h, so every cache default mirrors mpv exactly. Effective cache memory is still bounded by `demuxerMaxBytes` (150 MiB by default).
 
 ### Fixed
-- Playback no longer hard-fails when the audio device can't be opened it falls back to a null output and keeps the position clock running, with the failure still reported on `Player.stream.audioOutputState`.
+- Playback no longer hard-fails when the audio device can't be opened: it falls back to a null output and keeps the position clock running, with the failure still reported on `Player.stream.audioOutputState`.
 
 ### Build
 - The shared Apple plugin sources ship as regular files rather than symlinks (this would cause issues with compilers).
@@ -52,31 +52,31 @@
 
 ### Added
 - `Player.setMediaSession(MediaSession?)`: publishes the player to the OS media session (Now Playing, Control Center, lockscreen, MPRIS, SMTC, Android notification). Metadata and artwork come from the playing file or override per field; `null` removes the entry.
-- `Player.stream.mediaSessionCommands`: transport commands the OS sends back (play, pause, next, seek, repeat, shuffle, speed, and the favourite/like press). Auto-applied to the player and surfaced here for analytics or interception; `MediaSessionCommandLike` is emit-only (no built-in favourite concept).
-- `MediaSession`: configures the advertised buttons (`MediaAction`, including the `like`/favourite feedback with its `isFavorite` filled-star state), artwork (`MediaSessionArtwork`), skip intervals, supported speeds, the interruption response (`InterruptionPolicy`), and the app identity (`appName`, `desktopEntry`).
-- `Player.state.playWhenReady` / `Player.stream.playWhenReady`: the play/pause *intent* axis, set by `play` / `pause` / `open` / `stop`.
-- `Player.setChapters(List<Chapter>)`: injects or replaces the current file's chapter markers by writing mpv's `chapter-list` NODE property directly. `Player.stream.chapters` / `state.chapters` then reflect the injected list, and `setChapter` navigates it natively.
+- `Player.stream.mediaSessionCommands`: transport commands the OS sends back (play, pause, next, seek, repeat, shuffle, speed, and the favourite or like press). Auto-applied to the player and surfaced here for analytics or interception; `MediaSessionCommandLike` is emit-only (no built-in favourite concept).
+- `MediaSession`: configures the advertised buttons (`MediaAction`, including the `like` or favourite feedback with its `isFavorite` filled-star state), artwork (`MediaSessionArtwork`), skip intervals, supported speeds, the interruption response (`InterruptionPolicy`), and the app identity (`appName`, `desktopEntry`).
+- `Player.state.playWhenReady` and `Player.stream.playWhenReady`: the play-pause *intent* axis, set by `play`, `pause`, `open`, or `stop`.
+- `Player.setChapters(List<Chapter>)`: injects or replaces the current file's chapter markers by writing mpv's `chapter-list` NODE property directly. `Player.stream.chapters` and `state.chapters` then reflect the injected list, and `setChapter` navigates it natively.
 - `Player.setLogLevel(LogLevel)`: changes the engine log verbosity at runtime (the initial value comes from `PlayerConfiguration.logLevel`).
 - `Player.stream.prefetchCacheDuration`: how much of the next track the background prefetch has buffered ahead, as a `Duration`. Pair it with `prefetchState` for a determinate "Prefetching…" indicator.
-- `Player.stream.waveform` now grows progressively for streams that aren't decodable up front (network / transcode sources), filling in as playback advances. The new `WaveformData.filled` field flags per-bin coverage.
+- `Player.stream.waveform` now grows progressively for streams that aren't decodable up front (network or transcode sources), filling in as playback advances. The new `WaveformData.filled` field flags per-bin coverage.
 - `Media.httpChunkSize`: opt-in cap (in bytes) on each HTTP range request for a source. Rate-limit a single open-ended request for the whole file, so seeking back freezes once the buffer drains.
 - `Media.demuxerLavfOptions`: opt-in per-track options for libmpv's libavformat demuxer, applied as the file-local `demuxer-lavf-o` and scoped to that exact playlist entry.
 
 ### Fixed
-- `Player.stream.audioOutputState` / `state.audioOutputState` now report `AudioOutputState.failed` when the audio output can't initialize; before, it only ever settled on `closed`.
+- `Player.stream.audioOutputState` and `state.audioOutputState` now report `AudioOutputState.failed` when the audio output can't initialize; before, it only ever settled on `closed`.
 - `Player.stream.prefetchState` no longer occasionally stays on `loading` when a prefetch is cancelled before its opener starts.
 - `Player.stream.waveform` no longer renders a short flat segment at the end when a file's declared duration overshoots the decoded audio.
 - `Player.stream.tap(...)` no longer re-emits an identical PCM frame on every poll while paused or stopped at end of content.
-- A finished track or playlist now settles the play/pause button back on "play" and reports `state.completed` / `MpvPlaybackState.completed` at the natural end of content.
-- `setRawProperty('pause', …)` is now rejected — it bypassed play/pause intent and desynced the OS button; use `Player.play()` / `Player.pause()`.
-- A failed first `open(play: true)` no longer leaves the play/pause button stuck on "pause".
+- A finished track or playlist now settles the play-pause button back on "play" and reports `state.completed` and `MpvPlaybackState.completed` at the natural end of content.
+- `setRawProperty('pause', …)` is now rejected: it bypassed the play-pause intent and desynced the OS button; use `Player.play()` and `Player.pause()`.
+- A failed first `open(play: true)` no longer leaves the play-pause button stuck on "pause".
 - `setAudioDriver('auto')` (and an empty string) now selects mpv's auto-probe instead of failing with "Audio output auto not found".
 
 ### Example
 - The example app has moved to its own repository as a standalone app, [MPV Studio](https://github.com/ales-drnz/mpv_studio). The bundled `example/` is now a minimal single-file demo.
 
 ### Build
-- Updated `cacert.pem` to version 1.33.
+- Updated the bundled Mozilla CA certificates (`cacert.pem`) to the 2026-05-14 set.
 - Migrated the Android build to Flutter's Built-in Kotlin model.
 - The bundled libmpv's `smb2://` protocol now percent-decodes the URL path, user and share (previously only the password).
 - Updated libmpv to `libmpv-r8` across all platforms.
@@ -90,12 +90,12 @@
 
 ### Added
 - `AevalSettings` and `AformatSettings` now expose their typed parameters (previously toggle-only).
-- Correct numeric bounds on ~116 more parameters that were `null` before — including the whole biquad family's `width_type`, `transform` and `precision`, `atempo.tempo`, and many others. The matching `<param>Min` / `<param>Max` constants now reflect the real ffmpeg ranges.
+- Correct numeric bounds on ~116 more parameters that were `null` before, including the whole biquad family's `width_type`, `transform` and `precision`, `atempo.tempo`, and many others. The matching `<param>Min` and `<param>Max` constants now reflect the real ffmpeg ranges.
 - New typed enums for the biquad family's `width_type` and `transform`, plus `SurroundWinFunc`.
 - Param doc comments now flag which AVOptions ffmpeg marks as runtime-tunable, deprecated, or array-typed. Deprecated parameters also carry a Dart `@Deprecated` annotation.
 
 ### Changed
-- The six `EBU R128` stat fields (`integrated`, `range`, `lra_low`, `lra_high`, `sample_peak`, `true_peak`) are no longer setter fields on `Ebur128Settings` — ffmpeg flags them as read-only outputs and rejected any attempt to set them. Read them via `af-metadata/<label>` instead.
+- The six `EBU R128` stat fields (`integrated`, `range`, `lra_low`, `lra_high`, `sample_peak`, `true_peak`) are no longer setter fields on `Ebur128Settings`: ffmpeg flags them as read-only outputs and rejected any attempt to set them. Read them via `af-metadata/<label>` instead.
 
 ### Fixed
 - `compand.points`, `mcompand.args`, `aiir.{p,z,k,gains,…}`, `firequalizer.gain`, `anequalizer.colors` and other string-grammar parameters now carry their ffmpeg default value instead of an empty default. The hand-written list-typed extensions (`CompandSettings.transferPoints`, `AiirSettings.channels`, `McompandSettings.bands`, …) consequently decode the real ffmpeg default state when the filter is constructed without overrides.
@@ -187,7 +187,7 @@ Major release. The Dart API has been redesigned for type safety, ergonomics, and
 - Typed `Hook` enum for the file-loading lifecycle.
 - New `MpvPrefetchState.failed` variant for when background prefetch fails.
 - Typed errors via the `MpvPlayerError` hierarchy and a public `MpvException` for raw-API failures.
-- Real-time FFT spectrum and raw PCM streams (`Player.stream.spectrum` / `Player.stream.pcm`) captured post-DSP for visualizers.
+- Real-time FFT spectrum and raw PCM streams (`Player.stream.spectrum` and `Player.stream.pcm`) captured post-DSP for visualizers.
 - `setTlsCaFile(path)` with custom root-CA bundle.
 
 ### Changed
@@ -197,7 +197,7 @@ Major release. The Dart API has been redesigned for type safety, ergonomics, and
 - `setAudioDisplay`, `setImageDisplayDuration`, and the `Display` enum are removed - they controlled mpv's video pipeline, which the audio-only build no longer ships. Cover bytes are surfaced regardless via `state.coverArt`.
 - Raw-API escape hatches (`getRawProperty`, `setRawProperty`, `sendRawCommand`) are now `Future<...>` and surface mpv-side errors as `MpvException` instead of silently no-oping. `getRawProperty` still returns `null` on failure.
 - Every typed setter (`setVolume`, `setRate`, `setAudioEffects`, `setCache`, …) now throws `MpvException` when mpv rejects the write, instead of silently advancing the optimistic state.
-- `Player.openPlaylist` renamed to `Player.openAll` (matches Dart's `addAll` / `removeAll` convention).
+- `Player.openPlaylist` renamed to `Player.openAll` (matches Dart's `addAll` and `removeAll` convention).
 
 ### Fixed
 - The initial player state (volume, format, channels, params, …) is now reliably populated before the first `await`. A startup race could previously leave one or more state fields at their default until the next user-driven setter.
@@ -230,9 +230,9 @@ Major release. The Dart API has been redesigned for type safety, ergonomics, and
 ## [0.0.9] - 27-04-2026
 
 ### Fixed
-- Lifecycle streams (`stream.playing` / `stream.buffering` / `stream.completed`) silently desynced from `state` on file boundaries - `stream.completed` never fired on natural EOF and `stream.buffering` never emitted at all. All three now stay in sync with `state` across every lifecycle transition.
+- Lifecycle streams (`stream.playing`, `stream.buffering`, and `stream.completed`) silently desynced from `state` on file boundaries - `stream.completed` never fired on natural EOF and `stream.buffering` never emitted at all. All three now stay in sync with `state` across every lifecycle transition.
 - `dispose()` leaked four stream controllers (audio display, cover-art auto, image display duration, prefetch state). All now closed on teardown.
-- Use-after-dispose hazards on `open()` / `openPlaylist()`: disposing the player while URI normalisation was still in flight could SIGSEGV on Android `intent://` loads. Added disposed re-checks after every async boundary.
+- Use-after-dispose hazards on `open()` and `openPlaylist()`: disposing the player while URI normalisation was still in flight could SIGSEGV on Android `intent://` loads. Added disposed re-checks after every async boundary.
 - Defensive disposal guards on the position polling and embedded-cover pipelines so in-flight work bails instead of writing to closed controllers.
 - `setEqualizerGains()` now respects the disposal contract.
 - `setAudioFilters()` and `setEqualizerGains()` now route state mutation through the same path as every other setter.
@@ -252,8 +252,8 @@ Major release. The Dart API has been redesigned for type safety, ergonomics, and
 - DASH segment downloads now reuse a single TCP connection across segment GETs (matches HLS persistent-HTTP behaviour).
 
 ### Fixed
-- Spurious `position = 0` no longer emits on `stream.position` during seek / playback-restart.
-- Audible click at every segment boundary on well-formed fragmented-MP4 / DASH streams (AAC encoder priming edit lists are now respected on fMP4).
+- Spurious `position = 0` no longer emits on `stream.position` during seek or playback-restart.
+- Audible click at every segment boundary on well-formed fragmented-MP4 and DASH streams (AAC encoder priming edit lists are now respected on fMP4).
 
 ### Example
 - Rewrote the seek slider to release its drag value via `stream.seekCompleted` instead of a fixed delay.

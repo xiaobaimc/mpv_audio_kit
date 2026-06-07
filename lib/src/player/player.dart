@@ -63,6 +63,7 @@ import 'player_api.dart';
 import 'player_configuration.dart';
 import 'player_state.dart';
 import 'player_stream.dart';
+import 'playlist_nav_gate.dart';
 
 export '../events/mpv_hook_event.dart';
 export '../events/mpv_log_entry.dart';

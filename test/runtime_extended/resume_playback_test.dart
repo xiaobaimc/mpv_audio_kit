@@ -51,6 +51,37 @@ void main() {
         reason: 'resume-playback restored the position from the saved config',);
   }, timeout: const Timeout(Duration(seconds: 30)),);
 
+  test('deleteResumeConfig clears the saved resume point', () async {
+    final tmp = Directory.systemTemp.createTempSync('mak_delresume_');
+    addTearDown(() {
+      try {
+        tmp.deleteSync(recursive: true);
+      } catch (_) {}
+    });
+    final cfg = PlayerConfiguration(
+      logLevel: LogLevel.off,
+      watchLaterDir: tmp.path,
+    );
+
+    final p = await buildPlayer(configuration: cfg);
+    addTearDown(p.dispose);
+    await openAndWaitForLoad(p, fx);
+    await p.seek(const Duration(milliseconds: 600));
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+
+    // Write a resume point, confirm it lands...
+    await p.writeResumeConfig();
+    await Future<void>.delayed(const Duration(milliseconds: 200));
+    expect(tmp.listSync(), isNotEmpty,
+        reason: 'precondition: a watch-later config exists to delete',);
+
+    // ...then delete it for the current file and confirm it is gone.
+    await p.deleteResumeConfig();
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    expect(tmp.listSync(), isEmpty,
+        reason: 'deleteResumeConfig removed the current file\'s resume config',);
+  }, timeout: const Timeout(Duration(seconds: 30)),);
+
   test('resumePlayback=false does NOT restore position', () async {
     final tmp = Directory.systemTemp.createTempSync('mak_noresume_');
     addTearDown(() {

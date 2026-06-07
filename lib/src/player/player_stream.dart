@@ -368,8 +368,8 @@ class PlayerStream {
   final Stream<bool?> systemMute;
 
   /// Aggregate cache configuration — emits a fresh [CacheSettings]
-  /// whenever any of mode / secs / onDisk / pause / pauseWait changes.
-  /// Set with [Player.setCache].
+  /// whenever any of mode / secs / onDisk / pause / pauseWait / pauseInitial
+  /// changes. Set with [Player.setCache].
   final Stream<CacheSettings> cache;
 
   /// Emits the max demuxer bytes.

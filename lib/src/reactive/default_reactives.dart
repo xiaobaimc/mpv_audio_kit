@@ -128,8 +128,8 @@ class DefaultPropertyReactives {
       ReactiveProperty<Gapless>(Gapless.weak);
 
   /// Demuxer cache configuration — aggregate of `cache`, `cache-secs`,
-  /// `cache-on-disk`, `cache-pause`, and `cache-pause-wait`. All five
-  /// specs dedup and emit on this single cell.
+  /// `cache-on-disk`, `cache-pause`, `cache-pause-wait`, and
+  /// `cache-pause-initial`. All six specs dedup and emit on this single cell.
   final ReactiveProperty<CacheSettings> cache =
       ReactiveProperty<CacheSettings>(const CacheSettings());
 
