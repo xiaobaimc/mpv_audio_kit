@@ -1,3 +1,9 @@
+## [0.3.6] - 9-06-2026
+
+### Build
+- The bundled `libmpv.framework` was signed with the wrong identifier on iOS and macOS.
+- Updated libmpv to `libmpv-r10` across all platforms.
+
 ## [0.3.5] - 9-06-2026
 
 ### Changed
