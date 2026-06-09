@@ -1,3 +1,15 @@
+## [0.3.5] - 9-06-2026
+
+### Changed
+- Audio-effect catalog corrected, removed `headphone` (needs a second HRIR input the single-stream chain can't provide), added `aintegral` and `asetrate`.
+
+### Fixed
+- Filters with mandatory params (`chorus`, `pan`, `channelmap`, `aeval`, `arnndn`) now make those params **required** in their `*Settings` constructors, so they can't be silently dropped and fail to initialize in mpv. 
+
+### Build
+- Full feature parity with **~50–65% smaller** binaries.
+- Updated libmpv to `libmpv-r9` across all platforms.
+
 ## [0.3.4] - 8-06-2026
 
 ### Changed

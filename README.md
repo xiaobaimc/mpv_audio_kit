@@ -21,7 +21,7 @@
 
 ## Why did I build this?
 
-Many existing Flutter audio libraries are either built on an old version of mpv or they are simply too restrictive, hiding some cool features relative to audio processing. So I made this project to provide the most powerful and flexible audio library for Flutter and solve 3 main needs:
+Many existing Flutter audio libraries are either built on an old version of mpv or they are simply too restrictive, hiding some cool features relative to audio processing. So I made this project to provide the most powerful and flexible audio library for Flutter and solve 4 main needs:
 
 <table>
 <tr>
@@ -31,6 +31,10 @@ Many existing Flutter audio libraries are either built on an old version of mpv 
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/protocols/plex.png" width="32" alt="Plex"></td>
 <td valign="middle"><b>Plex</b><br>transcoding in this case requires a <code>/decision</code> call before each stream. Plex rejects multiple parallel requests when creating playlists, so instead of relying to a local proxy server, the <code>on_load</code> <a href="#12-hooks">hook method</a> resolves <code>.m3u8</code> or <code>.mpd</code> (<a href="#21-supported-uri-schemes">DASH</a>) URLs lazily.</td>
+</tr>
+<tr>
+<td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/mpv_audio_kit/main/imgs/protocols/samba.png" width="32" alt="Samba"></td>
+<td valign="middle"><b>Samba</b><br>for playing from network shares over <code>smb2://</code> (<a href="#21-supported-uri-schemes">SMB</a>), the engine speaks SMB2 and SMB3 natively, so a track on your home server (for example a NAS) streams like any local source.</td>
 </tr>
 <tr>
 <td valign="middle"><img src="https://raw.githubusercontent.com/ales-drnz/svg-icons/main/png/wrench.png" width="32" alt=""></td>
@@ -46,18 +50,18 @@ Add `mpv_audio_kit` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mpv_audio_kit: ^0.3.4
+  mpv_audio_kit: ^0.3.5
 ```
 
 ## Platforms requirements
 
-| Platform  | Minimum | Architecture | Device | Emulator |
-| :--- | :--- | :--- | :---: | :---:
-| **Android** | 7.0 (SDK 24) | arm64-v8a, armeabi-v7a, x86_64 | ✅ | ✅ |
-| **iOS** | 15.0 | arm64, x86_64 | ✅ | ✅ |
-| **macOS** | 12.0 | arm64, x86_64 | ✅ | - |
-| **Windows**| 10 | arm64, x86_64 | ✅ | - |
-| **Linux** | Ubuntu 24.04 | aarch64, x86_64 | ✅ | - |
+| Platform  | Minimum | Architecture | Size | Device | Emulator |
+| :--- | :--- | :--- | :---: | :---: | :---:
+| **Android** | 7.0 (SDK 24) | arm64-v8a, armeabi-v7a, x86_64 | 8.2, 8.2, 8.7 MB | ✅ | ✅ |
+| **iOS** | 15.0 | arm64, x86_64 | 8.1, 8.6 MB | ✅ | ✅ |
+| **macOS** | 12.0 | arm64, x86_64 | 8.1, 8.7 MB | ✅ | - |
+| **Windows**| 10 | arm64, x86_64 | 7.9, 9.1 MB | ✅ | - |
+| **Linux** | Ubuntu 24.04 | aarch64, x86_64 | 8.6, 7.6 MB | ✅ | - |
 
 ---
 
@@ -953,7 +957,7 @@ IDE autocomplete and compile-time safety.
 
 #### 5.3 Available effects
 
-The bundle ships with 86 audio effects covering compression, EQ,
+The bundle ships with 87 audio effects covering compression, EQ,
 denoising, spatialisation, modulation, and more. Each row below maps to a
 `<Name>Settings` field on `AudioEffects` (e.g. `acompressor` →
 `AudioEffects.acompressor` of type `AcompressorSettings`). For raw
@@ -1025,20 +1029,18 @@ of the chain.
 | `aphaseshift` | Shift the phase of every spectral bin |
 | `aresample` | Resample to a target sample rate and format |
 | `atempo` | Adjust tempo without changing pitch |
+| `asetrate` | Retag the sample rate → pitch + speed (vinyl/tape varispeed) |
 | `rubberband` | High-quality independent pitch and tempo |
 
 ##### Stereo, channels and spatial
 
 | Effect | Description |
 |---|---|
-| `channelmap` | Remap input channels to new positions |
 | `crossfeed` | Headphone crossfeed |
 | `dialoguenhance` | Centre-channel dialogue enhancement |
 | `earwax` | Headphone listening enhancement |
 | `extrastereo` | Increase the left-right difference signal |
 | `haas` | Haas effect (precedence-based stereo widening) |
-| `headphone` | HRTF-based binaural headphone rendering |
-| `pan` | Mix channels with explicit per-channel gains |
 | `stereotools` | Comprehensive stereo image manipulation |
 | `stereowiden` | Stereo widening by reducing common signal |
 | `surround` | Stereo-to-surround upmix |
@@ -1054,7 +1056,6 @@ of the chain.
 | `aexciter` | Harmonic exciter |
 | `aphaser` | Phaser |
 | `apulsator` | Auto-panner, tremolo hybrid |
-| `chorus` | Chorus |
 | `crystalizer` | Audio sharpening and brightener |
 | `dcshift` | DC offset shift |
 | `flanger` | Flanger |
@@ -1072,10 +1073,10 @@ of the chain.
 | `adelay` | Per-channel delay |
 | `adenorm` | Add low-level dither to fix denormals |
 | `aderivative` | Compute the derivative of the signal |
+| `aintegral` | Compute the integral of the signal |
 | `afftdn` | FFT-based broadband noise reduction |
 | `afwtdn` | Wavelet-based broadband noise reduction |
 | `anlmdn` | Non-local-means denoiser |
-| `arnndn` | RNN-based speech denoiser |
 | `compensationdelay` | Speaker and microphone delay compensation |
 
 ##### Spectral, fade and routing
@@ -1099,8 +1100,19 @@ of the chain.
 
 | Effect | Description |
 |---|---|
-| `aeval` | Per-channel expression-based filter |
 | `aformat` | Constrain output format |
+
+##### Advanced (mandatory parameter)
+
+These five take a mandatory free-form value with no sensible default, so their `*Settings` constructors make it **required** — pass a valid value or the filter won't initialise. (In the MPV Studio example each has a dedicated page with curated presets, a custom field, and a model-file picker for `arnndn`.)
+
+| Effect | Description | Required |
+|---|---|---|
+| `chorus` | Chorus | `delays`, `decays`, `speeds`, `depths` |
+| `pan` | Mix channels with explicit per-channel gains | `args` |
+| `channelmap` | Remap input channels to new positions | `map` |
+| `aeval` | Per-channel expression-based filter | `exprs` |
+| `arnndn` | RNN-based speech denoiser | `model` (a `.rnnn` file) |
 
 </details>
 

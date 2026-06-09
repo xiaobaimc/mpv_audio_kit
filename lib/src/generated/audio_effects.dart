@@ -3443,72 +3443,6 @@ enum HdcdBitsPerSample {
   }
 }
 
-/// Values for the `hrir` option of the `headphone` audio filter.
-enum HeadphoneHrir {
-  /// hrir files have exactly 2 channels
-  stereo,
-
-  /// single multichannel hrir file
-  multich,
-  ;
-
-  /// Wire-side string consumed by mpv.
-  String get mpvValue {
-    switch (this) {
-      case HeadphoneHrir.stereo:
-        return 'stereo';
-      case HeadphoneHrir.multich:
-        return 'multich';
-    }
-  }
-
-  /// Parses a mpv wire string back into a [HeadphoneHrir].
-  /// Unknown / empty input falls back to the first member.
-  static HeadphoneHrir fromMpv(String? raw) {
-    switch (raw) {
-      case 'stereo':
-        return HeadphoneHrir.stereo;
-      case 'multich':
-        return HeadphoneHrir.multich;
-      default:
-        return HeadphoneHrir.stereo;
-    }
-  }
-}
-
-/// Values for the `type` option of the `headphone` audio filter.
-enum HeadphoneType {
-  /// time domain
-  time,
-
-  /// frequency domain
-  freq,
-  ;
-
-  /// Wire-side string consumed by mpv.
-  String get mpvValue {
-    switch (this) {
-      case HeadphoneType.time:
-        return 'time';
-      case HeadphoneType.freq:
-        return 'freq';
-    }
-  }
-
-  /// Parses a mpv wire string back into a [HeadphoneType].
-  /// Unknown / empty input falls back to the first member.
-  static HeadphoneType fromMpv(String? raw) {
-    switch (raw) {
-      case 'time':
-        return HeadphoneType.time;
-      case 'freq':
-        return HeadphoneType.freq;
-      default:
-        return HeadphoneType.time;
-    }
-  }
-}
-
 /// Values for the `precision` option of the `highpass` audio filter.
 enum HighpassPrecision {
   /// automatic
@@ -5447,6 +5381,9 @@ enum AudioEffect {
   /// The `aiir` audio filter.
   aiir,
 
+  /// The `aintegral` audio filter.
+  aintegral,
+
   /// The `alimiter` audio filter.
   alimiter,
 
@@ -5479,6 +5416,9 @@ enum AudioEffect {
 
   /// The `arnndn` audio filter.
   arnndn,
+
+  /// The `asetrate` audio filter.
+  asetrate,
 
   /// The `asoftclip` audio filter.
   asoftclip,
@@ -5572,9 +5512,6 @@ enum AudioEffect {
 
   /// The `hdcd` audio filter.
   hdcd,
-
-  /// The `headphone` audio filter.
-  headphone,
 
   /// The `highpass` audio filter.
   highpass,

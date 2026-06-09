@@ -172,7 +172,13 @@ void main() {
     test('ChorusVoicesX — two-voice chorus accepted by mpv', () async {
       final errors = await tryEffects(() async {
         await player.setAudioEffects(AudioEffects(
-          chorus: const ChorusSettings(enabled: true).withVoices([
+          chorus: const ChorusSettings(
+            enabled: true,
+            delays: '',
+            decays: '',
+            speeds: '',
+            depths: '',
+          ).withVoices([
             const ChorusVoice(
               delayMs: 30, decay: 0.4, depthMs: 1.5, speedHz: 0.3,
             ),

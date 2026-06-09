@@ -2280,7 +2280,7 @@ final class AevalSettings {
     this.enabled = false,
     this.c = '',
     this.channel_layout = '',
-    this.exprs = '',
+    required this.exprs,
   });
 
   /// Returns a copy of this [AevalSettings] with the given fields replaced.
@@ -2320,7 +2320,7 @@ final class AevalSettings {
     if (c != '') parts.add('c=' + '[' + c + ']');
     if (channel_layout != '')
       parts.add('channel_layout=' + '[' + channel_layout + ']');
-    if (exprs != '') parts.add('exprs=' + '[' + exprs + ']');
+    parts.add('exprs=' + '[' + exprs + ']');
     return parts.isEmpty ? 'lavfi-aeval' : 'lavfi-aeval=' + parts.join(':');
   }
 }
@@ -4367,6 +4367,49 @@ final class AiirSettings {
   }
 }
 
+/// Configuration for the `aintegral` audio effect.
+///
+/// Compute derivative/integral of audio stream.
+///
+/// Applying both filters one after another produces original audio.
+final class AintegralSettings {
+  /// Whether this effect is inserted into the audio chain.
+  final bool enabled;
+
+  /// Creates an [AintegralSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
+  const AintegralSettings({
+    this.enabled = false,
+  });
+
+  /// Returns a copy of this [AintegralSettings] with the given fields replaced.
+  AintegralSettings copyWith({
+    bool? enabled,
+  }) =>
+      AintegralSettings(
+        enabled: enabled ?? this.enabled,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AintegralSettings && other.enabled == enabled);
+
+  @override
+  int get hashCode => enabled.hashCode;
+
+  @override
+  String toString() => 'AintegralSettings(enabled: $enabled)';
+
+  /// Returns the audio chain entry for this effect.
+  /// Only non-default parameters are emitted.
+  String toFilterString() {
+    return 'lavfi-aintegral';
+  }
+}
+
 /// Configuration for the `alimiter` audio effect.
 ///
 /// The limiter prevents an input signal from rising over a desired threshold.
@@ -6146,7 +6189,7 @@ final class ArnndnSettings {
     this.enabled = false,
     this.m = '',
     this.mix = 1.0,
-    this.model = '',
+    required this.model,
   });
 
   /// Returns a copy of this [ArnndnSettings] with the given fields replaced.
@@ -6187,8 +6230,52 @@ final class ArnndnSettings {
     final parts = <String>[];
     if (m != '') parts.add('m=' + '[' + m + ']');
     if (mix != 1.0) parts.add('mix=' + _wireDouble(mix));
-    if (model != '') parts.add('model=' + '[' + model + ']');
+    parts.add('model=' + '[' + model + ']');
     return parts.isEmpty ? 'lavfi-arnndn' : 'lavfi-arnndn=' + parts.join(':');
+  }
+}
+
+/// Configuration for the `asetrate` audio effect.
+///
+/// Set the sample rate without altering the PCM data.
+/// This will result in a change of speed and pitch.
+///
+/// The filter accepts the following options:
+final class AsetrateSettings {
+  /// Whether this effect is inserted into the audio chain.
+  final bool enabled;
+
+  /// Creates an [AsetrateSettings] with the given parameter values.
+  ///
+  /// Each parameter defaults to its ffmpeg default; the effect stays
+  /// inactive until [enabled] is set to `true`.
+  const AsetrateSettings({
+    this.enabled = false,
+  });
+
+  /// Returns a copy of this [AsetrateSettings] with the given fields replaced.
+  AsetrateSettings copyWith({
+    bool? enabled,
+  }) =>
+      AsetrateSettings(
+        enabled: enabled ?? this.enabled,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AsetrateSettings && other.enabled == enabled);
+
+  @override
+  int get hashCode => enabled.hashCode;
+
+  @override
+  String toString() => 'AsetrateSettings(enabled: $enabled)';
+
+  /// Returns the audio chain entry for this effect.
+  /// Only non-default parameters are emitted.
+  String toFilterString() {
+    return 'lavfi-asetrate';
   }
 }
 
@@ -8681,7 +8768,7 @@ final class ChannelmapSettings {
   final String? channel_layout;
 
   /// A comma-separated list of input channel numbers in output order.
-  final String? map;
+  final String map;
 
   /// Creates an [ChannelmapSettings] with the given parameter values.
   ///
@@ -8690,21 +8777,21 @@ final class ChannelmapSettings {
   const ChannelmapSettings({
     this.enabled = false,
     this.channel_layout,
-    this.map,
+    required this.map,
   });
 
   /// Returns a copy of this [ChannelmapSettings] with the given fields replaced.
   ChannelmapSettings copyWith({
     bool? enabled,
     Object? channel_layout = unset,
-    Object? map = unset,
+    String? map,
   }) =>
       ChannelmapSettings(
         enabled: enabled ?? this.enabled,
         channel_layout: identical(channel_layout, unset)
             ? this.channel_layout
             : channel_layout as String?,
-        map: identical(map, unset) ? this.map : map as String?,
+        map: map ?? this.map,
       );
 
   @override
@@ -8728,7 +8815,7 @@ final class ChannelmapSettings {
     final parts = <String>[];
     if (channel_layout != null)
       parts.add('channel_layout=' + '[' + channel_layout! + ']');
-    if (map != null) parts.add('map=' + '[' + map! + ']');
+    parts.add('map=' + '[' + map + ']');
     return parts.isEmpty
         ? 'lavfi-channelmap'
         : 'lavfi-channelmap=' + parts.join(':');
@@ -8803,12 +8890,12 @@ final class ChorusSettings {
   /// inactive until [enabled] is set to `true`.
   const ChorusSettings({
     this.enabled = false,
-    this.decays = '',
-    this.delays = '',
-    this.depths = '',
+    required this.decays,
+    required this.delays,
+    required this.depths,
     this.in_gain = .4,
     this.out_gain = .4,
-    this.speeds = '',
+    required this.speeds,
   });
 
   /// Returns a copy of this [ChorusSettings] with the given fields replaced.
@@ -8859,12 +8946,12 @@ final class ChorusSettings {
     assert(out_gain >= out_gainMin, 'chorus.out_gain must be >= 0');
     assert(out_gain <= out_gainMax, 'chorus.out_gain must be <= 1');
     final parts = <String>[];
-    if (decays != '') parts.add('decays=' + '[' + decays + ']');
-    if (delays != '') parts.add('delays=' + '[' + delays + ']');
-    if (depths != '') parts.add('depths=' + '[' + depths + ']');
+    parts.add('decays=' + '[' + decays + ']');
+    parts.add('delays=' + '[' + delays + ']');
+    parts.add('depths=' + '[' + depths + ']');
     if (in_gain != .4) parts.add('in_gain=' + _wireDouble(in_gain));
     if (out_gain != .4) parts.add('out_gain=' + _wireDouble(out_gain));
-    if (speeds != '') parts.add('speeds=' + '[' + speeds + ']');
+    parts.add('speeds=' + '[' + speeds + ']');
     return parts.isEmpty ? 'lavfi-chorus' : 'lavfi-chorus=' + parts.join(':');
   }
 }
@@ -11880,146 +11967,6 @@ final class HdcdSettings {
   }
 }
 
-/// Configuration for the `headphone` audio effect.
-///
-/// Apply head-related transfer functions (HRTFs) to create virtual
-/// loudspeakers around the user for binaural listening via headphones.
-/// The HRIRs are provided via additional streams, for each channel
-/// one stereo input stream is needed.
-///
-/// The filter accepts the following options:
-///
-/// Parameters:
-/// - [gain]: Set gain applied to audio. Value is in dB. Default is 0. (range -20..40, default 0)
-/// - [hrir]: Set format of hrir stream. Default value is `stereo`. Alternative value is `multich`. If value is set to `stereo`, number of additional streams should be greater or equal to number of input channels in first input stream. Also each additional stream should have stereo number of channels. If value is set to `multich`, number of additional streams should be exactly one. Also number of input channels of additional stream should be equal or greater than twice number of channels of first input stream. (range 0..1, default HRIR_STEREO)
-/// - [lfe]: Set custom gain for LFE channels. Value is in dB. Default is 0. (range -20..40, default 0)
-/// - [map]: Set mapping of input streams for convolution. The argument is a '|'-separated list of channel names in order as they are given as additional stream inputs for filter. This also specify number of input streams. Number of input streams must be not less than number of channels in first stream plus one. (default "")
-/// - [size]: Set size of frame in number of samples which will be processed at once. Default value is `1024`. Allowed range is from 1024 to 96000. (range 1024..96000, default 1024)
-/// - [type]: Set processing type. Can be `time` or `freq`. `time` is processing audio in time domain which is slow. `freq` is processing audio in frequency domain which is fast. Default is `freq`. (range 0..1, default 1)
-final class HeadphoneSettings {
-  /// Default value for [gain].
-  static const double gainDefault = 0.0;
-
-  /// Minimum value for [gain].
-  static const double gainMin = -20.0;
-
-  /// Maximum value for [gain].
-  static const double gainMax = 40.0;
-
-  /// Default value for [lfe].
-  static const double lfeDefault = 0.0;
-
-  /// Minimum value for [lfe].
-  static const double lfeMin = -20.0;
-
-  /// Maximum value for [lfe].
-  static const double lfeMax = 40.0;
-
-  /// Default value for [size].
-  static const int sizeDefault = 1024;
-
-  /// Minimum value for [size].
-  static const int sizeMin = 1024;
-
-  /// Maximum value for [size].
-  static const int sizeMax = 96000;
-
-  /// Whether this effect is inserted into the audio chain.
-  final bool enabled;
-
-  /// set gain in dB
-  final double gain;
-
-  /// set hrir format
-  final HeadphoneHrir hrir;
-
-  /// set lfe gain in dB
-  final double lfe;
-
-  /// set channels convolution mappings
-  final String map;
-
-  /// set frame size
-  final int size;
-
-  /// set processing
-  final HeadphoneType type;
-
-  /// Creates an [HeadphoneSettings] with the given parameter values.
-  ///
-  /// Each parameter defaults to its ffmpeg default; the effect stays
-  /// inactive until [enabled] is set to `true`.
-  const HeadphoneSettings({
-    this.enabled = false,
-    this.gain = 0.0,
-    this.hrir = HeadphoneHrir.stereo,
-    this.lfe = 0.0,
-    this.map = '',
-    this.size = 1024,
-    this.type = HeadphoneType.freq,
-  });
-
-  /// Returns a copy of this [HeadphoneSettings] with the given fields replaced.
-  HeadphoneSettings copyWith({
-    bool? enabled,
-    double? gain,
-    HeadphoneHrir? hrir,
-    double? lfe,
-    String? map,
-    int? size,
-    HeadphoneType? type,
-  }) =>
-      HeadphoneSettings(
-        enabled: enabled ?? this.enabled,
-        gain: gain ?? this.gain,
-        hrir: hrir ?? this.hrir,
-        lfe: lfe ?? this.lfe,
-        map: map ?? this.map,
-        size: size ?? this.size,
-        type: type ?? this.type,
-      );
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is HeadphoneSettings &&
-          other.enabled == enabled &&
-          other.gain == gain &&
-          other.hrir == hrir &&
-          other.lfe == lfe &&
-          other.map == map &&
-          other.size == size &&
-          other.type == type);
-
-  @override
-  int get hashCode => Object.hash(enabled, gain, hrir, lfe, map, size, type);
-
-  @override
-  String toString() =>
-      'HeadphoneSettings(enabled: $enabled, gain: $gain, hrir: $hrir, lfe: $lfe, map: $map, size: $size, type: $type)';
-
-  /// Returns the audio chain entry for this effect.
-  /// Only non-default parameters are emitted.
-  String toFilterString() {
-    assert(gain >= gainMin, 'headphone.gain must be >= -20');
-    assert(gain <= gainMax, 'headphone.gain must be <= 40');
-    assert(lfe >= lfeMin, 'headphone.lfe must be >= -20');
-    assert(lfe <= lfeMax, 'headphone.lfe must be <= 40');
-    assert(size >= sizeMin, 'headphone.size must be >= 1024');
-    assert(size <= sizeMax, 'headphone.size must be <= 96000');
-    final parts = <String>[];
-    if (gain != 0.0) parts.add('gain=' + _wireDouble(gain));
-    if (hrir != HeadphoneHrir.stereo) parts.add('hrir=' + hrir.mpvValue);
-    if (lfe != 0.0) parts.add('lfe=' + _wireDouble(lfe));
-    if (map != '') parts.add('map=' + '[' + map + ']');
-    if (size != 1024) parts.add('size=' + size.toString());
-    if (type != HeadphoneType.freq) parts.add('type=' + type.mpvValue);
-    return parts.isEmpty
-        ? 'lavfi-headphone'
-        : 'lavfi-headphone=' + parts.join(':');
-  }
-}
-
 /// Configuration for the `highpass` audio effect.
 ///
 /// Apply a high-pass filter with 3dB point frequency.
@@ -14066,7 +14013,7 @@ final class PanSettings {
   /// inactive until [enabled] is set to `true`.
   const PanSettings({
     this.enabled = false,
-    this.args = '',
+    required this.args,
   });
 
   /// Returns a copy of this [PanSettings] with the given fields replaced.
@@ -14094,7 +14041,7 @@ final class PanSettings {
   /// Only non-default parameters are emitted.
   String toFilterString() {
     final parts = <String>[];
-    if (args != '') parts.add('args=' + '[' + args + ']');
+    parts.add('args=' + '[' + args + ']');
     return parts.isEmpty ? 'lavfi-pan' : 'lavfi-pan=' + parts.join(':');
   }
 }
@@ -17764,6 +17711,9 @@ final class AudioEffects {
   /// Configuration for the `aiir` audio effect.
   final AiirSettings aiir;
 
+  /// Configuration for the `aintegral` audio effect.
+  final AintegralSettings aintegral;
+
   /// Configuration for the `alimiter` audio effect.
   final AlimiterSettings alimiter;
 
@@ -17796,6 +17746,9 @@ final class AudioEffects {
 
   /// Configuration for the `arnndn` audio effect.
   final ArnndnSettings arnndn;
+
+  /// Configuration for the `asetrate` audio effect.
+  final AsetrateSettings asetrate;
 
   /// Configuration for the `asoftclip` audio effect.
   final AsoftclipSettings asoftclip;
@@ -17890,9 +17843,6 @@ final class AudioEffects {
   /// Configuration for the `hdcd` audio effect.
   final HdcdSettings hdcd;
 
-  /// Configuration for the `headphone` audio effect.
-  final HeadphoneSettings headphone;
-
   /// Configuration for the `highpass` audio effect.
   final HighpassSettings highpass;
 
@@ -17970,7 +17920,7 @@ final class AudioEffects {
     this.adynamicsmooth = const AdynamicsmoothSettings(),
     this.aecho = const AechoSettings(),
     this.aemphasis = const AemphasisSettings(),
-    this.aeval = const AevalSettings(),
+    this.aeval = const AevalSettings(exprs: 'val(0)|val(1)'),
     this.aexciter = const AexciterSettings(),
     this.afade = const AfadeSettings(),
     this.afftdn = const AfftdnSettings(),
@@ -17980,6 +17930,7 @@ final class AudioEffects {
     this.afwtdn = const AfwtdnSettings(),
     this.agate = const AgateSettings(),
     this.aiir = const AiirSettings(),
+    this.aintegral = const AintegralSettings(),
     this.alimiter = const AlimiterSettings(),
     this.allpass = const AllpassSettings(),
     this.anequalizer = const AnequalizerSettings(),
@@ -17990,7 +17941,8 @@ final class AudioEffects {
     this.apsyclip = const ApsyclipSettings(),
     this.apulsator = const ApulsatorSettings(),
     this.aresample = const AresampleSettings(),
-    this.arnndn = const ArnndnSettings(),
+    this.arnndn = const ArnndnSettings(model: ''),
+    this.asetrate = const AsetrateSettings(),
     this.asoftclip = const AsoftclipSettings(),
     this.asubboost = const AsubboostSettings(),
     this.asubcut = const AsubcutSettings(),
@@ -18003,8 +17955,12 @@ final class AudioEffects {
     this.bandreject = const BandrejectSettings(),
     this.bass = const BassSettings(),
     this.biquad = const BiquadSettings(),
-    this.channelmap = const ChannelmapSettings(),
-    this.chorus = const ChorusSettings(),
+    this.channelmap = const ChannelmapSettings(map: '0|1'),
+    this.chorus = const ChorusSettings(
+        delays: '55|60',
+        decays: '0.4|0.32',
+        speeds: '0.25|0.4',
+        depths: '2|1.3',),
     this.compand = const CompandSettings(),
     this.compensationdelay = const CompensationdelaySettings(),
     this.crossfeed = const CrossfeedSettings(),
@@ -18022,14 +17978,13 @@ final class AudioEffects {
     this.flanger = const FlangerSettings(),
     this.haas = const HaasSettings(),
     this.hdcd = const HdcdSettings(),
-    this.headphone = const HeadphoneSettings(),
     this.highpass = const HighpassSettings(),
     this.highshelf = const HighshelfSettings(),
     this.loudnorm = const LoudnormSettings(),
     this.lowpass = const LowpassSettings(),
     this.lowshelf = const LowshelfSettings(),
     this.mcompand = const McompandSettings(),
-    this.pan = const PanSettings(),
+    this.pan = const PanSettings(args: 'stereo|c0=c0|c1=c1'),
     this.rubberband = const RubberbandSettings(),
     this.silenceremove = const SilenceremoveSettings(),
     this.speechnorm = const SpeechnormSettings(),
@@ -18071,6 +18026,7 @@ final class AudioEffects {
     AfwtdnSettings? afwtdn,
     AgateSettings? agate,
     AiirSettings? aiir,
+    AintegralSettings? aintegral,
     AlimiterSettings? alimiter,
     AllpassSettings? allpass,
     AnequalizerSettings? anequalizer,
@@ -18082,6 +18038,7 @@ final class AudioEffects {
     ApulsatorSettings? apulsator,
     AresampleSettings? aresample,
     ArnndnSettings? arnndn,
+    AsetrateSettings? asetrate,
     AsoftclipSettings? asoftclip,
     AsubboostSettings? asubboost,
     AsubcutSettings? asubcut,
@@ -18113,7 +18070,6 @@ final class AudioEffects {
     FlangerSettings? flanger,
     HaasSettings? haas,
     HdcdSettings? hdcd,
-    HeadphoneSettings? headphone,
     HighpassSettings? highpass,
     HighshelfSettings? highshelf,
     LoudnormSettings? loudnorm,
@@ -18160,6 +18116,7 @@ final class AudioEffects {
         afwtdn: afwtdn ?? this.afwtdn,
         agate: agate ?? this.agate,
         aiir: aiir ?? this.aiir,
+        aintegral: aintegral ?? this.aintegral,
         alimiter: alimiter ?? this.alimiter,
         allpass: allpass ?? this.allpass,
         anequalizer: anequalizer ?? this.anequalizer,
@@ -18171,6 +18128,7 @@ final class AudioEffects {
         apulsator: apulsator ?? this.apulsator,
         aresample: aresample ?? this.aresample,
         arnndn: arnndn ?? this.arnndn,
+        asetrate: asetrate ?? this.asetrate,
         asoftclip: asoftclip ?? this.asoftclip,
         asubboost: asubboost ?? this.asubboost,
         asubcut: asubcut ?? this.asubcut,
@@ -18202,7 +18160,6 @@ final class AudioEffects {
         flanger: flanger ?? this.flanger,
         haas: haas ?? this.haas,
         hdcd: hdcd ?? this.hdcd,
-        headphone: headphone ?? this.headphone,
         highpass: highpass ?? this.highpass,
         highshelf: highshelf ?? this.highshelf,
         loudnorm: loudnorm ?? this.loudnorm,
@@ -18253,6 +18210,7 @@ final class AudioEffects {
           other.afwtdn == afwtdn &&
           other.agate == agate &&
           other.aiir == aiir &&
+          other.aintegral == aintegral &&
           other.alimiter == alimiter &&
           other.allpass == allpass &&
           other.anequalizer == anequalizer &&
@@ -18264,6 +18222,7 @@ final class AudioEffects {
           other.apulsator == apulsator &&
           other.aresample == aresample &&
           other.arnndn == arnndn &&
+          other.asetrate == asetrate &&
           other.asoftclip == asoftclip &&
           other.asubboost == asubboost &&
           other.asubcut == asubcut &&
@@ -18295,7 +18254,6 @@ final class AudioEffects {
           other.flanger == flanger &&
           other.haas == haas &&
           other.hdcd == hdcd &&
-          other.headphone == headphone &&
           other.highpass == highpass &&
           other.highshelf == highshelf &&
           other.loudnorm == loudnorm &&
@@ -18343,6 +18301,7 @@ final class AudioEffects {
         afwtdn,
         agate,
         aiir,
+        aintegral,
         alimiter,
         allpass,
         anequalizer,
@@ -18354,6 +18313,7 @@ final class AudioEffects {
         apulsator,
         aresample,
         arnndn,
+        asetrate,
         asoftclip,
         asubboost,
         asubcut,
@@ -18385,7 +18345,6 @@ final class AudioEffects {
         flanger,
         haas,
         hdcd,
-        headphone,
         highpass,
         highshelf,
         loudnorm,
@@ -18434,6 +18393,7 @@ final class AudioEffects {
     if (afwtdn.enabled) enabled.add('afwtdn');
     if (agate.enabled) enabled.add('agate');
     if (aiir.enabled) enabled.add('aiir');
+    if (aintegral.enabled) enabled.add('aintegral');
     if (alimiter.enabled) enabled.add('alimiter');
     if (allpass.enabled) enabled.add('allpass');
     if (anequalizer.enabled) enabled.add('anequalizer');
@@ -18445,6 +18405,7 @@ final class AudioEffects {
     if (apulsator.enabled) enabled.add('apulsator');
     if (aresample.enabled) enabled.add('aresample');
     if (arnndn.enabled) enabled.add('arnndn');
+    if (asetrate.enabled) enabled.add('asetrate');
     if (asoftclip.enabled) enabled.add('asoftclip');
     if (asubboost.enabled) enabled.add('asubboost');
     if (asubcut.enabled) enabled.add('asubcut');
@@ -18476,7 +18437,6 @@ final class AudioEffects {
     if (flanger.enabled) enabled.add('flanger');
     if (haas.enabled) enabled.add('haas');
     if (hdcd.enabled) enabled.add('hdcd');
-    if (headphone.enabled) enabled.add('headphone');
     if (highpass.enabled) enabled.add('highpass');
     if (highshelf.enabled) enabled.add('highshelf');
     if (loudnorm.enabled) enabled.add('loudnorm');
@@ -18535,6 +18495,7 @@ final class AudioEffects {
     if (afwtdn.enabled) parts.add(afwtdn.toFilterString());
     if (agate.enabled) parts.add(agate.toFilterString());
     if (aiir.enabled) parts.add(aiir.toFilterString());
+    if (aintegral.enabled) parts.add(aintegral.toFilterString());
     if (alimiter.enabled) parts.add(alimiter.toFilterString());
     if (allpass.enabled) parts.add(allpass.toFilterString());
     if (anequalizer.enabled) parts.add(anequalizer.toFilterString());
@@ -18546,6 +18507,7 @@ final class AudioEffects {
     if (apulsator.enabled) parts.add(apulsator.toFilterString());
     if (aresample.enabled) parts.add(aresample.toFilterString());
     if (arnndn.enabled) parts.add(arnndn.toFilterString());
+    if (asetrate.enabled) parts.add(asetrate.toFilterString());
     if (asoftclip.enabled) parts.add(asoftclip.toFilterString());
     if (asubboost.enabled) parts.add(asubboost.toFilterString());
     if (asubcut.enabled) parts.add(asubcut.toFilterString());
@@ -18578,7 +18540,6 @@ final class AudioEffects {
     if (flanger.enabled) parts.add(flanger.toFilterString());
     if (haas.enabled) parts.add(haas.toFilterString());
     if (hdcd.enabled) parts.add(hdcd.toFilterString());
-    if (headphone.enabled) parts.add(headphone.toFilterString());
     if (highpass.enabled) parts.add(highpass.toFilterString());
     if (highshelf.enabled) parts.add(highshelf.toFilterString());
     if (loudnorm.enabled) parts.add(loudnorm.toFilterString());
@@ -18643,6 +18604,7 @@ extension AudioEffectsX on AudioEffects {
     if (afwtdn.enabled) yield AudioEffect.afwtdn;
     if (agate.enabled) yield AudioEffect.agate;
     if (aiir.enabled) yield AudioEffect.aiir;
+    if (aintegral.enabled) yield AudioEffect.aintegral;
     if (alimiter.enabled) yield AudioEffect.alimiter;
     if (allpass.enabled) yield AudioEffect.allpass;
     if (anequalizer.enabled) yield AudioEffect.anequalizer;
@@ -18654,6 +18616,7 @@ extension AudioEffectsX on AudioEffects {
     if (apulsator.enabled) yield AudioEffect.apulsator;
     if (aresample.enabled) yield AudioEffect.aresample;
     if (arnndn.enabled) yield AudioEffect.arnndn;
+    if (asetrate.enabled) yield AudioEffect.asetrate;
     if (asoftclip.enabled) yield AudioEffect.asoftclip;
     if (asubboost.enabled) yield AudioEffect.asubboost;
     if (asubcut.enabled) yield AudioEffect.asubcut;
@@ -18685,7 +18648,6 @@ extension AudioEffectsX on AudioEffects {
     if (flanger.enabled) yield AudioEffect.flanger;
     if (haas.enabled) yield AudioEffect.haas;
     if (hdcd.enabled) yield AudioEffect.hdcd;
-    if (headphone.enabled) yield AudioEffect.headphone;
     if (highpass.enabled) yield AudioEffect.highpass;
     if (highshelf.enabled) yield AudioEffect.highshelf;
     if (loudnorm.enabled) yield AudioEffect.loudnorm;

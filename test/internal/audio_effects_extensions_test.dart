@@ -244,12 +244,12 @@ void main() {
 
   group('ChorusVoicesX', () {
     test('empty settings → no voices', () {
-      const s = ChorusSettings();
+      const s = ChorusSettings(delays: '', decays: '', speeds: '', depths: '');
       expect(s.voices, isEmpty);
     });
 
     test('multiple voices round-trip', () {
-      const s = ChorusSettings();
+      const s = ChorusSettings(delays: '', decays: '', speeds: '', depths: '');
       final voices = [
         const ChorusVoice(delayMs: 30, decay: 0.4, depthMs: 1.5, speedHz: 0.3),
         const ChorusVoice(delayMs: 50, decay: 0.5, depthMs: 2.0, speedHz: 0.5),
