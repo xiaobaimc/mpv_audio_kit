@@ -62,7 +62,7 @@ Pod::Spec.new do |s|
   # and Package.swift's local .binaryTarget(path:) share one location.
   s.prepare_command = <<-CMD
     MPV_RELEASE_VERSION="libmpv-r11"
-    EXPECTED_SHA256="ea2ad113897c238b763104c618fa1a3d24531d059892ebd24e33ad023bb305ca"
+    EXPECTED_SHA256="452c27878678df389d971eb57bed8377aa4bda088fbd01cd0b339153463a03c3"
     URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_macos.xcframework.zip"
 
     mkdir -p mpv_audio_kit/Frameworks

@@ -52,7 +52,7 @@ Pod::Spec.new do |s|
   # the helper script updates both this file and Package.swift.
   s.prepare_command = <<-CMD
     MPV_RELEASE_VERSION="libmpv-r11"
-    EXPECTED_SHA256="015118c53d6ce034020bf96a0d43450a05be54012884a5d2c39fba16c826454e"
+    EXPECTED_SHA256="8f2aab84dc33d9971335d650aed8085590abc65436b6180b1a114efbe049093c"
     URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_ios.xcframework.zip"
 
     mkdir -p mpv_audio_kit/Frameworks
