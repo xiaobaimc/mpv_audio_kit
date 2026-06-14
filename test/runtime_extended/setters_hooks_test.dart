@@ -63,7 +63,7 @@ void main() {
       }
     }, timeout: const Timeout(Duration(seconds: 30)),);
 
-    test('continueHook with an invalid id is a guarded no-op', () async {
+    test('continueHook with an invalid id is a guarded no-op', () {
       // Negative / zero id is documented as ignored (the wrapper logs
       // a warning on internalLog but does not pass the bogus id to
       // mpv). Smoke: must not throw.

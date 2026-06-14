@@ -37,7 +37,7 @@ void main() {
         'populate from a real file', () async {
       // Some properties land at file-load time; some at first
       // play / first audio frame. Wait briefly to give them a chance.
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future<void>.delayed(const Duration(milliseconds: 500));
 
       // mediaTitle falls back to the filename (no `title` tag in the
       // fixture).
@@ -77,7 +77,7 @@ void main() {
     test('bufferDuration populates during playback (demuxer-cache-duration)',
         () async {
       await player.seek(Duration.zero);
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
 
       final bufferCompleter = player.stream.bufferDuration
           .firstWhere((d) => d > Duration.zero)
@@ -98,7 +98,7 @@ void main() {
       // driver latency; assert only that it emits a non-zero value
       // during playback.
       await player.seek(const Duration(seconds: 1));
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
 
       final ptsCompleter = player.stream.audioPts
           .firstWhere((d) => d > Duration.zero)
@@ -126,7 +126,7 @@ void main() {
 
       await player.play();
       // 1s file + a comfortable margin for AO + observer roundtrip.
-      await Future.delayed(const Duration(milliseconds: 1800));
+      await Future<void>.delayed(const Duration(milliseconds: 1800));
       expect(player.state.eofReached, isTrue,
           reason: 'with keep-open=yes mpv pauses at EOF and emits '
               'eof-reached=true; assert via state to dodge the broadcast '

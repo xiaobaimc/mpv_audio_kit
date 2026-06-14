@@ -62,7 +62,7 @@ void main() {
       // mpv's playlist observer fires; just verify the call doesn't
       // throw. Index tracking after a move depends on the current
       // entry's position, which may shift.
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
       expect(player.state.playlist.items.length, 2);
     }, timeout: const Timeout(Duration(seconds: 15)),);
 

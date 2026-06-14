@@ -68,11 +68,15 @@ mixin _MediaSessionModule on _PlayerBase {
           inputs: MediaSessionInputs.fromPlayer(stream: stream),
           onCommand: _handleSessionCommand,
         );
-        // Ownership may have been revoked during the await (a concurrent
-        // `setMediaSession(null)` or `dispose()`). If so, tear the freshly
-        // created controller down instead of stranding it with live
-        // subscriptions and no path to disposal.
-        if (identical(Player._mediaSessionOwner, this) &&
+        // Re-check EVERYTHING that gated the create, not just ownership:
+        // a concurrent `setMediaSession(non-null)` also passed the
+        // `== null` pre-check above and may have assigned its controller
+        // during this await — overwriting it here would strand the other
+        // one with live subscriptions, double-pushing to native for the
+        // rest of the process. Exactly one create wins; the losers tear
+        // their fresh controller down.
+        if (_mediaSessionController == null &&
+            identical(Player._mediaSessionOwner, this) &&
             _state.mediaSession != null) {
           _mediaSessionController = controller;
         } else {
@@ -101,31 +105,32 @@ mixin _MediaSessionModule on _PlayerBase {
   void _handleSessionCommand(MediaSessionCommand command) {
     // Auto-apply. We deliberately don't `await` these — the command
     // stream callback is synchronous and the Player setters are
-    // optimistic (state updates land before the FFI round-trip).
+    // optimistic (state updates land before the FFI round-trip). A late
+    // rejection is caught by [_applySessionCommand].
     switch (command) {
       case MediaSessionCommandPlay():
-        unawaited((this as Player).play());
+        _applySessionCommand((this as Player).play());
       case MediaSessionCommandPause():
-        unawaited((this as Player).pause());
+        _applySessionCommand((this as Player).pause());
       case MediaSessionCommandPlayPause():
         // Resolve against the INTENT axis, not actual output: `_state.playing`
         // (core-idle inverted) toggles transiently on every seek/buffer, so a
         // single-button PlayPause landing during a transient would flip the
         // wrong way. The OS button itself binds to `playWhenReady`; match it.
         if (_state.playWhenReady) {
-          unawaited((this as Player).pause());
+          _applySessionCommand((this as Player).pause());
         } else {
-          unawaited((this as Player).play());
+          _applySessionCommand((this as Player).play());
         }
       case MediaSessionCommandStop():
-        unawaited((this as Player).stop());
+        _applySessionCommand((this as Player).stop());
       case MediaSessionCommandNext():
         if (shouldAutoApplyPlaylistNav(
           autoApplyPlaylistNavigation:
               _state.mediaSession?.autoApplyPlaylistNavigation,
           playlistLength: _state.playlist.items.length,
         )) {
-          unawaited((this as Player).next());
+          _applySessionCommand((this as Player).next());
         }
       case MediaSessionCommandPrevious():
         if (shouldAutoApplyPlaylistNav(
@@ -133,7 +138,7 @@ mixin _MediaSessionModule on _PlayerBase {
               _state.mediaSession?.autoApplyPlaylistNavigation,
           playlistLength: _state.playlist.items.length,
         )) {
-          unawaited((this as Player).previous());
+          _applySessionCommand((this as Player).previous());
         }
       case MediaSessionCommandLike():
         // Emit-only: there is no built-in favourite concept, so it is not
@@ -141,25 +146,37 @@ mixin _MediaSessionModule on _PlayerBase {
         // the new state via `MediaSession.isFavorite`.
         break;
       case MediaSessionCommandSeekTo(:final position):
-        unawaited((this as Player).seek(position));
+        _applySessionCommand((this as Player).seek(position));
       case MediaSessionCommandSeekBy(:final offset):
         // Apply as a TRUE relative seek so mpv does the base-position
         // arithmetic against its own live playhead. Computing an absolute
         // target from `_state.position` here would compose off a stale
         // base when skip buttons repeat faster than the position observer
         // updates — rapid lockscreen / headset double-taps would under-skip.
-        unawaited((this as Player).seek(offset, relative: true));
+        _applySessionCommand((this as Player).seek(offset, relative: true));
       case MediaSessionCommandSetRepeatMode(:final loop):
-        unawaited((this as Player).setLoop(loop));
+        _applySessionCommand((this as Player).setLoop(loop));
       case MediaSessionCommandSetShuffle(:final shuffle):
-        unawaited((this as Player).setShuffle(shuffle));
+        _applySessionCommand((this as Player).setShuffle(shuffle));
       case MediaSessionCommandSetPlaybackRate(:final rate):
-        unawaited((this as Player).setRate(rate));
+        _applySessionCommand((this as Player).setRate(rate));
     }
     // Always emit on the consumer-facing stream, regardless of
     // whether the command was auto-applied. Even for next/previous
     // on a single-media playlist (where auto-apply is a no-op) the
     // consumer needs to see the command to drive its own queue.
     _mediaSessionCommandsCtrl.add(command);
+  }
+
+  /// Fires an inbound-command action without awaiting it (the command-stream
+  /// callback is synchronous and the typed setters are optimistic), but
+  /// catches a late rejection. The setters are genuinely async now, so a
+  /// command mpv rejects — e.g. a lockscreen seek arriving with nothing loaded
+  /// ([Player.seek] throws via `_commandChecked`) — would otherwise escape as
+  /// an unhandled async error (which can crash a guarded zone) seconds later.
+  void _applySessionCommand(Future<void> action) {
+    unawaited(action.catchError((Object e, StackTrace st) {
+      _internalLog('Media-session command failed: $e', level: LogLevel.warn);
+    }),);
   }
 }

@@ -36,6 +36,41 @@ void main() {
       expect(player.state.tlsVerify, isTrue);
     }, timeout: const Timeout(Duration(seconds: 15)),);
 
+    test('hlsBitrate / cookies / httpProxy round-trip', () async {
+      // Pre-subscribe BEFORE the setter: the optimistic emit lands
+      // synchronously and a late firstWhere would miss it.
+      final hlsMin = player.stream.hlsBitrate
+          .firstWhere((v) => v == HlsBitrate.min)
+          .timeout(const Duration(seconds: 5));
+      await player.setHlsBitrate(HlsBitrate.min);
+      await hlsMin;
+      expect(player.state.hlsBitrate, HlsBitrate.min);
+      expect(await player.getRawProperty('hls-bitrate'), 'min');
+      await player.setHlsBitrate(HlsBitrate.max);
+      expect(player.state.hlsBitrate, HlsBitrate.max);
+
+      final cookiesOn = player.stream.cookies
+          .firstWhere((v) => v)
+          .timeout(const Duration(seconds: 5));
+      await player.setCookies(true);
+      await cookiesOn;
+      expect(player.state.cookies, isTrue);
+      expect(await player.getRawProperty('cookies'), 'yes');
+      await player.setCookies(false);
+      expect(player.state.cookies, isFalse);
+
+      const proxy = 'http://127.0.0.1:3128';
+      final proxySet = player.stream.httpProxy
+          .firstWhere((v) => v == proxy)
+          .timeout(const Duration(seconds: 5));
+      await player.setHttpProxy(proxy);
+      await proxySet;
+      expect(player.state.httpProxy, proxy);
+      expect(await player.getRawProperty('http-proxy'), proxy);
+      await player.setHttpProxy('');
+      expect(player.state.httpProxy, '');
+    }, timeout: const Timeout(Duration(seconds: 15)),);
+
     test(
         'demuxerMaxBytes / demuxerMaxBackBytes / demuxerReadaheadSecs '
         'round-trip', () async {

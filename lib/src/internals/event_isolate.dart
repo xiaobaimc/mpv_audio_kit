@@ -17,12 +17,25 @@ part 'isolate_messages.dart';
 
 // ── Tunables ─────────────────────────────────────────────────────────────────
 
-/// Throttle window for the high-frequency `time-pos` property. mpv emits a
-/// position update on every output sample buffer, which is roughly the audio
-/// device's tick (~10ms on most outputs) — way more than any UI needs.
-/// ~33ms ≈ 30Hz is comfortably inside human-perception territory for a
-/// progress bar update and keeps the message bus uncluttered.
-const int _kTimePosThrottleMs = 33;
+/// Throttle window for the playback-clock properties. mpv emits one update
+/// per playloop iteration whose cadence is the audio output's buffer tick —
+/// measured ~11 Hz on macOS coreaudio (mpv 0.41), but AO-dependent and not
+/// guaranteed across platforms. ~33ms ≈ 30Hz is comfortably inside
+/// human-perception territory for a progress bar update and keeps the
+/// message bus uncluttered on outputs that tick faster.
+const int _kClockThrottleMs = 33;
+
+/// The properties the throttle applies to: every member is a pure function
+/// of the playback clock, so all of them change on EVERY playloop tick and
+/// would otherwise cross the isolate (and rebuild PlayerState) at the full
+/// AO rate together.
+const Set<String> _kClockThrottledProps = {
+  'time-pos',
+  'time-remaining',
+  'playtime-remaining',
+  'percent-pos',
+  'audio-pts',
+};
 
 /// `mpv_wait_event` timeout — a BOUNDED floor in every build.
 ///
@@ -98,6 +111,9 @@ void _applyObserves(
     });
   }
 }
+
+/// Per-isolate monotonic clock for the property throttle.
+final Stopwatch _throttleClock = Stopwatch()..start();
 
 void _isolateEntry(SendPort initialReplyPort) {
   final fromMain = ReceivePort();
@@ -207,7 +223,19 @@ void _runEventLoop(
       continue;
     }
 
-    _dispatchEvent(lib, handle, toMain, event, lastValues, lastTimestamps);
+    // A single undecodable event must not kill the loop: the isolate is
+    // spawned with the default `errorsAreFatal`, so an uncaught throw here
+    // would silently terminate the worker and freeze every property stream
+    // for the Player's lifetime while playback keeps running.
+    try {
+      _dispatchEvent(lib, handle, toMain, event, lastValues, lastTimestamps);
+    } catch (e, st) {
+      toMain.send(MpvEventLog(
+        'event-isolate',
+        'error',
+        'event dispatch failed: $e\n$st',
+      ),);
+    }
 
     if (id == mpv.MpvEventId.mpvEventShutdown) {
       break;
@@ -232,7 +260,25 @@ void _dispatchEvent(
       toMain.send(MpvEventStartFile());
 
     case mpv.MpvEventId.mpvEventFileLoaded:
-      toMain.send(MpvEventFileLoaded());
+      // The payload reads run HERE, not on the main isolate: each one is a
+      // synchronous client call that waits for the playloop, and the
+      // file-load boundary is exactly the window where the playloop can be
+      // stuck for seconds initializing the audio output. This isolate is
+      // allowed to wait; the main isolate is not. A failed payload read
+      // must never swallow the event itself — lifecycle, af resync and the
+      // waveform re-arm all ride it.
+      MpvEventFileLoaded loaded;
+      try {
+        loaded = _readFileLoadedEvent(lib, handle);
+      } catch (e, st) {
+        toMain.send(MpvEventLog(
+          'event-isolate',
+          'warn',
+          'file-loaded payload read failed: $e\n$st',
+        ),);
+        loaded = MpvEventFileLoaded();
+      }
+      toMain.send(loaded);
 
     case mpv.MpvEventId.mpvEventEndFile:
       final ef = event.ref.data.cast<mpv.MpvEventEndFile>().ref;
@@ -247,22 +293,191 @@ void _dispatchEvent(
         lastTimestamps,
       );
 
+    case mpv.MpvEventId.mpvEventSetPropertyReply:
+    case mpv.MpvEventId.mpvEventCommandReply:
+      toMain.send(MpvEventReply(event.ref.replyUserdata, event.ref.error));
+
+    case mpv.MpvEventId.mpvEventGetPropertyReply:
+      final error = event.ref.error;
+      dynamic value;
+      if (error >= 0 && event.ref.data != nullptr) {
+        // The payload (an mpv_event_property) is owned by the event and
+        // valid only until the next mpv_wait_event — decode (and copy)
+        // before forwarding.
+        value =
+            _decodePropertyValue(event.ref.data.cast<mpv.MpvEventProperty>().ref);
+      }
+      toMain.send(MpvEventGetReply(event.ref.replyUserdata, error, value));
+
     case mpv.MpvEventId.mpvEventLogMessage:
       _dispatchLog(toMain, event.ref.data.cast<mpv.MpvEventLogMessage>().ref);
 
     case mpv.MpvEventId.mpvEventHook:
       final hook = event.ref.data.cast<mpv.MpvEventHook>().ref;
-      final name = hook.name.cast<Utf8>().toDartString();
+      final name = decodeMpvString(hook.name.cast());
       toMain.send(MpvEventHookFired(hook.id, name));
 
     case mpv.MpvEventId.mpvEventSeek:
       toMain.send(MpvEventPlaybackSeek());
 
     case mpv.MpvEventId.mpvEventPlaybackRestart:
-      // The main isolate polls time-pos synchronously in response, so
-      // the new position lands on the stream before any throttled
-      // time-pos event from the property observer.
-      toMain.send(MpvEventPlaybackRestart());
+      // The landing position rides the event payload (read here, where
+      // waiting on the core is harmless), so it reaches the stream before
+      // any throttled time-pos event from the property observer.
+      toMain.send(
+        MpvEventPlaybackRestart(
+          timePos: _getPropDouble(lib, handle, 'time-pos'),
+        ),
+      );
+  }
+}
+
+/// Reads the file-load payload (path, position, chapters, embedded cover)
+/// for [MpvEventFileLoaded]. A malformed / oversized embedded picture must
+/// not abort the rest of the payload, so the cover read is guarded on its
+/// own — the event then carries a `null` cover and consumers clear stale
+/// artwork.
+MpvEventFileLoaded _readFileLoadedEvent(
+  mpv.MpvLibrary lib,
+  Pointer<mpv.MpvHandle> handle,
+) {
+  TransferableTypedData? coverData;
+  String? coverMime;
+  try {
+    final cover = _readEmbeddedCover(lib, handle);
+    if (cover != null) {
+      coverData = cover.$1;
+      coverMime = cover.$2;
+    }
+  } catch (_) {
+    // Cover stays null; the rest of the payload is still delivered.
+  }
+  return MpvEventFileLoaded(
+    path: _getPropString(lib, handle, 'path'),
+    timePos: _getPropDouble(lib, handle, 'time-pos'),
+    chapterIndex: _getPropInt64(lib, handle, 'chapter'),
+    chapterList: _getPropNode(lib, handle, 'chapter-list'),
+    coverData: coverData,
+    coverMime: coverMime,
+  );
+}
+
+/// Reads the embedded cover art of the loaded file via the
+/// `embedded-cover-art-data` / `embedded-cover-art-mime` properties.
+/// Returns `null` when the file has no embedded cover. The bytes are the
+/// original PNG / JPEG / … as embedded — no decode, no conversion — copied
+/// once out of mpv-owned memory into a transferable buffer.
+(TransferableTypedData, String)? _readEmbeddedCover(
+  mpv.MpvLibrary lib,
+  Pointer<mpv.MpvHandle> handle,
+) {
+  final result = calloc<mpv.MpvNode>();
+  try {
+    return using<(TransferableTypedData, String)?>((arena) {
+      final name = 'embedded-cover-art-data'.toNativeUtf8(allocator: arena);
+      final rc = lib.mpvGetProperty(
+        handle,
+        name,
+        mpv.MpvFormat.mpvFormatNode,
+        result.cast(),
+      );
+      if (rc < 0) return null;
+      if (result.ref.format != mpv.MpvFormat.mpvFormatByteArray) return null;
+      final ba = result.ref.u.ba.ref;
+      if (ba.size <= 0) return null;
+      // fromList copies out of mpv-owned memory before the node is freed;
+      // materialize() on the main isolate is then zero-copy.
+      final data = TransferableTypedData.fromList(
+        [ba.data.cast<Uint8>().asTypedList(ba.size)],
+      );
+      final mime = _getPropString(lib, handle, 'embedded-cover-art-mime') ??
+          'application/octet-stream';
+      return (data, mime);
+    });
+  } finally {
+    lib.mpvFreeNodeContents(result);
+    calloc.free(result);
+  }
+}
+
+// ── Synchronous property readers (event-isolate side only) ──────────────────
+//
+// These block the calling thread until the playloop serves the request —
+// safe here, never on the main isolate.
+
+String? _getPropString(
+  mpv.MpvLibrary lib,
+  Pointer<mpv.MpvHandle> handle,
+  String name,
+) {
+  return using<String?>((arena) {
+    final n = name.toNativeUtf8(allocator: arena);
+    final ptr = lib.mpvGetPropertyString(handle, n);
+    if (ptr == nullptr) return null;
+    final s = decodeMpvString(ptr.cast());
+    lib.mpvFree(ptr.cast());
+    return s;
+  });
+}
+
+double? _getPropDouble(
+  mpv.MpvLibrary lib,
+  Pointer<mpv.MpvHandle> handle,
+  String name,
+) {
+  return using<double?>((arena) {
+    final n = name.toNativeUtf8(allocator: arena);
+    final buf = arena<Double>();
+    final rc = lib.mpvGetProperty(
+      handle,
+      n,
+      mpv.MpvFormat.mpvFormatDouble,
+      buf.cast(),
+    );
+    return rc == mpv.MpvError.mpvErrorSuccess ? buf.value : null;
+  });
+}
+
+int? _getPropInt64(
+  mpv.MpvLibrary lib,
+  Pointer<mpv.MpvHandle> handle,
+  String name,
+) {
+  return using<int?>((arena) {
+    final n = name.toNativeUtf8(allocator: arena);
+    final buf = arena<Int64>();
+    final rc = lib.mpvGetProperty(
+      handle,
+      n,
+      mpv.MpvFormat.mpvFormatInt64,
+      buf.cast(),
+    );
+    return rc == mpv.MpvError.mpvErrorSuccess ? buf.value : null;
+  });
+}
+
+dynamic _getPropNode(
+  mpv.MpvLibrary lib,
+  Pointer<mpv.MpvHandle> handle,
+  String name,
+) {
+  final node = calloc<mpv.MpvNode>();
+  try {
+    final rc = using(
+      (arena) => lib.mpvGetProperty(
+        handle,
+        name.toNativeUtf8(allocator: arena),
+        mpv.MpvFormat.mpvFormatNode,
+        node.cast(),
+      ),
+    );
+    if (rc < 0) return null;
+    // decodeMpvNode copies every borrowed string/byte buffer, so the node
+    // contents can be freed before the tree is returned.
+    return decodeMpvNode(node.ref);
+  } finally {
+    lib.mpvFreeNodeContents(node);
+    calloc.free(node);
   }
 }
 
@@ -273,15 +488,17 @@ void _dispatchProperty(
   Map<String, dynamic> lastValues,
   Map<String, int> lastTimestamps,
 ) {
-  final name = prop.name.cast<Utf8>().toDartString();
+  final name = decodeMpvString(prop.name.cast());
 
   if (prop.format == mpv.MpvFormat.mpvFormatDouble && prop.data != nullptr) {
     final v = prop.data.cast<Double>().value;
 
-    if (name == 'time-pos') {
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final last = lastTimestamps[name] ?? 0;
-      if (now - last < _kTimePosThrottleMs) {
+    if (_kClockThrottledProps.contains(name)) {
+      // Monotonic clock: a wall-clock jump (NTP sync, manual change) would
+      // freeze or double-fire a DateTime-based throttle.
+      final now = _throttleClock.elapsedMilliseconds;
+      final last = lastTimestamps[name] ?? -_kClockThrottleMs;
+      if (now - last < _kClockThrottleMs) {
         return;
       }
       lastTimestamps[name] = now;
@@ -317,7 +534,7 @@ void _dispatchProperty(
   }
 
   if (prop.format == mpv.MpvFormat.mpvFormatString && prop.data != nullptr) {
-    final s = prop.data.cast<Pointer<Utf8>>().value.cast<Utf8>().toDartString();
+    final s = decodeMpvString(prop.data.cast<Pointer<Utf8>>().value);
     if (lastValues[name] == s) {
       return;
     }
@@ -328,15 +545,16 @@ void _dispatchProperty(
 
   if (prop.format == mpv.MpvFormat.mpvFormatNode && prop.data != nullptr) {
     final decoded = decodeMpvNode(prop.data.cast<mpv.MpvNode>().ref);
-    // Dedup against the JSON encoding of the decoded tree. Cheap, and
-    // sufficient because mpv only emits Map/List/scalar shapes for the
-    // properties the library observes. Falls through without dedup
-    // when jsonEncode rejects the tree (no observed cases today).
-    final key = _nodeDedupKey(decoded);
-    if (key != null && lastValues[name] == key) {
+    // Dedup by structural equality against the previously decoded tree —
+    // early-out on the first difference, no per-event string allocation.
+    // High-churn nodes (`demuxer-cache-state` during streaming) differ on
+    // nearly every emission, so the compare usually exits within a few
+    // scalar checks.
+    final prev = lastValues[name];
+    if (prev != null && _deepNodeEquals(prev, decoded)) {
       return;
     }
-    if (key != null) lastValues[name] = key;
+    lastValues[name] = decoded;
     toMain.send(MpvEventPropertyNode(name, decoded));
     return;
   }
@@ -347,14 +565,48 @@ void _dispatchProperty(
   // sentinel would break downstream dedup.
 }
 
+/// Decodes the value of an `mpv_event_property` payload into the same Dart
+/// shapes the property-change pipeline produces (no dedup / throttle —
+/// replies are one-shot). Returns `null` for `data == nullptr` or an
+/// unobserved format.
+dynamic _decodePropertyValue(mpv.MpvEventProperty prop) {
+  if (prop.data == nullptr) return null;
+  return switch (prop.format) {
+    mpv.MpvFormat.mpvFormatDouble => prop.data.cast<Double>().value,
+    mpv.MpvFormat.mpvFormatFlag => prop.data.cast<Int32>().value,
+    mpv.MpvFormat.mpvFormatInt64 => prop.data.cast<Int64>().value,
+    mpv.MpvFormat.mpvFormatString =>
+      decodeMpvString(prop.data.cast<Pointer<Utf8>>().value),
+    mpv.MpvFormat.mpvFormatNode =>
+      decodeMpvNode(prop.data.cast<mpv.MpvNode>().ref),
+    _ => null,
+  };
+}
+
 void _dispatchLog(SendPort toMain, mpv.MpvEventLogMessage msg) {
-  final prefix = msg.prefix.cast<Utf8>().toDartString();
-  final level = msg.level.cast<Utf8>().toDartString();
-  final text = msg.text.cast<Utf8>().toDartString().trimRight();
+  final prefix = decodeMpvString(msg.prefix.cast());
+  final level = decodeMpvString(msg.level.cast());
+  final text = decodeMpvString(msg.text.cast()).trimRight();
   toMain.send(MpvEventLog(prefix, level, text));
 }
 
-// ── Node decoding ─────────────────────────────────────────────────────────────
+// ── String / node decoding ────────────────────────────────────────────────────
+
+/// Decodes a NUL-terminated mpv-owned C string, replacing invalid UTF-8
+/// sequences with U+FFFD instead of throwing.
+///
+/// mpv does not guarantee valid UTF-8 on every string it hands to the
+/// client API: ICY response headers (`icy-name`, …) are copied into tags
+/// verbatim, so a legacy latin-1 radio server delivers raw bytes like
+/// `0xE9` here. A strict decode would throw [FormatException] mid-dispatch.
+String decodeMpvString(Pointer<Utf8> ptr) {
+  final units = ptr.cast<Uint8>();
+  var length = 0;
+  while (units[length] != 0) {
+    length++;
+  }
+  return utf8.decode(units.asTypedList(length), allowMalformed: true);
+}
 
 /// Recursively converts an mpv `mpv_node` C struct into a Dart-native tree.
 ///
@@ -378,7 +630,7 @@ void _dispatchLog(SendPort toMain, mpv.MpvEventLogMessage msg) {
 dynamic decodeMpvNode(mpv.MpvNode node) {
   switch (node.format) {
     case mpv.MpvFormat.mpvFormatString:
-      return node.u.string.cast<Utf8>().toDartString();
+      return decodeMpvString(node.u.string.cast());
     case mpv.MpvFormat.mpvFormatFlag:
       return node.u.flag != 0;
     case mpv.MpvFormat.mpvFormatInt64:
@@ -394,7 +646,7 @@ dynamic decodeMpvNode(mpv.MpvNode node) {
       final list = node.u.list.ref;
       return <String, dynamic>{
         for (var i = 0; i < list.num; i++)
-          (list.keys + i).value.cast<Utf8>().toDartString():
+          decodeMpvString((list.keys + i).value.cast()):
               decodeMpvNode((list.values + i).ref),
       };
     case mpv.MpvFormat.mpvFormatByteArray:
@@ -406,12 +658,37 @@ dynamic decodeMpvNode(mpv.MpvNode node) {
   }
 }
 
-String? _nodeDedupKey(dynamic decoded) {
-  try {
-    return jsonEncode(decoded);
-  } catch (_) {
-    return null;
+/// Structural equality over decoded `mpv_node` trees
+/// (`Map<String, dynamic>` / `List` / scalars / [Uint8List]).
+bool _deepNodeEquals(dynamic a, dynamic b) {
+  if (identical(a, b)) return true;
+  if (a is Map) {
+    if (b is! Map || a.length != b.length) return false;
+    for (final entry in a.entries) {
+      if (!b.containsKey(entry.key) ||
+          !_deepNodeEquals(entry.value, b[entry.key])) {
+        return false;
+      }
+    }
+    return true;
   }
+  if (a is List<int> && a is TypedData) {
+    if (b is! List<int> || b is! TypedData || a.length != b.length) {
+      return false;
+    }
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+  if (a is List) {
+    if (b is! List || a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (!_deepNodeEquals(a[i], b[i])) return false;
+    }
+    return true;
+  }
+  return a == b;
 }
 
 // ── Public bridge ─────────────────────────────────────────────────────────────
@@ -549,6 +826,11 @@ class MpvEventIsolate {
   /// reader can survive the free; on the timeout branch it is intentionally
   /// leaked (4 bytes, bounded by live Player count, reclaimed at process exit).
   Future<bool> stop() async {
+    // Publish the stop intent unconditionally: callers that have no
+    // (lib, handle) pair for [requestStop] — teardown before bring-up
+    // completed — still need the worker's bounded wait to observe the
+    // flag and exit on its next timeout expiry.
+    _stopFlag?.value = 1;
     _fromIsolate?.close();
     _fromIsolate = null;
     // Fire-and-forget: closing the controller flushes any buffered

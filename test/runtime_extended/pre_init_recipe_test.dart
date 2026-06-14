@@ -21,7 +21,7 @@ void main() {
   group('pre-init recipe applied to real libmpv', () {
     late Player player;
     setUpAll(() async => player = await buildPlayer());
-    tearDownAll(() async => player.dispose());
+    tearDownAll(() => player.dispose());
 
     test('audio-only hardening options took effect', () async {
       // The headline of fix #5: a failed audio-device open falls back to the

@@ -338,6 +338,50 @@ final class AcompressorSettings {
         ? 'lavfi-acompressor'
         : 'lavfi-acompressor=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AcompressorSettings prev) {
+    final out = <(String, String)>[];
+    if (attack != prev.attack) {
+      out.add(('attack', _wireDouble(attack)));
+    }
+    if (detection != prev.detection) {
+      out.add(('detection', detection.mpvValue));
+    }
+    if (knee != prev.knee) {
+      out.add(('knee', _wireDouble(knee)));
+    }
+    if (level_in != prev.level_in) {
+      out.add(('level_in', _wireDouble(level_in)));
+    }
+    if (level_sc != prev.level_sc) {
+      out.add(('level_sc', _wireDouble(level_sc)));
+    }
+    if (link != prev.link) {
+      out.add(('link', link.mpvValue));
+    }
+    if (makeup != prev.makeup) {
+      out.add(('makeup', _wireDouble(makeup)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (mode != prev.mode) {
+      out.add(('mode', mode.mpvValue));
+    }
+    if (ratio != prev.ratio) {
+      out.add(('ratio', _wireDouble(ratio)));
+    }
+    if (release != prev.release) {
+      out.add(('release', _wireDouble(release)));
+    }
+    if (threshold != prev.threshold) {
+      out.add(('threshold', _wireDouble(threshold)));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `acontrast` audio effect.
@@ -671,6 +715,47 @@ final class AcrusherSettings {
     return parts.isEmpty
         ? 'lavfi-acrusher'
         : 'lavfi-acrusher=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AcrusherSettings prev) {
+    final out = <(String, String)>[];
+    if (aa != prev.aa) {
+      out.add(('aa', _wireDouble(aa)));
+    }
+    if (bits != prev.bits) {
+      out.add(('bits', _wireDouble(bits)));
+    }
+    if (dc != prev.dc) {
+      out.add(('dc', _wireDouble(dc)));
+    }
+    if (level_in != prev.level_in) {
+      out.add(('level_in', _wireDouble(level_in)));
+    }
+    if (level_out != prev.level_out) {
+      out.add(('level_out', _wireDouble(level_out)));
+    }
+    if (lfo != prev.lfo) {
+      out.add(('lfo', (lfo ? '1' : '0')));
+    }
+    if (lforange != prev.lforange) {
+      out.add(('lforange', _wireDouble(lforange)));
+    }
+    if (lforate != prev.lforate) {
+      out.add(('lforate', _wireDouble(lforate)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (mode != prev.mode) {
+      out.add(('mode', mode.mpvValue));
+    }
+    if (samples != prev.samples) {
+      out.add(('samples', _wireDouble(samples)));
+    }
+    return out;
   }
 }
 
@@ -1368,6 +1453,18 @@ final class AdelaySettings {
     if (delays != '') parts.add('delays=' + '[' + delays + ']');
     return parts.isEmpty ? 'lavfi-adelay' : 'lavfi-adelay=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AdelaySettings prev) {
+    final out = <(String, String)>[];
+    if (all != prev.all) return null;
+    if (delays != prev.delays) {
+      out.add(('delays', delays));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `adenorm` audio effect.
@@ -1446,6 +1543,20 @@ final class AdenormSettings {
     if (level != -351.0) parts.add('level=' + _wireDouble(level));
     if (type != AdenormType.dc) parts.add('type=' + type.mpvValue);
     return parts.isEmpty ? 'lavfi-adenorm' : 'lavfi-adenorm=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AdenormSettings prev) {
+    final out = <(String, String)>[];
+    if (level != prev.level) {
+      out.add(('level', _wireDouble(level)));
+    }
+    if (type != prev.type) {
+      out.add(('type', type.mpvValue));
+    }
+    return out;
   }
 }
 
@@ -1595,6 +1706,26 @@ final class AdrcSettings {
     if (release != 100.0) parts.add('release=' + _wireDouble(release));
     if (transfer != 'p') parts.add('transfer=' + '[' + transfer + ']');
     return parts.isEmpty ? 'lavfi-adrc' : 'lavfi-adrc=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AdrcSettings prev) {
+    final out = <(String, String)>[];
+    if (attack != prev.attack) {
+      out.add(('attack', _wireDouble(attack)));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (release != prev.release) {
+      out.add(('release', _wireDouble(release)));
+    }
+    if (transfer != prev.transfer) {
+      out.add(('transfer', transfer));
+    }
+    return out;
   }
 }
 
@@ -1923,6 +2054,57 @@ final class AdynamicequalizerSettings {
         ? 'lavfi-adynamicequalizer'
         : 'lavfi-adynamicequalizer=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AdynamicequalizerSettings prev) {
+    final out = <(String, String)>[];
+    if (attack != prev.attack) {
+      out.add(('attack', _wireDouble(attack)));
+    }
+    if (auto != prev.auto) {
+      out.add(('auto', auto.mpvValue));
+    }
+    if (dfrequency != prev.dfrequency) {
+      out.add(('dfrequency', _wireDouble(dfrequency)));
+    }
+    if (dftype != prev.dftype) {
+      out.add(('dftype', dftype.mpvValue));
+    }
+    if (dqfactor != prev.dqfactor) {
+      out.add(('dqfactor', _wireDouble(dqfactor)));
+    }
+    if (makeup != prev.makeup) {
+      out.add(('makeup', _wireDouble(makeup)));
+    }
+    if (mode != prev.mode) {
+      out.add(('mode', mode.mpvValue));
+    }
+    if (precision != prev.precision) return null;
+    if (range != prev.range) {
+      out.add(('range', _wireDouble(range)));
+    }
+    if (ratio != prev.ratio) {
+      out.add(('ratio', _wireDouble(ratio)));
+    }
+    if (release != prev.release) {
+      out.add(('release', _wireDouble(release)));
+    }
+    if (tfrequency != prev.tfrequency) {
+      out.add(('tfrequency', _wireDouble(tfrequency)));
+    }
+    if (tftype != prev.tftype) {
+      out.add(('tftype', tftype.mpvValue));
+    }
+    if (threshold != prev.threshold) {
+      out.add(('threshold', _wireDouble(threshold)));
+    }
+    if (tqfactor != prev.tqfactor) {
+      out.add(('tqfactor', _wireDouble(tqfactor)));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `adynamicsmooth` audio effect.
@@ -2016,6 +2198,20 @@ final class AdynamicsmoothSettings {
     return parts.isEmpty
         ? 'lavfi-adynamicsmooth'
         : 'lavfi-adynamicsmooth=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AdynamicsmoothSettings prev) {
+    final out = <(String, String)>[];
+    if (basefreq != prev.basefreq) {
+      out.add(('basefreq', _wireDouble(basefreq)));
+    }
+    if (sensitivity != prev.sensitivity) {
+      out.add(('sensitivity', _wireDouble(sensitivity)));
+    }
+    return out;
   }
 }
 
@@ -2243,6 +2439,26 @@ final class AemphasisSettings {
     return parts.isEmpty
         ? 'lavfi-aemphasis'
         : 'lavfi-aemphasis=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AemphasisSettings prev) {
+    final out = <(String, String)>[];
+    if (level_in != prev.level_in) {
+      out.add(('level_in', _wireDouble(level_in)));
+    }
+    if (level_out != prev.level_out) {
+      out.add(('level_out', _wireDouble(level_out)));
+    }
+    if (mode != prev.mode) {
+      out.add(('mode', mode.mpvValue));
+    }
+    if (type != prev.type) {
+      out.add(('type', type.mpvValue));
+    }
+    return out;
   }
 }
 
@@ -2528,6 +2744,38 @@ final class AexciterSettings {
         ? 'lavfi-aexciter'
         : 'lavfi-aexciter=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AexciterSettings prev) {
+    final out = <(String, String)>[];
+    if (amount != prev.amount) {
+      out.add(('amount', _wireDouble(amount)));
+    }
+    if (blend != prev.blend) {
+      out.add(('blend', _wireDouble(blend)));
+    }
+    if (ceil != prev.ceil) {
+      out.add(('ceil', _wireDouble(ceil)));
+    }
+    if (drive != prev.drive) {
+      out.add(('drive', _wireDouble(drive)));
+    }
+    if (freq != prev.freq) {
+      out.add(('freq', _wireDouble(freq)));
+    }
+    if (level_in != prev.level_in) {
+      out.add(('level_in', _wireDouble(level_in)));
+    }
+    if (level_out != prev.level_out) {
+      out.add(('level_out', _wireDouble(level_out)));
+    }
+    if (listen != prev.listen) {
+      out.add(('listen', (listen ? '1' : '0')));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `afade` audio effect.
@@ -2774,6 +3022,56 @@ final class AfadeSettings {
     if (type != AfadeType.in_) parts.add('type=' + type.mpvValue);
     if (unity != 1.0) parts.add('unity=' + _wireDouble(unity));
     return parts.isEmpty ? 'lavfi-afade' : 'lavfi-afade=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AfadeSettings prev) {
+    final out = <(String, String)>[];
+    if (c != prev.c) {
+      out.add(('c', c.mpvValue));
+    }
+    if (curve != prev.curve) {
+      out.add(('curve', curve.mpvValue));
+    }
+    if (d != prev.d) {
+      out.add(('d', _wireDouble(d.inMicroseconds / 1e6)));
+    }
+    if (duration != prev.duration) {
+      out.add(('duration', _wireDouble(duration.inMicroseconds / 1e6)));
+    }
+    if (nb_samples != prev.nb_samples) {
+      out.add(('nb_samples', nb_samples.toString()));
+    }
+    if (ns != prev.ns) {
+      out.add(('ns', ns.toString()));
+    }
+    if (silence != prev.silence) {
+      out.add(('silence', _wireDouble(silence)));
+    }
+    if (ss != prev.ss) {
+      out.add(('ss', ss.toString()));
+    }
+    if (st != prev.st) {
+      out.add(('st', _wireDouble(st.inMicroseconds / 1e6)));
+    }
+    if (start_sample != prev.start_sample) {
+      out.add(('start_sample', start_sample.toString()));
+    }
+    if (start_time != prev.start_time) {
+      out.add(('start_time', _wireDouble(start_time.inMicroseconds / 1e6)));
+    }
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (type != prev.type) {
+      out.add(('type', type.mpvValue));
+    }
+    if (unity != prev.unity) {
+      out.add(('unity', _wireDouble(unity)));
+    }
+    return out;
   }
 }
 
@@ -3277,6 +3575,86 @@ final class AfftdnSettings {
       parts.add('track_residual=' + (track_residual ? '1' : '0'));
     return parts.isEmpty ? 'lavfi-afftdn' : 'lavfi-afftdn=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AfftdnSettings prev) {
+    final out = <(String, String)>[];
+    if (ad != prev.ad) {
+      out.add(('ad', _wireDouble(ad)));
+    }
+    if (adaptivity != prev.adaptivity) {
+      out.add(('adaptivity', _wireDouble(adaptivity)));
+    }
+    if (band_multiplier != prev.band_multiplier) return null;
+    if (band_noise != prev.band_noise) return null;
+    if (bm != prev.bm) return null;
+    if (bn != prev.bn) return null;
+    if (floor_offset != prev.floor_offset) {
+      out.add(('floor_offset', _wireDouble(floor_offset)));
+    }
+    if (fo != prev.fo) {
+      out.add(('fo', _wireDouble(fo)));
+    }
+    if (gain_smooth != prev.gain_smooth) {
+      out.add(('gain_smooth', gain_smooth.toString()));
+    }
+    if (gs != prev.gs) {
+      out.add(('gs', gs.toString()));
+    }
+    if (nf != prev.nf) {
+      out.add(('nf', _wireDouble(nf)));
+    }
+    if (nl != prev.nl) {
+      out.add(('nl', nl.mpvValue));
+    }
+    if (noise_floor != prev.noise_floor) {
+      out.add(('noise_floor', _wireDouble(noise_floor)));
+    }
+    if (noise_link != prev.noise_link) {
+      out.add(('noise_link', noise_link.mpvValue));
+    }
+    if (noise_reduction != prev.noise_reduction) {
+      out.add(('noise_reduction', _wireDouble(noise_reduction)));
+    }
+    if (noise_type != prev.noise_type) return null;
+    if (nr != prev.nr) {
+      out.add(('nr', _wireDouble(nr)));
+    }
+    if (nt != prev.nt) return null;
+    if (om != prev.om) {
+      out.add(('om', om.mpvValue));
+    }
+    if (output_mode != prev.output_mode) {
+      out.add(('output_mode', output_mode.mpvValue));
+    }
+    if (residual_floor != prev.residual_floor) {
+      out.add(('residual_floor', _wireDouble(residual_floor)));
+    }
+    if (rf != prev.rf) {
+      out.add(('rf', _wireDouble(rf)));
+    }
+    if (sample_noise != prev.sample_noise) {
+      out.add(('sample_noise', sample_noise.mpvValue));
+    }
+    if (sn != prev.sn) {
+      out.add(('sn', sn.mpvValue));
+    }
+    if (tn != prev.tn) {
+      out.add(('tn', (tn ? '1' : '0')));
+    }
+    if (tr != prev.tr) {
+      out.add(('tr', (tr ? '1' : '0')));
+    }
+    if (track_noise != prev.track_noise) {
+      out.add(('track_noise', (track_noise ? '1' : '0')));
+    }
+    if (track_residual != prev.track_residual) {
+      out.add(('track_residual', (track_residual ? '1' : '0')));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `afftfilt` audio effect.
@@ -3617,6 +3995,23 @@ final class AfreqshiftSettings {
         ? 'lavfi-afreqshift'
         : 'lavfi-afreqshift=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AfreqshiftSettings prev) {
+    final out = <(String, String)>[];
+    if (level != prev.level) {
+      out.add(('level', _wireDouble(level)));
+    }
+    if (order != prev.order) {
+      out.add(('order', order.toString()));
+    }
+    if (shift != prev.shift) {
+      out.add(('shift', _wireDouble(shift)));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `afwtdn` audio effect.
@@ -3792,6 +4187,32 @@ final class AfwtdnSettings {
     if (softness != 1.0) parts.add('softness=' + _wireDouble(softness));
     if (wavet != AfwtdnWavet.sym10) parts.add('wavet=' + wavet.mpvValue);
     return parts.isEmpty ? 'lavfi-afwtdn' : 'lavfi-afwtdn=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AfwtdnSettings prev) {
+    final out = <(String, String)>[];
+    if (adaptive != prev.adaptive) {
+      out.add(('adaptive', (adaptive ? '1' : '0')));
+    }
+    if (levels != prev.levels) return null;
+    if (percent != prev.percent) {
+      out.add(('percent', _wireDouble(percent)));
+    }
+    if (profile != prev.profile) {
+      out.add(('profile', (profile ? '1' : '0')));
+    }
+    if (samples != prev.samples) return null;
+    if (sigma != prev.sigma) {
+      out.add(('sigma', _wireDouble(sigma)));
+    }
+    if (softness != prev.softness) {
+      out.add(('softness', _wireDouble(softness)));
+    }
+    if (wavet != prev.wavet) return null;
+    return out;
   }
 }
 
@@ -4059,6 +4480,50 @@ final class AgateSettings {
     if (release != 250.0) parts.add('release=' + _wireDouble(release));
     if (threshold != 0.125) parts.add('threshold=' + _wireDouble(threshold));
     return parts.isEmpty ? 'lavfi-agate' : 'lavfi-agate=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AgateSettings prev) {
+    final out = <(String, String)>[];
+    if (attack != prev.attack) {
+      out.add(('attack', _wireDouble(attack)));
+    }
+    if (detection != prev.detection) {
+      out.add(('detection', detection.mpvValue));
+    }
+    if (knee != prev.knee) {
+      out.add(('knee', _wireDouble(knee)));
+    }
+    if (level_in != prev.level_in) {
+      out.add(('level_in', _wireDouble(level_in)));
+    }
+    if (level_sc != prev.level_sc) {
+      out.add(('level_sc', _wireDouble(level_sc)));
+    }
+    if (link != prev.link) {
+      out.add(('link', link.mpvValue));
+    }
+    if (makeup != prev.makeup) {
+      out.add(('makeup', _wireDouble(makeup)));
+    }
+    if (mode != prev.mode) {
+      out.add(('mode', mode.mpvValue));
+    }
+    if (range != prev.range) {
+      out.add(('range', _wireDouble(range)));
+    }
+    if (ratio != prev.ratio) {
+      out.add(('ratio', _wireDouble(ratio)));
+    }
+    if (release != prev.release) {
+      out.add(('release', _wireDouble(release)));
+    }
+    if (threshold != prev.threshold) {
+      out.add(('threshold', _wireDouble(threshold)));
+    }
+    return out;
   }
 }
 
@@ -4609,6 +5074,41 @@ final class AlimiterSettings {
         ? 'lavfi-alimiter'
         : 'lavfi-alimiter=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AlimiterSettings prev) {
+    final out = <(String, String)>[];
+    if (asc != prev.asc) {
+      out.add(('asc', (asc ? '1' : '0')));
+    }
+    if (asc_level != prev.asc_level) {
+      out.add(('asc_level', _wireDouble(asc_level)));
+    }
+    if (attack != prev.attack) {
+      out.add(('attack', _wireDouble(attack)));
+    }
+    if (latency != prev.latency) {
+      out.add(('latency', (latency ? '1' : '0')));
+    }
+    if (level != prev.level) {
+      out.add(('level', (level ? '1' : '0')));
+    }
+    if (level_in != prev.level_in) {
+      out.add(('level_in', _wireDouble(level_in)));
+    }
+    if (level_out != prev.level_out) {
+      out.add(('level_out', _wireDouble(level_out)));
+    }
+    if (limit != prev.limit) {
+      out.add(('limit', _wireDouble(limit)));
+    }
+    if (release != prev.release) {
+      out.add(('release', _wireDouble(release)));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `allpass` audio effect.
@@ -4914,6 +5414,60 @@ final class AllpassSettings {
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-allpass' : 'lavfi-allpass=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AllpassSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (o != prev.o) {
+      out.add(('o', o.toString()));
+    }
+    if (order != prev.order) {
+      out.add(('order', order.toString()));
+    }
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `anequalizer` audio effect.
@@ -5031,6 +5585,20 @@ final class AnequalizerSettings {
     return parts.isEmpty
         ? 'lavfi-anequalizer'
         : 'lavfi-anequalizer=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AnequalizerSettings prev) {
+    final out = <(String, String)>[];
+    if (colors != prev.colors) return null;
+    if (curves != prev.curves) return null;
+    if (fscale != prev.fscale) return null;
+    if (mgain != prev.mgain) return null;
+    if (params != prev.params) return null;
+    if (size != prev.size) return null;
+    return out;
   }
 }
 
@@ -5222,6 +5790,44 @@ final class AnlmdnSettings {
     if (smooth != 11.0) parts.add('smooth=' + _wireDouble(smooth));
     if (strength != 0.00001) parts.add('strength=' + _wireDouble(strength));
     return parts.isEmpty ? 'lavfi-anlmdn' : 'lavfi-anlmdn=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AnlmdnSettings prev) {
+    final out = <(String, String)>[];
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (o != prev.o) {
+      out.add(('o', o.mpvValue));
+    }
+    if (output != prev.output) {
+      out.add(('output', output.mpvValue));
+    }
+    if (p != prev.p) {
+      out.add(('p', _wireDouble(p.inMicroseconds / 1e6)));
+    }
+    if (patch != prev.patch) {
+      out.add(('patch', _wireDouble(patch.inMicroseconds / 1e6)));
+    }
+    if (r != prev.r) {
+      out.add(('r', _wireDouble(r.inMicroseconds / 1e6)));
+    }
+    if (research != prev.research) {
+      out.add(('research', _wireDouble(research.inMicroseconds / 1e6)));
+    }
+    if (s != prev.s) {
+      out.add(('s', _wireDouble(s)));
+    }
+    if (smooth != prev.smooth) {
+      out.add(('smooth', _wireDouble(smooth)));
+    }
+    if (strength != prev.strength) {
+      out.add(('strength', _wireDouble(strength)));
+    }
+    return out;
   }
 }
 
@@ -5629,6 +6235,23 @@ final class AphaseshiftSettings {
         ? 'lavfi-aphaseshift'
         : 'lavfi-aphaseshift=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AphaseshiftSettings prev) {
+    final out = <(String, String)>[];
+    if (level != prev.level) {
+      out.add(('level', _wireDouble(level)));
+    }
+    if (order != prev.order) {
+      out.add(('order', order.toString()));
+    }
+    if (shift != prev.shift) {
+      out.add(('shift', _wireDouble(shift)));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `apsyclip` audio effect.
@@ -5797,6 +6420,35 @@ final class ApsyclipSettings {
     return parts.isEmpty
         ? 'lavfi-apsyclip'
         : 'lavfi-apsyclip=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(ApsyclipSettings prev) {
+    final out = <(String, String)>[];
+    if (adaptive != prev.adaptive) {
+      out.add(('adaptive', _wireDouble(adaptive)));
+    }
+    if (clip != prev.clip) {
+      out.add(('clip', _wireDouble(clip)));
+    }
+    if (diff != prev.diff) {
+      out.add(('diff', (diff ? '1' : '0')));
+    }
+    if (iterations != prev.iterations) {
+      out.add(('iterations', iterations.toString()));
+    }
+    if (level != prev.level) {
+      out.add(('level', (level ? '1' : '0')));
+    }
+    if (level_in != prev.level_in) {
+      out.add(('level_in', _wireDouble(level_in)));
+    }
+    if (level_out != prev.level_out) {
+      out.add(('level_out', _wireDouble(level_out)));
+    }
+    return out;
   }
 }
 
@@ -6233,6 +6885,23 @@ final class ArnndnSettings {
     parts.add('model=' + '[' + model + ']');
     return parts.isEmpty ? 'lavfi-arnndn' : 'lavfi-arnndn=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(ArnndnSettings prev) {
+    final out = <(String, String)>[];
+    if (m != prev.m) {
+      out.add(('m', m));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (model != prev.model) {
+      out.add(('model', model));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `asetrate` audio effect.
@@ -6420,6 +7089,29 @@ final class AsoftclipSettings {
     return parts.isEmpty
         ? 'lavfi-asoftclip'
         : 'lavfi-asoftclip=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AsoftclipSettings prev) {
+    final out = <(String, String)>[];
+    if (output != prev.output) {
+      out.add(('output', _wireDouble(output)));
+    }
+    if (oversample != prev.oversample) {
+      out.add(('oversample', oversample.toString()));
+    }
+    if (param != prev.param) {
+      out.add(('param', _wireDouble(param)));
+    }
+    if (threshold != prev.threshold) {
+      out.add(('threshold', _wireDouble(threshold)));
+    }
+    if (type != prev.type) {
+      out.add(('type', type.mpvValue));
+    }
+    return out;
   }
 }
 
@@ -6641,6 +7333,41 @@ final class AsubboostSettings {
         ? 'lavfi-asubboost'
         : 'lavfi-asubboost=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AsubboostSettings prev) {
+    final out = <(String, String)>[];
+    if (boost != prev.boost) {
+      out.add(('boost', _wireDouble(boost)));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (cutoff != prev.cutoff) {
+      out.add(('cutoff', _wireDouble(cutoff)));
+    }
+    if (decay != prev.decay) {
+      out.add(('decay', _wireDouble(decay)));
+    }
+    if (delay != prev.delay) {
+      out.add(('delay', _wireDouble(delay)));
+    }
+    if (dry != prev.dry) {
+      out.add(('dry', _wireDouble(dry)));
+    }
+    if (feedback != prev.feedback) {
+      out.add(('feedback', _wireDouble(feedback)));
+    }
+    if (slope != prev.slope) {
+      out.add(('slope', _wireDouble(slope)));
+    }
+    if (wet != prev.wet) {
+      out.add(('wet', _wireDouble(wet)));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `asubcut` audio effect.
@@ -6753,6 +7480,23 @@ final class AsubcutSettings {
     if (order != 10) parts.add('order=' + order.toString());
     return parts.isEmpty ? 'lavfi-asubcut' : 'lavfi-asubcut=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AsubcutSettings prev) {
+    final out = <(String, String)>[];
+    if (cutoff != prev.cutoff) {
+      out.add(('cutoff', _wireDouble(cutoff)));
+    }
+    if (level != prev.level) {
+      out.add(('level', _wireDouble(level)));
+    }
+    if (order != prev.order) {
+      out.add(('order', order.toString()));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `asupercut` audio effect.
@@ -6862,6 +7606,23 @@ final class AsupercutSettings {
     return parts.isEmpty
         ? 'lavfi-asupercut'
         : 'lavfi-asupercut=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AsupercutSettings prev) {
+    final out = <(String, String)>[];
+    if (cutoff != prev.cutoff) {
+      out.add(('cutoff', _wireDouble(cutoff)));
+    }
+    if (level != prev.level) {
+      out.add(('level', _wireDouble(level)));
+    }
+    if (order != prev.order) {
+      out.add(('order', order.toString()));
+    }
+    return out;
   }
 }
 
@@ -6993,6 +7754,26 @@ final class AsuperpassSettings {
         ? 'lavfi-asuperpass'
         : 'lavfi-asuperpass=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AsuperpassSettings prev) {
+    final out = <(String, String)>[];
+    if (centerf != prev.centerf) {
+      out.add(('centerf', _wireDouble(centerf)));
+    }
+    if (level != prev.level) {
+      out.add(('level', _wireDouble(level)));
+    }
+    if (order != prev.order) {
+      out.add(('order', order.toString()));
+    }
+    if (qfactor != prev.qfactor) {
+      out.add(('qfactor', _wireDouble(qfactor)));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `asuperstop` audio effect.
@@ -7123,6 +7904,26 @@ final class AsuperstopSettings {
         ? 'lavfi-asuperstop'
         : 'lavfi-asuperstop=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AsuperstopSettings prev) {
+    final out = <(String, String)>[];
+    if (centerf != prev.centerf) {
+      out.add(('centerf', _wireDouble(centerf)));
+    }
+    if (level != prev.level) {
+      out.add(('level', _wireDouble(level)));
+    }
+    if (order != prev.order) {
+      out.add(('order', order.toString()));
+    }
+    if (qfactor != prev.qfactor) {
+      out.add(('qfactor', _wireDouble(qfactor)));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `atempo` audio effect.
@@ -7204,6 +8005,17 @@ final class AtempoSettings {
     final parts = <String>[];
     if (tempo != 1.0) parts.add('tempo=' + _wireDouble(tempo));
     return parts.isEmpty ? 'lavfi-atempo' : 'lavfi-atempo=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AtempoSettings prev) {
+    final out = <(String, String)>[];
+    if (tempo != prev.tempo) {
+      out.add(('tempo', _wireDouble(tempo)));
+    }
+    return out;
   }
 }
 
@@ -7354,6 +8166,29 @@ final class AtiltSettings {
     if (slope != 0.0) parts.add('slope=' + _wireDouble(slope));
     if (width != 1000.0) parts.add('width=' + _wireDouble(width));
     return parts.isEmpty ? 'lavfi-atilt' : 'lavfi-atilt=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(AtiltSettings prev) {
+    final out = <(String, String)>[];
+    if (freq != prev.freq) {
+      out.add(('freq', _wireDouble(freq)));
+    }
+    if (level != prev.level) {
+      out.add(('level', _wireDouble(level)));
+    }
+    if (order != prev.order) {
+      out.add(('order', order.toString()));
+    }
+    if (slope != prev.slope) {
+      out.add(('slope', _wireDouble(slope)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    return out;
   }
 }
 
@@ -7691,6 +8526,59 @@ final class BandpassSettings {
         ? 'lavfi-bandpass'
         : 'lavfi-bandpass=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(BandpassSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (b != prev.b) return null;
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (csg != prev.csg) {
+      out.add(('csg', (csg ? '1' : '0')));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `bandreject` audio effect.
@@ -8014,6 +8902,56 @@ final class BandrejectSettings {
     return parts.isEmpty
         ? 'lavfi-bandreject'
         : 'lavfi-bandreject=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(BandrejectSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (b != prev.b) return null;
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
   }
 }
 
@@ -8422,6 +9360,64 @@ final class BassSettings {
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-bass' : 'lavfi-bass=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(BassSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (b != prev.b) return null;
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (g != prev.g) {
+      out.add(('g', _wireDouble(g)));
+    }
+    if (gain != prev.gain) {
+      out.add(('gain', _wireDouble(gain)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (p != prev.p) return null;
+    if (poles != prev.poles) return null;
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `biquad` audio effect.
@@ -8748,6 +9744,56 @@ final class BiquadSettings {
     if (transform != BiquadTransformType.di)
       parts.add('transform=' + transform.mpvValue);
     return parts.isEmpty ? 'lavfi-biquad' : 'lavfi-biquad=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(BiquadSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (a0 != prev.a0) {
+      out.add(('a0', _wireDouble(a0)));
+    }
+    if (a1 != prev.a1) {
+      out.add(('a1', _wireDouble(a1)));
+    }
+    if (a2 != prev.a2) {
+      out.add(('a2', _wireDouble(a2)));
+    }
+    if (b != prev.b) return null;
+    if (b0 != prev.b0) {
+      out.add(('b0', _wireDouble(b0)));
+    }
+    if (b1 != prev.b1) {
+      out.add(('b1', _wireDouble(b1)));
+    }
+    if (b2 != prev.b2) {
+      out.add(('b2', _wireDouble(b2)));
+    }
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (transform != prev.transform) return null;
+    return out;
   }
 }
 
@@ -9298,6 +10344,20 @@ final class CompensationdelaySettings {
         ? 'lavfi-compensationdelay'
         : 'lavfi-compensationdelay=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(CompensationdelaySettings prev) {
+    final out = <(String, String)>[];
+    if (cm != prev.cm) return null;
+    if (dry != prev.dry) return null;
+    if (m != prev.m) return null;
+    if (mm != prev.mm) return null;
+    if (temp != prev.temp) return null;
+    if (wet != prev.wet) return null;
+    return out;
+  }
 }
 
 /// Configuration for the `crossfeed` audio effect.
@@ -9476,6 +10536,30 @@ final class CrossfeedSettings {
         ? 'lavfi-crossfeed'
         : 'lavfi-crossfeed=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(CrossfeedSettings prev) {
+    final out = <(String, String)>[];
+    if (block_size != prev.block_size) return null;
+    if (level_in != prev.level_in) {
+      out.add(('level_in', _wireDouble(level_in)));
+    }
+    if (level_out != prev.level_out) {
+      out.add(('level_out', _wireDouble(level_out)));
+    }
+    if (range != prev.range) {
+      out.add(('range', _wireDouble(range)));
+    }
+    if (slope != prev.slope) {
+      out.add(('slope', _wireDouble(slope)));
+    }
+    if (strength != prev.strength) {
+      out.add(('strength', _wireDouble(strength)));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `crystalizer` audio effect.
@@ -9555,6 +10639,20 @@ final class CrystalizerSettings {
     return parts.isEmpty
         ? 'lavfi-crystalizer'
         : 'lavfi-crystalizer=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(CrystalizerSettings prev) {
+    final out = <(String, String)>[];
+    if (c != prev.c) {
+      out.add(('c', (c ? '1' : '0')));
+    }
+    if (i != prev.i) {
+      out.add(('i', _wireDouble(i)));
+    }
+    return out;
   }
 }
 
@@ -9877,6 +10975,23 @@ final class DialoguenhanceSettings {
     return parts.isEmpty
         ? 'lavfi-dialoguenhance'
         : 'lavfi-dialoguenhance=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(DialoguenhanceSettings prev) {
+    final out = <(String, String)>[];
+    if (enhance != prev.enhance) {
+      out.add(('enhance', _wireDouble(enhance)));
+    }
+    if (original != prev.original) {
+      out.add(('original', _wireDouble(original)));
+    }
+    if (voice != prev.voice) {
+      out.add(('voice', _wireDouble(voice)));
+    }
+    return out;
   }
 }
 
@@ -10447,6 +11562,92 @@ final class DynaudnormSettings {
     return parts.isEmpty
         ? 'lavfi-dynaudnorm'
         : 'lavfi-dynaudnorm=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(DynaudnormSettings prev) {
+    final out = <(String, String)>[];
+    if (altboundary != prev.altboundary) {
+      out.add(('altboundary', (altboundary ? '1' : '0')));
+    }
+    if (b != prev.b) {
+      out.add(('b', (b ? '1' : '0')));
+    }
+    if (c != prev.c) {
+      out.add(('c', (c ? '1' : '0')));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (compress != prev.compress) {
+      out.add(('compress', _wireDouble(compress)));
+    }
+    if (correctdc != prev.correctdc) {
+      out.add(('correctdc', (correctdc ? '1' : '0')));
+    }
+    if (coupling != prev.coupling) {
+      out.add(('coupling', (coupling ? '1' : '0')));
+    }
+    if (curve != prev.curve) {
+      out.add(('curve', curve));
+    }
+    if (f != prev.f) {
+      out.add(('f', f.toString()));
+    }
+    if (framelen != prev.framelen) {
+      out.add(('framelen', framelen.toString()));
+    }
+    if (g != prev.g) {
+      out.add(('g', g.toString()));
+    }
+    if (gausssize != prev.gausssize) {
+      out.add(('gausssize', gausssize.toString()));
+    }
+    if (h != prev.h) {
+      out.add(('h', h));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (maxgain != prev.maxgain) {
+      out.add(('maxgain', _wireDouble(maxgain)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (o != prev.o) {
+      out.add(('o', _wireDouble(o)));
+    }
+    if (overlap != prev.overlap) {
+      out.add(('overlap', _wireDouble(overlap)));
+    }
+    if (p != prev.p) {
+      out.add(('p', _wireDouble(p)));
+    }
+    if (peak != prev.peak) {
+      out.add(('peak', _wireDouble(peak)));
+    }
+    if (r != prev.r) {
+      out.add(('r', _wireDouble(r)));
+    }
+    if (s != prev.s) {
+      out.add(('s', _wireDouble(s)));
+    }
+    if (t != prev.t) {
+      out.add(('t', _wireDouble(t)));
+    }
+    if (targetrms != prev.targetrms) {
+      out.add(('targetrms', _wireDouble(targetrms)));
+    }
+    if (threshold != prev.threshold) {
+      out.add(('threshold', _wireDouble(threshold)));
+    }
+    if (v != prev.v) {
+      out.add(('v', v));
+    }
+    return out;
   }
 }
 
@@ -11075,6 +12276,62 @@ final class EqualizerSettings {
         ? 'lavfi-equalizer'
         : 'lavfi-equalizer=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(EqualizerSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (b != prev.b) return null;
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (g != prev.g) {
+      out.add(('g', _wireDouble(g)));
+    }
+    if (gain != prev.gain) {
+      out.add(('gain', _wireDouble(gain)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `extrastereo` audio effect.
@@ -11153,6 +12410,20 @@ final class ExtrastereoSettings {
     return parts.isEmpty
         ? 'lavfi-extrastereo'
         : 'lavfi-extrastereo=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(ExtrastereoSettings prev) {
+    final out = <(String, String)>[];
+    if (c != prev.c) {
+      out.add(('c', (c ? '1' : '0')));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    return out;
   }
 }
 
@@ -11358,6 +12629,31 @@ final class FirequalizerSettings {
     return parts.isEmpty
         ? 'lavfi-firequalizer'
         : 'lavfi-firequalizer=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(FirequalizerSettings prev) {
+    final out = <(String, String)>[];
+    if (accuracy != prev.accuracy) return null;
+    if (delay != prev.delay) return null;
+    if (dumpfile != prev.dumpfile) return null;
+    if (dumpscale != prev.dumpscale) return null;
+    if (fft2 != prev.fft2) return null;
+    if (fixed != prev.fixed) return null;
+    if (gain != prev.gain) {
+      out.add(('gain', gain));
+    }
+    if (gain_entry != prev.gain_entry) {
+      out.add(('gain_entry', gain_entry));
+    }
+    if (min_phase != prev.min_phase) return null;
+    if (multi != prev.multi) return null;
+    if (scale != prev.scale) return null;
+    if (wfunc != prev.wfunc) return null;
+    if (zero_phase != prev.zero_phase) return null;
+    return out;
   }
 }
 
@@ -12332,6 +13628,58 @@ final class HighpassSettings {
         ? 'lavfi-highpass'
         : 'lavfi-highpass=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(HighpassSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (b != prev.b) return null;
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (p != prev.p) return null;
+    if (poles != prev.poles) return null;
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `highshelf` audio effect.
@@ -12740,6 +14088,64 @@ final class HighshelfSettings {
     return parts.isEmpty
         ? 'lavfi-highshelf'
         : 'lavfi-highshelf=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(HighshelfSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (b != prev.b) return null;
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (g != prev.g) {
+      out.add(('g', _wireDouble(g)));
+    }
+    if (gain != prev.gain) {
+      out.add(('gain', _wireDouble(gain)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (p != prev.p) return null;
+    if (poles != prev.poles) return null;
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
   }
 }
 
@@ -13511,6 +14917,58 @@ final class LowpassSettings {
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-lowpass' : 'lavfi-lowpass=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(LowpassSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (b != prev.b) return null;
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (p != prev.p) return null;
+    if (poles != prev.poles) return null;
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `lowshelf` audio effect.
@@ -13920,6 +15378,64 @@ final class LowshelfSettings {
         ? 'lavfi-lowshelf'
         : 'lavfi-lowshelf=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(LowshelfSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (b != prev.b) return null;
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (g != prev.g) {
+      out.add(('g', _wireDouble(g)));
+    }
+    if (gain != prev.gain) {
+      out.add(('gain', _wireDouble(gain)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (p != prev.p) return null;
+    if (poles != prev.poles) return null;
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `mcompand` audio effect.
@@ -14217,6 +15733,28 @@ final class RubberbandSettings {
         ? 'lavfi-rubberband'
         : 'lavfi-rubberband=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(RubberbandSettings prev) {
+    final out = <(String, String)>[];
+    if (channels != prev.channels) return null;
+    if (detector != prev.detector) return null;
+    if (formant != prev.formant) return null;
+    if (phase != prev.phase) return null;
+    if (pitch != prev.pitch) {
+      out.add(('pitch', _wireDouble(pitch)));
+    }
+    if (pitchq != prev.pitchq) return null;
+    if (smoothing != prev.smoothing) return null;
+    if (tempo != prev.tempo) {
+      out.add(('tempo', _wireDouble(tempo)));
+    }
+    if (transients != prev.transients) return null;
+    if (window != prev.window) return null;
+    return out;
+  }
 }
 
 /// Configuration for the `silenceremove` audio effect.
@@ -14465,6 +16003,35 @@ final class SilenceremoveSettings {
     return parts.isEmpty
         ? 'lavfi-silenceremove'
         : 'lavfi-silenceremove=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(SilenceremoveSettings prev) {
+    final out = <(String, String)>[];
+    if (detection != prev.detection) return null;
+    if (start_duration != prev.start_duration) return null;
+    if (start_mode != prev.start_mode) {
+      out.add(('start_mode', start_mode.mpvValue));
+    }
+    if (start_periods != prev.start_periods) return null;
+    if (start_silence != prev.start_silence) return null;
+    if (start_threshold != prev.start_threshold) {
+      out.add(('start_threshold', _wireDouble(start_threshold)));
+    }
+    if (stop_duration != prev.stop_duration) return null;
+    if (stop_mode != prev.stop_mode) {
+      out.add(('stop_mode', stop_mode.mpvValue));
+    }
+    if (stop_periods != prev.stop_periods) return null;
+    if (stop_silence != prev.stop_silence) return null;
+    if (stop_threshold != prev.stop_threshold) {
+      out.add(('stop_threshold', _wireDouble(stop_threshold)));
+    }
+    if (timestamp != prev.timestamp) return null;
+    if (window != prev.window) return null;
+    return out;
   }
 }
 
@@ -14879,6 +16446,74 @@ final class SpeechnormSettings {
         ? 'lavfi-speechnorm'
         : 'lavfi-speechnorm=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(SpeechnormSettings prev) {
+    final out = <(String, String)>[];
+    if (c != prev.c) {
+      out.add(('c', _wireDouble(c)));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (compression != prev.compression) {
+      out.add(('compression', _wireDouble(compression)));
+    }
+    if (e != prev.e) {
+      out.add(('e', _wireDouble(e)));
+    }
+    if (expansion != prev.expansion) {
+      out.add(('expansion', _wireDouble(expansion)));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (fall != prev.fall) {
+      out.add(('fall', _wireDouble(fall)));
+    }
+    if (h != prev.h) {
+      out.add(('h', h));
+    }
+    if (i != prev.i) {
+      out.add(('i', (i ? '1' : '0')));
+    }
+    if (invert != prev.invert) {
+      out.add(('invert', (invert ? '1' : '0')));
+    }
+    if (l != prev.l) {
+      out.add(('l', (l ? '1' : '0')));
+    }
+    if (link != prev.link) {
+      out.add(('link', (link ? '1' : '0')));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (p != prev.p) {
+      out.add(('p', _wireDouble(p)));
+    }
+    if (peak != prev.peak) {
+      out.add(('peak', _wireDouble(peak)));
+    }
+    if (r != prev.r) {
+      out.add(('r', _wireDouble(r)));
+    }
+    if (raise != prev.raise) {
+      out.add(('raise', _wireDouble(raise)));
+    }
+    if (rms != prev.rms) {
+      out.add(('rms', _wireDouble(rms)));
+    }
+    if (t != prev.t) {
+      out.add(('t', _wireDouble(t)));
+    }
+    if (threshold != prev.threshold) {
+      out.add(('threshold', _wireDouble(threshold)));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `stereotools` audio effect.
@@ -15271,6 +16906,74 @@ final class StereotoolsSettings {
         ? 'lavfi-stereotools'
         : 'lavfi-stereotools=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(StereotoolsSettings prev) {
+    final out = <(String, String)>[];
+    if (balance_in != prev.balance_in) {
+      out.add(('balance_in', _wireDouble(balance_in)));
+    }
+    if (balance_out != prev.balance_out) {
+      out.add(('balance_out', _wireDouble(balance_out)));
+    }
+    if (base != prev.base) {
+      out.add(('base', _wireDouble(base)));
+    }
+    if (bmode_in != prev.bmode_in) {
+      out.add(('bmode_in', bmode_in.mpvValue));
+    }
+    if (bmode_out != prev.bmode_out) {
+      out.add(('bmode_out', bmode_out.mpvValue));
+    }
+    if (delay != prev.delay) {
+      out.add(('delay', _wireDouble(delay)));
+    }
+    if (level_in != prev.level_in) {
+      out.add(('level_in', _wireDouble(level_in)));
+    }
+    if (level_out != prev.level_out) {
+      out.add(('level_out', _wireDouble(level_out)));
+    }
+    if (mlev != prev.mlev) {
+      out.add(('mlev', _wireDouble(mlev)));
+    }
+    if (mode != prev.mode) {
+      out.add(('mode', mode.mpvValue));
+    }
+    if (mpan != prev.mpan) {
+      out.add(('mpan', _wireDouble(mpan)));
+    }
+    if (mutel != prev.mutel) {
+      out.add(('mutel', (mutel ? '1' : '0')));
+    }
+    if (muter != prev.muter) {
+      out.add(('muter', (muter ? '1' : '0')));
+    }
+    if (phase != prev.phase) {
+      out.add(('phase', _wireDouble(phase)));
+    }
+    if (phasel != prev.phasel) {
+      out.add(('phasel', (phasel ? '1' : '0')));
+    }
+    if (phaser != prev.phaser) {
+      out.add(('phaser', (phaser ? '1' : '0')));
+    }
+    if (sbal != prev.sbal) {
+      out.add(('sbal', _wireDouble(sbal)));
+    }
+    if (sclevel != prev.sclevel) {
+      out.add(('sclevel', _wireDouble(sclevel)));
+    }
+    if (slev != prev.slev) {
+      out.add(('slev', _wireDouble(slev)));
+    }
+    if (softclip != prev.softclip) {
+      out.add(('softclip', (softclip ? '1' : '0')));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `stereowiden` audio effect.
@@ -15402,6 +17105,24 @@ final class StereowidenSettings {
     return parts.isEmpty
         ? 'lavfi-stereowiden'
         : 'lavfi-stereowiden=' + parts.join(':');
+  }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(StereowidenSettings prev) {
+    final out = <(String, String)>[];
+    if (crossfeed != prev.crossfeed) {
+      out.add(('crossfeed', _wireDouble(crossfeed)));
+    }
+    if (delay != prev.delay) return null;
+    if (drymix != prev.drymix) {
+      out.add(('drymix', _wireDouble(drymix)));
+    }
+    if (feedback != prev.feedback) {
+      out.add(('feedback', _wireDouble(feedback)));
+    }
+    return out;
   }
 }
 
@@ -16535,6 +18256,152 @@ final class SurroundSettings {
         ? 'lavfi-surround'
         : 'lavfi-surround=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(SurroundSettings prev) {
+    final out = <(String, String)>[];
+    if (allx != prev.allx) {
+      out.add(('allx', _wireDouble(allx)));
+    }
+    if (ally != prev.ally) {
+      out.add(('ally', _wireDouble(ally)));
+    }
+    if (angle != prev.angle) {
+      out.add(('angle', _wireDouble(angle)));
+    }
+    if (bc_in != prev.bc_in) {
+      out.add(('bc_in', _wireDouble(bc_in)));
+    }
+    if (bc_out != prev.bc_out) {
+      out.add(('bc_out', _wireDouble(bc_out)));
+    }
+    if (bcx != prev.bcx) {
+      out.add(('bcx', _wireDouble(bcx)));
+    }
+    if (bcy != prev.bcy) {
+      out.add(('bcy', _wireDouble(bcy)));
+    }
+    if (bl_in != prev.bl_in) {
+      out.add(('bl_in', _wireDouble(bl_in)));
+    }
+    if (bl_out != prev.bl_out) {
+      out.add(('bl_out', _wireDouble(bl_out)));
+    }
+    if (blx != prev.blx) {
+      out.add(('blx', _wireDouble(blx)));
+    }
+    if (bly != prev.bly) {
+      out.add(('bly', _wireDouble(bly)));
+    }
+    if (br_in != prev.br_in) {
+      out.add(('br_in', _wireDouble(br_in)));
+    }
+    if (br_out != prev.br_out) {
+      out.add(('br_out', _wireDouble(br_out)));
+    }
+    if (brx != prev.brx) {
+      out.add(('brx', _wireDouble(brx)));
+    }
+    if (bry != prev.bry) {
+      out.add(('bry', _wireDouble(bry)));
+    }
+    if (chl_in != prev.chl_in) return null;
+    if (chl_out != prev.chl_out) return null;
+    if (fc_in != prev.fc_in) {
+      out.add(('fc_in', _wireDouble(fc_in)));
+    }
+    if (fc_out != prev.fc_out) {
+      out.add(('fc_out', _wireDouble(fc_out)));
+    }
+    if (fcx != prev.fcx) {
+      out.add(('fcx', _wireDouble(fcx)));
+    }
+    if (fcy != prev.fcy) {
+      out.add(('fcy', _wireDouble(fcy)));
+    }
+    if (fl_in != prev.fl_in) {
+      out.add(('fl_in', _wireDouble(fl_in)));
+    }
+    if (fl_out != prev.fl_out) {
+      out.add(('fl_out', _wireDouble(fl_out)));
+    }
+    if (flx != prev.flx) {
+      out.add(('flx', _wireDouble(flx)));
+    }
+    if (fly != prev.fly) {
+      out.add(('fly', _wireDouble(fly)));
+    }
+    if (focus != prev.focus) {
+      out.add(('focus', _wireDouble(focus)));
+    }
+    if (fr_in != prev.fr_in) {
+      out.add(('fr_in', _wireDouble(fr_in)));
+    }
+    if (fr_out != prev.fr_out) {
+      out.add(('fr_out', _wireDouble(fr_out)));
+    }
+    if (frx != prev.frx) {
+      out.add(('frx', _wireDouble(frx)));
+    }
+    if (fry != prev.fry) {
+      out.add(('fry', _wireDouble(fry)));
+    }
+    if (level_in != prev.level_in) {
+      out.add(('level_in', _wireDouble(level_in)));
+    }
+    if (level_out != prev.level_out) {
+      out.add(('level_out', _wireDouble(level_out)));
+    }
+    if (lfe != prev.lfe) {
+      out.add(('lfe', (lfe ? '1' : '0')));
+    }
+    if (lfe_high != prev.lfe_high) return null;
+    if (lfe_in != prev.lfe_in) {
+      out.add(('lfe_in', _wireDouble(lfe_in)));
+    }
+    if (lfe_low != prev.lfe_low) return null;
+    if (lfe_mode != prev.lfe_mode) {
+      out.add(('lfe_mode', lfe_mode.mpvValue));
+    }
+    if (lfe_out != prev.lfe_out) {
+      out.add(('lfe_out', _wireDouble(lfe_out)));
+    }
+    if (overlap != prev.overlap) {
+      out.add(('overlap', _wireDouble(overlap)));
+    }
+    if (sl_in != prev.sl_in) {
+      out.add(('sl_in', _wireDouble(sl_in)));
+    }
+    if (sl_out != prev.sl_out) {
+      out.add(('sl_out', _wireDouble(sl_out)));
+    }
+    if (slx != prev.slx) {
+      out.add(('slx', _wireDouble(slx)));
+    }
+    if (sly != prev.sly) {
+      out.add(('sly', _wireDouble(sly)));
+    }
+    if (smooth != prev.smooth) {
+      out.add(('smooth', _wireDouble(smooth)));
+    }
+    if (sr_in != prev.sr_in) {
+      out.add(('sr_in', _wireDouble(sr_in)));
+    }
+    if (sr_out != prev.sr_out) {
+      out.add(('sr_out', _wireDouble(sr_out)));
+    }
+    if (srx != prev.srx) {
+      out.add(('srx', _wireDouble(srx)));
+    }
+    if (sry != prev.sry) {
+      out.add(('sry', _wireDouble(sry)));
+    }
+    if (win_func != prev.win_func) return null;
+    if (win_size != prev.win_size) return null;
+    return out;
+  }
 }
 
 /// Configuration for the `tiltshelf` audio effect.
@@ -16945,6 +18812,64 @@ final class TiltshelfSettings {
         ? 'lavfi-tiltshelf'
         : 'lavfi-tiltshelf=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(TiltshelfSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (b != prev.b) return null;
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (g != prev.g) {
+      out.add(('g', _wireDouble(g)));
+    }
+    if (gain != prev.gain) {
+      out.add(('gain', _wireDouble(gain)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (p != prev.p) return null;
+    if (poles != prev.poles) return null;
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `treble` audio effect.
@@ -17352,6 +19277,64 @@ final class TrebleSettings {
       parts.add('width_type=' + width_type.mpvValue);
     return parts.isEmpty ? 'lavfi-treble' : 'lavfi-treble=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(TrebleSettings prev) {
+    final out = <(String, String)>[];
+    if (a != prev.a) return null;
+    if (b != prev.b) return null;
+    if (blocksize != prev.blocksize) return null;
+    if (c != prev.c) {
+      out.add(('c', c));
+    }
+    if (channels != prev.channels) {
+      out.add(('channels', channels));
+    }
+    if (f != prev.f) {
+      out.add(('f', _wireDouble(f)));
+    }
+    if (frequency != prev.frequency) {
+      out.add(('frequency', _wireDouble(frequency)));
+    }
+    if (g != prev.g) {
+      out.add(('g', _wireDouble(g)));
+    }
+    if (gain != prev.gain) {
+      out.add(('gain', _wireDouble(gain)));
+    }
+    if (m != prev.m) {
+      out.add(('m', _wireDouble(m)));
+    }
+    if (mix != prev.mix) {
+      out.add(('mix', _wireDouble(mix)));
+    }
+    if (n != prev.n) {
+      out.add(('n', (n ? '1' : '0')));
+    }
+    if (normalize != prev.normalize) {
+      out.add(('normalize', (normalize ? '1' : '0')));
+    }
+    if (p != prev.p) return null;
+    if (poles != prev.poles) return null;
+    if (precision != prev.precision) return null;
+    if (r != prev.r) return null;
+    if (t != prev.t) {
+      out.add(('t', t.mpvValue));
+    }
+    if (transform != prev.transform) return null;
+    if (w != prev.w) {
+      out.add(('w', _wireDouble(w)));
+    }
+    if (width != prev.width) {
+      out.add(('width', _wireDouble(width)));
+    }
+    if (width_type != prev.width_type) {
+      out.add(('width_type', width_type.mpvValue));
+    }
+    return out;
+  }
 }
 
 /// Configuration for the `tremolo` audio effect.
@@ -17620,14 +19603,42 @@ final class VirtualbassSettings {
         ? 'lavfi-virtualbass'
         : 'lavfi-virtualbass=' + parts.join(':');
   }
+
+  /// Runtime-tunable option diff against [prev]: the `(option,
+  /// wire value)` pairs the live graph can apply via `af-command`,
+  /// or `null` when a changed option requires a chain rebuild.
+  List<(String, String)>? _runtimeDiff(VirtualbassSettings prev) {
+    final out = <(String, String)>[];
+    if (cutoff != prev.cutoff) return null;
+    if (strength != prev.strength) {
+      out.add(('strength', _wireDouble(strength)));
+    }
+    return out;
+  }
 }
+
+/// One incremental `af-command` update produced by
+/// [AudioEffects.diffCommands]: applies [option] = [value] to the
+/// live chain stage labelled [label] (an instance of the ffmpeg
+/// filter [filterName]).
+typedef AfCommand = ({
+  String label,
+  String option,
+  String value,
+  String filterName
+});
 
 /// All audio effects bundled into a single atomic configuration
 /// applied via `Player.setAudioEffects` / `Player.updateAudioEffects`.
 ///
-/// Each effect has its own `XxxSettings` field defaulting to disabled.
-/// Flip `enabled: true` and tweak parameters to insert that stage in
-/// the audio chain.
+/// Each effect has its own nullable `XxxSettings` field defaulting to
+/// `null` (not configured). Assign a settings instance with
+/// `enabled: true` to insert that stage in the audio chain; a `null`
+/// slot and a disabled instance are identical on the wire.
+///
+/// Fields you never assign cost nothing in your app binary: the
+/// compiler tree-shakes every `*Settings` class your code doesn't
+/// name.
 ///
 /// `custom` carries raw lavfi-style filter strings (e.g.
 /// `'lavfi-aeval=val(0)|val(1)'`) emitted at the head of the chain,
@@ -17640,366 +19651,627 @@ final class AudioEffects {
   final List<String> custom;
 
   /// Configuration for the `acompressor` audio effect.
-  final AcompressorSettings acompressor;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AcompressorSettings? acompressor;
 
   /// Configuration for the `acontrast` audio effect.
-  final AcontrastSettings acontrast;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AcontrastSettings? acontrast;
 
   /// Configuration for the `acrusher` audio effect.
-  final AcrusherSettings acrusher;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AcrusherSettings? acrusher;
 
   /// Configuration for the `adeclick` audio effect.
-  final AdeclickSettings adeclick;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AdeclickSettings? adeclick;
 
   /// Configuration for the `adeclip` audio effect.
-  final AdeclipSettings adeclip;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AdeclipSettings? adeclip;
 
   /// Configuration for the `adecorrelate` audio effect.
-  final AdecorrelateSettings adecorrelate;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AdecorrelateSettings? adecorrelate;
 
   /// Configuration for the `adelay` audio effect.
-  final AdelaySettings adelay;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AdelaySettings? adelay;
 
   /// Configuration for the `adenorm` audio effect.
-  final AdenormSettings adenorm;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AdenormSettings? adenorm;
 
   /// Configuration for the `aderivative` audio effect.
-  final AderivativeSettings aderivative;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AderivativeSettings? aderivative;
 
   /// Configuration for the `adrc` audio effect.
-  final AdrcSettings adrc;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AdrcSettings? adrc;
 
   /// Configuration for the `adynamicequalizer` audio effect.
-  final AdynamicequalizerSettings adynamicequalizer;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AdynamicequalizerSettings? adynamicequalizer;
 
   /// Configuration for the `adynamicsmooth` audio effect.
-  final AdynamicsmoothSettings adynamicsmooth;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AdynamicsmoothSettings? adynamicsmooth;
 
   /// Configuration for the `aecho` audio effect.
-  final AechoSettings aecho;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AechoSettings? aecho;
 
   /// Configuration for the `aemphasis` audio effect.
-  final AemphasisSettings aemphasis;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AemphasisSettings? aemphasis;
 
   /// Configuration for the `aeval` audio effect.
-  final AevalSettings aeval;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AevalSettings? aeval;
 
   /// Configuration for the `aexciter` audio effect.
-  final AexciterSettings aexciter;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AexciterSettings? aexciter;
 
   /// Configuration for the `afade` audio effect.
-  final AfadeSettings afade;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AfadeSettings? afade;
 
   /// Configuration for the `afftdn` audio effect.
-  final AfftdnSettings afftdn;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AfftdnSettings? afftdn;
 
   /// Configuration for the `afftfilt` audio effect.
-  final AfftfiltSettings afftfilt;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AfftfiltSettings? afftfilt;
 
   /// Configuration for the `aformat` audio effect.
-  final AformatSettings aformat;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AformatSettings? aformat;
 
   /// Configuration for the `afreqshift` audio effect.
-  final AfreqshiftSettings afreqshift;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AfreqshiftSettings? afreqshift;
 
   /// Configuration for the `afwtdn` audio effect.
-  final AfwtdnSettings afwtdn;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AfwtdnSettings? afwtdn;
 
   /// Configuration for the `agate` audio effect.
-  final AgateSettings agate;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AgateSettings? agate;
 
   /// Configuration for the `aiir` audio effect.
-  final AiirSettings aiir;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AiirSettings? aiir;
 
   /// Configuration for the `aintegral` audio effect.
-  final AintegralSettings aintegral;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AintegralSettings? aintegral;
 
   /// Configuration for the `alimiter` audio effect.
-  final AlimiterSettings alimiter;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AlimiterSettings? alimiter;
 
   /// Configuration for the `allpass` audio effect.
-  final AllpassSettings allpass;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AllpassSettings? allpass;
 
   /// Configuration for the `anequalizer` audio effect.
-  final AnequalizerSettings anequalizer;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AnequalizerSettings? anequalizer;
 
   /// Configuration for the `anlmdn` audio effect.
-  final AnlmdnSettings anlmdn;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AnlmdnSettings? anlmdn;
 
   /// Configuration for the `apad` audio effect.
-  final ApadSettings apad;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final ApadSettings? apad;
 
   /// Configuration for the `aphaser` audio effect.
-  final AphaserSettings aphaser;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AphaserSettings? aphaser;
 
   /// Configuration for the `aphaseshift` audio effect.
-  final AphaseshiftSettings aphaseshift;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AphaseshiftSettings? aphaseshift;
 
   /// Configuration for the `apsyclip` audio effect.
-  final ApsyclipSettings apsyclip;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final ApsyclipSettings? apsyclip;
 
   /// Configuration for the `apulsator` audio effect.
-  final ApulsatorSettings apulsator;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final ApulsatorSettings? apulsator;
 
   /// Configuration for the `aresample` audio effect.
-  final AresampleSettings aresample;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AresampleSettings? aresample;
 
   /// Configuration for the `arnndn` audio effect.
-  final ArnndnSettings arnndn;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final ArnndnSettings? arnndn;
 
   /// Configuration for the `asetrate` audio effect.
-  final AsetrateSettings asetrate;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AsetrateSettings? asetrate;
 
   /// Configuration for the `asoftclip` audio effect.
-  final AsoftclipSettings asoftclip;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AsoftclipSettings? asoftclip;
 
   /// Configuration for the `asubboost` audio effect.
-  final AsubboostSettings asubboost;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AsubboostSettings? asubboost;
 
   /// Configuration for the `asubcut` audio effect.
-  final AsubcutSettings asubcut;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AsubcutSettings? asubcut;
 
   /// Configuration for the `asupercut` audio effect.
-  final AsupercutSettings asupercut;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AsupercutSettings? asupercut;
 
   /// Configuration for the `asuperpass` audio effect.
-  final AsuperpassSettings asuperpass;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AsuperpassSettings? asuperpass;
 
   /// Configuration for the `asuperstop` audio effect.
-  final AsuperstopSettings asuperstop;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AsuperstopSettings? asuperstop;
 
   /// Configuration for the `atempo` audio effect.
-  final AtempoSettings atempo;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AtempoSettings? atempo;
 
   /// Configuration for the `atilt` audio effect.
-  final AtiltSettings atilt;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final AtiltSettings? atilt;
 
   /// Configuration for the `bandpass` audio effect.
-  final BandpassSettings bandpass;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final BandpassSettings? bandpass;
 
   /// Configuration for the `bandreject` audio effect.
-  final BandrejectSettings bandreject;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final BandrejectSettings? bandreject;
 
   /// Configuration for the `bass` audio effect.
-  final BassSettings bass;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final BassSettings? bass;
 
   /// Configuration for the `biquad` audio effect.
-  final BiquadSettings biquad;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final BiquadSettings? biquad;
 
   /// Configuration for the `channelmap` audio effect.
-  final ChannelmapSettings channelmap;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final ChannelmapSettings? channelmap;
 
   /// Configuration for the `chorus` audio effect.
-  final ChorusSettings chorus;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final ChorusSettings? chorus;
 
   /// Configuration for the `compand` audio effect.
-  final CompandSettings compand;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final CompandSettings? compand;
 
   /// Configuration for the `compensationdelay` audio effect.
-  final CompensationdelaySettings compensationdelay;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final CompensationdelaySettings? compensationdelay;
 
   /// Configuration for the `crossfeed` audio effect.
-  final CrossfeedSettings crossfeed;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final CrossfeedSettings? crossfeed;
 
   /// Configuration for the `crystalizer` audio effect.
-  final CrystalizerSettings crystalizer;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final CrystalizerSettings? crystalizer;
 
   /// Configuration for the `dcshift` audio effect.
-  final DcshiftSettings dcshift;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final DcshiftSettings? dcshift;
 
   /// Configuration for the `deesser` audio effect.
-  final DeesserSettings deesser;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final DeesserSettings? deesser;
 
   /// Configuration for the `dialoguenhance` audio effect.
-  final DialoguenhanceSettings dialoguenhance;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final DialoguenhanceSettings? dialoguenhance;
 
   /// Configuration for the `drmeter` audio effect.
-  final DrmeterSettings drmeter;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final DrmeterSettings? drmeter;
 
   /// Configuration for the `dynaudnorm` audio effect.
-  final DynaudnormSettings dynaudnorm;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final DynaudnormSettings? dynaudnorm;
 
   /// Configuration for the `earwax` audio effect.
-  final EarwaxSettings earwax;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final EarwaxSettings? earwax;
 
   /// Configuration for the `ebur128` audio effect.
-  final Ebur128Settings ebur128;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final Ebur128Settings? ebur128;
 
   /// Configuration for the `equalizer` audio effect.
-  final EqualizerSettings equalizer;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final EqualizerSettings? equalizer;
 
   /// Configuration for the `extrastereo` audio effect.
-  final ExtrastereoSettings extrastereo;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final ExtrastereoSettings? extrastereo;
 
   /// Configuration for the `firequalizer` audio effect.
-  final FirequalizerSettings firequalizer;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final FirequalizerSettings? firequalizer;
 
   /// Configuration for the `flanger` audio effect.
-  final FlangerSettings flanger;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final FlangerSettings? flanger;
 
   /// Configuration for the `haas` audio effect.
-  final HaasSettings haas;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final HaasSettings? haas;
 
   /// Configuration for the `hdcd` audio effect.
-  final HdcdSettings hdcd;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final HdcdSettings? hdcd;
 
   /// Configuration for the `highpass` audio effect.
-  final HighpassSettings highpass;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final HighpassSettings? highpass;
 
   /// Configuration for the `highshelf` audio effect.
-  final HighshelfSettings highshelf;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final HighshelfSettings? highshelf;
 
   /// Configuration for the `loudnorm` audio effect.
-  final LoudnormSettings loudnorm;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final LoudnormSettings? loudnorm;
 
   /// Configuration for the `lowpass` audio effect.
-  final LowpassSettings lowpass;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final LowpassSettings? lowpass;
 
   /// Configuration for the `lowshelf` audio effect.
-  final LowshelfSettings lowshelf;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final LowshelfSettings? lowshelf;
 
   /// Configuration for the `mcompand` audio effect.
-  final McompandSettings mcompand;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final McompandSettings? mcompand;
 
   /// Configuration for the `pan` audio effect.
-  final PanSettings pan;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final PanSettings? pan;
 
   /// Configuration for the `rubberband` audio effect.
-  final RubberbandSettings rubberband;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final RubberbandSettings? rubberband;
 
   /// Configuration for the `silenceremove` audio effect.
-  final SilenceremoveSettings silenceremove;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final SilenceremoveSettings? silenceremove;
 
   /// Configuration for the `speechnorm` audio effect.
-  final SpeechnormSettings speechnorm;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final SpeechnormSettings? speechnorm;
 
   /// Configuration for the `stereotools` audio effect.
-  final StereotoolsSettings stereotools;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final StereotoolsSettings? stereotools;
 
   /// Configuration for the `stereowiden` audio effect.
-  final StereowidenSettings stereowiden;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final StereowidenSettings? stereowiden;
 
   /// Configuration for the `superequalizer` audio effect.
-  final SuperequalizerSettings superequalizer;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final SuperequalizerSettings? superequalizer;
 
   /// Configuration for the `surround` audio effect.
-  final SurroundSettings surround;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final SurroundSettings? surround;
 
   /// Configuration for the `tiltshelf` audio effect.
-  final TiltshelfSettings tiltshelf;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final TiltshelfSettings? tiltshelf;
 
   /// Configuration for the `treble` audio effect.
-  final TrebleSettings treble;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final TrebleSettings? treble;
 
   /// Configuration for the `tremolo` audio effect.
-  final TremoloSettings tremolo;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final TremoloSettings? tremolo;
 
   /// Configuration for the `vibrato` audio effect.
-  final VibratoSettings vibrato;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final VibratoSettings? vibrato;
 
   /// Configuration for the `virtualbass` audio effect.
-  final VirtualbassSettings virtualbass;
+  ///
+  /// `null` = not configured (same wire output as a
+  /// disabled instance).
+  final VirtualbassSettings? virtualbass;
 
   /// Creates an [AudioEffects] bundle.
   ///
-  /// Every effect defaults to a disabled instance; configure the ones
-  /// you need and apply the whole bundle atomically.
+  /// Every effect defaults to `null` (not configured); assign the
+  /// ones you need and apply the whole bundle atomically.
   const AudioEffects({
     this.custom = const <String>[],
-    this.acompressor = const AcompressorSettings(),
-    this.acontrast = const AcontrastSettings(),
-    this.acrusher = const AcrusherSettings(),
-    this.adeclick = const AdeclickSettings(),
-    this.adeclip = const AdeclipSettings(),
-    this.adecorrelate = const AdecorrelateSettings(),
-    this.adelay = const AdelaySettings(),
-    this.adenorm = const AdenormSettings(),
-    this.aderivative = const AderivativeSettings(),
-    this.adrc = const AdrcSettings(),
-    this.adynamicequalizer = const AdynamicequalizerSettings(),
-    this.adynamicsmooth = const AdynamicsmoothSettings(),
-    this.aecho = const AechoSettings(),
-    this.aemphasis = const AemphasisSettings(),
-    this.aeval = const AevalSettings(exprs: 'val(0)|val(1)'),
-    this.aexciter = const AexciterSettings(),
-    this.afade = const AfadeSettings(),
-    this.afftdn = const AfftdnSettings(),
-    this.afftfilt = const AfftfiltSettings(),
-    this.aformat = const AformatSettings(),
-    this.afreqshift = const AfreqshiftSettings(),
-    this.afwtdn = const AfwtdnSettings(),
-    this.agate = const AgateSettings(),
-    this.aiir = const AiirSettings(),
-    this.aintegral = const AintegralSettings(),
-    this.alimiter = const AlimiterSettings(),
-    this.allpass = const AllpassSettings(),
-    this.anequalizer = const AnequalizerSettings(),
-    this.anlmdn = const AnlmdnSettings(),
-    this.apad = const ApadSettings(),
-    this.aphaser = const AphaserSettings(),
-    this.aphaseshift = const AphaseshiftSettings(),
-    this.apsyclip = const ApsyclipSettings(),
-    this.apulsator = const ApulsatorSettings(),
-    this.aresample = const AresampleSettings(),
-    this.arnndn = const ArnndnSettings(model: ''),
-    this.asetrate = const AsetrateSettings(),
-    this.asoftclip = const AsoftclipSettings(),
-    this.asubboost = const AsubboostSettings(),
-    this.asubcut = const AsubcutSettings(),
-    this.asupercut = const AsupercutSettings(),
-    this.asuperpass = const AsuperpassSettings(),
-    this.asuperstop = const AsuperstopSettings(),
-    this.atempo = const AtempoSettings(),
-    this.atilt = const AtiltSettings(),
-    this.bandpass = const BandpassSettings(),
-    this.bandreject = const BandrejectSettings(),
-    this.bass = const BassSettings(),
-    this.biquad = const BiquadSettings(),
-    this.channelmap = const ChannelmapSettings(map: '0|1'),
-    this.chorus = const ChorusSettings(
-        delays: '55|60',
-        decays: '0.4|0.32',
-        speeds: '0.25|0.4',
-        depths: '2|1.3',),
-    this.compand = const CompandSettings(),
-    this.compensationdelay = const CompensationdelaySettings(),
-    this.crossfeed = const CrossfeedSettings(),
-    this.crystalizer = const CrystalizerSettings(),
-    this.dcshift = const DcshiftSettings(),
-    this.deesser = const DeesserSettings(),
-    this.dialoguenhance = const DialoguenhanceSettings(),
-    this.drmeter = const DrmeterSettings(),
-    this.dynaudnorm = const DynaudnormSettings(),
-    this.earwax = const EarwaxSettings(),
-    this.ebur128 = const Ebur128Settings(),
-    this.equalizer = const EqualizerSettings(),
-    this.extrastereo = const ExtrastereoSettings(),
-    this.firequalizer = const FirequalizerSettings(),
-    this.flanger = const FlangerSettings(),
-    this.haas = const HaasSettings(),
-    this.hdcd = const HdcdSettings(),
-    this.highpass = const HighpassSettings(),
-    this.highshelf = const HighshelfSettings(),
-    this.loudnorm = const LoudnormSettings(),
-    this.lowpass = const LowpassSettings(),
-    this.lowshelf = const LowshelfSettings(),
-    this.mcompand = const McompandSettings(),
-    this.pan = const PanSettings(args: 'stereo|c0=c0|c1=c1'),
-    this.rubberband = const RubberbandSettings(),
-    this.silenceremove = const SilenceremoveSettings(),
-    this.speechnorm = const SpeechnormSettings(),
-    this.stereotools = const StereotoolsSettings(),
-    this.stereowiden = const StereowidenSettings(),
-    this.superequalizer = const SuperequalizerSettings(),
-    this.surround = const SurroundSettings(),
-    this.tiltshelf = const TiltshelfSettings(),
-    this.treble = const TrebleSettings(),
-    this.tremolo = const TremoloSettings(),
-    this.vibrato = const VibratoSettings(),
-    this.virtualbass = const VirtualbassSettings(),
+    this.acompressor,
+    this.acontrast,
+    this.acrusher,
+    this.adeclick,
+    this.adeclip,
+    this.adecorrelate,
+    this.adelay,
+    this.adenorm,
+    this.aderivative,
+    this.adrc,
+    this.adynamicequalizer,
+    this.adynamicsmooth,
+    this.aecho,
+    this.aemphasis,
+    this.aeval,
+    this.aexciter,
+    this.afade,
+    this.afftdn,
+    this.afftfilt,
+    this.aformat,
+    this.afreqshift,
+    this.afwtdn,
+    this.agate,
+    this.aiir,
+    this.aintegral,
+    this.alimiter,
+    this.allpass,
+    this.anequalizer,
+    this.anlmdn,
+    this.apad,
+    this.aphaser,
+    this.aphaseshift,
+    this.apsyclip,
+    this.apulsator,
+    this.aresample,
+    this.arnndn,
+    this.asetrate,
+    this.asoftclip,
+    this.asubboost,
+    this.asubcut,
+    this.asupercut,
+    this.asuperpass,
+    this.asuperstop,
+    this.atempo,
+    this.atilt,
+    this.bandpass,
+    this.bandreject,
+    this.bass,
+    this.biquad,
+    this.channelmap,
+    this.chorus,
+    this.compand,
+    this.compensationdelay,
+    this.crossfeed,
+    this.crystalizer,
+    this.dcshift,
+    this.deesser,
+    this.dialoguenhance,
+    this.drmeter,
+    this.dynaudnorm,
+    this.earwax,
+    this.ebur128,
+    this.equalizer,
+    this.extrastereo,
+    this.firequalizer,
+    this.flanger,
+    this.haas,
+    this.hdcd,
+    this.highpass,
+    this.highshelf,
+    this.loudnorm,
+    this.lowpass,
+    this.lowshelf,
+    this.mcompand,
+    this.pan,
+    this.rubberband,
+    this.silenceremove,
+    this.speechnorm,
+    this.stereotools,
+    this.stereowiden,
+    this.superequalizer,
+    this.surround,
+    this.tiltshelf,
+    this.treble,
+    this.tremolo,
+    this.vibrato,
+    this.virtualbass,
   });
 
   /// Returns a copy of this bundle with the given effects replaced.
+  ///
+  /// A `null` argument keeps the current value. To take a stage
+  /// out of the chain, disable it via its `enabled` flag — on the
+  /// wire that is identical to an unset slot.
   AudioEffects copyWith({
     List<String>? custom,
     AcompressorSettings? acompressor,
@@ -18180,6 +20452,580 @@ final class AudioEffects {
         vibrato: vibrato ?? this.vibrato,
         virtualbass: virtualbass ?? this.virtualbass,
       );
+
+  /// Returns a copy with the `acompressor` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAcompressor(
+          AcompressorSettings Function(AcompressorSettings) f,) =>
+      copyWith(acompressor: f(acompressor ?? const AcompressorSettings()));
+
+  /// Returns a copy with the `acontrast` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAcontrast(
+          AcontrastSettings Function(AcontrastSettings) f,) =>
+      copyWith(acontrast: f(acontrast ?? const AcontrastSettings()));
+
+  /// Returns a copy with the `acrusher` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAcrusher(AcrusherSettings Function(AcrusherSettings) f) =>
+      copyWith(acrusher: f(acrusher ?? const AcrusherSettings()));
+
+  /// Returns a copy with the `adeclick` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAdeclick(AdeclickSettings Function(AdeclickSettings) f) =>
+      copyWith(adeclick: f(adeclick ?? const AdeclickSettings()));
+
+  /// Returns a copy with the `adeclip` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAdeclip(AdeclipSettings Function(AdeclipSettings) f) =>
+      copyWith(adeclip: f(adeclip ?? const AdeclipSettings()));
+
+  /// Returns a copy with the `adecorrelate` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAdecorrelate(
+          AdecorrelateSettings Function(AdecorrelateSettings) f,) =>
+      copyWith(adecorrelate: f(adecorrelate ?? const AdecorrelateSettings()));
+
+  /// Returns a copy with the `adelay` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAdelay(AdelaySettings Function(AdelaySettings) f) =>
+      copyWith(adelay: f(adelay ?? const AdelaySettings()));
+
+  /// Returns a copy with the `adenorm` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAdenorm(AdenormSettings Function(AdenormSettings) f) =>
+      copyWith(adenorm: f(adenorm ?? const AdenormSettings()));
+
+  /// Returns a copy with the `aderivative` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAderivative(
+          AderivativeSettings Function(AderivativeSettings) f,) =>
+      copyWith(aderivative: f(aderivative ?? const AderivativeSettings()));
+
+  /// Returns a copy with the `adrc` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAdrc(AdrcSettings Function(AdrcSettings) f) =>
+      copyWith(adrc: f(adrc ?? const AdrcSettings()));
+
+  /// Returns a copy with the `adynamicequalizer` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAdynamicequalizer(
+          AdynamicequalizerSettings Function(AdynamicequalizerSettings) f,) =>
+      copyWith(
+          adynamicequalizer:
+              f(adynamicequalizer ?? const AdynamicequalizerSettings()),);
+
+  /// Returns a copy with the `adynamicsmooth` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAdynamicsmooth(
+          AdynamicsmoothSettings Function(AdynamicsmoothSettings) f,) =>
+      copyWith(
+          adynamicsmooth: f(adynamicsmooth ?? const AdynamicsmoothSettings()),);
+
+  /// Returns a copy with the `aecho` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAecho(AechoSettings Function(AechoSettings) f) =>
+      copyWith(aecho: f(aecho ?? const AechoSettings()));
+
+  /// Returns a copy with the `aemphasis` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAemphasis(
+          AemphasisSettings Function(AemphasisSettings) f,) =>
+      copyWith(aemphasis: f(aemphasis ?? const AemphasisSettings()));
+
+  /// Returns a copy with the `aeval` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAeval(AevalSettings Function(AevalSettings) f) =>
+      copyWith(aeval: f(aeval ?? const AevalSettings(exprs: 'val(0)|val(1)')));
+
+  /// Returns a copy with the `aexciter` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAexciter(AexciterSettings Function(AexciterSettings) f) =>
+      copyWith(aexciter: f(aexciter ?? const AexciterSettings()));
+
+  /// Returns a copy with the `afade` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAfade(AfadeSettings Function(AfadeSettings) f) =>
+      copyWith(afade: f(afade ?? const AfadeSettings()));
+
+  /// Returns a copy with the `afftdn` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAfftdn(AfftdnSettings Function(AfftdnSettings) f) =>
+      copyWith(afftdn: f(afftdn ?? const AfftdnSettings()));
+
+  /// Returns a copy with the `afftfilt` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAfftfilt(AfftfiltSettings Function(AfftfiltSettings) f) =>
+      copyWith(afftfilt: f(afftfilt ?? const AfftfiltSettings()));
+
+  /// Returns a copy with the `aformat` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAformat(AformatSettings Function(AformatSettings) f) =>
+      copyWith(aformat: f(aformat ?? const AformatSettings()));
+
+  /// Returns a copy with the `afreqshift` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAfreqshift(
+          AfreqshiftSettings Function(AfreqshiftSettings) f,) =>
+      copyWith(afreqshift: f(afreqshift ?? const AfreqshiftSettings()));
+
+  /// Returns a copy with the `afwtdn` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAfwtdn(AfwtdnSettings Function(AfwtdnSettings) f) =>
+      copyWith(afwtdn: f(afwtdn ?? const AfwtdnSettings()));
+
+  /// Returns a copy with the `agate` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAgate(AgateSettings Function(AgateSettings) f) =>
+      copyWith(agate: f(agate ?? const AgateSettings()));
+
+  /// Returns a copy with the `aiir` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAiir(AiirSettings Function(AiirSettings) f) =>
+      copyWith(aiir: f(aiir ?? const AiirSettings()));
+
+  /// Returns a copy with the `aintegral` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAintegral(
+          AintegralSettings Function(AintegralSettings) f,) =>
+      copyWith(aintegral: f(aintegral ?? const AintegralSettings()));
+
+  /// Returns a copy with the `alimiter` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAlimiter(AlimiterSettings Function(AlimiterSettings) f) =>
+      copyWith(alimiter: f(alimiter ?? const AlimiterSettings()));
+
+  /// Returns a copy with the `allpass` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAllpass(AllpassSettings Function(AllpassSettings) f) =>
+      copyWith(allpass: f(allpass ?? const AllpassSettings()));
+
+  /// Returns a copy with the `anequalizer` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAnequalizer(
+          AnequalizerSettings Function(AnequalizerSettings) f,) =>
+      copyWith(anequalizer: f(anequalizer ?? const AnequalizerSettings()));
+
+  /// Returns a copy with the `anlmdn` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAnlmdn(AnlmdnSettings Function(AnlmdnSettings) f) =>
+      copyWith(anlmdn: f(anlmdn ?? const AnlmdnSettings()));
+
+  /// Returns a copy with the `apad` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateApad(ApadSettings Function(ApadSettings) f) =>
+      copyWith(apad: f(apad ?? const ApadSettings()));
+
+  /// Returns a copy with the `aphaser` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAphaser(AphaserSettings Function(AphaserSettings) f) =>
+      copyWith(aphaser: f(aphaser ?? const AphaserSettings()));
+
+  /// Returns a copy with the `aphaseshift` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAphaseshift(
+          AphaseshiftSettings Function(AphaseshiftSettings) f,) =>
+      copyWith(aphaseshift: f(aphaseshift ?? const AphaseshiftSettings()));
+
+  /// Returns a copy with the `apsyclip` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateApsyclip(ApsyclipSettings Function(ApsyclipSettings) f) =>
+      copyWith(apsyclip: f(apsyclip ?? const ApsyclipSettings()));
+
+  /// Returns a copy with the `apulsator` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateApulsator(
+          ApulsatorSettings Function(ApulsatorSettings) f,) =>
+      copyWith(apulsator: f(apulsator ?? const ApulsatorSettings()));
+
+  /// Returns a copy with the `aresample` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAresample(
+          AresampleSettings Function(AresampleSettings) f,) =>
+      copyWith(aresample: f(aresample ?? const AresampleSettings()));
+
+  /// Returns a copy with the `arnndn` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateArnndn(ArnndnSettings Function(ArnndnSettings) f) =>
+      copyWith(arnndn: f(arnndn ?? const ArnndnSettings(model: '')));
+
+  /// Returns a copy with the `asetrate` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAsetrate(AsetrateSettings Function(AsetrateSettings) f) =>
+      copyWith(asetrate: f(asetrate ?? const AsetrateSettings()));
+
+  /// Returns a copy with the `asoftclip` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAsoftclip(
+          AsoftclipSettings Function(AsoftclipSettings) f,) =>
+      copyWith(asoftclip: f(asoftclip ?? const AsoftclipSettings()));
+
+  /// Returns a copy with the `asubboost` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAsubboost(
+          AsubboostSettings Function(AsubboostSettings) f,) =>
+      copyWith(asubboost: f(asubboost ?? const AsubboostSettings()));
+
+  /// Returns a copy with the `asubcut` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAsubcut(AsubcutSettings Function(AsubcutSettings) f) =>
+      copyWith(asubcut: f(asubcut ?? const AsubcutSettings()));
+
+  /// Returns a copy with the `asupercut` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAsupercut(
+          AsupercutSettings Function(AsupercutSettings) f,) =>
+      copyWith(asupercut: f(asupercut ?? const AsupercutSettings()));
+
+  /// Returns a copy with the `asuperpass` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAsuperpass(
+          AsuperpassSettings Function(AsuperpassSettings) f,) =>
+      copyWith(asuperpass: f(asuperpass ?? const AsuperpassSettings()));
+
+  /// Returns a copy with the `asuperstop` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAsuperstop(
+          AsuperstopSettings Function(AsuperstopSettings) f,) =>
+      copyWith(asuperstop: f(asuperstop ?? const AsuperstopSettings()));
+
+  /// Returns a copy with the `atempo` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAtempo(AtempoSettings Function(AtempoSettings) f) =>
+      copyWith(atempo: f(atempo ?? const AtempoSettings()));
+
+  /// Returns a copy with the `atilt` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateAtilt(AtiltSettings Function(AtiltSettings) f) =>
+      copyWith(atilt: f(atilt ?? const AtiltSettings()));
+
+  /// Returns a copy with the `bandpass` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateBandpass(BandpassSettings Function(BandpassSettings) f) =>
+      copyWith(bandpass: f(bandpass ?? const BandpassSettings()));
+
+  /// Returns a copy with the `bandreject` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateBandreject(
+          BandrejectSettings Function(BandrejectSettings) f,) =>
+      copyWith(bandreject: f(bandreject ?? const BandrejectSettings()));
+
+  /// Returns a copy with the `bass` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateBass(BassSettings Function(BassSettings) f) =>
+      copyWith(bass: f(bass ?? const BassSettings()));
+
+  /// Returns a copy with the `biquad` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateBiquad(BiquadSettings Function(BiquadSettings) f) =>
+      copyWith(biquad: f(biquad ?? const BiquadSettings()));
+
+  /// Returns a copy with the `channelmap` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateChannelmap(
+          ChannelmapSettings Function(ChannelmapSettings) f,) =>
+      copyWith(
+          channelmap: f(channelmap ?? const ChannelmapSettings(map: '0|1')),);
+
+  /// Returns a copy with the `chorus` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateChorus(ChorusSettings Function(ChorusSettings) f) =>
+      copyWith(
+          chorus: f(chorus ??
+              const ChorusSettings(
+                  delays: '55|60',
+                  decays: '0.4|0.32',
+                  speeds: '0.25|0.4',
+                  depths: '2|1.3',),),);
+
+  /// Returns a copy with the `compand` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateCompand(CompandSettings Function(CompandSettings) f) =>
+      copyWith(compand: f(compand ?? const CompandSettings()));
+
+  /// Returns a copy with the `compensationdelay` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateCompensationdelay(
+          CompensationdelaySettings Function(CompensationdelaySettings) f,) =>
+      copyWith(
+          compensationdelay:
+              f(compensationdelay ?? const CompensationdelaySettings()),);
+
+  /// Returns a copy with the `crossfeed` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateCrossfeed(
+          CrossfeedSettings Function(CrossfeedSettings) f,) =>
+      copyWith(crossfeed: f(crossfeed ?? const CrossfeedSettings()));
+
+  /// Returns a copy with the `crystalizer` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateCrystalizer(
+          CrystalizerSettings Function(CrystalizerSettings) f,) =>
+      copyWith(crystalizer: f(crystalizer ?? const CrystalizerSettings()));
+
+  /// Returns a copy with the `dcshift` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateDcshift(DcshiftSettings Function(DcshiftSettings) f) =>
+      copyWith(dcshift: f(dcshift ?? const DcshiftSettings()));
+
+  /// Returns a copy with the `deesser` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateDeesser(DeesserSettings Function(DeesserSettings) f) =>
+      copyWith(deesser: f(deesser ?? const DeesserSettings()));
+
+  /// Returns a copy with the `dialoguenhance` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateDialoguenhance(
+          DialoguenhanceSettings Function(DialoguenhanceSettings) f,) =>
+      copyWith(
+          dialoguenhance: f(dialoguenhance ?? const DialoguenhanceSettings()),);
+
+  /// Returns a copy with the `drmeter` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateDrmeter(DrmeterSettings Function(DrmeterSettings) f) =>
+      copyWith(drmeter: f(drmeter ?? const DrmeterSettings()));
+
+  /// Returns a copy with the `dynaudnorm` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateDynaudnorm(
+          DynaudnormSettings Function(DynaudnormSettings) f,) =>
+      copyWith(dynaudnorm: f(dynaudnorm ?? const DynaudnormSettings()));
+
+  /// Returns a copy with the `earwax` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateEarwax(EarwaxSettings Function(EarwaxSettings) f) =>
+      copyWith(earwax: f(earwax ?? const EarwaxSettings()));
+
+  /// Returns a copy with the `ebur128` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateEbur128(Ebur128Settings Function(Ebur128Settings) f) =>
+      copyWith(ebur128: f(ebur128 ?? const Ebur128Settings()));
+
+  /// Returns a copy with the `equalizer` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateEqualizer(
+          EqualizerSettings Function(EqualizerSettings) f,) =>
+      copyWith(equalizer: f(equalizer ?? const EqualizerSettings()));
+
+  /// Returns a copy with the `extrastereo` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateExtrastereo(
+          ExtrastereoSettings Function(ExtrastereoSettings) f,) =>
+      copyWith(extrastereo: f(extrastereo ?? const ExtrastereoSettings()));
+
+  /// Returns a copy with the `firequalizer` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateFirequalizer(
+          FirequalizerSettings Function(FirequalizerSettings) f,) =>
+      copyWith(firequalizer: f(firequalizer ?? const FirequalizerSettings()));
+
+  /// Returns a copy with the `flanger` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateFlanger(FlangerSettings Function(FlangerSettings) f) =>
+      copyWith(flanger: f(flanger ?? const FlangerSettings()));
+
+  /// Returns a copy with the `haas` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateHaas(HaasSettings Function(HaasSettings) f) =>
+      copyWith(haas: f(haas ?? const HaasSettings()));
+
+  /// Returns a copy with the `hdcd` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateHdcd(HdcdSettings Function(HdcdSettings) f) =>
+      copyWith(hdcd: f(hdcd ?? const HdcdSettings()));
+
+  /// Returns a copy with the `highpass` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateHighpass(HighpassSettings Function(HighpassSettings) f) =>
+      copyWith(highpass: f(highpass ?? const HighpassSettings()));
+
+  /// Returns a copy with the `highshelf` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateHighshelf(
+          HighshelfSettings Function(HighshelfSettings) f,) =>
+      copyWith(highshelf: f(highshelf ?? const HighshelfSettings()));
+
+  /// Returns a copy with the `loudnorm` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateLoudnorm(LoudnormSettings Function(LoudnormSettings) f) =>
+      copyWith(loudnorm: f(loudnorm ?? const LoudnormSettings()));
+
+  /// Returns a copy with the `lowpass` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateLowpass(LowpassSettings Function(LowpassSettings) f) =>
+      copyWith(lowpass: f(lowpass ?? const LowpassSettings()));
+
+  /// Returns a copy with the `lowshelf` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateLowshelf(LowshelfSettings Function(LowshelfSettings) f) =>
+      copyWith(lowshelf: f(lowshelf ?? const LowshelfSettings()));
+
+  /// Returns a copy with the `mcompand` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateMcompand(McompandSettings Function(McompandSettings) f) =>
+      copyWith(mcompand: f(mcompand ?? const McompandSettings()));
+
+  /// Returns a copy with the `pan` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updatePan(PanSettings Function(PanSettings) f) =>
+      copyWith(pan: f(pan ?? const PanSettings(args: 'stereo|c0=c0|c1=c1')));
+
+  /// Returns a copy with the `rubberband` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateRubberband(
+          RubberbandSettings Function(RubberbandSettings) f,) =>
+      copyWith(rubberband: f(rubberband ?? const RubberbandSettings()));
+
+  /// Returns a copy with the `silenceremove` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateSilenceremove(
+          SilenceremoveSettings Function(SilenceremoveSettings) f,) =>
+      copyWith(
+          silenceremove: f(silenceremove ?? const SilenceremoveSettings()),);
+
+  /// Returns a copy with the `speechnorm` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateSpeechnorm(
+          SpeechnormSettings Function(SpeechnormSettings) f,) =>
+      copyWith(speechnorm: f(speechnorm ?? const SpeechnormSettings()));
+
+  /// Returns a copy with the `stereotools` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateStereotools(
+          StereotoolsSettings Function(StereotoolsSettings) f,) =>
+      copyWith(stereotools: f(stereotools ?? const StereotoolsSettings()));
+
+  /// Returns a copy with the `stereowiden` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateStereowiden(
+          StereowidenSettings Function(StereowidenSettings) f,) =>
+      copyWith(stereowiden: f(stereowiden ?? const StereowidenSettings()));
+
+  /// Returns a copy with the `superequalizer` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateSuperequalizer(
+          SuperequalizerSettings Function(SuperequalizerSettings) f,) =>
+      copyWith(
+          superequalizer: f(superequalizer ?? const SuperequalizerSettings()),);
+
+  /// Returns a copy with the `surround` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateSurround(SurroundSettings Function(SurroundSettings) f) =>
+      copyWith(surround: f(surround ?? const SurroundSettings()));
+
+  /// Returns a copy with the `tiltshelf` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateTiltshelf(
+          TiltshelfSettings Function(TiltshelfSettings) f,) =>
+      copyWith(tiltshelf: f(tiltshelf ?? const TiltshelfSettings()));
+
+  /// Returns a copy with the `treble` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateTreble(TrebleSettings Function(TrebleSettings) f) =>
+      copyWith(treble: f(treble ?? const TrebleSettings()));
+
+  /// Returns a copy with the `tremolo` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateTremolo(TremoloSettings Function(TremoloSettings) f) =>
+      copyWith(tremolo: f(tremolo ?? const TremoloSettings()));
+
+  /// Returns a copy with the `vibrato` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateVibrato(VibratoSettings Function(VibratoSettings) f) =>
+      copyWith(vibrato: f(vibrato ?? const VibratoSettings()));
+
+  /// Returns a copy with the `virtualbass` slot transformed by [f];
+  /// a never-configured (`null`) slot is seeded with its
+  /// defaults first.
+  AudioEffects updateVirtualbass(
+          VirtualbassSettings Function(VirtualbassSettings) f,) =>
+      copyWith(virtualbass: f(virtualbass ?? const VirtualbassSettings()));
 
   @override
   bool operator ==(Object other) =>
@@ -18369,93 +21215,93 @@ final class AudioEffects {
   @override
   String toString() {
     final enabled = <String>[];
-    if (acompressor.enabled) enabled.add('acompressor');
-    if (acontrast.enabled) enabled.add('acontrast');
-    if (acrusher.enabled) enabled.add('acrusher');
-    if (adeclick.enabled) enabled.add('adeclick');
-    if (adeclip.enabled) enabled.add('adeclip');
-    if (adecorrelate.enabled) enabled.add('adecorrelate');
-    if (adelay.enabled) enabled.add('adelay');
-    if (adenorm.enabled) enabled.add('adenorm');
-    if (aderivative.enabled) enabled.add('aderivative');
-    if (adrc.enabled) enabled.add('adrc');
-    if (adynamicequalizer.enabled) enabled.add('adynamicequalizer');
-    if (adynamicsmooth.enabled) enabled.add('adynamicsmooth');
-    if (aecho.enabled) enabled.add('aecho');
-    if (aemphasis.enabled) enabled.add('aemphasis');
-    if (aeval.enabled) enabled.add('aeval');
-    if (aexciter.enabled) enabled.add('aexciter');
-    if (afade.enabled) enabled.add('afade');
-    if (afftdn.enabled) enabled.add('afftdn');
-    if (afftfilt.enabled) enabled.add('afftfilt');
-    if (aformat.enabled) enabled.add('aformat');
-    if (afreqshift.enabled) enabled.add('afreqshift');
-    if (afwtdn.enabled) enabled.add('afwtdn');
-    if (agate.enabled) enabled.add('agate');
-    if (aiir.enabled) enabled.add('aiir');
-    if (aintegral.enabled) enabled.add('aintegral');
-    if (alimiter.enabled) enabled.add('alimiter');
-    if (allpass.enabled) enabled.add('allpass');
-    if (anequalizer.enabled) enabled.add('anequalizer');
-    if (anlmdn.enabled) enabled.add('anlmdn');
-    if (apad.enabled) enabled.add('apad');
-    if (aphaser.enabled) enabled.add('aphaser');
-    if (aphaseshift.enabled) enabled.add('aphaseshift');
-    if (apsyclip.enabled) enabled.add('apsyclip');
-    if (apulsator.enabled) enabled.add('apulsator');
-    if (aresample.enabled) enabled.add('aresample');
-    if (arnndn.enabled) enabled.add('arnndn');
-    if (asetrate.enabled) enabled.add('asetrate');
-    if (asoftclip.enabled) enabled.add('asoftclip');
-    if (asubboost.enabled) enabled.add('asubboost');
-    if (asubcut.enabled) enabled.add('asubcut');
-    if (asupercut.enabled) enabled.add('asupercut');
-    if (asuperpass.enabled) enabled.add('asuperpass');
-    if (asuperstop.enabled) enabled.add('asuperstop');
-    if (atempo.enabled) enabled.add('atempo');
-    if (atilt.enabled) enabled.add('atilt');
-    if (bandpass.enabled) enabled.add('bandpass');
-    if (bandreject.enabled) enabled.add('bandreject');
-    if (bass.enabled) enabled.add('bass');
-    if (biquad.enabled) enabled.add('biquad');
-    if (channelmap.enabled) enabled.add('channelmap');
-    if (chorus.enabled) enabled.add('chorus');
-    if (compand.enabled) enabled.add('compand');
-    if (compensationdelay.enabled) enabled.add('compensationdelay');
-    if (crossfeed.enabled) enabled.add('crossfeed');
-    if (crystalizer.enabled) enabled.add('crystalizer');
-    if (dcshift.enabled) enabled.add('dcshift');
-    if (deesser.enabled) enabled.add('deesser');
-    if (dialoguenhance.enabled) enabled.add('dialoguenhance');
-    if (drmeter.enabled) enabled.add('drmeter');
-    if (dynaudnorm.enabled) enabled.add('dynaudnorm');
-    if (earwax.enabled) enabled.add('earwax');
-    if (ebur128.enabled) enabled.add('ebur128');
-    if (equalizer.enabled) enabled.add('equalizer');
-    if (extrastereo.enabled) enabled.add('extrastereo');
-    if (firequalizer.enabled) enabled.add('firequalizer');
-    if (flanger.enabled) enabled.add('flanger');
-    if (haas.enabled) enabled.add('haas');
-    if (hdcd.enabled) enabled.add('hdcd');
-    if (highpass.enabled) enabled.add('highpass');
-    if (highshelf.enabled) enabled.add('highshelf');
-    if (loudnorm.enabled) enabled.add('loudnorm');
-    if (lowpass.enabled) enabled.add('lowpass');
-    if (lowshelf.enabled) enabled.add('lowshelf');
-    if (mcompand.enabled) enabled.add('mcompand');
-    if (pan.enabled) enabled.add('pan');
-    if (rubberband.enabled) enabled.add('rubberband');
-    if (silenceremove.enabled) enabled.add('silenceremove');
-    if (speechnorm.enabled) enabled.add('speechnorm');
-    if (stereotools.enabled) enabled.add('stereotools');
-    if (stereowiden.enabled) enabled.add('stereowiden');
-    if (superequalizer.enabled) enabled.add('superequalizer');
-    if (surround.enabled) enabled.add('surround');
-    if (tiltshelf.enabled) enabled.add('tiltshelf');
-    if (treble.enabled) enabled.add('treble');
-    if (tremolo.enabled) enabled.add('tremolo');
-    if (vibrato.enabled) enabled.add('vibrato');
-    if (virtualbass.enabled) enabled.add('virtualbass');
+    if (acompressor?.enabled ?? false) enabled.add('acompressor');
+    if (acontrast?.enabled ?? false) enabled.add('acontrast');
+    if (acrusher?.enabled ?? false) enabled.add('acrusher');
+    if (adeclick?.enabled ?? false) enabled.add('adeclick');
+    if (adeclip?.enabled ?? false) enabled.add('adeclip');
+    if (adecorrelate?.enabled ?? false) enabled.add('adecorrelate');
+    if (adelay?.enabled ?? false) enabled.add('adelay');
+    if (adenorm?.enabled ?? false) enabled.add('adenorm');
+    if (aderivative?.enabled ?? false) enabled.add('aderivative');
+    if (adrc?.enabled ?? false) enabled.add('adrc');
+    if (adynamicequalizer?.enabled ?? false) enabled.add('adynamicequalizer');
+    if (adynamicsmooth?.enabled ?? false) enabled.add('adynamicsmooth');
+    if (aecho?.enabled ?? false) enabled.add('aecho');
+    if (aemphasis?.enabled ?? false) enabled.add('aemphasis');
+    if (aeval?.enabled ?? false) enabled.add('aeval');
+    if (aexciter?.enabled ?? false) enabled.add('aexciter');
+    if (afade?.enabled ?? false) enabled.add('afade');
+    if (afftdn?.enabled ?? false) enabled.add('afftdn');
+    if (afftfilt?.enabled ?? false) enabled.add('afftfilt');
+    if (aformat?.enabled ?? false) enabled.add('aformat');
+    if (afreqshift?.enabled ?? false) enabled.add('afreqshift');
+    if (afwtdn?.enabled ?? false) enabled.add('afwtdn');
+    if (agate?.enabled ?? false) enabled.add('agate');
+    if (aiir?.enabled ?? false) enabled.add('aiir');
+    if (aintegral?.enabled ?? false) enabled.add('aintegral');
+    if (alimiter?.enabled ?? false) enabled.add('alimiter');
+    if (allpass?.enabled ?? false) enabled.add('allpass');
+    if (anequalizer?.enabled ?? false) enabled.add('anequalizer');
+    if (anlmdn?.enabled ?? false) enabled.add('anlmdn');
+    if (apad?.enabled ?? false) enabled.add('apad');
+    if (aphaser?.enabled ?? false) enabled.add('aphaser');
+    if (aphaseshift?.enabled ?? false) enabled.add('aphaseshift');
+    if (apsyclip?.enabled ?? false) enabled.add('apsyclip');
+    if (apulsator?.enabled ?? false) enabled.add('apulsator');
+    if (aresample?.enabled ?? false) enabled.add('aresample');
+    if (arnndn?.enabled ?? false) enabled.add('arnndn');
+    if (asetrate?.enabled ?? false) enabled.add('asetrate');
+    if (asoftclip?.enabled ?? false) enabled.add('asoftclip');
+    if (asubboost?.enabled ?? false) enabled.add('asubboost');
+    if (asubcut?.enabled ?? false) enabled.add('asubcut');
+    if (asupercut?.enabled ?? false) enabled.add('asupercut');
+    if (asuperpass?.enabled ?? false) enabled.add('asuperpass');
+    if (asuperstop?.enabled ?? false) enabled.add('asuperstop');
+    if (atempo?.enabled ?? false) enabled.add('atempo');
+    if (atilt?.enabled ?? false) enabled.add('atilt');
+    if (bandpass?.enabled ?? false) enabled.add('bandpass');
+    if (bandreject?.enabled ?? false) enabled.add('bandreject');
+    if (bass?.enabled ?? false) enabled.add('bass');
+    if (biquad?.enabled ?? false) enabled.add('biquad');
+    if (channelmap?.enabled ?? false) enabled.add('channelmap');
+    if (chorus?.enabled ?? false) enabled.add('chorus');
+    if (compand?.enabled ?? false) enabled.add('compand');
+    if (compensationdelay?.enabled ?? false) enabled.add('compensationdelay');
+    if (crossfeed?.enabled ?? false) enabled.add('crossfeed');
+    if (crystalizer?.enabled ?? false) enabled.add('crystalizer');
+    if (dcshift?.enabled ?? false) enabled.add('dcshift');
+    if (deesser?.enabled ?? false) enabled.add('deesser');
+    if (dialoguenhance?.enabled ?? false) enabled.add('dialoguenhance');
+    if (drmeter?.enabled ?? false) enabled.add('drmeter');
+    if (dynaudnorm?.enabled ?? false) enabled.add('dynaudnorm');
+    if (earwax?.enabled ?? false) enabled.add('earwax');
+    if (ebur128?.enabled ?? false) enabled.add('ebur128');
+    if (equalizer?.enabled ?? false) enabled.add('equalizer');
+    if (extrastereo?.enabled ?? false) enabled.add('extrastereo');
+    if (firequalizer?.enabled ?? false) enabled.add('firequalizer');
+    if (flanger?.enabled ?? false) enabled.add('flanger');
+    if (haas?.enabled ?? false) enabled.add('haas');
+    if (hdcd?.enabled ?? false) enabled.add('hdcd');
+    if (highpass?.enabled ?? false) enabled.add('highpass');
+    if (highshelf?.enabled ?? false) enabled.add('highshelf');
+    if (loudnorm?.enabled ?? false) enabled.add('loudnorm');
+    if (lowpass?.enabled ?? false) enabled.add('lowpass');
+    if (lowshelf?.enabled ?? false) enabled.add('lowshelf');
+    if (mcompand?.enabled ?? false) enabled.add('mcompand');
+    if (pan?.enabled ?? false) enabled.add('pan');
+    if (rubberband?.enabled ?? false) enabled.add('rubberband');
+    if (silenceremove?.enabled ?? false) enabled.add('silenceremove');
+    if (speechnorm?.enabled ?? false) enabled.add('speechnorm');
+    if (stereotools?.enabled ?? false) enabled.add('stereotools');
+    if (stereowiden?.enabled ?? false) enabled.add('stereowiden');
+    if (superequalizer?.enabled ?? false) enabled.add('superequalizer');
+    if (surround?.enabled ?? false) enabled.add('surround');
+    if (tiltshelf?.enabled ?? false) enabled.add('tiltshelf');
+    if (treble?.enabled ?? false) enabled.add('treble');
+    if (tremolo?.enabled ?? false) enabled.add('tremolo');
+    if (vibrato?.enabled ?? false) enabled.add('vibrato');
+    if (virtualbass?.enabled ?? false) enabled.add('virtualbass');
     return 'AudioEffects(custom: $custom, enabled: $enabled)';
   }
 
@@ -18470,96 +21316,1303 @@ final class AudioEffects {
       final t = raw.trim();
       if (t.isNotEmpty) parts.add(t);
     }
-    if (acompressor.enabled) parts.add(acompressor.toFilterString());
-    if (acontrast.enabled) parts.add(acontrast.toFilterString());
-    if (acrusher.enabled) parts.add(acrusher.toFilterString());
-    if (adeclick.enabled) parts.add(adeclick.toFilterString());
-    if (adeclip.enabled) parts.add(adeclip.toFilterString());
-    if (adecorrelate.enabled) parts.add(adecorrelate.toFilterString());
-    if (adelay.enabled) parts.add(adelay.toFilterString());
-    if (adenorm.enabled) parts.add(adenorm.toFilterString());
-    if (aderivative.enabled) parts.add(aderivative.toFilterString());
-    if (adrc.enabled) parts.add(adrc.toFilterString());
-    if (adynamicequalizer.enabled)
-      parts.add(adynamicequalizer.toFilterString());
-    if (adynamicsmooth.enabled) parts.add(adynamicsmooth.toFilterString());
-    if (aecho.enabled) parts.add(aecho.toFilterString());
-    if (aemphasis.enabled) parts.add(aemphasis.toFilterString());
-    if (aeval.enabled) parts.add(aeval.toFilterString());
-    if (aexciter.enabled) parts.add(aexciter.toFilterString());
-    if (afade.enabled) parts.add(afade.toFilterString());
-    if (afftdn.enabled) parts.add(afftdn.toFilterString());
-    if (afftfilt.enabled) parts.add(afftfilt.toFilterString());
-    if (aformat.enabled) parts.add(aformat.toFilterString());
-    if (afreqshift.enabled) parts.add(afreqshift.toFilterString());
-    if (afwtdn.enabled) parts.add(afwtdn.toFilterString());
-    if (agate.enabled) parts.add(agate.toFilterString());
-    if (aiir.enabled) parts.add(aiir.toFilterString());
-    if (aintegral.enabled) parts.add(aintegral.toFilterString());
-    if (alimiter.enabled) parts.add(alimiter.toFilterString());
-    if (allpass.enabled) parts.add(allpass.toFilterString());
-    if (anequalizer.enabled) parts.add(anequalizer.toFilterString());
-    if (anlmdn.enabled) parts.add(anlmdn.toFilterString());
-    if (apad.enabled) parts.add(apad.toFilterString());
-    if (aphaser.enabled) parts.add(aphaser.toFilterString());
-    if (aphaseshift.enabled) parts.add(aphaseshift.toFilterString());
-    if (apsyclip.enabled) parts.add(apsyclip.toFilterString());
-    if (apulsator.enabled) parts.add(apulsator.toFilterString());
-    if (aresample.enabled) parts.add(aresample.toFilterString());
-    if (arnndn.enabled) parts.add(arnndn.toFilterString());
-    if (asetrate.enabled) parts.add(asetrate.toFilterString());
-    if (asoftclip.enabled) parts.add(asoftclip.toFilterString());
-    if (asubboost.enabled) parts.add(asubboost.toFilterString());
-    if (asubcut.enabled) parts.add(asubcut.toFilterString());
-    if (asupercut.enabled) parts.add(asupercut.toFilterString());
-    if (asuperpass.enabled) parts.add(asuperpass.toFilterString());
-    if (asuperstop.enabled) parts.add(asuperstop.toFilterString());
-    if (atempo.enabled) parts.add(atempo.toFilterString());
-    if (atilt.enabled) parts.add(atilt.toFilterString());
-    if (bandpass.enabled) parts.add(bandpass.toFilterString());
-    if (bandreject.enabled) parts.add(bandreject.toFilterString());
-    if (bass.enabled) parts.add(bass.toFilterString());
-    if (biquad.enabled) parts.add(biquad.toFilterString());
-    if (channelmap.enabled) parts.add(channelmap.toFilterString());
-    if (chorus.enabled) parts.add(chorus.toFilterString());
-    if (compand.enabled) parts.add(compand.toFilterString());
-    if (compensationdelay.enabled)
-      parts.add(compensationdelay.toFilterString());
-    if (crossfeed.enabled) parts.add(crossfeed.toFilterString());
-    if (crystalizer.enabled) parts.add(crystalizer.toFilterString());
-    if (dcshift.enabled) parts.add(dcshift.toFilterString());
-    if (deesser.enabled) parts.add(deesser.toFilterString());
-    if (dialoguenhance.enabled) parts.add(dialoguenhance.toFilterString());
-    if (drmeter.enabled) parts.add(drmeter.toFilterString());
-    if (dynaudnorm.enabled) parts.add(dynaudnorm.toFilterString());
-    if (earwax.enabled) parts.add(earwax.toFilterString());
-    if (ebur128.enabled) parts.add(ebur128.toFilterString());
-    if (equalizer.enabled) parts.add(equalizer.toFilterString());
-    if (extrastereo.enabled) parts.add(extrastereo.toFilterString());
-    if (firequalizer.enabled) parts.add(firequalizer.toFilterString());
-    if (flanger.enabled) parts.add(flanger.toFilterString());
-    if (haas.enabled) parts.add(haas.toFilterString());
-    if (hdcd.enabled) parts.add(hdcd.toFilterString());
-    if (highpass.enabled) parts.add(highpass.toFilterString());
-    if (highshelf.enabled) parts.add(highshelf.toFilterString());
-    if (loudnorm.enabled) parts.add(loudnorm.toFilterString());
-    if (lowpass.enabled) parts.add(lowpass.toFilterString());
-    if (lowshelf.enabled) parts.add(lowshelf.toFilterString());
-    if (mcompand.enabled) parts.add(mcompand.toFilterString());
-    if (pan.enabled) parts.add(pan.toFilterString());
-    if (rubberband.enabled) parts.add(rubberband.toFilterString());
-    if (silenceremove.enabled) parts.add(silenceremove.toFilterString());
-    if (speechnorm.enabled) parts.add(speechnorm.toFilterString());
-    if (stereotools.enabled) parts.add(stereotools.toFilterString());
-    if (stereowiden.enabled) parts.add(stereowiden.toFilterString());
-    if (superequalizer.enabled) parts.add(superequalizer.toFilterString());
-    if (surround.enabled) parts.add(surround.toFilterString());
-    if (tiltshelf.enabled) parts.add(tiltshelf.toFilterString());
-    if (treble.enabled) parts.add(treble.toFilterString());
-    if (tremolo.enabled) parts.add(tremolo.toFilterString());
-    if (vibrato.enabled) parts.add(vibrato.toFilterString());
-    if (virtualbass.enabled) parts.add(virtualbass.toFilterString());
+    if (acompressor?.enabled ?? false)
+      parts.add('@aek_acompressor:' + acompressor!.toFilterString());
+    if (acontrast?.enabled ?? false)
+      parts.add('@aek_acontrast:' + acontrast!.toFilterString());
+    if (acrusher?.enabled ?? false)
+      parts.add('@aek_acrusher:' + acrusher!.toFilterString());
+    if (adeclick?.enabled ?? false)
+      parts.add('@aek_adeclick:' + adeclick!.toFilterString());
+    if (adeclip?.enabled ?? false)
+      parts.add('@aek_adeclip:' + adeclip!.toFilterString());
+    if (adecorrelate?.enabled ?? false)
+      parts.add('@aek_adecorrelate:' + adecorrelate!.toFilterString());
+    if (adelay?.enabled ?? false)
+      parts.add('@aek_adelay:' + adelay!.toFilterString());
+    if (adenorm?.enabled ?? false)
+      parts.add('@aek_adenorm:' + adenorm!.toFilterString());
+    if (aderivative?.enabled ?? false)
+      parts.add('@aek_aderivative:' + aderivative!.toFilterString());
+    if (adrc?.enabled ?? false)
+      parts.add('@aek_adrc:' + adrc!.toFilterString());
+    if (adynamicequalizer?.enabled ?? false)
+      parts
+          .add('@aek_adynamicequalizer:' + adynamicequalizer!.toFilterString());
+    if (adynamicsmooth?.enabled ?? false)
+      parts.add('@aek_adynamicsmooth:' + adynamicsmooth!.toFilterString());
+    if (aecho?.enabled ?? false)
+      parts.add('@aek_aecho:' + aecho!.toFilterString());
+    if (aemphasis?.enabled ?? false)
+      parts.add('@aek_aemphasis:' + aemphasis!.toFilterString());
+    if (aeval?.enabled ?? false)
+      parts.add('@aek_aeval:' + aeval!.toFilterString());
+    if (aexciter?.enabled ?? false)
+      parts.add('@aek_aexciter:' + aexciter!.toFilterString());
+    if (afade?.enabled ?? false)
+      parts.add('@aek_afade:' + afade!.toFilterString());
+    if (afftdn?.enabled ?? false)
+      parts.add('@aek_afftdn:' + afftdn!.toFilterString());
+    if (afftfilt?.enabled ?? false)
+      parts.add('@aek_afftfilt:' + afftfilt!.toFilterString());
+    if (aformat?.enabled ?? false)
+      parts.add('@aek_aformat:' + aformat!.toFilterString());
+    if (afreqshift?.enabled ?? false)
+      parts.add('@aek_afreqshift:' + afreqshift!.toFilterString());
+    if (afwtdn?.enabled ?? false)
+      parts.add('@aek_afwtdn:' + afwtdn!.toFilterString());
+    if (agate?.enabled ?? false)
+      parts.add('@aek_agate:' + agate!.toFilterString());
+    if (aiir?.enabled ?? false)
+      parts.add('@aek_aiir:' + aiir!.toFilterString());
+    if (aintegral?.enabled ?? false)
+      parts.add('@aek_aintegral:' + aintegral!.toFilterString());
+    if (alimiter?.enabled ?? false)
+      parts.add('@aek_alimiter:' + alimiter!.toFilterString());
+    if (allpass?.enabled ?? false)
+      parts.add('@aek_allpass:' + allpass!.toFilterString());
+    if (anequalizer?.enabled ?? false)
+      parts.add('@aek_anequalizer:' + anequalizer!.toFilterString());
+    if (anlmdn?.enabled ?? false)
+      parts.add('@aek_anlmdn:' + anlmdn!.toFilterString());
+    if (apad?.enabled ?? false)
+      parts.add('@aek_apad:' + apad!.toFilterString());
+    if (aphaser?.enabled ?? false)
+      parts.add('@aek_aphaser:' + aphaser!.toFilterString());
+    if (aphaseshift?.enabled ?? false)
+      parts.add('@aek_aphaseshift:' + aphaseshift!.toFilterString());
+    if (apsyclip?.enabled ?? false)
+      parts.add('@aek_apsyclip:' + apsyclip!.toFilterString());
+    if (apulsator?.enabled ?? false)
+      parts.add('@aek_apulsator:' + apulsator!.toFilterString());
+    if (aresample?.enabled ?? false)
+      parts.add('@aek_aresample:' + aresample!.toFilterString());
+    if (arnndn?.enabled ?? false)
+      parts.add('@aek_arnndn:' + arnndn!.toFilterString());
+    if (asetrate?.enabled ?? false)
+      parts.add('@aek_asetrate:' + asetrate!.toFilterString());
+    if (asoftclip?.enabled ?? false)
+      parts.add('@aek_asoftclip:' + asoftclip!.toFilterString());
+    if (asubboost?.enabled ?? false)
+      parts.add('@aek_asubboost:' + asubboost!.toFilterString());
+    if (asubcut?.enabled ?? false)
+      parts.add('@aek_asubcut:' + asubcut!.toFilterString());
+    if (asupercut?.enabled ?? false)
+      parts.add('@aek_asupercut:' + asupercut!.toFilterString());
+    if (asuperpass?.enabled ?? false)
+      parts.add('@aek_asuperpass:' + asuperpass!.toFilterString());
+    if (asuperstop?.enabled ?? false)
+      parts.add('@aek_asuperstop:' + asuperstop!.toFilterString());
+    if (atempo?.enabled ?? false)
+      parts.add('@aek_atempo:' + atempo!.toFilterString());
+    if (atilt?.enabled ?? false)
+      parts.add('@aek_atilt:' + atilt!.toFilterString());
+    if (bandpass?.enabled ?? false)
+      parts.add('@aek_bandpass:' + bandpass!.toFilterString());
+    if (bandreject?.enabled ?? false)
+      parts.add('@aek_bandreject:' + bandreject!.toFilterString());
+    if (bass?.enabled ?? false)
+      parts.add('@aek_bass:' + bass!.toFilterString());
+    if (biquad?.enabled ?? false)
+      parts.add('@aek_biquad:' + biquad!.toFilterString());
+    if (channelmap?.enabled ?? false)
+      parts.add('@aek_channelmap:' + channelmap!.toFilterString());
+    if (chorus?.enabled ?? false)
+      parts.add('@aek_chorus:' + chorus!.toFilterString());
+    if (compand?.enabled ?? false)
+      parts.add('@aek_compand:' + compand!.toFilterString());
+    if (compensationdelay?.enabled ?? false)
+      parts
+          .add('@aek_compensationdelay:' + compensationdelay!.toFilterString());
+    if (crossfeed?.enabled ?? false)
+      parts.add('@aek_crossfeed:' + crossfeed!.toFilterString());
+    if (crystalizer?.enabled ?? false)
+      parts.add('@aek_crystalizer:' + crystalizer!.toFilterString());
+    if (dcshift?.enabled ?? false)
+      parts.add('@aek_dcshift:' + dcshift!.toFilterString());
+    if (deesser?.enabled ?? false)
+      parts.add('@aek_deesser:' + deesser!.toFilterString());
+    if (dialoguenhance?.enabled ?? false)
+      parts.add('@aek_dialoguenhance:' + dialoguenhance!.toFilterString());
+    if (drmeter?.enabled ?? false)
+      parts.add('@aek_drmeter:' + drmeter!.toFilterString());
+    if (dynaudnorm?.enabled ?? false)
+      parts.add('@aek_dynaudnorm:' + dynaudnorm!.toFilterString());
+    if (earwax?.enabled ?? false)
+      parts.add('@aek_earwax:' + earwax!.toFilterString());
+    if (ebur128?.enabled ?? false)
+      parts.add('@aek_ebur128:' + ebur128!.toFilterString());
+    if (equalizer?.enabled ?? false)
+      parts.add('@aek_equalizer:' + equalizer!.toFilterString());
+    if (extrastereo?.enabled ?? false)
+      parts.add('@aek_extrastereo:' + extrastereo!.toFilterString());
+    if (firequalizer?.enabled ?? false)
+      parts.add('@aek_firequalizer:' + firequalizer!.toFilterString());
+    if (flanger?.enabled ?? false)
+      parts.add('@aek_flanger:' + flanger!.toFilterString());
+    if (haas?.enabled ?? false)
+      parts.add('@aek_haas:' + haas!.toFilterString());
+    if (hdcd?.enabled ?? false)
+      parts.add('@aek_hdcd:' + hdcd!.toFilterString());
+    if (highpass?.enabled ?? false)
+      parts.add('@aek_highpass:' + highpass!.toFilterString());
+    if (highshelf?.enabled ?? false)
+      parts.add('@aek_highshelf:' + highshelf!.toFilterString());
+    if (loudnorm?.enabled ?? false)
+      parts.add('@aek_loudnorm:' + loudnorm!.toFilterString());
+    if (lowpass?.enabled ?? false)
+      parts.add('@aek_lowpass:' + lowpass!.toFilterString());
+    if (lowshelf?.enabled ?? false)
+      parts.add('@aek_lowshelf:' + lowshelf!.toFilterString());
+    if (mcompand?.enabled ?? false)
+      parts.add('@aek_mcompand:' + mcompand!.toFilterString());
+    if (pan?.enabled ?? false) parts.add('@aek_pan:' + pan!.toFilterString());
+    if (rubberband?.enabled ?? false)
+      parts.add('@aek_rubberband:' + rubberband!.toFilterString());
+    if (silenceremove?.enabled ?? false)
+      parts.add('@aek_silenceremove:' + silenceremove!.toFilterString());
+    if (speechnorm?.enabled ?? false)
+      parts.add('@aek_speechnorm:' + speechnorm!.toFilterString());
+    if (stereotools?.enabled ?? false)
+      parts.add('@aek_stereotools:' + stereotools!.toFilterString());
+    if (stereowiden?.enabled ?? false)
+      parts.add('@aek_stereowiden:' + stereowiden!.toFilterString());
+    if (superequalizer?.enabled ?? false)
+      parts.add('@aek_superequalizer:' + superequalizer!.toFilterString());
+    if (surround?.enabled ?? false)
+      parts.add('@aek_surround:' + surround!.toFilterString());
+    if (tiltshelf?.enabled ?? false)
+      parts.add('@aek_tiltshelf:' + tiltshelf!.toFilterString());
+    if (treble?.enabled ?? false)
+      parts.add('@aek_treble:' + treble!.toFilterString());
+    if (tremolo?.enabled ?? false)
+      parts.add('@aek_tremolo:' + tremolo!.toFilterString());
+    if (vibrato?.enabled ?? false)
+      parts.add('@aek_vibrato:' + vibrato!.toFilterString());
+    if (virtualbass?.enabled ?? false)
+      parts.add('@aek_virtualbass:' + virtualbass!.toFilterString());
     return parts.join(',');
+  }
+
+  /// Computes the incremental `af-command` updates that turn the
+  /// live chain built from [prev] into this bundle.
+  ///
+  /// Returns `null` when the change needs a full chain rebuild
+  /// (an effect entered/left the chain, a non-runtime-tunable
+  /// option changed, or the filter doesn't accept live commands);
+  /// an empty list when the two bundles are wire-identical.
+  List<AfCommand>? diffCommands(AudioEffects prev) {
+    if (!_listEq(custom, prev.custom)) return null;
+    final out = <AfCommand>[];
+    {
+      final a = prev.acompressor;
+      final b = acompressor;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_acompressor',
+            option: opt,
+            value: val,
+            filterName: 'acompressor'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.acontrast;
+      final b = acontrast;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.acrusher;
+      final b = acrusher;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_acrusher',
+            option: opt,
+            value: val,
+            filterName: 'acrusher'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.adeclick;
+      final b = adeclick;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.adeclip;
+      final b = adeclip;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.adecorrelate;
+      final b = adecorrelate;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.adelay;
+      final b = adelay;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_adelay',
+            option: opt,
+            value: val,
+            filterName: 'adelay'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.adenorm;
+      final b = adenorm;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_adenorm',
+            option: opt,
+            value: val,
+            filterName: 'adenorm'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.aderivative;
+      final b = aderivative;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.adrc;
+      final b = adrc;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add(
+              (label: 'aek_adrc', option: opt, value: val, filterName: 'adrc'),);
+        }
+      }
+    }
+    {
+      final a = prev.adynamicequalizer;
+      final b = adynamicequalizer;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_adynamicequalizer',
+            option: opt,
+            value: val,
+            filterName: 'adynamicequalizer'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.adynamicsmooth;
+      final b = adynamicsmooth;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_adynamicsmooth',
+            option: opt,
+            value: val,
+            filterName: 'adynamicsmooth'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.aecho;
+      final b = aecho;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.aemphasis;
+      final b = aemphasis;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_aemphasis',
+            option: opt,
+            value: val,
+            filterName: 'aemphasis'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.aeval;
+      final b = aeval;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.aexciter;
+      final b = aexciter;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_aexciter',
+            option: opt,
+            value: val,
+            filterName: 'aexciter'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.afade;
+      final b = afade;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_afade',
+            option: opt,
+            value: val,
+            filterName: 'afade'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.afftdn;
+      final b = afftdn;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_afftdn',
+            option: opt,
+            value: val,
+            filterName: 'afftdn'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.afftfilt;
+      final b = afftfilt;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.aformat;
+      final b = aformat;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.afreqshift;
+      final b = afreqshift;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_afreqshift',
+            option: opt,
+            value: val,
+            filterName: 'afreqshift'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.afwtdn;
+      final b = afwtdn;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_afwtdn',
+            option: opt,
+            value: val,
+            filterName: 'afwtdn'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.agate;
+      final b = agate;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_agate',
+            option: opt,
+            value: val,
+            filterName: 'agate'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.aiir;
+      final b = aiir;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.aintegral;
+      final b = aintegral;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.alimiter;
+      final b = alimiter;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_alimiter',
+            option: opt,
+            value: val,
+            filterName: 'alimiter'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.allpass;
+      final b = allpass;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_allpass',
+            option: opt,
+            value: val,
+            filterName: 'allpass'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.anequalizer;
+      final b = anequalizer;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_anequalizer',
+            option: opt,
+            value: val,
+            filterName: 'anequalizer'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.anlmdn;
+      final b = anlmdn;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_anlmdn',
+            option: opt,
+            value: val,
+            filterName: 'anlmdn'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.apad;
+      final b = apad;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.aphaser;
+      final b = aphaser;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.aphaseshift;
+      final b = aphaseshift;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_aphaseshift',
+            option: opt,
+            value: val,
+            filterName: 'aphaseshift'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.apsyclip;
+      final b = apsyclip;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_apsyclip',
+            option: opt,
+            value: val,
+            filterName: 'apsyclip'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.apulsator;
+      final b = apulsator;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.aresample;
+      final b = aresample;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.arnndn;
+      final b = arnndn;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_arnndn',
+            option: opt,
+            value: val,
+            filterName: 'arnndn'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.asetrate;
+      final b = asetrate;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.asoftclip;
+      final b = asoftclip;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_asoftclip',
+            option: opt,
+            value: val,
+            filterName: 'asoftclip'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.asubboost;
+      final b = asubboost;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_asubboost',
+            option: opt,
+            value: val,
+            filterName: 'asubboost'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.asubcut;
+      final b = asubcut;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_asubcut',
+            option: opt,
+            value: val,
+            filterName: 'asubcut'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.asupercut;
+      final b = asupercut;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_asupercut',
+            option: opt,
+            value: val,
+            filterName: 'asupercut'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.asuperpass;
+      final b = asuperpass;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_asuperpass',
+            option: opt,
+            value: val,
+            filterName: 'asuperpass'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.asuperstop;
+      final b = asuperstop;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_asuperstop',
+            option: opt,
+            value: val,
+            filterName: 'asuperstop'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.atempo;
+      final b = atempo;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_atempo',
+            option: opt,
+            value: val,
+            filterName: 'atempo'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.atilt;
+      final b = atilt;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_atilt',
+            option: opt,
+            value: val,
+            filterName: 'atilt'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.bandpass;
+      final b = bandpass;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_bandpass',
+            option: opt,
+            value: val,
+            filterName: 'bandpass'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.bandreject;
+      final b = bandreject;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_bandreject',
+            option: opt,
+            value: val,
+            filterName: 'bandreject'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.bass;
+      final b = bass;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add(
+              (label: 'aek_bass', option: opt, value: val, filterName: 'bass'),);
+        }
+      }
+    }
+    {
+      final a = prev.biquad;
+      final b = biquad;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_biquad',
+            option: opt,
+            value: val,
+            filterName: 'biquad'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.channelmap;
+      final b = channelmap;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.chorus;
+      final b = chorus;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.compand;
+      final b = compand;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.compensationdelay;
+      final b = compensationdelay;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_compensationdelay',
+            option: opt,
+            value: val,
+            filterName: 'compensationdelay'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.crossfeed;
+      final b = crossfeed;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_crossfeed',
+            option: opt,
+            value: val,
+            filterName: 'crossfeed'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.crystalizer;
+      final b = crystalizer;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_crystalizer',
+            option: opt,
+            value: val,
+            filterName: 'crystalizer'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.dcshift;
+      final b = dcshift;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.deesser;
+      final b = deesser;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.dialoguenhance;
+      final b = dialoguenhance;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_dialoguenhance',
+            option: opt,
+            value: val,
+            filterName: 'dialoguenhance'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.drmeter;
+      final b = drmeter;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.dynaudnorm;
+      final b = dynaudnorm;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_dynaudnorm',
+            option: opt,
+            value: val,
+            filterName: 'dynaudnorm'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.earwax;
+      final b = earwax;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.ebur128;
+      final b = ebur128;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.equalizer;
+      final b = equalizer;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_equalizer',
+            option: opt,
+            value: val,
+            filterName: 'equalizer'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.extrastereo;
+      final b = extrastereo;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_extrastereo',
+            option: opt,
+            value: val,
+            filterName: 'extrastereo'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.firequalizer;
+      final b = firequalizer;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_firequalizer',
+            option: opt,
+            value: val,
+            filterName: 'firequalizer'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.flanger;
+      final b = flanger;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.haas;
+      final b = haas;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.hdcd;
+      final b = hdcd;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.highpass;
+      final b = highpass;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_highpass',
+            option: opt,
+            value: val,
+            filterName: 'highpass'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.highshelf;
+      final b = highshelf;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_highshelf',
+            option: opt,
+            value: val,
+            filterName: 'highshelf'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.loudnorm;
+      final b = loudnorm;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.lowpass;
+      final b = lowpass;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_lowpass',
+            option: opt,
+            value: val,
+            filterName: 'lowpass'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.lowshelf;
+      final b = lowshelf;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_lowshelf',
+            option: opt,
+            value: val,
+            filterName: 'lowshelf'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.mcompand;
+      final b = mcompand;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.pan;
+      final b = pan;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.rubberband;
+      final b = rubberband;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_rubberband',
+            option: opt,
+            value: val,
+            filterName: 'rubberband'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.silenceremove;
+      final b = silenceremove;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_silenceremove',
+            option: opt,
+            value: val,
+            filterName: 'silenceremove'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.speechnorm;
+      final b = speechnorm;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_speechnorm',
+            option: opt,
+            value: val,
+            filterName: 'speechnorm'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.stereotools;
+      final b = stereotools;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_stereotools',
+            option: opt,
+            value: val,
+            filterName: 'stereotools'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.stereowiden;
+      final b = stereowiden;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_stereowiden',
+            option: opt,
+            value: val,
+            filterName: 'stereowiden'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.superequalizer;
+      final b = superequalizer;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.surround;
+      final b = surround;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_surround',
+            option: opt,
+            value: val,
+            filterName: 'surround'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.tiltshelf;
+      final b = tiltshelf;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_tiltshelf',
+            option: opt,
+            value: val,
+            filterName: 'tiltshelf'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.treble;
+      final b = treble;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_treble',
+            option: opt,
+            value: val,
+            filterName: 'treble'
+          ),);
+        }
+      }
+    }
+    {
+      final a = prev.tremolo;
+      final b = tremolo;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.vibrato;
+      final b = vibrato;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && a != b) return null;
+    }
+    {
+      final a = prev.virtualbass;
+      final b = virtualbass;
+      if ((a?.enabled ?? false) != (b?.enabled ?? false)) return null;
+      if ((b?.enabled ?? false) && !identical(a, b)) {
+        final d = b!._runtimeDiff(a!);
+        if (d == null) return null;
+        for (final (opt, val) in d) {
+          out.add((
+            label: 'aek_virtualbass',
+            option: opt,
+            value: val,
+            filterName: 'virtualbass'
+          ),);
+        }
+      }
+    }
+    return out;
   }
 }
 
@@ -18580,92 +22633,94 @@ extension AudioEffectsX on AudioEffects {
   /// The [AudioEffect] for every slot whose `*Settings.enabled` is
   /// `true`, in the bundle's field declaration order.
   Iterable<AudioEffect> get active sync* {
-    if (acompressor.enabled) yield AudioEffect.acompressor;
-    if (acontrast.enabled) yield AudioEffect.acontrast;
-    if (acrusher.enabled) yield AudioEffect.acrusher;
-    if (adeclick.enabled) yield AudioEffect.adeclick;
-    if (adeclip.enabled) yield AudioEffect.adeclip;
-    if (adecorrelate.enabled) yield AudioEffect.adecorrelate;
-    if (adelay.enabled) yield AudioEffect.adelay;
-    if (adenorm.enabled) yield AudioEffect.adenorm;
-    if (aderivative.enabled) yield AudioEffect.aderivative;
-    if (adrc.enabled) yield AudioEffect.adrc;
-    if (adynamicequalizer.enabled) yield AudioEffect.adynamicequalizer;
-    if (adynamicsmooth.enabled) yield AudioEffect.adynamicsmooth;
-    if (aecho.enabled) yield AudioEffect.aecho;
-    if (aemphasis.enabled) yield AudioEffect.aemphasis;
-    if (aeval.enabled) yield AudioEffect.aeval;
-    if (aexciter.enabled) yield AudioEffect.aexciter;
-    if (afade.enabled) yield AudioEffect.afade;
-    if (afftdn.enabled) yield AudioEffect.afftdn;
-    if (afftfilt.enabled) yield AudioEffect.afftfilt;
-    if (aformat.enabled) yield AudioEffect.aformat;
-    if (afreqshift.enabled) yield AudioEffect.afreqshift;
-    if (afwtdn.enabled) yield AudioEffect.afwtdn;
-    if (agate.enabled) yield AudioEffect.agate;
-    if (aiir.enabled) yield AudioEffect.aiir;
-    if (aintegral.enabled) yield AudioEffect.aintegral;
-    if (alimiter.enabled) yield AudioEffect.alimiter;
-    if (allpass.enabled) yield AudioEffect.allpass;
-    if (anequalizer.enabled) yield AudioEffect.anequalizer;
-    if (anlmdn.enabled) yield AudioEffect.anlmdn;
-    if (apad.enabled) yield AudioEffect.apad;
-    if (aphaser.enabled) yield AudioEffect.aphaser;
-    if (aphaseshift.enabled) yield AudioEffect.aphaseshift;
-    if (apsyclip.enabled) yield AudioEffect.apsyclip;
-    if (apulsator.enabled) yield AudioEffect.apulsator;
-    if (aresample.enabled) yield AudioEffect.aresample;
-    if (arnndn.enabled) yield AudioEffect.arnndn;
-    if (asetrate.enabled) yield AudioEffect.asetrate;
-    if (asoftclip.enabled) yield AudioEffect.asoftclip;
-    if (asubboost.enabled) yield AudioEffect.asubboost;
-    if (asubcut.enabled) yield AudioEffect.asubcut;
-    if (asupercut.enabled) yield AudioEffect.asupercut;
-    if (asuperpass.enabled) yield AudioEffect.asuperpass;
-    if (asuperstop.enabled) yield AudioEffect.asuperstop;
-    if (atempo.enabled) yield AudioEffect.atempo;
-    if (atilt.enabled) yield AudioEffect.atilt;
-    if (bandpass.enabled) yield AudioEffect.bandpass;
-    if (bandreject.enabled) yield AudioEffect.bandreject;
-    if (bass.enabled) yield AudioEffect.bass;
-    if (biquad.enabled) yield AudioEffect.biquad;
-    if (channelmap.enabled) yield AudioEffect.channelmap;
-    if (chorus.enabled) yield AudioEffect.chorus;
-    if (compand.enabled) yield AudioEffect.compand;
-    if (compensationdelay.enabled) yield AudioEffect.compensationdelay;
-    if (crossfeed.enabled) yield AudioEffect.crossfeed;
-    if (crystalizer.enabled) yield AudioEffect.crystalizer;
-    if (dcshift.enabled) yield AudioEffect.dcshift;
-    if (deesser.enabled) yield AudioEffect.deesser;
-    if (dialoguenhance.enabled) yield AudioEffect.dialoguenhance;
-    if (drmeter.enabled) yield AudioEffect.drmeter;
-    if (dynaudnorm.enabled) yield AudioEffect.dynaudnorm;
-    if (earwax.enabled) yield AudioEffect.earwax;
-    if (ebur128.enabled) yield AudioEffect.ebur128;
-    if (equalizer.enabled) yield AudioEffect.equalizer;
-    if (extrastereo.enabled) yield AudioEffect.extrastereo;
-    if (firequalizer.enabled) yield AudioEffect.firequalizer;
-    if (flanger.enabled) yield AudioEffect.flanger;
-    if (haas.enabled) yield AudioEffect.haas;
-    if (hdcd.enabled) yield AudioEffect.hdcd;
-    if (highpass.enabled) yield AudioEffect.highpass;
-    if (highshelf.enabled) yield AudioEffect.highshelf;
-    if (loudnorm.enabled) yield AudioEffect.loudnorm;
-    if (lowpass.enabled) yield AudioEffect.lowpass;
-    if (lowshelf.enabled) yield AudioEffect.lowshelf;
-    if (mcompand.enabled) yield AudioEffect.mcompand;
-    if (pan.enabled) yield AudioEffect.pan;
-    if (rubberband.enabled) yield AudioEffect.rubberband;
-    if (silenceremove.enabled) yield AudioEffect.silenceremove;
-    if (speechnorm.enabled) yield AudioEffect.speechnorm;
-    if (stereotools.enabled) yield AudioEffect.stereotools;
-    if (stereowiden.enabled) yield AudioEffect.stereowiden;
-    if (superequalizer.enabled) yield AudioEffect.superequalizer;
-    if (surround.enabled) yield AudioEffect.surround;
-    if (tiltshelf.enabled) yield AudioEffect.tiltshelf;
-    if (treble.enabled) yield AudioEffect.treble;
-    if (tremolo.enabled) yield AudioEffect.tremolo;
-    if (vibrato.enabled) yield AudioEffect.vibrato;
-    if (virtualbass.enabled) yield AudioEffect.virtualbass;
+    if (acompressor?.enabled ?? false) yield AudioEffect.acompressor;
+    if (acontrast?.enabled ?? false) yield AudioEffect.acontrast;
+    if (acrusher?.enabled ?? false) yield AudioEffect.acrusher;
+    if (adeclick?.enabled ?? false) yield AudioEffect.adeclick;
+    if (adeclip?.enabled ?? false) yield AudioEffect.adeclip;
+    if (adecorrelate?.enabled ?? false) yield AudioEffect.adecorrelate;
+    if (adelay?.enabled ?? false) yield AudioEffect.adelay;
+    if (adenorm?.enabled ?? false) yield AudioEffect.adenorm;
+    if (aderivative?.enabled ?? false) yield AudioEffect.aderivative;
+    if (adrc?.enabled ?? false) yield AudioEffect.adrc;
+    if (adynamicequalizer?.enabled ?? false)
+      yield AudioEffect.adynamicequalizer;
+    if (adynamicsmooth?.enabled ?? false) yield AudioEffect.adynamicsmooth;
+    if (aecho?.enabled ?? false) yield AudioEffect.aecho;
+    if (aemphasis?.enabled ?? false) yield AudioEffect.aemphasis;
+    if (aeval?.enabled ?? false) yield AudioEffect.aeval;
+    if (aexciter?.enabled ?? false) yield AudioEffect.aexciter;
+    if (afade?.enabled ?? false) yield AudioEffect.afade;
+    if (afftdn?.enabled ?? false) yield AudioEffect.afftdn;
+    if (afftfilt?.enabled ?? false) yield AudioEffect.afftfilt;
+    if (aformat?.enabled ?? false) yield AudioEffect.aformat;
+    if (afreqshift?.enabled ?? false) yield AudioEffect.afreqshift;
+    if (afwtdn?.enabled ?? false) yield AudioEffect.afwtdn;
+    if (agate?.enabled ?? false) yield AudioEffect.agate;
+    if (aiir?.enabled ?? false) yield AudioEffect.aiir;
+    if (aintegral?.enabled ?? false) yield AudioEffect.aintegral;
+    if (alimiter?.enabled ?? false) yield AudioEffect.alimiter;
+    if (allpass?.enabled ?? false) yield AudioEffect.allpass;
+    if (anequalizer?.enabled ?? false) yield AudioEffect.anequalizer;
+    if (anlmdn?.enabled ?? false) yield AudioEffect.anlmdn;
+    if (apad?.enabled ?? false) yield AudioEffect.apad;
+    if (aphaser?.enabled ?? false) yield AudioEffect.aphaser;
+    if (aphaseshift?.enabled ?? false) yield AudioEffect.aphaseshift;
+    if (apsyclip?.enabled ?? false) yield AudioEffect.apsyclip;
+    if (apulsator?.enabled ?? false) yield AudioEffect.apulsator;
+    if (aresample?.enabled ?? false) yield AudioEffect.aresample;
+    if (arnndn?.enabled ?? false) yield AudioEffect.arnndn;
+    if (asetrate?.enabled ?? false) yield AudioEffect.asetrate;
+    if (asoftclip?.enabled ?? false) yield AudioEffect.asoftclip;
+    if (asubboost?.enabled ?? false) yield AudioEffect.asubboost;
+    if (asubcut?.enabled ?? false) yield AudioEffect.asubcut;
+    if (asupercut?.enabled ?? false) yield AudioEffect.asupercut;
+    if (asuperpass?.enabled ?? false) yield AudioEffect.asuperpass;
+    if (asuperstop?.enabled ?? false) yield AudioEffect.asuperstop;
+    if (atempo?.enabled ?? false) yield AudioEffect.atempo;
+    if (atilt?.enabled ?? false) yield AudioEffect.atilt;
+    if (bandpass?.enabled ?? false) yield AudioEffect.bandpass;
+    if (bandreject?.enabled ?? false) yield AudioEffect.bandreject;
+    if (bass?.enabled ?? false) yield AudioEffect.bass;
+    if (biquad?.enabled ?? false) yield AudioEffect.biquad;
+    if (channelmap?.enabled ?? false) yield AudioEffect.channelmap;
+    if (chorus?.enabled ?? false) yield AudioEffect.chorus;
+    if (compand?.enabled ?? false) yield AudioEffect.compand;
+    if (compensationdelay?.enabled ?? false)
+      yield AudioEffect.compensationdelay;
+    if (crossfeed?.enabled ?? false) yield AudioEffect.crossfeed;
+    if (crystalizer?.enabled ?? false) yield AudioEffect.crystalizer;
+    if (dcshift?.enabled ?? false) yield AudioEffect.dcshift;
+    if (deesser?.enabled ?? false) yield AudioEffect.deesser;
+    if (dialoguenhance?.enabled ?? false) yield AudioEffect.dialoguenhance;
+    if (drmeter?.enabled ?? false) yield AudioEffect.drmeter;
+    if (dynaudnorm?.enabled ?? false) yield AudioEffect.dynaudnorm;
+    if (earwax?.enabled ?? false) yield AudioEffect.earwax;
+    if (ebur128?.enabled ?? false) yield AudioEffect.ebur128;
+    if (equalizer?.enabled ?? false) yield AudioEffect.equalizer;
+    if (extrastereo?.enabled ?? false) yield AudioEffect.extrastereo;
+    if (firequalizer?.enabled ?? false) yield AudioEffect.firequalizer;
+    if (flanger?.enabled ?? false) yield AudioEffect.flanger;
+    if (haas?.enabled ?? false) yield AudioEffect.haas;
+    if (hdcd?.enabled ?? false) yield AudioEffect.hdcd;
+    if (highpass?.enabled ?? false) yield AudioEffect.highpass;
+    if (highshelf?.enabled ?? false) yield AudioEffect.highshelf;
+    if (loudnorm?.enabled ?? false) yield AudioEffect.loudnorm;
+    if (lowpass?.enabled ?? false) yield AudioEffect.lowpass;
+    if (lowshelf?.enabled ?? false) yield AudioEffect.lowshelf;
+    if (mcompand?.enabled ?? false) yield AudioEffect.mcompand;
+    if (pan?.enabled ?? false) yield AudioEffect.pan;
+    if (rubberband?.enabled ?? false) yield AudioEffect.rubberband;
+    if (silenceremove?.enabled ?? false) yield AudioEffect.silenceremove;
+    if (speechnorm?.enabled ?? false) yield AudioEffect.speechnorm;
+    if (stereotools?.enabled ?? false) yield AudioEffect.stereotools;
+    if (stereowiden?.enabled ?? false) yield AudioEffect.stereowiden;
+    if (superequalizer?.enabled ?? false) yield AudioEffect.superequalizer;
+    if (surround?.enabled ?? false) yield AudioEffect.surround;
+    if (tiltshelf?.enabled ?? false) yield AudioEffect.tiltshelf;
+    if (treble?.enabled ?? false) yield AudioEffect.treble;
+    if (tremolo?.enabled ?? false) yield AudioEffect.tremolo;
+    if (vibrato?.enabled ?? false) yield AudioEffect.vibrato;
+    if (virtualbass?.enabled ?? false) yield AudioEffect.virtualbass;
   }
 }

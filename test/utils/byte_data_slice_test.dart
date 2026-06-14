@@ -7,14 +7,13 @@ import 'dart:typed_data';
 import 'package:test/test.dart';
 
 /// Pins the documented `ByteData.buffer.asUint8List(...)` semantics that
-/// `lib/src/internals/uri_resolver.dart` and
-/// `lib/src/internals/tls_ca_bundle.dart` rely on.
+/// `lib/src/internals/uri_resolver.dart` relies on.
 ///
 /// The bug shape: `data.buffer.asUint8List()` (no offset / length args)
 /// returns a view of the FULL backing buffer regardless of `data`'s
 /// own slice — so when Flutter's `rootBundle` packs multiple assets
 /// into one buffer, writing without explicit offset / length spills
-/// sibling assets into the cached file. The two extractors now pass
+/// sibling assets into the cached file. The resolver now passes
 /// `data.offsetInBytes` and `data.lengthInBytes` explicitly.
 void main() {
   group('ByteData / Uint8List slicing', () {

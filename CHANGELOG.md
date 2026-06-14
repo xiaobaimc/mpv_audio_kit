@@ -1,3 +1,47 @@
+## [0.4.0] - 14-06-2026
+
+### Breaking
+- `AudioEffects` slots are now nullable (`null` = "never configured"), so a consumer keeps only the effect classes it names (~270 KB saved when none are used). Reading a slot now needs a null-check (`e.bass?.enabled ?? false`); construction is unchanged.
+
+### Added
+- Per-effect updaters on `AudioEffects` (`updateBass`, `updateAcompressor`, …): one-line incremental edits, e.g. `e.updateBass((b) => b.copyWith(g: 3))`.
+- `Player.getRawPropertyNode(String)`: reads any mpv property as a decoded native tree (maps, lists, scalars), the typed counterpart of `getRawProperty` for structured properties like `track-list`.
+- `Player.stream.loudnessMeter` (`Loudness`): live EBU R128 metering (momentary, short-term, integrated, range). Listener-gated.
+- `Player.stream.loudness` (`LoudnessScan`): whole-track EBU R128 loudness (integrated LUFS, range, sample and true peak), measured off the playback path moments after load. Volume-normalize any track, ReplayGain tags or not. Listener-gated; adaptive and live streams report `unavailable`.
+- Glitch-free live DSP edits: parameter-only changes on command-capable filters (54 of 87) now apply to the running graph in place, so an EQ or compressor slider drag no longer resets filter state. Topology changes still rebuild the chain.
+- Each typed effect now carries a stable label in mpv's `af` chain (`@aek_<effect>:`), the anchor for live updates and metering.
+- `Player.setHlsBitrate(HlsBitrate)`: change the HLS variant-selection policy at runtime (previously init-only via `PlayerConfiguration.hlsBitrate`), observable on `state.hlsBitrate` and `stream.hlsBitrate`.
+- `Player.setCookies(bool)`: enable mpv's HTTP cookie jar for network streams, observable on `state.cookies` and `stream.cookies`.
+- `Player.setHttpProxy(String)`: route network streams through an HTTP proxy (empty string clears it), observable on `state.httpProxy` and `stream.httpProxy`.
+
+### Changed
+- `seek`, `seekToPercent`, `revertSeek`, `jump`, `move`, `remove`, and the `open` family now throw `MpvException` when mpv rejects the command (e.g. seeking with nothing loaded, an out-of-range playlist index) instead of failing silently.
+- Rapid back-to-back transport calls now settle in program order: the last `open`, `stop`, or `clearPlaylist` issued wins, even if an earlier source resolves slower.
+- `Player.dispose()` is now await-safe for concurrent callers: every call returns the same teardown future, so a second `await dispose()` completes only when native resources are actually released.
+- Lower steady-state overhead during playback: all playback-clock properties now share the 30 Hz update throttle, property deduplication no longer allocates per event, and no-op `setAudioEffects` calls skip the native round-trip.
+- Removed two unused dependencies (`crypto`, `plugin_platform_interface`) from the package's dependency graph.
+
+### Fixed
+- Starting or switching tracks no longer freezes the UI while the audio output wakes up: a Bluetooth or AirPlay speaker powering on, an HDMI receiver, a device switch (the macOS beachball). Controls, cover art and the visualizer, waveform, and loudness streams stay responsive throughout.
+- Metadata containing invalid UTF-8 (e.g. the station name of a legacy latin-1 internet-radio server) no longer freezes all state updates for the rest of the session; malformed sequences decode to replacement characters instead.
+- Disposing a `Player` while it was still initializing no longer leaks the mpv core and its event loop; teardown now completes in milliseconds instead of hitting a 2-second timeout.
+- `jump()` from a paused state now raises `playWhenReady`, keeping the OS play and pause button in sync with actual playback.
+- A failed load no longer leaves `playWhenReady` (and the OS play and pause button) stuck on "playing".
+- `completed` no longer pulses `true` between tracks on a gapless playlist advance; it fires only at the genuine end of content.
+- `stream.fft`, `stream.pcm`, `stream.spectrum` and `stream.waveform` now emit `done` on dispose, so awaiting them across a dispose no longer hangs.
+- Two rapid un-awaited `updateAudioEffects` calls no longer drop the first mutation.
+- Two overlapping `setMediaSession` calls no longer leak a duplicate session controller that double-pushed every state change to the OS for the rest of the process.
+- Two distinct `asset://` URIs whose flattened names collide (e.g. `a/b.mp3` and `a_b.mp3`) no longer overwrite each other's extracted file during playback.
+- On macOS and iOS the numeric C locale is now actually forced to `"C"` as libmpv requires (the previous code set a different locale category on Apple platforms).
+- Calling a setter while the player is being disposed during initialization now fails with the documented `StateError` instead of an internal error.
+- Disposing a `Player` while a setter or `registerHook` call is mid-flight no longer risks a native crash.
+- A media-session command from the OS (lockscreen or headset) that the engine rejects (e.g. a seek arriving with nothing loaded) is now handled gracefully instead of surfacing as an uncaught error.
+
+### Build
+- Bundled libmpv binaries rebuilt for every platform: they add the native whole-file loudness analyzer behind `Player.stream.loudness`.
+- **Windows**: the bundled libmpv no longer pins the system-wide 1 ms timer at init, which on some hosts caused UI micro-stutter or dropped frames in the app.
+- HTTPS certificate trust is now compiled into the bundled libmpv (Mozilla CA roots) instead of a shipped `cacert.pem` asset, so it also works in sandboxed app containers (e.g. the macOS App Sandbox). `setTlsCaFile(path)` still overrides with a custom CA.
+
 ## [0.3.6] - 9-06-2026
 
 ### Build
@@ -302,7 +346,7 @@ Major release. The Dart API has been redesigned for type safety, ergonomics, and
 ## [0.0.6] - 08-04-2026
 
 ### Added
-- SMB2/3 protocol support (`smb2://`) for Samba (CIFS) network shares via libsmb2.
+- SMB2 and SMB3 protocol support (`smb2://`) for Samba (CIFS) network shares via libsmb2.
 - Typed error stream - `Stream<MpvPlayerError>` (sealed: `MpvEndFileError`, `MpvLogError`) replaces `Stream<String>`.
 - `stream.endFile` (`MpvFileEndedEvent`) for all file-end events, including premature EOF detection.
 - `stream.pausedForCache` and `stream.demuxerViaNetwork` for network state monitoring.

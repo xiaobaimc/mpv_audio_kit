@@ -42,7 +42,7 @@ void main() {
     });
 
     test('default SpectrumSettings exposed via spectrumSettings getter',
-        () async {
+        () {
       // Before any setSpectrum, the pipeline reports defaults.
       final s = player.spectrumSettings;
       expect(s.fftSize, 2048);

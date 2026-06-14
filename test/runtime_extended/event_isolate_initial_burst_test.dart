@@ -42,17 +42,19 @@ void main() {
         initialVolume: 42.5,
       ),
     );
+    // Pre-subscribe BEFORE any awaited call: `stream.volume` is a
+    // ReactiveProperty broadcast that does NOT replay its current value on
+    // listen, and the seed burst is delivered as soon as bring-up settles.
+    // Subscribing first guarantees the listener is registered before the
+    // 42.5 PROPERTY_CHANGE is processed — otherwise the (correctly
+    // delivered) emit is simply observed too late.
+    final firstVolume = player.stream.volume
+        .firstWhere((v) => v == 42.5)
+        .timeout(const Duration(seconds: 5), onTimeout: () => double.nan);
     await player.setRawProperty('ao', 'null');
 
     try {
-      // Subscribe to the volume stream and grab the first emit. With the
-      // broadcast race, this firstWhere would time out because the seed
-      // emit was lost between observe and listen.
-      final firstVolume = await player.stream.volume
-          .firstWhere((v) => v == 42.5)
-          .timeout(const Duration(seconds: 5), onTimeout: () => double.nan);
-
-      expect(firstVolume, 42.5,
+      expect(await firstVolume, 42.5,
           reason: 'The initial PROPERTY_CHANGE burst from libmpv must '
               'reach the main isolate. If this times out, the event '
               'isolate dropped the seed events between `start()` and '

@@ -35,7 +35,7 @@ void main() {
     });
 
     test('track-list exposes a selected audio track with real demuxer fields',
-        () async {
+        () {
       final tracks = player.state.tracks;
       expect(tracks, isNotEmpty, reason: 'track-list populated on load');
 
@@ -62,7 +62,7 @@ void main() {
       expect(player.state.duration, greaterThan(Duration.zero));
     }, timeout: const Timeout(Duration(seconds: 15)),);
 
-    test('current-tracks/audio mirrors the selected track', () async {
+    test('current-tracks/audio mirrors the selected track', () {
       final current = player.state.currentAudioTrack;
       // current-tracks/audio is populated once a track is selected at load.
       expect(current, isNotNull);

@@ -104,14 +104,16 @@ Future<void> _closeAndroidFd(int fd) async {
   }
 }
 
-Future<String> _copyAssetToCache(String uri) {
+Future<String> _copyAssetToCache(String uri) async {
   final cached = _assetCache[uri];
   // Re-check the file on every hit. macOS / Linux may evict /tmp between
   // sessions or under disk pressure; without this guard a cached path
   // outlives its file and `loadfile` fails opaquely. The miss path
   // re-extracts the asset.
-  if (cached != null && File(cached).existsSync()) return Future.value(cached);
-  if (cached != null) _assetCache.remove(uri);
+  if (cached != null) {
+    if (await File(cached).exists()) return cached;
+    _assetCache.remove(uri);
+  }
   return _assetInflight.putIfAbsent(uri, () => _doCopyAsset(uri));
 }
 
@@ -134,8 +136,17 @@ Future<String> _doCopyAsset(String uri) async {
     // `Platform.pathSeparator` is `/` and the second pass is a no-op.
     final safeName =
         assetPath.replaceAll(Platform.pathSeparator, '_').replaceAll('/', '_');
+    // Flattening alone is ambiguous — `a/b.mp3` and `a_b.mp3` collapse to
+    // the same name, and the second extraction would overwrite a file mpv
+    // may still be streaming. A stable FNV-1a hash of the ORIGINAL path
+    // disambiguates (deterministic across sessions, unlike String.hashCode).
+    var pathHash = 0x811c9dc5;
+    for (final unit in assetPath.codeUnits) {
+      pathHash = ((pathHash ^ unit) * 0x01000193) & 0xFFFFFFFF;
+    }
     final file = File(
-        '${Directory.systemTemp.path}${Platform.pathSeparator}mpv_asset_$safeName',);
+        '${Directory.systemTemp.path}${Platform.pathSeparator}'
+        'mpv_asset_${pathHash.toRadixString(16).padLeft(8, '0')}_$safeName',);
 
     // Slice the asset's view explicitly: rootBundle bundles can pack
     // multiple assets into one backing buffer, and the no-arg

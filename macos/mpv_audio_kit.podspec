@@ -19,7 +19,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'mpv_audio_kit'
-  s.version          = '0.3.6'
+  s.version          = '0.4.0'
   s.summary          = 'Flutter audio player powered by libmpv.'
   s.description      = <<-DESC
     Supports audio filters, pitch control, equalizer, and all mpv audio features.
@@ -61,8 +61,8 @@ Pod::Spec.new do |s|
   # mpv_audio_kit/ SwiftPM package directory so the vendored_frameworks below
   # and Package.swift's local .binaryTarget(path:) share one location.
   s.prepare_command = <<-CMD
-    MPV_RELEASE_VERSION="libmpv-r10"
-    EXPECTED_SHA256="58b7b1d9540a2fda84853d607bb474a44548b0efbc485b99020679056d21ea2e"
+    MPV_RELEASE_VERSION="libmpv-r11"
+    EXPECTED_SHA256="ea2ad113897c238b763104c618fa1a3d24531d059892ebd24e33ad023bb305ca"
     URL="https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}/libmpv_macos.xcframework.zip"
 
     mkdir -p mpv_audio_kit/Frameworks
@@ -89,20 +89,20 @@ Pod::Spec.new do |s|
     # stale), commented out in LOCAL mode (use the vendored copy only). The kit
     # comments/uncomments this block — do not hand-edit the mpvkit: markers.
     # mpvkit:remote:begin
-    if [ $DOWNLOAD_NEEDED -eq 1 ]; then
-      echo "Downloading libmpv_macos.xcframework.zip from $URL..."
-      curl -L -o "$ZIP_FILE" "$URL"
+    # if [ $DOWNLOAD_NEEDED -eq 1 ]; then
+      # echo "Downloading libmpv_macos.xcframework.zip from $URL..."
+      # curl -L -o "$ZIP_FILE" "$URL"
 
-      ACTUAL_SHA256=$(shasum -a 256 "$ZIP_FILE" | awk '{ print $1 }')
-      if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
-        echo "ERROR: SHA-256 verification failed for downloaded file!"
-        rm -f "$ZIP_FILE"
-        exit 1
-      fi
+      # ACTUAL_SHA256=$(shasum -a 256 "$ZIP_FILE" | awk '{ print $1 }')
+      # if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+        # echo "ERROR: SHA-256 verification failed for downloaded file!"
+        # rm -f "$ZIP_FILE"
+        # exit 1
+      # fi
 
-      unzip -o "$ZIP_FILE" -d mpv_audio_kit/Frameworks/
-      rm -f "$ZIP_FILE"
-    fi
+      # unzip -o "$ZIP_FILE" -d mpv_audio_kit/Frameworks/
+      # rm -f "$ZIP_FILE"
+    # fi
     # mpvkit:remote:end
   CMD
 

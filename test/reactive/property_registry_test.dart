@@ -52,7 +52,7 @@ void main() {
       expect(registry.dispatch('volume', 75.5, initial), isNull);
     });
 
-    test('flag spec inverts pause→playing via the parser', () async {
+    test('flag spec inverts pause→playing via the parser', () {
       final playing = ReactiveProperty<bool>(false);
       final registry = PropertyRegistry()
         ..register(MpvPropertySpec<bool>.flag(
@@ -164,7 +164,7 @@ void main() {
       expect(maxBytes.value, 7);
     });
 
-    test('Duration-typed double spec wraps microseconds correctly', () async {
+    test('Duration-typed double spec wraps microseconds correctly', () {
       final position = ReactiveProperty<Duration>(Duration.zero);
       final registry = PropertyRegistry()
         ..register(MpvPropertySpec<Duration>.double(

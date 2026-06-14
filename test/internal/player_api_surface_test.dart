@@ -258,6 +258,16 @@ class _ApiProbe implements PlayerApi {
   Future<void> setTlsCaFile(String path) => _record('setTlsCaFile');
 
   @override
+  Future<void> setHlsBitrate(HlsBitrate hlsBitrate) =>
+      _record('setHlsBitrate');
+
+  @override
+  Future<void> setCookies(bool enable) => _record('setCookies');
+
+  @override
+  Future<void> setHttpProxy(String url) => _record('setHttpProxy');
+
+  @override
   Future<void> setDemuxerMaxBytes(int bytes) => _record('setDemuxerMaxBytes');
 
   @override
@@ -286,6 +296,12 @@ class _ApiProbe implements PlayerApi {
   @override
   Future<String?> getRawProperty(String name) async {
     calls.add('getRawProperty');
+    return null;
+  }
+
+  @override
+  Future<Object?> getRawPropertyNode(String name) async {
+    calls.add('getRawPropertyNode');
     return null;
   }
 
@@ -321,6 +337,9 @@ void main() {
       await typed.setTlsVerify(true);
       await typed.setTlsCaFile('/path');
       await typed.setNetworkTimeout(const Duration(seconds: 5));
+      await typed.setHlsBitrate(HlsBitrate.min);
+      await typed.setCookies(true);
+      await typed.setHttpProxy('http://proxy:3128');
       await typed.setCache(const CacheSettings());
       await typed.setDemuxerMaxBytes(1);
       await typed.setDemuxerMaxBackBytes(1);
@@ -332,6 +351,9 @@ void main() {
         'setTlsVerify',
         'setTlsCaFile',
         'setNetworkTimeout',
+        'setHlsBitrate',
+        'setCookies',
+        'setHttpProxy',
         'setCache',
         'setDemuxerMaxBytes',
         'setDemuxerMaxBackBytes',
@@ -339,6 +361,24 @@ void main() {
         'setAudioBuffer',
         'setAudioStreamSilence',
         'setAudioNullUntimed',
+      ]);
+    });
+
+    test('raw escape hatches all reachable through the interface', () async {
+      final api = _ApiProbe();
+      final PlayerApi typed = api;
+      // Pins getRawPropertyNode onto the interface alongside getRawProperty —
+      // both are advertised public escape hatches and must be callable
+      // through the documented PlayerApi abstraction (mocking seam).
+      await typed.getRawProperty('x');
+      await typed.getRawPropertyNode('x');
+      await typed.setRawProperty('x', 'y');
+      await typed.sendRawCommand(['x']);
+      expect(api.calls, [
+        'getRawProperty',
+        'getRawPropertyNode',
+        'setRawProperty',
+        'sendRawCommand',
       ]);
     });
   });

@@ -167,7 +167,7 @@ void main() {
 
     test(
         'player.state.audioParams aggregates the audio-params NODE_MAP + '
-        'the audio-codec / audio-codec-name siblings', () async {
+        'the audio-codec / audio-codec-name siblings', () {
       // The previous file is still loaded from the first test. Verify the
       // node-driven audioParams populated (via real mpv events).
       expect(player.state.audioParams.format, isNotNull,

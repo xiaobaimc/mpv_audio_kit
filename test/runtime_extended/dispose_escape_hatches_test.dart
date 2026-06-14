@@ -24,7 +24,7 @@ void main() {
         'continueHook all throw StateError post-dispose', () async {
       final player = await buildPlayer();
       // Allow the event isolate to spawn fully before disposing.
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
       await player.dispose();
 
       expect(() => player.getRawProperty('volume'), throwsStateError);
@@ -36,7 +36,7 @@ void main() {
 
       // Let libmpv's background threads wind down (see
       // dispose_safety_test.dart for the rationale).
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
     }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

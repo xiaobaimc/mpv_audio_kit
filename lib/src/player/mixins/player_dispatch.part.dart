@@ -7,16 +7,42 @@ part of '../player.dart';
 /// Inbound event pump: turns each [MpvIsolateEvent] forwarded from the event
 /// isolate into state mutations and stream emits, routes property changes to
 /// the registry (falling back to the custom JSON / derived handlers), and
-/// owns the FILE_LOADED-time polls (position, chapters, embedded cover).
-/// `_handleEvent` is the abstract member bring-up wires as the isolate's
-/// `onEvent`; the rest are internal to this mixin.
+/// applies the FILE_LOADED / PLAYBACK_RESTART payloads (position, chapters,
+/// embedded cover, source path) read by the event isolate. No method here
+/// may issue a synchronous read against the core: every such call waits for
+/// the playloop, and during audio-output init (a Bluetooth/AirPlay device
+/// waking up takes seconds) that wait would freeze the main isolate — the
+/// macOS beachball. `_handleEvent` is the abstract member bring-up wires as
+/// the isolate's `onEvent`; the rest are internal to this mixin.
 mixin _DispatchModule on _PlayerBase {
   @override
   void _handleEvent(MpvIsolateEvent event) {
+    // Async-reply completion runs BEFORE the dispose fence: a reply that
+    // arrives while dispose is unwinding must still complete its pending
+    // future (completers are dispose-agnostic; the fence below only
+    // protects controller add()s).
+    switch (event) {
+      case MpvEventReply(:final userdata, :final error):
+        final completer = _pendingReplies.remove(userdata);
+        if (completer != null && !completer.isCompleted) {
+          completer.complete(error);
+        }
+        return;
+      case MpvEventGetReply(:final userdata, :final error, :final value):
+        final completer = _pendingGetReplies.remove(userdata);
+        if (completer != null && !completer.isCompleted) {
+          completer.complete((error, value));
+        }
+        return;
+      default:
+        break;
+    }
     // Single fence for every controller add() in this method — dispose()
-    // flips `_disposed` before awaiting `_eventSub.cancel()`, so passing
-    // this check guarantees every downstream add() lands on an open
-    // controller without per-call isClosed checks.
+    // flips `_disposed` before the event isolate's `stop()` closes the event
+    // stream, so any event still delivered between the flip and that close
+    // lands here with `_disposed` already true. Passing this check therefore
+    // guarantees every downstream add() lands on an open controller without
+    // per-call isClosed checks.
     if (_disposed) return;
     // A throw from any branch below — most plausibly a malformed observed
     // NODE property reaching the one unguarded parser path (registry
@@ -36,26 +62,56 @@ mixin _DispatchModule on _PlayerBase {
           // the startup burst.
           _hasLoadedFile = true;
           _updateLifecycle(buffering: true, completed: false);
-        case MpvEventFileLoaded():
+        case MpvEventFileLoaded(
+            :final path,
+            :final timePos,
+            :final chapterIndex,
+            :final chapterList,
+            :final coverData,
+            :final coverMime,
+          ):
           // `state.playing` is driven by the `core-idle` observer; here we
-          // only clear buffering/completed and trigger cover-art capture.
+          // only clear buffering/completed and apply the load payload.
           _updateLifecycle(buffering: false, completed: false);
-          _pollPosition();
-          _pollChapterState();
-          // Cover extraction is pure FFI over an mpv-owned buffer; a rare
-          // malformed / oversized embedded picture (or an mpv buffer in an
-          // unexpected state) must never abort the rest of file-load setup.
-          // Above all it must NOT skip the waveform re-arm below: if it did,
-          // one bad track would freeze the live waveform AND the now-playing
-          // artwork for the whole session (both ride this single handler).
-          try {
-            _extractEmbeddedCover();
-          } catch (e, st) {
-            _internalLog(
-              'Embedded cover extraction failed on file-load: $e\n$st',
-              level: LogLevel.warn,
+          // af-command updates leave the `af` property string behind the
+          // live graph; mpv just rebuilt the new file's chain from that
+          // stale string, so rewrite it from state to re-apply the
+          // current parameter values. (A mid-file format reconfig has
+          // the same hazard but no dedicated event; the next file-load
+          // or bundle write heals it.)
+          if (_afStringStale) {
+            _afStringStale = false;
+            // Fire-and-forget: the rewrite is best-effort resync; the rc
+            // has no consumer here and the event handler must not suspend.
+            unawaited(_propRc('af', _state.audioEffects.toAfChain()));
+          }
+          _applyPolledPosition(timePos);
+          // mpv exposes -1 / -2 etc. as "no chapter active"; surface as
+          // null. A failed read (chapterIndex == null) applies nothing.
+          if (chapterIndex != null) {
+            final idx = chapterIndex < 0 ? null : chapterIndex;
+            _updateField(
+              (s) => s.copyWith(currentChapter: idx),
+              _reactives.currentChapter,
+              idx,
             );
           }
+          // Freshly read on every load (see the payload doc for why the
+          // observer's structural dedup makes this necessary); dispatch
+          // through the registry so it reuses the chapter-list parser.
+          if (chapterList != null) {
+            _dispatchProperty('chapter-list', chapterList);
+          }
+          // Emit unconditionally — `null` signals "no cover on the new
+          // file" so subscribers can clear stale artwork on track changes.
+          final cover = coverData == null
+              ? null
+              : CoverArt(
+                  bytes: coverData.materialize().asUint8List(),
+                  mimeType: coverMime ?? 'application/octet-stream',
+                );
+          _state = _state.copyWith(coverArt: cover);
+          _coverArtCtrl.add(cover);
           // Re-arm the waveform ONLY on a genuine source change. mpv re-emits
           // FILE_LOADED on internal reloads (EDL / segment / gapless / track
           // reinit) for the same audio; resetting there would discard a
@@ -64,18 +120,20 @@ mixin _DispatchModule on _PlayerBase {
           // on_load hook that rewrites stream-open-filename but not `path`,
           // and distinct per track.
           if (_bringUpCompleted) {
-            final src = _getPropStringSync('path');
-            if (src != _lastWaveformSource) {
-              _lastWaveformSource = src;
+            if (path != _lastWaveformSource) {
+              _lastWaveformSource = path;
               _waveformPipeline.reset();
+              // The offline loudness scan rides the same native decode
+              // pass and shares the track-change boundary.
+              _loudnessScanPipeline.reset();
             }
           }
         case MpvEventPlaybackSeek():
           // No-op: a seek's landing is observed via PLAYBACK_RESTART
           // (`seekCompleted`); nothing needs the SEEK event itself.
           break;
-        case MpvEventPlaybackRestart():
-          _pollPosition();
+        case MpvEventPlaybackRestart(:final timePos):
+          _applyPolledPosition(timePos);
           _seekCompletedCtrl.add(null);
         case MpvEndFileEvent(:final reason, :final error):
           final typedReason = MpvEndFileReason.fromValue(reason);
@@ -93,9 +151,37 @@ mixin _DispatchModule on _PlayerBase {
                 message: _errorString(error),
               ),
             );
+            // A terminal load failure parks mpv idle, but the idle-active
+            // false→true round-trip can coalesce inside one playloop
+            // iteration — mpv's observer then emits NO property change at
+            // all, so the idle-active intent reset never fires and the
+            // play/pause button sticks on "playing". Settle the intent off
+            // this discrete event instead, with the same end-of-content
+            // gate as the eof-reached hook so a mid-playlist failure that
+            // auto-advances doesn't flicker the button.
+            if (_isEndOfContent()) {
+              _updateField(
+                (s) => s.copyWith(playWhenReady: false),
+                _reactives.playWhenReady,
+                false,
+              );
+            }
           }
+          // mpv emits END_FILE(EOF) for EVERY finished entry, including a
+          // gapless mid-playlist advance (where START_FILE clears the flag
+          // a moment later). Gate on _isEndOfContent() — same gate as the
+          // `eof-reached` hook — so `completed` pulses only at the genuine
+          // end of all playable content, never between tracks.
           final isEof = reason == MpvEndFileReason.eof.value;
-          _updateLifecycle(playing: false, buffering: false, completed: isEof);
+          _updateLifecycle(
+            playing: false,
+            buffering: false,
+            completed: isEof && _isEndOfContent(),
+          );
+        case MpvEventReply():
+        case MpvEventGetReply():
+          // Completed before the dispose fence above; never reaches here.
+          break;
         case MpvEventShutdown():
           _updateLifecycle(playing: false, buffering: false);
         case MpvEventPropertyDouble(:final name, :final value):
@@ -165,7 +251,7 @@ mixin _DispatchModule on _PlayerBase {
     // idle-active / eof-reached hooks settling the transport) builds on the
     // reduced state and isn't clobbered by a late assignment here.
     final next =
-        _registry.dispatch(name, raw, _state, commit: (s) => _state = s);
+        _registry.dispatch(name, raw, _state, commit: _commitState);
     if (next != null) {
       return;
     }
@@ -285,99 +371,16 @@ mixin _DispatchModule on _PlayerBase {
 
   // --- Misc helpers ---
 
-  void _pollPosition() {
-    if (_disposed) return;
-    using((arena) {
-      final n = 'time-pos'.toNativeUtf8(allocator: arena);
-      final buf = arena<Double>();
-      final rc = _lib.mpvGetProperty(
-        _handle,
-        n,
-        MpvFormat.mpvFormatDouble,
-        buf.cast(),
-      );
-      if (rc == MpvError.mpvErrorSuccess) {
-        final pos = Duration(microseconds: (buf.value * 1e6).round());
-        _updateField(
-          (s) => s.copyWith(position: pos),
-          _reactives.position,
-          pos,
-        );
-      }
-    });
-  }
-
-  /// Force-refreshes [PlayerState.chapters] and
-  /// [PlayerState.currentChapter] by reading the underlying mpv
-  /// properties directly. mpv's observer queue dedupes on
-  /// `equal_mpv_value` (see `player/client.c::send_client_property_changes`),
-  /// so two consecutive tracks with structurally-equal `chapter-list`
-  /// (e.g. an audiobook where consecutive parts share the same chapter
-  /// pattern) would skip the PROPERTY_CHANGE event and strand the
-  /// wrapper at whatever the previous file left behind. Polling on
-  /// FILE_LOADED bypasses the dedup so the wrapper always carries the
-  /// truth for the current file.
-  void _pollChapterState() {
-    if (_disposed) return;
-    // chapter index — INT64 scalar.
-    using((arena) {
-      final n = 'chapter'.toNativeUtf8(allocator: arena);
-      final buf = arena<Int64>();
-      final rc =
-          _lib.mpvGetProperty(_handle, n, MpvFormat.mpvFormatInt64, buf.cast());
-      if (rc == MpvError.mpvErrorSuccess) {
-        // mpv exposes -1 / -2 etc. as "no chapter active"; surface as null.
-        final idx = buf.value < 0 ? null : buf.value.toInt();
-        _updateField(
-          (s) => s.copyWith(currentChapter: idx),
-          _reactives.currentChapter,
-          idx,
-        );
-      }
-    });
-    // chapter-list — NODE_ARRAY. Allocate, read, decode, dispatch
-    // through the registry (re-using the parser), free the node tree.
-    using((arena) {
-      final n = 'chapter-list'.toNativeUtf8(allocator: arena);
-      final nodePtr = arena<MpvNode>();
-      final rc = _lib.mpvGetProperty(
-        _handle,
-        n,
-        MpvFormat.mpvFormatNode,
-        nodePtr.cast(),
-      );
-      if (rc == MpvError.mpvErrorSuccess) {
-        final decoded = decodeMpvNode(nodePtr.ref);
-        try {
-          _dispatchProperty('chapter-list', decoded);
-        } finally {
-          _lib.mpvFreeNodeContents(nodePtr);
-        }
-      }
-    });
-  }
-
-  void _extractEmbeddedCover() {
-    if (_disposed) return;
-    // Emit unconditionally — `null` signals "no cover on the new
-    // file" so subscribers can clear stale artwork on track changes.
-    final cover = CoverArtExtractor.capture(_lib, _handle);
-    _state = _state.copyWith(coverArt: cover);
-    _coverArtCtrl.add(cover);
-  }
-
-  /// Synchronous string-property read for use inside the event handler (the
-  /// public [getRawProperty] is async). Returns null if the handle is gone or
-  /// the property is unavailable.
-  String? _getPropStringSync(String name) {
-    if (_handle == nullptr) return null;
-    return using<String?>((arena) {
-      final n = name.toNativeUtf8(allocator: arena);
-      final ptr = _lib.mpvGetPropertyString(_handle, n);
-      if (ptr == nullptr) return null;
-      final s = ptr.cast<Utf8>().toDartString();
-      _lib.mpvFree(ptr.cast());
-      return s;
-    });
+  /// Applies a `time-pos` value carried on an event payload (seconds, read
+  /// by the event isolate at dispatch time). `null` means the read failed
+  /// or the property was unavailable — nothing is applied.
+  void _applyPolledPosition(double? seconds) {
+    if (seconds == null) return;
+    final pos = Duration(microseconds: (seconds * 1e6).round());
+    _updateField(
+      (s) => s.copyWith(position: pos),
+      _reactives.position,
+      pos,
+    );
   }
 }

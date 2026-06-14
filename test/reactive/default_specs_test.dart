@@ -547,6 +547,7 @@ void main() {
         'cache-pause-wait', 'cache-pause-initial',
         'demuxer-max-bytes', 'demuxer-readahead-secs',
         'demuxer-max-back-bytes', 'network-timeout', 'tls-verify',
+        'hls-bitrate', 'cookies', 'http-proxy',
         'paused-for-cache', 'demuxer-via-network',
         // Audio output / driver
         'audio-buffer', 'audio-exclusive', 'audio-set-media-role',

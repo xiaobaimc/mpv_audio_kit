@@ -42,8 +42,11 @@ void main() {
       Pointer<Utf8> Function(Int32, Pointer<Utf8>),
       Pointer<Utf8> Function(int, Pointer<Utf8>)>('setlocale');
 
-  // LC_NUMERIC = 1 on both Linux glibc and macOS libSystem.
-  const lcNumeric = 1;
+  // libc-specific constant: 1 on Linux glibc, 4 on macOS/iOS (BSD
+  // layout, where 1 is LC_COLLATE). Using the wrong one here would make
+  // this test perturb and read back a different category than the one
+  // `_applyPlatformQuirks` enforces, passing regardless of the fix.
+  final lcNumeric = Platform.isLinux ? 1 : 4;
 
   test('ensureInitialized resets LC_NUMERIC to "C" even from a non-C locale',
       () {

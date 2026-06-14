@@ -58,15 +58,15 @@ let package = Package(
         // at a time — the kit comments/uncomments these blocks; do not hand-edit
         // the mpvkit: markers.
         // mpvkit:local:begin
-        // .binaryTarget(
-            // name: "libmpv",
-            // path: "Frameworks/libmpv.xcframework"),
-        // mpvkit:local:end
-        // mpvkit:remote:begin
         .binaryTarget(
             name: "libmpv",
-            url: "https://github.com/ales-drnz/mpv_audio_kit/releases/download/libmpv-r10/libmpv_macos.xcframework.zip",
-            checksum: "58b7b1d9540a2fda84853d607bb474a44548b0efbc485b99020679056d21ea2e"),
+            path: "Frameworks/libmpv.xcframework"),
+        // mpvkit:local:end
+        // mpvkit:remote:begin
+        // .binaryTarget(
+            // name: "libmpv",
+            // url: "https://github.com/ales-drnz/mpv_audio_kit/releases/download/libmpv-r11/libmpv_macos.xcframework.zip",
+            // checksum: "ea2ad113897c238b763104c618fa1a3d24531d059892ebd24e33ad023bb305ca"),
         // mpvkit:remote:end
     ]
 )

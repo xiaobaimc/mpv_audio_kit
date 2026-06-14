@@ -5,11 +5,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
+import 'dart:isolate';
 
 import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
 import '../dsp/filter_tap_pipeline.dart';
+import '../dsp/loudness_meter_pipeline.dart';
+import '../dsp/loudness_scan_pipeline.dart';
 import '../dsp/spectrum_pipeline.dart';
 import '../dsp/waveform_pipeline.dart';
 import '../events/mpv_exception.dart';
@@ -17,14 +20,12 @@ import '../events/mpv_hook_event.dart';
 import '../events/mpv_log_entry.dart';
 import '../events/mpv_player_error.dart';
 import '../generated/audio_effects_settings.dart';
-import '../internals/cover_art_extractor.dart';
 import '../internals/debug_log.dart';
 import '../internals/duration_seconds.dart';
 import '../internals/event_isolate.dart';
 import '../internals/library_loader.dart';
 import '../internals/orphan_handle_tracker.dart';
 import '../internals/player_finalizer.dart';
-import '../internals/tls_ca_bundle.dart';
 import '../internals/uri_resolver.dart';
 import '../media_session/media_session_controller.dart';
 import '../media_session/media_session_inputs.dart';
@@ -33,6 +34,8 @@ import '../models/cover_art.dart';
 import '../models/demuxer_cache_state.dart';
 import '../models/device.dart';
 import '../models/fft_frame.dart';
+import '../models/loudness.dart';
+import '../models/loudness_scan.dart';
 import '../models/media.dart';
 import '../models/media_session.dart';
 import '../models/pcm_frame.dart';
@@ -47,6 +50,7 @@ import '../reactive/reactive_property.dart';
 import '../types/enums/cover.dart';
 import '../types/enums/format.dart';
 import '../types/enums/gapless.dart';
+import '../types/enums/hls_bitrate.dart';
 import '../types/enums/hook.dart';
 import '../types/enums/log_level.dart';
 import '../types/enums/loop.dart';
@@ -73,6 +77,7 @@ export '../generated/audio_effects_settings.dart';
 export '../models/audio_params.dart';
 export '../models/cover_art.dart';
 export '../models/device.dart';
+export '../models/loudness.dart';
 export '../models/media.dart';
 export '../models/media_session.dart';
 export '../models/playlist.dart';
@@ -145,12 +150,17 @@ class Player extends _PlayerBase
   /// `pause` is set as a global property before `loadfile` so the
   /// property observer always fires on the first-load transition
   /// (a per-file option can skip the `PROPERTY_CHANGE` emit).
-  /// Rapid back-to-back `open()` calls don't race: `loadfile replace`
-  /// aborts the previous load, so the last `(pause, loadfile)` pair wins.
+  /// Rapid back-to-back `open()` calls don't race: each call claims the
+  /// load epoch synchronously and aborts at its next await once a later
+  /// content-replacing call (open / openAll / openPlaylistFile / stop /
+  /// clearPlaylist) has claimed a newer one — so the call that is LAST
+  /// in program order wins, regardless of per-URI resolve latency.
   @override
   Future<void> open(Media media, {bool? play}) async {
     _checkNotDisposed();
-    await _ready;
+    final epoch = ++_loadEpoch;
+    await _gate();
+    if (epoch != _loadEpoch) return;
     _validateLoadOptions(media);
     final shouldPlay = play ?? configuration.autoPlay;
     // Optimistic intent (the play/pause axis), written at the call point —
@@ -166,34 +176,41 @@ class Player extends _PlayerBase
     );
     _mediaCache.clear();
     _mediaCache[media.uri] = media;
-    // Gate on the trust-bundle Future so the first HTTPS load always
-    // sees `tls-ca-file` populated. Awaited in parallel with URI
-    // resolution so the bundle write overlaps with content://-handle
-    // detach / asset materialisation.
-    final tls = _tlsBundleReady;
     final resolved = await resolveUri(media.uri);
-    await tls;
-    if (_disposed) {
+    if (_disposed || epoch != _loadEpoch) {
       await resolved.dispose?.call();
       return;
     }
     _mediaCache[resolved.uri] = media;
-    // Drop visible per-track state synchronously — cover art, chapter
-    // list and current chapter index — so a UI that reads the state
-    // immediately after `open()` returns doesn't briefly render the
-    // previous track's data.
-    _clearPerFileState();
-    _prop('pause', shouldPlay ? 'no' : 'yes');
+    // Execute in-flight transport writes (e.g. an un-awaited seek) before
+    // the replace below, so they apply to the OLD file — see [_settleWrites].
+    await _settleWrites();
+    if (_disposed || epoch != _loadEpoch) {
+      await resolved.dispose?.call();
+      return;
+    }
+    await _prop('pause', shouldPlay ? 'no' : 'yes');
     final opts = _buildLoadfileOptions(media);
     if (opts.isEmpty) {
-      _command(['loadfile', resolved.uri, 'replace']);
+      await _commandChecked(['loadfile', resolved.uri, 'replace']);
     } else {
       // Per-Media `httpHeaders` / `httpChunkSize` ride along as the 4th
       // `loadfile` arg (mpv 0.38+: index must be `-1` when options are
       // present), so mpv scopes them as file-local for this exact playlist
       // entry — never writing the global `http-header-fields` / `stream-lavf-o`.
-      _command(['loadfile', resolved.uri, 'replace', '-1', opts]);
+      await _commandChecked(['loadfile', resolved.uri, 'replace', '-1', opts]);
     }
+    // Drop visible per-track state — cover art, chapter list and current
+    // chapter index — so a UI that reads the state immediately after
+    // `open()` returns doesn't render the previous track's data. Placed
+    // AFTER the loadfile reply (not before): the async writes above
+    // suspend, and by FIFO port delivery every still-queued OLD-file
+    // PROPERTY_CHANGE (e.g. a trailing `chapter-list`) has been received
+    // and applied by the time that reply lands — clearing here is the last
+    // word before return, so none of those stale events survive into the
+    // post-`open()` snapshot. The NEW file's FILE_LOADED arrives later and
+    // repopulates.
+    _clearPerFileState();
   }
 
   /// Opens a list of [Media] items as the new playlist, optionally starting at [index].
@@ -204,10 +221,13 @@ class Player extends _PlayerBase
   @override
   Future<void> openAll(List<Media> medias, {bool? play, int index = 0}) async {
     _checkNotDisposed();
-    await _ready;
     if (medias.isEmpty) {
       return;
     }
+    // Claim the load epoch synchronously — see [open].
+    final epoch = ++_loadEpoch;
+    await _gate();
+    if (epoch != _loadEpoch) return;
     // Validate the full batch before any side-effect, so a bad header
     // on entry N can't leave entries 0..N-1 half-loaded.
     for (final m in medias) {
@@ -223,9 +243,6 @@ class Player extends _PlayerBase
       shouldPlay,
     );
     _mediaCache.clear();
-    // Gate on the trust-bundle Future so HTTPS items in the playlist
-    // see `tls-ca-file` populated by the time `loadfile` fires.
-    await _tlsBundleReady;
     // Resolve once per media — content:// resolutions detach a JVM-side
     // FD, doing it twice would leak one FD per track.
     final resolved = <ResolvedUri>[];
@@ -233,7 +250,7 @@ class Player extends _PlayerBase
       for (final m in medias) {
         _mediaCache[m.uri] = m;
         final r = await resolveUri(m.uri);
-        if (_disposed) {
+        if (_disposed || epoch != _loadEpoch) {
           await r.dispose?.call();
           for (final prior in resolved) {
             await prior.dispose?.call();
@@ -252,29 +269,42 @@ class Player extends _PlayerBase
       }
       rethrow;
     }
+    // Execute in-flight transport writes before the replace — see
+    // [_settleWrites].
+    await _settleWrites();
+    if (_disposed || epoch != _loadEpoch) {
+      for (final prior in resolved) {
+        await prior.dispose?.call();
+      }
+      return;
+    }
     // Per-Media `httpHeaders` ride along as the 4th `loadfile` arg
     // for every entry (initial replace + every append), so mpv scopes
     // them as file-local without ever writing the global
     // `http-header-fields` option.
-    _clearPerFileState();
-    _prop('pause', shouldPlay ? 'no' : 'yes');
+    await _prop('pause', shouldPlay ? 'no' : 'yes');
     final firstOpts = _buildLoadfileOptions(medias.first);
     if (firstOpts.isEmpty) {
-      _command(['loadfile', resolved.first.uri, 'replace']);
+      await _commandChecked(['loadfile', resolved.first.uri, 'replace']);
     } else {
-      _command(['loadfile', resolved.first.uri, 'replace', '-1', firstOpts]);
+      await _commandChecked(
+          ['loadfile', resolved.first.uri, 'replace', '-1', firstOpts],);
     }
     for (var i = 1; i < medias.length; i++) {
       final opts = _buildLoadfileOptions(medias[i]);
       if (opts.isEmpty) {
-        _command(['loadfile', resolved[i].uri, 'append']);
+        await _commandChecked(['loadfile', resolved[i].uri, 'append']);
       } else {
-        _command(['loadfile', resolved[i].uri, 'append', '-1', opts]);
+        await _commandChecked(['loadfile', resolved[i].uri, 'append', '-1', opts]);
       }
     }
     if (clampedIndex > 0) {
-      _command(['playlist-play-index', clampedIndex.toString()]);
+      await _commandChecked(['playlist-play-index', clampedIndex.toString()]);
     }
+    // Clear per-track state AFTER the replace's reply — see [open] for why
+    // the placement (post-reply) is what makes the clear the last word over
+    // trailing OLD-file PROPERTY_CHANGE events.
+    _clearPerFileState();
   }
 
   /// Loads a playlist FILE or URL (`.m3u` / `.m3u8` / `.pls` / `.cue`) and
@@ -294,7 +324,10 @@ class Player extends _PlayerBase
   @override
   Future<void> openPlaylistFile(Media playlist, {bool? play}) async {
     _checkNotDisposed();
-    await _ready;
+    // Claim the load epoch synchronously — see [open].
+    final epoch = ++_loadEpoch;
+    await _gate();
+    if (epoch != _loadEpoch) return;
     _validateLoadOptions(playlist);
     final shouldPlay = play ?? configuration.autoPlay;
     // Optimistic intent written at the call point — same rationale as [open].
@@ -304,22 +337,28 @@ class Player extends _PlayerBase
       shouldPlay,
     );
     _mediaCache.clear();
-    final tls = _tlsBundleReady;
     final resolved = await resolveUri(playlist.uri);
-    await tls;
-    if (_disposed) {
+    if (_disposed || epoch != _loadEpoch) {
       await resolved.dispose?.call();
       return;
     }
+    // Execute in-flight transport writes before the replace — see
+    // [_settleWrites].
+    await _settleWrites();
+    if (_disposed || epoch != _loadEpoch) {
+      await resolved.dispose?.call();
+      return;
+    }
+    await _prop('pause', shouldPlay ? 'no' : 'yes');
+    await _commandChecked(['loadlist', resolved.uri, 'replace']);
+    // Clear per-track state AFTER the replace's reply — see [open].
     _clearPerFileState();
-    _prop('pause', shouldPlay ? 'no' : 'yes');
-    _command(['loadlist', resolved.uri, 'replace']);
   }
 
   @override
-  Future<void> dispose() async {
+  Future<void> _disposeImpl() async {
     // Release the OS media session BEFORE tearing libmpv down. After
-    // super.dispose() the FFI handle is gone — leaving the native
+    // the base teardown the FFI handle is gone — leaving the native
     // session published would surface a stale lockscreen entry
     // pointing at a dead Player, and incoming commands (play from
     // the lockscreen) would land on disposed state.
@@ -331,7 +370,7 @@ class Player extends _PlayerBase
       }
     }
     _cancelHookTimers();
-    await super.dispose();
+    await super._disposeImpl();
   }
 }
 
@@ -384,7 +423,25 @@ abstract class _PlayerBase {
   final _registeredHookNames = <String>{};
 
   PlayerState _state = const PlayerState();
+
+  /// Reused `commit` callback for every registry dispatch — tearing off (or
+  /// closing over) per event would be one piece of garbage per property
+  /// change, so the tear-off is captured once.
+  late final void Function(PlayerState) _commitState = _assignState;
+
+  void _assignState(PlayerState s) => _state = s;
+
   final Map<String, Media> _mediaCache = {};
+
+  // Monotonic generation counter for content-replacing transport calls.
+  // Bumped synchronously at the head of open() / openAll() /
+  // openPlaylistFile() / stop() / clearPlaylist(); every load path
+  // re-checks it after each await and aborts when stale. Without it,
+  // per-scheme resolve latencies (asset:// does real I/O, a plain path
+  // resolves in one microtask) let an EARLIER call issue its loadfile
+  // AFTER a later one — the superseded media would win, and an in-flight
+  // open() could resume past a stop() and restart playback.
+  int _loadEpoch = 0;
 
   // ── Property registry (the bulk of state — one spec per mpv property) ──
   late final DefaultPropertyReactives _reactives;
@@ -463,6 +520,15 @@ abstract class _PlayerBase {
   // listener.
   late final FilterTapPipeline _filterTapPipeline;
 
+  // Live EBU R128 meter. Listener-gated: polls `af-metadata` only while
+  // `stream.loudness` has a listener (the `ebur128` effect itself is
+  // enabled by the consumer on the AudioEffects bundle).
+  late final LoudnessMeterPipeline _loudnessMeterPipeline;
+
+  // Offline loudness scan. Listener-gated: arms the native whole-file
+  // scan and polls only while `stream.loudness` has a listener.
+  late final LoudnessScanPipeline _loudnessScanPipeline;
+
   PlayerState get state => _state;
   late final PlayerStream stream;
 
@@ -475,16 +541,78 @@ abstract class _PlayerBase {
   // domain mixins can call across part boundaries — `on _PlayerBase` only
   // exposes what `_PlayerBase` itself declares.
 
-  /// See `_FfiModule` (player_ffi.part.dart).
-  void _prop(String name, String value);
-  int _propRc(String name, String value);
-  int _command(List<String> args);
-  int _setChapterListNode(List<Chapter> chapters);
+  /// See `_FfiModule` (player_ffi.part.dart). All writes ride the async
+  /// client API (`mpv_*_async`): the call enqueues on the core's dispatch
+  /// and the returned future completes when the event isolate forwards the
+  /// reply — so the main isolate never waits for the playloop (which can be
+  /// stalled for seconds inside audio-output init). The optimistic state
+  /// writes in the setters stay synchronous; only the mpv confirmation is
+  /// deferred.
+  Future<void> _prop(String name, String value);
+  Future<int> _propRc(String name, String value);
+  Future<int> _command(List<String> args);
+  Future<void> _commandChecked(List<String> args);
+  Future<int> _setChapterListNode(List<Chapter> chapters);
+
+  /// Async property read (see `_FfiModule`): enqueues
+  /// `mpv_get_property_async` and resolves with `(error, decodedValue)`
+  /// once the event isolate forwards the reply.
+  Future<(int, dynamic)> _getAsync(String name, int format);
   String _errorString(int code);
+
+  // ── Async-reply correlation ────────────────────────────────────────────
+  // Every `mpv_*_async` call is tagged with a fresh id; the event isolate
+  // forwards the matching reply and `_handleEvent` completes the future.
+  // Ids stay unique for the player's lifetime (an int in Dart does not
+  // wrap), and never collide with `mpv_observe_property` reply ids — those
+  // live in a different event namespace (PROPERTY_CHANGE).
+  int _nextReplyId = 1;
+  final Map<int, Completer<int>> _pendingReplies = {};
+  final Map<int, Completer<(int, dynamic)>> _pendingGetReplies = {};
+
+  /// Set true by dispose AFTER the event isolate has stopped and the pending
+  /// replies are about to be drained, immediately before `mpv_terminate_destroy`
+  /// frees the handle. The FFI primitives in `_FfiModule` check it so a
+  /// continuation the drain resumes (a multi-write setter suspended between
+  /// writes) never issues `mpv_*_async` against the freed handle. Distinct from
+  /// `_disposed` (set at the very start of dispose) because the dispose `quit`
+  /// must still reach mpv — it is issued while this is still false.
+  bool _ffiClosed = false;
+
+  /// In-flight `registerHook` runs. `mpv_hook_add` locks the core and has no
+  /// async variant, so it executes in a throwaway `Isolate.run` against the
+  /// shared handle; dispose must await any outstanding one BEFORE
+  /// `mpv_terminate_destroy` frees the handle, or the throwaway isolate would
+  /// dereference freed memory (`lock_core(ctx)`).
+  final Set<Future<void>> _pendingHookAdds = {};
+
+  /// Completes every still-pending async reply after the event isolate has
+  /// stopped (no reply can arrive anymore). Writes resolve as successes —
+  /// the request was accepted into the queue, matching the pre-async
+  /// behaviour where a call racing dispose still completed normally; reads
+  /// resolve as failures so they surface as `null` values.
+  void _drainPendingReplies() {
+    for (final completer in _pendingReplies.values) {
+      if (!completer.isCompleted) completer.complete(0);
+    }
+    _pendingReplies.clear();
+    for (final completer in _pendingGetReplies.values) {
+      if (!completer.isCompleted) {
+        completer.complete((MpvError.mpvErrorGeneric, null));
+      }
+    }
+    _pendingGetReplies.clear();
+  }
 
   /// See `_LoadValidationModule` (player_load_validation.part.dart).
   String _buildLoadfileOptions(Media media);
   void _validateLoadOptions(Media media);
+
+  // Set by the audio module when af-command updates leave the live graph
+  // ahead of the `af` property string; cleared by the dispatch layer when
+  // it resyncs the string on the next file load (mpv rebuilds chains from
+  // the string, which would otherwise revert the live values).
+  bool _afStringStale = false;
 
   /// See `_InitModule` (player_init.part.dart) — called by the constructor.
   Future<void> _bringUpInIsolate();
@@ -567,8 +695,38 @@ abstract class _PlayerBase {
     // Streams that don't need _lib/_handle can be wired immediately —
     // a consumer subscribing right after `Player()` sees no events
     // until init completes, which is the correct semantics.
-    _fftCtrl = StreamController<FftFrame>.broadcast();
-    _pcmStreamCtrl = StreamController<PcmFrame>.broadcast();
+    //
+    // The fft/pcm bridges into the spectrum pipeline are listener-gated:
+    // the pipeline arms its 30fps `pcm-tap-frame` poll as soon as its own
+    // streams have a listener, so bridging unconditionally would keep the
+    // poll running for the player's whole lifetime with zero consumers.
+    // Subscribers that land before bring-up are reconciled once the
+    // pipeline exists (see `_bringUpInIsolate`).
+    _fftCtrl = StreamController<FftFrame>.broadcast(
+      onListen: () {
+        if (_bringUpCompleted) {
+          _fftPipeSub ??= _spectrumPipeline.fftStream.listen(_fftCtrl.add);
+        }
+      },
+      onCancel: () {
+        final sub = _fftPipeSub;
+        _fftPipeSub = null;
+        if (sub != null) unawaited(sub.cancel());
+      },
+    );
+    _pcmStreamCtrl = StreamController<PcmFrame>.broadcast(
+      onListen: () {
+        if (_bringUpCompleted) {
+          _pcmPipeSub ??=
+              _spectrumPipeline.pcmStream.listen(_pcmStreamCtrl.add);
+        }
+      },
+      onCancel: () {
+        final sub = _pcmPipeSub;
+        _pcmPipeSub = null;
+        if (sub != null) unawaited(sub.cancel());
+      },
+    );
     _spectrumCtrl = StreamController<SpectrumSettings>.broadcast();
     // Listener-gated: the native waveform analyzer arms only while a
     // consumer is subscribed. The pipeline is built during isolate
@@ -580,6 +738,26 @@ abstract class _PlayerBase {
       },
       onCancel: () {
         if (_bringUpCompleted) _waveformPipeline.setEnabled(false);
+      },
+    );
+    // Same listener-gating as the waveform: the af-metadata poll runs
+    // only while someone is subscribed to `stream.loudnessMeter`.
+    _loudnessMeterCtrl = StreamController<Loudness>.broadcast(
+      onListen: () {
+        if (_bringUpCompleted) _loudnessMeterPipeline.setEnabled(true);
+      },
+      onCancel: () {
+        if (_bringUpCompleted) _loudnessMeterPipeline.setEnabled(false);
+      },
+    );
+    // Listener-gated like the waveform: the native whole-file scan runs
+    // only while someone is subscribed to `stream.loudness`.
+    _loudnessScanCtrl = StreamController<LoudnessScan?>.broadcast(
+      onListen: () {
+        if (_bringUpCompleted) _loudnessScanPipeline.setEnabled(true);
+      },
+      onCancel: () {
+        if (_bringUpCompleted) _loudnessScanPipeline.setEnabled(false);
       },
     );
     stream = PlayerStream.fromInternals(
@@ -605,6 +783,8 @@ abstract class _PlayerBase {
       pcm: _pcmStreamCtrl.stream,
       spectrum: _spectrumCtrl.stream,
       waveform: _waveformCtrl.stream,
+      loudnessMeter: _loudnessMeterCtrl.stream,
+      loudness: _loudnessScanCtrl.stream,
       tap: (filter, {required side}) => switch (side) {
         TapSide.pre => _filterTapPipeline.tapPre(filter.filterName),
         TapSide.post => _filterTapPipeline.tapPost(filter.filterName),
@@ -632,15 +812,15 @@ abstract class _PlayerBase {
   String? _lastWaveformSource;
   late final StreamController<FftFrame> _fftCtrl;
   late final StreamController<PcmFrame> _pcmStreamCtrl;
+  // Lazy bridges into the spectrum pipeline — non-null exactly while the
+  // matching public stream has a listener (they keep the pipeline's
+  // listener-gated poll loop armed; see the controllers' onListen).
+  StreamSubscription<FftFrame>? _fftPipeSub;
+  StreamSubscription<PcmFrame>? _pcmPipeSub;
   late final StreamController<SpectrumSettings> _spectrumCtrl;
   late final StreamController<WaveformData?> _waveformCtrl;
-
-  late final Future<void> _tlsBundleReady;
-
-  /// Path of the bundled CA pem extracted to a real filesystem location
-  /// by [_autoConfigureTlsCaBundle]. Captured here so [setTlsCaFile]
-  /// can restore the default with an empty argument.
-  String? _autoTlsCaBundlePath;
+  late final StreamController<Loudness> _loudnessMeterCtrl;
+  late final StreamController<LoudnessScan?> _loudnessScanCtrl;
 
   void _startHookTimeout(int id, String name, Duration timeout) {
     _hookTimers[id] = Timer(timeout, () {
@@ -680,6 +860,42 @@ abstract class _PlayerBase {
     if (_disposed) {
       throw StateError('Player has been disposed');
     }
+  }
+
+  /// Shared prologue for every public method that touches the FFI handle:
+  /// fail fast when already disposed, await bring-up, then verify bring-up
+  /// actually assigned the FFI fields. A dispose() that lands while the
+  /// caller is parked on [_ready] aborts bring-up early — [_ready] still
+  /// completes normally, but `_lib` / `_handle` were never assigned, so
+  /// resuming into an FFI call would throw [LateInitializationError]
+  /// instead of the [StateError] the API contract promises.
+  Future<void> _gate() async {
+    _checkNotDisposed();
+    await _ready;
+    if (!_bringUpCompleted) {
+      throw StateError('Player has been disposed');
+    }
+  }
+
+  /// Completes when every write currently on the wire has been executed
+  /// (its reply forwarded, or settled by the dispose drain). Snapshot
+  /// semantics: writes enqueued after this call are not waited on.
+  ///
+  /// The synchronous client API implicitly guaranteed "previous request
+  /// EXECUTED before the next public call's request is issued"; with the
+  /// async API two requests can coalesce into one core dispatch drain and
+  /// interact — e.g. an un-awaited `seek` surviving a replace `loadfile`
+  /// (its `queue_seek` entry rides into the NEW file) instead of being
+  /// aborted by it. Content-replacing and playlist-navigation methods call
+  /// this right before their first write so earlier in-flight transport
+  /// commands are executed first, restoring the old inter-call semantics
+  /// while the main isolate stays free — under a stalled core the FUTURES
+  /// queue up, not the UI thread.
+  Future<void> _settleWrites() {
+    if (_pendingReplies.isEmpty) return Future.value();
+    return Future.wait(
+      [for (final completer in _pendingReplies.values) completer.future],
+    );
   }
 
   /// Rejects NaN / +Inf / -Inf before they reach `toStringAsFixed`,
@@ -807,10 +1023,17 @@ abstract class _PlayerBase {
   ///    this group does not matter for correctness (they tolerate
   ///    `close()` while a listener is attached); grouping by ownership
   ///    is for auditability.
-  Future<void> dispose() async {
-    if (_disposed) {
-      return;
-    }
+  ///
+  /// Idempotent AND await-safe: every call — including concurrent ones —
+  /// returns the same teardown future, so a second `await dispose()`
+  /// completes only when the teardown has actually finished (a bare
+  /// `_disposed` early-return would let the second caller proceed while
+  /// native resources are still being released).
+  Future<void> dispose() => _disposeFuture ??= _disposeImpl();
+
+  Future<void>? _disposeFuture;
+
+  Future<void> _disposeImpl() async {
     _disposed = true;
 
     // Wait for init to settle. The handle / lib / native-resources
@@ -829,15 +1052,43 @@ abstract class _PlayerBase {
       await _filterTapPipeline.dispose();
       await _waveformPipeline.dispose();
       await _spectrumPipeline.dispose();
+      await _loudnessMeterPipeline.dispose();
+      await _loudnessScanPipeline.dispose();
       // Cooperative quit: mpv fires MPV_EVENT_SHUTDOWN and the isolate's
       // mpv_wait_event returns. requestStop (stop flag + mpv_wakeup) unblocks
       // the loop deterministically even if `quit` was dropped or SHUTDOWN is
       // delayed by a stalled hook. mpv_terminate_destroy runs only AFTER the
       // confirmed exit below — destroying mid-syscall would crash libmpv.
-      _command(['quit']);
+      // Fire-and-forget: quit's reply may never be forwarded (the isolate is
+      // about to stop) — the drain below settles the dangling future.
+      unawaited(_command(['quit']));
       _eventIsolate.requestStop(_lib, _handle);
       final exited = await _eventIsolate.stop();
-      if (exited) {
+      // A registerHook may still be running mpv_hook_add in a throwaway
+      // isolate against this handle — it MUST finish before the handle is
+      // freed below. quit + the stop above have driven the core toward a
+      // dispatch point, so the core-locked hook_add is granted and returns.
+      // Bounded: if it doesn't settle (a pathologically stuck playloop), skip
+      // the destroy and leak the handle rather than free it under the running
+      // isolate (same trade-off as an unconfirmed event-isolate exit).
+      var hooksSettled = true;
+      if (_pendingHookAdds.isNotEmpty) {
+        try {
+          await Future.wait(_pendingHookAdds).timeout(const Duration(seconds: 2));
+        } on TimeoutException {
+          hooksSettled = false;
+        } catch (_) {}
+      }
+      // From here no FFI may touch the handle: the drain below resumes any
+      // setter suspended between writes, and mpv_terminate_destroy frees the
+      // handle on the next synchronous line — the `_ffiClosed` guard in the
+      // FFI primitives makes those resumed continuations no-op instead of
+      // dereferencing freed memory.
+      _ffiClosed = true;
+      // No reply can arrive past this point; settle every in-flight call so
+      // an `await player.setX(...)` racing dispose never hangs.
+      _drainPendingReplies();
+      if (exited && hooksSettled) {
         _lib.mpvTerminateDestroy(_handle);
       } else {
         // The worker did not confirm it left mpv_wait_event within the bound.
@@ -848,10 +1099,16 @@ abstract class _PlayerBase {
             'mpv_terminate_destroy to avoid a parked-handle crash.');
       }
     } else {
-      // Init failed; the isolate may or may not be alive. Best effort.
+      // Bring-up never completed: either init failed, or this dispose
+      // aborted it — in which case bring-up's early-return branch (the
+      // only code that ever saw the handle) has already quit the core
+      // and stopped the worker, and the `await _ready` above waited for
+      // that teardown. The stop() here is a best-effort no-op backstop.
       try {
         await _eventIsolate.stop();
       } catch (_) {}
+      _ffiClosed = true;
+      _drainPendingReplies();
     }
 
     // Tear down the media-session controller before closing the
@@ -886,6 +1143,13 @@ abstract class _PlayerBase {
       _demuxerCacheState.close(),
       _mediaSession.close(),
     ]);
+    // Drop the lazy spectrum bridges before closing their controllers —
+    // a dispose with a live fft/pcm listener must not leave the pipeline's
+    // poll loop armed against a torn-down handle.
+    await _fftPipeSub?.cancel();
+    _fftPipeSub = null;
+    await _pcmPipeSub?.cancel();
+    _pcmPipeSub = null;
     await Future.wait<void>([
       _endFileCtrl.close(),
       _errorCtrl.close(),
@@ -895,6 +1159,17 @@ abstract class _PlayerBase {
       _seekCompletedCtrl.close(),
       _coverArtCtrl.close(),
       _mediaSessionCommandsCtrl.close(),
+      // Player-side DSP controllers: the pipelines close their own
+      // internal streams, which completes the forwarding subscriptions
+      // but does NOT propagate `done` to these — without an explicit
+      // close, a consumer awaiting `stream.fft.first` (etc.) across a
+      // dispose would hang forever.
+      _fftCtrl.close(),
+      _pcmStreamCtrl.close(),
+      _spectrumCtrl.close(),
+      _waveformCtrl.close(),
+      _loudnessMeterCtrl.close(),
+      _loudnessScanCtrl.close(),
     ]);
   }
 }

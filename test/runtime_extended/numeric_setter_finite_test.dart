@@ -27,7 +27,7 @@ void main() {
     await player.dispose();
   });
 
-  test('setVolume rejects NaN / Infinity / -Infinity', () async {
+  test('setVolume rejects NaN / Infinity / -Infinity', () {
     final priorVolume = player.state.volume;
     for (final bad in [
       double.nan,
@@ -41,20 +41,20 @@ void main() {
         reason: 'state must not advance past a rejected non-finite write',);
   });
 
-  test('setRate rejects NaN / Infinity', () async {
+  test('setRate rejects NaN / Infinity', () {
     expect(() => player.setRate(double.nan), throwsArgumentError);
     expect(() => player.setRate(double.infinity), throwsArgumentError);
   });
 
-  test('setPitch rejects NaN', () async {
+  test('setPitch rejects NaN', () {
     expect(() => player.setPitch(double.nan), throwsArgumentError);
   });
 
-  test('setVolumeGain rejects NaN', () async {
+  test('setVolumeGain rejects NaN', () {
     expect(() => player.setVolumeGain(double.nan), throwsArgumentError);
   });
 
-  test('setVolumeMax rejects Infinity', () async {
+  test('setVolumeMax rejects Infinity', () {
     expect(() => player.setVolumeMax(double.infinity), throwsArgumentError);
   });
 

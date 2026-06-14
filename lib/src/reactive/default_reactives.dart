@@ -10,6 +10,7 @@ import '../models/mpv_track.dart';
 import '../types/enums/cover.dart';
 import '../types/enums/format.dart';
 import '../types/enums/gapless.dart';
+import '../types/enums/hls_bitrate.dart';
 import '../types/enums/spdif.dart';
 import '../types/sealed/channels.dart';
 import '../types/settings/cache_settings.dart';
@@ -157,6 +158,17 @@ class DefaultPropertyReactives {
 
   /// Path to a custom CA bundle for TLS verification (`tls-ca-file`).
   final ReactiveProperty<String> tlsCaFile = ReactiveProperty<String>('');
+
+  /// HLS variant-selection policy (`hls-bitrate`).
+  final ReactiveProperty<HlsBitrate> hlsBitrate =
+      ReactiveProperty<HlsBitrate>(HlsBitrate.max);
+
+  /// Whether the HTTP cookie jar is enabled for network streams (`cookies`).
+  final ReactiveProperty<bool> cookies = ReactiveProperty<bool>(false);
+
+  /// HTTP proxy URL for network streams (`http-proxy`); empty when none is
+  /// configured.
+  final ReactiveProperty<String> httpProxy = ReactiveProperty<String>('');
 
   /// Whether playback is currently paused waiting for the cache to fill
   /// (`paused-for-cache`).

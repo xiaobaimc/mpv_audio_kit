@@ -43,6 +43,6 @@ void main() {
     // Let libmpv's worker threads unwind before the test process exits
     // — the cosmetic flutter_test "did not complete" flake is sensitive
     // to threads still alive at subprocess kill time.
-    await Future.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
   }, timeout: const Timeout(Duration(seconds: 30)),);
 }

@@ -114,9 +114,12 @@ abstract final class MpvAudioKit {
           Pointer<Utf8> Function(Int32, Pointer<Utf8>),
           Pointer<Utf8> Function(int, Pointer<Utf8>)>('setlocale');
 
-      // LC_NUMERIC = 1 on Linux/macOS
+      // The LC_NUMERIC constant is libc-specific: glibc (Linux) numbers
+      // it 1, the BSD layout (macOS/iOS) numbers it 4 — there, 1 is
+      // LC_COLLATE, which would leave the numeric locale untouched.
+      final lcNumeric = Platform.isLinux ? 1 : 4;
       using((arena) {
-        setlocale(1, 'C'.toNativeUtf8(allocator: arena));
+        setlocale(lcNumeric, 'C'.toNativeUtf8(allocator: arena));
       });
     } catch (e) {
       debugLog('mpv_audio_kit: setlocale failed: $e. '

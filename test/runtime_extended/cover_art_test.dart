@@ -32,9 +32,9 @@ void main() {
     final player = await buildPlayer();
 
     try {
-      // Pre-subscribe BEFORE open: `_extractEmbeddedCover` fires on
-      // FILE_LOADED inside the event isolate, and a late firstWhere
-      // would race the broadcast emit.
+      // Pre-subscribe BEFORE open: the embedded cover is read in the event
+      // isolate on FILE_LOADED and shipped on the payload, so the emit lands
+      // as soon as the file loads — a late firstWhere would race it.
       final coverFuture = player.stream.coverArt
           .firstWhere((c) => c != null && c.bytes.isNotEmpty)
           .timeout(const Duration(seconds: 10));

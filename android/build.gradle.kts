@@ -3,7 +3,7 @@ import java.net.URL
 import java.security.MessageDigest
 
 group = "com.alesdrnz.mpv_audio_kit"
-version = "0.3.6"
+version = "0.4.0"
 
 // AGP and the Kotlin Gradle Plugin are supplied by the consuming app's build
 // (and by flutter_tools), so this module declares no buildscript classpath of
@@ -110,7 +110,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
 }
 
-val MPV_RELEASE_VERSION = "libmpv-r10"
+val MPV_RELEASE_VERSION = "libmpv-r11"
 val MPV_BASE_URL = "https://github.com/ales-drnz/mpv_audio_kit/releases/download/${MPV_RELEASE_VERSION}"
 
 val downloadMpvTask = tasks.register("downloadMpvLibraries") {
@@ -118,15 +118,15 @@ val downloadMpvTask = tasks.register("downloadMpvLibraries") {
     val abis = mapOf(
         "arm64-v8a" to mapOf(
             "file" to "libmpv_android-arm64-v8a.so",
-            "sha256" to "faea38f9a7aa2d01538eda4ad82be1d749a6d907b5cccaf9512903361cc89525"
+            "sha256" to "ee8d9cb6826c10db494f8778153e7cb7bcfe195d84a93515bec678b675ae343d"
         ),
         "armeabi-v7a" to mapOf(
             "file" to "libmpv_android-armeabi-v7a.so",
-            "sha256" to "bed24c774da5830bf5027330715f2f1fcd679e9285c1708b92cad7b41927608c"
+            "sha256" to "66983be69ea1b0ec215e5170efd7f2ccb37e535f30ae2da89850a1a67801d006"
         ),
         "x86_64" to mapOf(
             "file" to "libmpv_android-x86_64.so",
-            "sha256" to "cc4a0fec2e2cc3c85ddd099bd3ae04991286fd10a57bb41feac70778dc9fe4a0"
+            "sha256" to "1454ae314a465feaa94a40b72d6a20b44ebf12737cdbecf70033e3ae26abf482"
         )
     )
     
@@ -186,9 +186,9 @@ val downloadMpvTask = tasks.register("downloadMpvLibraries") {
 // mode (use the bundled jniLibs only, never download). The kit comments /
 // uncomments this block — do not hand-edit the mpvkit: markers.
 // mpvkit:remote:begin
-tasks.configureEach {
-    if (name.contains("preBuild") || name.contains("externalNativeBuild")) {
-        dependsOn(downloadMpvTask)
-    }
-}
+// tasks.configureEach {
+    // if (name.contains("preBuild") || name.contains("externalNativeBuild")) {
+        // dependsOn(downloadMpvTask)
+    // }
+// }
 // mpvkit:remote:end

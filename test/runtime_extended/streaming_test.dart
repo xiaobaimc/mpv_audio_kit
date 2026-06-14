@@ -32,10 +32,9 @@ void main() {
 
   setUpAll(() async {
     // Boot the Flutter test binding before anything that may touch
-    // `rootBundle` (the TLS CA bundle is auto-extracted from the
-    // package's bundled asset on every Player construction). Without
-    // this, `tls-ca-file` would silently fail to populate and every
-    // HTTPS open() under mpv would time out.
+    // `rootBundle` — `asset://` URIs are materialised through it by the
+    // URI resolver. HTTPS trust no longer depends on it: the CA roots are
+    // compiled into libmpv.
     TestWidgetsFlutterBinding.ensureInitialized();
     final lib = resolveLibmpv();
     if (lib == null) {
@@ -49,7 +48,7 @@ void main() {
         ..connectionTimeout = const Duration(seconds: 4);
       final req = await client.headUrl(Uri.parse(icyRadio));
       final resp = await req.close().timeout(const Duration(seconds: 4));
-      await resp.drain();
+      await resp.drain<void>();
       client.close();
       networkAvailable = true;
     } catch (_) {

@@ -50,7 +50,7 @@ Add `mpv_audio_kit` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mpv_audio_kit: ^0.3.6
+  mpv_audio_kit: ^0.4.0
 ```
 
 ## Platforms requirements
@@ -224,6 +224,8 @@ dependencies:
     * [13.3 Raw PCM stream](#133-raw-pcm-stream)
     * [13.4 Per-filter PCM taps](#134-per-filter-pcm-taps)
     * [13.5 Waveform](#135-waveform)
+    * [13.6 Loudness](#136-loudness)
+    * [13.7 Live loudness meter](#137-live-loudness-meter)
 
     </details>
 
@@ -875,12 +877,16 @@ await player.setAudioEffects(const AudioEffects(
 ));
 ```
 
-Toggle a single stage:
+Toggle a single stage with the per-effect updater — a never-configured
+slot is seeded with its defaults first. Every effect slot is nullable
+(`null` = never configured, identical on the wire to a disabled
+instance), so effects your app never touches are tree-shaken out of
+the binary:
 
 ```dart
-await player.updateAudioEffects((e) => e.copyWith(
-  acompressor: e.acompressor.copyWith(enabled: !e.acompressor.enabled),
-));
+await player.updateAudioEffects(
+  (e) => e.updateAcompressor((c) => c.copyWith(enabled: !c.enabled)),
+);
 ```
 
 Reset everything:
@@ -1417,7 +1423,10 @@ await player.setNetworkTimeout(const Duration(seconds: 10)); // Fail after 10 se
 #### 7.4 TLS and SSL verification
 
 ```dart
-await player.setTlsVerify(true); // Enable; uses the bundled CA pem
+await player.setTlsVerify(true); // Enable; uses the CA roots baked into libmpv
+
+// Override the built-in roots with a custom bundle (e.g. a corporate CA):
+await player.setTlsCaFile('/path/to/corporate-ca.pem');
 ```
 
 #### 7.5 Audio buffer
@@ -2485,6 +2494,52 @@ player.stream.waveform.listen((wave) {
   }
 });
 ```
+
+#### 13.6 Loudness
+
+The EBU R128 loudness of the loaded track is exposed via
+`player.stream.loudness`, measured like the waveform: the whole file is
+decoded off the playback path moments after it loads, at many times
+realtime. One terminal `LoudnessScan` per track — integrated LUFS,
+loudness range, sample peak and true peak — before the audio has even
+started playing.
+
+This is how you volume-normalize a library whose files carry no
+ReplayGain tags:
+
+```dart
+player.stream.loudness.listen((scan) {
+  if (scan?.state == LoudnessScanState.ready) {
+    // ReplayGain 2.0 reference is -18 LUFS.
+    player.setVolumeGain((-18.0 - scan!.integrated!).clamp(-24.0, 24.0));
+  }
+});
+```
+
+Like the waveform, the stream is **listener-gated** (the scan runs only
+while something is subscribed) and emits `null` on the track-change
+boundary so stale results clear. Sources that can only be decoded as
+they play (adaptive or live network streams) report
+`LoudnessScanState.unavailable` — use the live meter below for those.
+
+#### 13.7 Live loudness meter
+
+`player.stream.loudnessMeter` emits momentary, short-term, integrated
+and loudness-range readings of the audio *as it plays* — the data for a
+VU-style meter or a broadcast loudness display. The meter is the
+`ebur128` stage of the audio chain, so enable it on the bundle with its
+`metadata` option on:
+
+```dart
+await player.updateAudioEffects(
+  (e) => e.updateEbur128((m) => m.copyWith(enabled: true, metadata: true)),
+);
+player.stream.loudnessMeter.listen((l) => meter.paint(l.momentary));
+```
+
+**Listener-gated** — the measurement poll runs only while a listener is
+attached. While the meter is not in the chain the stream simply emits
+nothing.
 
 ---
 

@@ -13,8 +13,7 @@ mixin _NetworkModule on _PlayerBase {
   /// in one shot. Modify a single field via
   /// `await player.setCache(state.cache.copyWith(secs: const Duration(seconds: 30)))`.
   Future<void> setCache(CacheSettings settings) async {
-    _checkNotDisposed();
-    await _ready;
+    await _gate();
     final previous = state.cache;
     final writes = <(String, String, String)>[
       ('cache', settings.mode.mpvValue, previous.mode.mpvValue),
@@ -47,14 +46,12 @@ mixin _NetworkModule on _PlayerBase {
     final committed = <(String, String)>[];
     try {
       for (final (name, value, prior) in writes) {
-        _prop(name, value);
+        await _prop(name, value);
         committed.add((name, prior));
       }
     } catch (_) {
       for (final (name, prior) in committed.reversed) {
-        try {
-          _propRc(name, prior);
-        } catch (_) {}
+        await _propRc(name, prior);
       }
       rethrow;
     }
@@ -69,18 +66,16 @@ mixin _NetworkModule on _PlayerBase {
   /// for high-latency wireless outputs (Bluetooth, network speakers);
   /// decrease for live monitoring or low-latency listening.
   Future<void> setAudioBuffer(Duration size) async {
-    _checkNotDisposed();
-    await _ready;
-    _prop('audio-buffer', durationToSeconds(size).toStringAsFixed(3));
+    await _gate();
+    await _prop('audio-buffer', durationToSeconds(size).toStringAsFixed(3));
     _updateField(
         (s) => s.copyWith(audioBuffer: size), _reactives.audioBuffer, size,);
   }
 
   /// Enables or disables streaming silence when no audio is playing.
   Future<void> setAudioStreamSilence(bool enable) async {
-    _checkNotDisposed();
-    await _ready;
-    _prop('audio-stream-silence', enable ? 'yes' : 'no');
+    await _gate();
+    await _prop('audio-stream-silence', enable ? 'yes' : 'no');
     _updateField((s) => s.copyWith(audioStreamSilence: enable),
         _reactives.audioStreamSilence, enable,);
   }
@@ -92,22 +87,19 @@ mixin _NetworkModule on _PlayerBase {
   /// mpv makes (HTTP, HTTPS, …). Sub-second precision is honoured
   /// down to the microsecond.
   Future<void> setNetworkTimeout(Duration timeout) async {
-    _checkNotDisposed();
-    await _ready;
+    await _gate();
     // mpv's `network-timeout` accepts a fractional second value (e.g.
     // "0.5"). Truncating with `inSeconds` would collapse any sub-second
     // duration to 0, which mpv interprets as "no timeout".
-    final seconds = timeout.inMicroseconds / 1000000;
-    _prop('network-timeout', seconds.toStringAsFixed(6));
+    await _prop('network-timeout', durationToSeconds(timeout).toStringAsFixed(6));
     _updateField((s) => s.copyWith(networkTimeout: timeout),
         _reactives.networkTimeout, timeout,);
   }
 
   /// Whether to verify TLS/SSL certificates for network streams.
   Future<void> setTlsVerify(bool enable) async {
-    _checkNotDisposed();
-    await _ready;
-    _prop('tls-verify', enable ? 'yes' : 'no');
+    await _gate();
+    await _prop('tls-verify', enable ? 'yes' : 'no');
     _updateField(
         (s) => s.copyWith(tlsVerify: enable), _reactives.tlsVerify, enable,);
   }
@@ -115,19 +107,50 @@ mixin _NetworkModule on _PlayerBase {
   /// Sets the absolute filesystem path to a PEM bundle of trusted CA
   /// certificates used for `https://` peer verification.
   ///
-  /// A sensible default bundle is configured automatically at player
-  /// construction, so [setTlsVerify] works out of the box on every
-  /// platform. Call this only to override the default — for example to
-  /// pin against a corporate root CA. Passing an empty string restores
-  /// the auto-configured default; passing it through to mpv as a
-  /// literal `tls-ca-file=""` would silently disable peer verification.
+  /// The bundled libmpv ships with the Mozilla CA roots compiled in, so
+  /// [setTlsVerify] works out of the box on every platform. Call this only
+  /// to override those roots — for example to pin against a corporate root
+  /// CA. Passing an empty string clears the override and falls back to the
+  /// built-in roots.
   Future<void> setTlsCaFile(String path) async {
-    _checkNotDisposed();
-    await _ready;
-    final effective = path.isEmpty ? (_autoTlsCaBundlePath ?? '') : path;
-    _prop('tls-ca-file', effective);
-    _updateField((s) => s.copyWith(tlsCaFile: effective), _reactives.tlsCaFile,
-        effective,);
+    await _gate();
+    await _prop('tls-ca-file', path);
+    _updateField((s) => s.copyWith(tlsCaFile: path), _reactives.tlsCaFile,
+        path,);
+  }
+
+  /// Sets the HLS variant-selection policy for adaptive streams.
+  ///
+  /// Chooses which audio rendition mpv picks from an HLS master playlist
+  /// (mpv's `hls-bitrate`). Default [HlsBitrate.max]. Takes effect on the
+  /// next load. The initial policy can also be set via
+  /// `PlayerConfiguration.hlsBitrate`.
+  Future<void> setHlsBitrate(HlsBitrate hlsBitrate) async {
+    await _gate();
+    await _prop('hls-bitrate', hlsBitrate.mpvValue);
+    _updateField((s) => s.copyWith(hlsBitrate: hlsBitrate),
+        _reactives.hlsBitrate, hlsBitrate,);
+  }
+
+  /// Enables mpv's HTTP cookie jar for network streams (mpv's `cookies`).
+  ///
+  /// Takes effect on the next load. Default `false`.
+  Future<void> setCookies(bool enable) async {
+    await _gate();
+    await _prop('cookies', enable ? 'yes' : 'no');
+    _updateField(
+        (s) => s.copyWith(cookies: enable), _reactives.cookies, enable,);
+  }
+
+  /// Sets the HTTP proxy URL for network streams (mpv's `http-proxy`).
+  ///
+  /// Applies to FFmpeg's HTTP stack on the next load; pass an empty string
+  /// to clear. Per-request headers go through `Media.httpHeaders` instead.
+  Future<void> setHttpProxy(String url) async {
+    await _gate();
+    await _prop('http-proxy', url);
+    _updateField(
+        (s) => s.copyWith(httpProxy: url), _reactives.httpProxy, url,);
   }
 
   /// Sets the maximum bytes the demuxer is allowed to cache.
@@ -137,9 +160,8 @@ mixin _NetworkModule on _PlayerBase {
   /// precision is preserved (mpv accepts plain integers and SI / IEC
   /// suffixes interchangeably).
   Future<void> setDemuxerMaxBytes(int bytes) async {
-    _checkNotDisposed();
-    await _ready;
-    _prop('demuxer-max-bytes', bytes.toString());
+    await _gate();
+    await _prop('demuxer-max-bytes', bytes.toString());
     _updateField((s) => s.copyWith(demuxerMaxBytes: bytes),
         _reactives.demuxerMaxBytes, bytes,);
   }
@@ -147,9 +169,8 @@ mixin _NetworkModule on _PlayerBase {
   /// Sets the maximum seekback buffer size in bytes. Default 50 MiB.
   /// See [setDemuxerMaxBytes] for the byte-precision contract.
   Future<void> setDemuxerMaxBackBytes(int bytes) async {
-    _checkNotDisposed();
-    await _ready;
-    _prop('demuxer-max-back-bytes', bytes.toString());
+    await _gate();
+    await _prop('demuxer-max-back-bytes', bytes.toString());
     _updateField((s) => s.copyWith(demuxerMaxBackBytes: bytes),
         _reactives.demuxerMaxBackBytes, bytes,);
   }
@@ -158,19 +179,17 @@ mixin _NetworkModule on _PlayerBase {
   /// demuxer keeps buffered ahead of the playhead. Accepts sub-second
   /// precision (`demuxer-readahead-secs` is a fractional-seconds value).
   Future<void> setDemuxerReadaheadSecs(Duration readahead) async {
-    _checkNotDisposed();
-    await _ready;
-    final seconds = readahead.inMicroseconds / 1000000;
-    _prop('demuxer-readahead-secs', seconds.toStringAsFixed(6));
+    await _gate();
+    await _prop('demuxer-readahead-secs',
+        durationToSeconds(readahead).toStringAsFixed(6),);
     _updateField((s) => s.copyWith(demuxerReadaheadSecs: readahead),
         _reactives.demuxerReadaheadSecs, readahead,);
   }
 
   /// Whether to fallback to untimed null output if audio output fails.
   Future<void> setAudioNullUntimed(bool enable) async {
-    _checkNotDisposed();
-    await _ready;
-    _prop('ao-null-untimed', enable ? 'yes' : 'no');
+    await _gate();
+    await _prop('ao-null-untimed', enable ? 'yes' : 'no');
     _updateField((s) => s.copyWith(audioNullUntimed: enable),
         _reactives.audioNullUntimed, enable,);
   }

@@ -15,6 +15,7 @@ import 'package:mpv_audio_kit/src/models/playlist.dart';
 import 'package:mpv_audio_kit/src/types/enums/cover.dart';
 import 'package:mpv_audio_kit/src/types/enums/format.dart';
 import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
+import 'package:mpv_audio_kit/src/types/enums/hls_bitrate.dart';
 import 'package:mpv_audio_kit/src/types/enums/loop.dart';
 import 'package:mpv_audio_kit/src/types/enums/spdif.dart';
 import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
@@ -227,14 +228,27 @@ final class PlayerState {
   /// [Player.setTlsVerify] when a bundled CA is in use.
   final bool tlsVerify;
 
-  /// Absolute filesystem path to a PEM bundle of trusted CA certificates,
-  /// or empty string when none is configured.
+  /// Absolute filesystem path to a custom PEM bundle of trusted CA
+  /// certificates, or empty string when the built-in roots are used.
   ///
-  /// Auto-populated at construction with a default bundle so [tlsVerify]
-  /// works on every platform out of the box. Override with
-  /// [Player.setTlsCaFile] to point at a custom bundle (e.g. a corporate
-  /// trust root).
+  /// Empty by default: the bundled libmpv has the Mozilla CA roots compiled
+  /// in, so [tlsVerify] works on every platform out of the box. Set
+  /// [Player.setTlsCaFile] to override those roots with a custom bundle
+  /// (e.g. a corporate trust root).
   final String tlsCaFile;
+
+  /// HLS variant-selection policy (`hls-bitrate`). Default [HlsBitrate.max]
+  /// mirrors mpv. Set via [Player.setHlsBitrate].
+  final HlsBitrate hlsBitrate;
+
+  /// Whether mpv's HTTP cookie jar is enabled for network streams
+  /// (`cookies`). Mirrors mpv's default of `false`. Set via
+  /// [Player.setCookies].
+  final bool cookies;
+
+  /// HTTP proxy URL applied to network streams (`http-proxy`), or empty
+  /// string when none is configured. Set via [Player.setHttpProxy].
+  final String httpProxy;
 
   /// Whether audio exclusive mode is enabled.
   final bool audioExclusive;
@@ -520,6 +534,9 @@ final class PlayerState {
     this.demuxerViaNetwork = false,
     this.tlsVerify = false,
     this.tlsCaFile = '',
+    this.hlsBitrate = HlsBitrate.max,
+    this.cookies = false,
+    this.httpProxy = '',
     this.audioExclusive = false,
     this.audioMediaRole = false,
     this.audioBuffer = const Duration(milliseconds: 200),
@@ -617,6 +634,9 @@ final class PlayerState {
     bool? demuxerViaNetwork,
     bool? tlsVerify,
     String? tlsCaFile,
+    HlsBitrate? hlsBitrate,
+    bool? cookies,
+    String? httpProxy,
     bool? audioExclusive,
     bool? audioMediaRole,
     Duration? audioBuffer,
@@ -716,6 +736,9 @@ final class PlayerState {
         demuxerViaNetwork: demuxerViaNetwork ?? this.demuxerViaNetwork,
         tlsVerify: tlsVerify ?? this.tlsVerify,
         tlsCaFile: tlsCaFile ?? this.tlsCaFile,
+        hlsBitrate: hlsBitrate ?? this.hlsBitrate,
+        cookies: cookies ?? this.cookies,
+        httpProxy: httpProxy ?? this.httpProxy,
         audioExclusive: audioExclusive ?? this.audioExclusive,
         audioMediaRole: audioMediaRole ?? this.audioMediaRole,
         audioBuffer: audioBuffer ?? this.audioBuffer,
@@ -827,6 +850,9 @@ final class PlayerState {
           other.demuxerViaNetwork == demuxerViaNetwork &&
           other.tlsVerify == tlsVerify &&
           other.tlsCaFile == tlsCaFile &&
+          other.hlsBitrate == hlsBitrate &&
+          other.cookies == cookies &&
+          other.httpProxy == httpProxy &&
           other.audioExclusive == audioExclusive &&
           other.audioMediaRole == audioMediaRole &&
           other.audioBuffer == audioBuffer &&
@@ -923,6 +949,9 @@ final class PlayerState {
         demuxerViaNetwork,
         tlsVerify,
         tlsCaFile,
+        hlsBitrate,
+        cookies,
+        httpProxy,
         audioExclusive,
         audioMediaRole,
         audioBuffer,
