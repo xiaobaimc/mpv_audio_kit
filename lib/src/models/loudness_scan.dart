@@ -25,8 +25,9 @@ import '../types/state/loudness_scan_state.dart';
 /// The measurement fields are non-null only when [state] is
 /// [LoudnessScanState.ready].
 class LoudnessScan {
-  /// Scan lifecycle state. The stream emits terminal states only
-  /// ([LoudnessScanState.ready], [LoudnessScanState.failed],
+  /// Scan lifecycle state. The stream emits [LoudnessScanState.scanning]
+  /// snapshots (carrying [progress]) while the scan runs, then a terminal
+  /// state ([LoudnessScanState.ready], [LoudnessScanState.failed],
   /// [LoudnessScanState.unavailable]).
   final LoudnessScanState state;
 
@@ -48,6 +49,12 @@ class LoudnessScan {
   /// silence gate and [integrated] is pinned at -70 LUFS).
   final int? gatedBlockCount;
 
+  /// Scan progress in `[0, 1]` while [state] is [LoudnessScanState.scanning]
+  /// (`1.0` at [LoudnessScanState.ready]). `null` when the engine did not
+  /// report it. Use it to drive a progress indicator; a `null` value means
+  /// show an indeterminate one.
+  final double? progress;
+
   /// Creates a scan result snapshot.
   const LoudnessScan({
     required this.state,
@@ -56,6 +63,7 @@ class LoudnessScan {
     this.samplePeak,
     this.truePeak,
     this.gatedBlockCount,
+    this.progress,
   });
 
   @override
@@ -67,7 +75,8 @@ class LoudnessScan {
           other.range == range &&
           other.samplePeak == samplePeak &&
           other.truePeak == truePeak &&
-          other.gatedBlockCount == gatedBlockCount);
+          other.gatedBlockCount == gatedBlockCount &&
+          other.progress == progress);
 
   @override
   int get hashCode => Object.hash(
@@ -77,10 +86,11 @@ class LoudnessScan {
         samplePeak,
         truePeak,
         gatedBlockCount,
+        progress,
       );
 
   @override
   String toString() => 'LoudnessScan(state: $state, integrated: $integrated, '
       'range: $range, samplePeak: $samplePeak, truePeak: $truePeak, '
-      'gatedBlockCount: $gatedBlockCount)';
+      'gatedBlockCount: $gatedBlockCount, progress: $progress)';
 }

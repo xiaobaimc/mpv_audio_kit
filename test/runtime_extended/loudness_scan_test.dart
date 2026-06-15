@@ -33,8 +33,10 @@ void main() {
 
   test('scan delivers a ready result moments after load, without playback',
       () async {
+    // The scan streams `scanning` snapshots before the terminal result, so
+    // wait for the ready state specifically (not merely the first non-null).
     final scan = player.stream.loudness
-        .firstWhere((s) => s != null)
+        .firstWhere((s) => s?.state == LoudnessScanState.ready)
         .timeout(const Duration(seconds: 15));
     await openAndWaitForLoad(player, fixture);
     final result = (await scan)!;

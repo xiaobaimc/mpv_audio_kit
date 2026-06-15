@@ -43,6 +43,8 @@ class WaveformPipeline {
       StreamController<WaveformData?>.broadcast();
   Timer? _pollTimer;
   WaveformData? _data;
+  // Last coverage seen while DECODING, to skip re-emitting unchanged partials.
+  int? _lastDecodeCoverage;
   bool _enabled = false;
   bool _disposed = false;
   // Guards against overlapping async polls — see [LoudnessMeterPipeline].
@@ -75,6 +77,7 @@ class WaveformPipeline {
   void reset() {
     if (_disposed) return;
     _data = null;
+    _lastDecodeCoverage = null;
     _pollTimer?.cancel();
     _pollTimer = null;
     _emit(null);
@@ -135,6 +138,11 @@ class WaveformPipeline {
       final ready = state == 'ready';
       final progressive = state == 'progressive';
       final rolling = state == 'rolling';
+      final decoding = state == 'decoding';
+      final coverageBins =
+          value['coverage_bins'] is int ? value['coverage_bins'] as int : null;
+      final totalBins =
+          value['total_bins'] is int ? value['total_bins'] as int : null;
 
       final haveBins = min != null &&
           max != null &&
@@ -161,6 +169,28 @@ class WaveformPipeline {
           live: true,
         );
         _emit(data);
+        return;
+      }
+
+      // DECODING (local-file bulk analysis in flight): a partial envelope that
+      // grows on every poll. The full axis is emitted with [filled] marking the
+      // regions decoded so far. Never cache it and never stop the timer — the
+      // final `ready` emission below supersedes it. De-dup on coverage so an
+      // unchanged snapshot does not churn the UI.
+      if (decoding && durationUs > 0 && haveBins) {
+        if (coverageBins == null || coverageBins != _lastDecodeCoverage) {
+          _lastDecodeCoverage = coverageBins;
+          final data = WaveformData(
+            duration: Duration(microseconds: durationUs),
+            min: min,
+            max: max,
+            filled: safeFilled(min),
+            decoding: true,
+            coverageBins: coverageBins,
+            totalBins: totalBins,
+          );
+          _emit(data);
+        }
         return;
       }
 

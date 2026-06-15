@@ -118,15 +118,15 @@ val downloadMpvTask = tasks.register("downloadMpvLibraries") {
     val abis = mapOf(
         "arm64-v8a" to mapOf(
             "file" to "libmpv_android-arm64-v8a.so",
-            "sha256" to "9f8bc72f463680a6f7776af5c33245f6c35f7019921374f931786b7539a96bbc"
+            "sha256" to "3bd91566fc75bf2f45827495420e56e61b4ba9bb46889bc00ccf8cecd0e17737"
         ),
         "armeabi-v7a" to mapOf(
             "file" to "libmpv_android-armeabi-v7a.so",
-            "sha256" to "c98eb37f317ce882a64ac233aff71f0f750f7646d8caefe65f05425969773f5c"
+            "sha256" to "609e0910c3ccb8fb5183fb2670eade0060e5cea724d3691f7a2471acc45188d4"
         ),
         "x86_64" to mapOf(
             "file" to "libmpv_android-x86_64.so",
-            "sha256" to "00803d0ad80157577a125d65f277dd3754d8762e92f909553bfa45310689f31d"
+            "sha256" to "c13e36c2e419b56af5e1d01ae821d91e5fe1715d97b945c940b5d570b0fe6065"
         )
     )
     
@@ -186,9 +186,9 @@ val downloadMpvTask = tasks.register("downloadMpvLibraries") {
 // mode (use the bundled jniLibs only, never download). The kit comments /
 // uncomments this block — do not hand-edit the mpvkit: markers.
 // mpvkit:remote:begin
-// tasks.configureEach {
-    // if (name.contains("preBuild") || name.contains("externalNativeBuild")) {
-        // dependsOn(downloadMpvTask)
-    // }
-// }
+tasks.configureEach {
+    if (name.contains("preBuild") || name.contains("externalNativeBuild")) {
+        dependsOn(downloadMpvTask)
+    }
+}
 // mpvkit:remote:end

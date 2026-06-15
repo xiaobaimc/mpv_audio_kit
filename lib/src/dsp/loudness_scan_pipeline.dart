@@ -21,8 +21,9 @@ import 'dsp_async_io.dart';
 /// player writes the flag `false` and the timer stops — an idle scan
 /// costs nothing.
 ///
-/// As soon as the scan reaches a terminal state (`ready` / `failed` /
-/// `unavailable`) the result is emitted once via [stream] and the timer
+/// While the scan runs it emits `scanning` snapshots carrying a progress
+/// fraction on each poll. As soon as it reaches a terminal state (`ready` /
+/// `failed` / `unavailable`) the result is emitted via [stream] and the timer
 /// stops until the next track-change. On track change the player calls
 /// [reset]: the pipeline drops the current result, emits `null`, and
 /// rearms the timer if still enabled.
@@ -44,6 +45,8 @@ class LoudnessScanPipeline {
       StreamController<LoudnessScan?>.broadcast();
   Timer? _pollTimer;
   LoudnessScan? _result;
+  // Last scanning fraction seen, to skip re-emitting unchanged progress.
+  double? _lastScanProgress;
   bool _enabled = false;
   bool _disposed = false;
   // Guards against overlapping async polls — see [LoudnessMeterPipeline].
@@ -76,6 +79,7 @@ class LoudnessScanPipeline {
   void reset() {
     if (_disposed) return;
     _result = null;
+    _lastScanProgress = null;
     _pollTimer?.cancel();
     _pollTimer = null;
     _emit(null);
@@ -123,6 +127,9 @@ class LoudnessScanPipeline {
     double asDouble(Object? v) => v is num ? v.toDouble() : 0.0;
     int asInt(Object? v) => v is int ? v : 0;
 
+    double? asFraction(Object? v) =>
+        v is num ? v.toDouble().clamp(0.0, 1.0) : null;
+
     final parsed = LoudnessScanState.fromMpv(state);
     switch (parsed) {
       case LoudnessScanState.ready:
@@ -133,12 +140,26 @@ class LoudnessScanPipeline {
           samplePeak: asDouble(value['sample_peak']),
           truePeak: asDouble(value['true_peak']),
           gatedBlockCount: asInt(value['gated_block_count']),
+          progress: 1.0,
         );
       case LoudnessScanState.failed:
       case LoudnessScanState.unavailable:
         _result = LoudnessScan(state: parsed);
-      case LoudnessScanState.idle:
       case LoudnessScanState.scanning:
+        // Non-terminal: surface a progress snapshot and keep polling. Never
+        // cache it (_result stays null) so the poll loop stays armed until a
+        // terminal state lands. De-dup on the fraction to avoid UI churn.
+        final progress = asFraction(value['progress']);
+        if (progress != _lastScanProgress) {
+          _lastScanProgress = progress;
+          final scan = LoudnessScan(
+            state: LoudnessScanState.scanning,
+            progress: progress,
+          );
+          _emit(scan);
+        }
+        return;
+      case LoudnessScanState.idle:
         return; // non-terminal — keep polling
     }
     _pollTimer?.cancel();
