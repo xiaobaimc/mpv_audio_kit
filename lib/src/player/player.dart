@@ -567,8 +567,28 @@ abstract class _PlayerBase {
     // Streams that don't need _lib/_handle can be wired immediately —
     // a consumer subscribing right after `Player()` sees no events
     // until init completes, which is the correct semantics.
-    _fftCtrl = StreamController<FftFrame>.broadcast();
-    _pcmStreamCtrl = StreamController<PcmFrame>.broadcast();
+    _fftCtrl = StreamController<FftFrame>.broadcast(
+      onListen: () {
+        if (_bringUpCompleted && _fftSub == null) {
+          _fftSub = _spectrumPipeline.fftStream.listen(_fftCtrl.add);
+        }
+      },
+      onCancel: () {
+        _fftSub?.cancel();
+        _fftSub = null;
+      },
+    );
+    _pcmStreamCtrl = StreamController<PcmFrame>.broadcast(
+      onListen: () {
+        if (_bringUpCompleted && _pcmSub == null) {
+          _pcmSub = _spectrumPipeline.pcmStream.listen(_pcmStreamCtrl.add);
+        }
+      },
+      onCancel: () {
+        _pcmSub?.cancel();
+        _pcmSub = null;
+      },
+    );
     _spectrumCtrl = StreamController<SpectrumSettings>.broadcast();
     // Listener-gated: the native waveform analyzer arms only while a
     // consumer is subscribed. The pipeline is built during isolate
@@ -630,6 +650,8 @@ abstract class _PlayerBase {
   /// FILE_LOADED handler skip the redundant reset mpv fires on internal
   /// reloads of the same source (see the dedup in `_handleEvent`).
   String? _lastWaveformSource;
+  StreamSubscription<FftFrame>? _fftSub;
+  StreamSubscription<PcmFrame>? _pcmSub;
   late final StreamController<FftFrame> _fftCtrl;
   late final StreamController<PcmFrame> _pcmStreamCtrl;
   late final StreamController<SpectrumSettings> _spectrumCtrl;
@@ -826,6 +848,10 @@ abstract class _PlayerBase {
       _nativeResources.disposed = true;
       playerFinalizer.detach(this);
       OrphanHandleTracker.instance.remove(_handle);
+      await _fftSub?.cancel();
+      _fftSub = null;
+      await _pcmSub?.cancel();
+      _pcmSub = null;
       await _filterTapPipeline.dispose();
       await _waveformPipeline.dispose();
       await _spectrumPipeline.dispose();

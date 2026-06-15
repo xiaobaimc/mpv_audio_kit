@@ -24,22 +24,19 @@ part 'isolate_messages.dart';
 /// progress bar update and keeps the message bus uncluttered.
 const int _kTimePosThrottleMs = 33;
 
-/// `mpv_wait_event` timeout — a BOUNDED floor in every build.
+/// Idle-mode timeout for `mpv_wait_event`.
 ///
-/// The Dart VM cannot interrupt an isolate parked in a blocking FFI call
-/// (dart-lang/sdk#46680): under an infinite `-1` timeout a `Player` left
-/// undisposed at process exit wedges `WaitForIsolateShutdown` forever — the
-/// macOS Dock-Quit hang — and Hot Restart's kill would hang too. A finite
-/// timeout guarantees the loop re-reads its stop flag, and the VM gets a
-/// safepoint, at least once per window even with zero cooperation.
+/// When no events are pending the loop parks here.  The
+/// `mpv_set_wakeup_callback` registered via [NativeCallable.listener]
+/// fires on THIS isolate's event loop whenever mpv enqueues a new event,
+/// which unblocks the wait immediately — so this value is the **worst-case**
+/// idle floor, not the common-case latency.
 ///
-/// Product: `1.0` s — one cheap idle wakeup/sec. The graceful dispose path
-/// unblocks the wait instantly via `mpv_wakeup` ([MpvEventIsolate.requestStop]),
-/// so this value is only the no-dispose floor, never the common-case latency.
-/// Debug: `0.1` s (unchanged) for snappy Hot Restart. It MUST stay finite in
-/// product — an infinite timeout reintroduces the quit hang.
-const double _kWaitEventTimeoutSeconds =
-    bool.fromEnvironment('dart.vm.product') ? 1.0 : 0.1;
+/// Product: `0.05` s (50 ms) — five wakeups/sec is imperceptible but keeps
+/// the stop-flag check alive.  Debug: `0.05` s for snappy Hot Restart.
+/// Must stay finite — an infinite timeout reintroduces the macOS
+/// Dock-Quit / Hot-Restart hang (dart-lang/sdk#46680).
+const double _kIdleWakeupSeconds = 0.05;
 
 /// Maximum time [MpvEventIsolate.stop] waits for the background isolate
 /// to finish unwinding after `MPV_EVENT_SHUTDOWN`. The loop's natural
@@ -111,6 +108,10 @@ void _isolateEntry(SendPort initialReplyPort) {
   final lastValues = <String, dynamic>{};
   final lastTimestamps = <String, int>{};
 
+  // Keep the NativeCallable alive to prevent garbage collection while
+  // registered with mpv. Must be closed before mpv_terminate_destroy.
+  NativeCallable<Void Function(Pointer<Void>)>? wakeupCallable;
+
   fromMain.listen((message) {
     if (message is _InitMessage) {
       toMain = message.toMain;
@@ -145,6 +146,24 @@ void _isolateEntry(SendPort initialReplyPort) {
           fromMain.close();
           return;
         }
+
+        // Register a wakeup callback via NativeCallable so mpv can
+        // signal this isolate when events are available.  The callback
+        // fires on THIS isolate's event loop (NativeCallable.listener),
+        // which unblocks any mpv_wait_event parked in a short timeout.
+        // This is the event-driven equivalent of polling: instead of
+        // waking on a fixed interval, we wake exactly when mpv has work.
+        if (wakeupCounter != null) {
+          wakeupCallable = NativeCallable.listener((Pointer<Void> _) {
+            wakeupCounter.value++;
+          });
+          lib!.mpvSetWakeupCallback(
+            h,
+            wakeupCallable!.nativeFunction.cast(),
+            nullptr.cast(),
+          );
+        }
+
         _applyPropertyStrings(lib!, h, message.postInitOptions);
         _applyObserves(lib!, h, message.observes);
         toMain!.send(_InitDone(h.address));
@@ -165,6 +184,17 @@ void _isolateEntry(SendPort initialReplyPort) {
         lastTimestamps,
         wakeupCounter,
       );
+      // Tear down the wakeup callback before destroying the handle so
+      // mpv never invokes a deleted trampoline.
+      if (wakeupCallable != null) {
+        lib!.mpvSetWakeupCallback(
+          handle!,
+          nullptr.cast(),
+          nullptr.cast(),
+        );
+        wakeupCallable!.close();
+        wakeupCallable = null;
+      }
       // Drop the last live ReceivePort so the VM tears the isolate
       // down naturally — this runs the per-isolate finalizers that
       // release libmpv-side state loaded via `MpvLibrary.open`.
@@ -189,7 +219,17 @@ void _runEventLoop(
     if (wakeupCounter != null) {
       wakeupCounter.value = wakeupCounter.value + 1;
     }
-    final event = lib.mpvWaitEvent(handle, _kWaitEventTimeoutSeconds);
+
+    // Event-driven: drain all pending events non-blocking first, then
+    // park in a SHORT timeout.  The mpv_set_wakeup_callback registered
+    // above will fire on this isolate's event loop whenever new events
+    // arrive, causing mpv_wait_event to return immediately.
+    //
+    // Using 0 (pure non-blocking) followed by a bounded sleep would
+    // busy-spin when idle.  A single mpv_wait_event with a short
+    // timeout avoids that while keeping worst-case latency at
+    // _kIdleWakeupMs instead of the old 1-second floor.
+    final event = lib.mpvWaitEvent(handle, _kIdleWakeupSeconds);
 
     // Re-read the flag the instant the wait returns. `requestStop` sets the
     // flag THEN calls `mpv_wakeup`, so a wakeup-driven return lands here with
@@ -507,16 +547,18 @@ class MpvEventIsolate {
       }
     });
 
-    _toIsolate!.send(_InitMessage(
-      fromIsolate.sendPort,
-      libraryPath: libraryPath,
-      preInitOptions: preInitOptions,
-      postInitOptions: postInitOptions,
-      observes: observes,
-      logLevel: logLevel,
-      wakeupCounterAddress: wakeupCounterAddress,
-      stopFlagAddress: _stopFlag!.address,
-    ),);
+    _toIsolate!.send(
+      _InitMessage(
+        fromIsolate.sendPort,
+        libraryPath: libraryPath,
+        preInitOptions: preInitOptions,
+        postInitOptions: postInitOptions,
+        observes: observes,
+        logLevel: logLevel,
+        wakeupCounterAddress: wakeupCounterAddress,
+        stopFlagAddress: _stopFlag!.address,
+      ),
+    );
 
     return initDone.future;
   }

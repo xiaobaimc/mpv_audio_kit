@@ -405,6 +405,25 @@ typedef _MpvWakeupNative = Void Function(Pointer<MpvHandle> ctx);
 /// (libmpv guarantees no lost wakeups). Safe to call from any thread.
 typedef MpvWakeup = void Function(Pointer<MpvHandle> ctx);
 
+// void mpv_set_wakeup_callback(mpv_handle *ctx, void (*cb)(void *d), void *d)
+typedef _MpvSetWakeupCallbackNative = Void Function(
+    Pointer<MpvHandle> ctx,
+    Pointer<NativeFunction<Void Function(Pointer<Void>)>> cb,
+    Pointer<Void> d,
+);
+
+/// Dart signature for `mpv_set_wakeup_callback` — registers a callback that
+/// mpv invokes (from an arbitrary thread) whenever new events are available
+/// in the player's event queue. The callback must eventually cause the
+/// thread blocked in `mpv_wait_event` to return (e.g. by calling
+/// `mpv_wakeup`). Passing `nullptr` for [cb] clears any previously set
+/// callback.
+typedef MpvSetWakeupCallback = void Function(
+    Pointer<MpvHandle> ctx,
+    Pointer<NativeFunction<Void Function(Pointer<Void>)>> cb,
+    Pointer<Void> d,
+);
+
 // int mpv_set_option_string(mpv_handle *ctx, const char *name, const char *data)
 typedef _MpvSetOptionStringNative = Int32 Function(
     Pointer<MpvHandle> ctx, Pointer<Utf8> name, Pointer<Utf8> data,);
@@ -580,6 +599,10 @@ class MpvLibrary {
   /// Bound `mpv_wakeup` — unblocks a parked `mpv_wait_event`.
   late final MpvWakeup mpvWakeup;
 
+  /// Bound `mpv_set_wakeup_callback` — registers a callback that mpv invokes
+  /// whenever new events are available.
+  late final MpvSetWakeupCallback mpvSetWakeupCallback;
+
   /// Bound `mpv_set_option_string`.
   late final MpvSetOptionString mpvSetOptionString;
 
@@ -655,6 +678,9 @@ class MpvLibrary {
         _lib.lookupFunction<_MpvTerminateDestroyNative, MpvTerminateDestroy>(
             'mpv_terminate_destroy',);
     mpvWakeup = _lib.lookupFunction<_MpvWakeupNative, MpvWakeup>('mpv_wakeup');
+    mpvSetWakeupCallback =
+        _lib.lookupFunction<_MpvSetWakeupCallbackNative, MpvSetWakeupCallback>(
+            'mpv_set_wakeup_callback',);
     mpvSetOptionString =
         _lib.lookupFunction<_MpvSetOptionStringNative, MpvSetOptionString>(
             'mpv_set_option_string',);

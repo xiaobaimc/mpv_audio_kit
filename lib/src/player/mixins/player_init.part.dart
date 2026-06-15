@@ -97,7 +97,8 @@ mixin _InitModule on _PlayerBase {
         // Watch-later / resume. Persist only the audio-relevant props (mpv's
         // default list includes video/sub keys this build can't restore).
         'resume-playback': configuration.resumePlayback ? 'yes' : 'no',
-        'watch-later-options': 'start,speed,pitch,volume,mute,audio-delay,af,aid',
+        'watch-later-options':
+            'start,speed,pitch,volume,mute,audio-delay,af,aid',
         if (configuration.watchLaterDir != null)
           'watch-later-dir': configuration.watchLaterDir!,
         if (configuration.forceSeekable) 'force-seekable': 'yes',
