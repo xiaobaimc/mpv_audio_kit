@@ -39,9 +39,11 @@
 - A media-session command from the OS (lockscreen or headset) that the engine rejects (e.g. a seek arriving with nothing loaded) is now handled gracefully instead of surfacing as an uncaught error.
 
 ### Build
-- Bundled libmpv binaries rebuilt for every platform: they add the native whole-file loudness analyzer behind `Player.stream.loudness`.
-- **Windows**: the bundled libmpv no longer pins the system-wide 1 ms timer at init, which on some hosts caused UI micro-stutter or dropped frames in the app.
-- HTTPS certificate trust is now compiled into the bundled libmpv (Mozilla CA roots) instead of a shipped `cacert.pem` asset, so it also works in sandboxed app containers (e.g. the macOS App Sandbox). `setTlsCaFile(path)` still overrides with a custom CA.
+- Waveform generation is now shown live for local files.
+- Added native loudness analyzer behind `Player.stream.loudness`.
+- The libmpv of Windows no longer pins the system-wide 1 ms timer at init, which caused UI micro-stutter or dropped frames in the app.
+- HTTPS certificate trust is now compiled into the bundled libmpv (Mozilla CA roots) instead of a shipped `cacert.pem` asset.
+- Updated libmpv to `libmpv-r11` across all platforms.
 
 ## [0.3.6] - 9-06-2026
 
