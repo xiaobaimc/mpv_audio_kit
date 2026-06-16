@@ -36,6 +36,7 @@ import 'package:mpv_audio_kit/src/types/enums/tap_side.dart';
 import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
 import 'package:mpv_audio_kit/src/types/sealed/media_session_command.dart';
 import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
+import 'package:mpv_audio_kit/src/types/settings/demuxer_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/replay_gain_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/spectrum_settings.dart';
 import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
@@ -113,9 +114,7 @@ class PlayerStream {
         systemVolume = reactives.systemVolume.stream,
         systemMute = reactives.systemMute.stream,
         cache = reactives.cache.stream,
-        demuxerMaxBytes = reactives.demuxerMaxBytes.stream,
-        demuxerReadaheadSecs = reactives.demuxerReadaheadSecs.stream,
-        demuxerMaxBackBytes = reactives.demuxerMaxBackBytes.stream,
+        demuxer = reactives.demuxer.stream,
         networkTimeout = reactives.networkTimeout.stream,
         tlsVerify = reactives.tlsVerify.stream,
         hlsBitrate = reactives.hlsBitrate.stream,
@@ -380,14 +379,10 @@ class PlayerStream {
   /// changes. Set with [Player.setCache].
   final Stream<CacheSettings> cache;
 
-  /// Emits the max demuxer bytes.
-  final Stream<int> demuxerMaxBytes;
-
-  /// Emits the demuxer readahead duration.
-  final Stream<Duration> demuxerReadaheadSecs;
-
-  /// Emits the max demuxer back bytes.
-  final Stream<int> demuxerMaxBackBytes;
+  /// Aggregate demuxer-buffering configuration — emits a fresh
+  /// [DemuxerSettings] whenever any of maxBytes / maxBackBytes / readahead
+  /// changes. Set with [Player.setDemuxer].
+  final Stream<DemuxerSettings> demuxer;
 
   /// Emits the network timeout duration.
   final Stream<Duration> networkTimeout;

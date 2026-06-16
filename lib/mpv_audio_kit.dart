@@ -93,6 +93,7 @@ export 'src/types/sealed/media_session_command.dart'
         MediaSessionCommandSetPlaybackRate;
 export 'src/types/sealed/track.dart' show Track;
 export 'src/types/settings/cache_settings.dart' show CacheSettings;
+export 'src/types/settings/demuxer_settings.dart' show DemuxerSettings;
 export 'src/types/settings/replay_gain_settings.dart' show ReplayGainSettings;
 export 'src/types/settings/spectrum_settings.dart' show SpectrumSettings;
 export 'src/types/state/audio_output_state.dart' show AudioOutputState;

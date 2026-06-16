@@ -2,6 +2,7 @@
 
 ### Breaking
 - `AudioEffects` slots are now nullable (`null` = "never configured"), so a consumer keeps only the effect classes it names (~270 KB saved when none are used). Reading a slot now needs a null-check (`e.bass?.enabled ?? false`); construction is unchanged.
+- Demuxer buffering is now one `DemuxerSettings` bundle applied with `Player.setDemuxer`, replacing the three separate setters and fields. Migrate `setDemuxerMaxBytes(b)` to `setDemuxer(state.demuxer.copyWith(maxBytes: b))`; `maxBackBytes` and `readahead` likewise.
 
 ### Added
 - Per-effect updaters on `AudioEffects` (`updateBass`, `updateAcompressor`, …): one-line incremental edits, e.g. `e.updateBass((b) => b.copyWith(g: 3))`.
@@ -100,8 +101,7 @@
 - `Player.seek` gained an `exact` flag for sample-accurate (vs keyframe) seeking; the default behaviour is unchanged.
 - Removed `MpvTrack.demuxDuration`. mpv's track list never populated it (it was always `null`); use `Player.state.duration` for the playing file's length.
 - Removed `Spdif.aac` and `Spdif.mp3`. mpv's `audio-spdif` passthrough only accepts `ac3`, `dts`, `dts-hd`, `eac3`, `truehd`; neither dropped value was ever a valid passthrough codec (`audio-spdif` is a free-form string list and silently ignores unrecognized tokens).
-- `setDemuxerReadaheadSecs`, `PlayerState.demuxerReadaheadSecs`, and `Player.stream.demuxerReadaheadSecs` now use `Duration` instead of `int`. mpv's `demuxer-readahead-secs` is fractional seconds, so the old `int` silently truncated sub-second values (1.5s → 1s).
-- `CacheSettings.secs` now defaults to mpv's own `--cache-secs` default (~1000 h) instead of 1 h, so every cache default mirrors mpv exactly. Effective cache memory is still bounded by `demuxerMaxBytes` (150 MiB by default).
+- `CacheSettings.secs` now defaults to mpv's own `--cache-secs` default (~1000 h) instead of 1 h, so every cache default mirrors mpv exactly. Effective cache memory is still bounded by `DemuxerSettings.maxBytes` (150 MiB by default).
 
 ### Fixed
 - Playback no longer hard-fails when the audio device can't be opened: it falls back to a null output and keeps the position clock running, with the failure still reported on `Player.stream.audioOutputState`.

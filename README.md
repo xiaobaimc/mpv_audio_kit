@@ -58,10 +58,10 @@ dependencies:
 | Platform  | Minimum | Architecture | Size | Device | Emulator |
 | :--- | :--- | :--- | :---: | :---: | :---:
 | **Android** | 7.0 (SDK 24) | arm64-v8a, armeabi-v7a, x86_64 | 8.2, 8.2, 8.7 MB | ✅ | ✅ |
-| **iOS** | 15.0 | arm64, x86_64 | 8.1, 8.6 MB | ✅ | ✅ |
-| **macOS** | 12.0 | arm64, x86_64 | 8.1, 8.7 MB | ✅ | - |
-| **Windows**| 10 | arm64, x86_64 | 7.9, 9.1 MB | ✅ | - |
-| **Linux** | Ubuntu 24.04 | aarch64, x86_64 | 8.6, 7.6 MB | ✅ | - |
+| **iOS** | 15.0 | arm64, x86_64 | 7.5, 8.0 MB | ✅ | ✅ |
+| **macOS** | 12.0 | arm64, x86_64 | 7.5, 8.0 MB | ✅ | - |
+| **Windows**| 10 | arm64, x86_64 | 8.1, 9.1 MB | ✅ | - |
+| **Linux** | Ubuntu 24.04 | aarch64, x86_64 | 8.7, 7.5 MB | ✅ | - |
 
 ---
 
@@ -1395,23 +1395,28 @@ defaults to mpv's location, which is often not writable on mobile).
 
 #### 7.2 Demuxer memory pool
 
-The demuxer is the component that reads and parses the media container (MP4, MKV, OGG, etc.) before the audio decoder processes it:
+The demuxer is the component that reads and parses the media container (MP4, MKV, OGG, etc.) before the audio decoder processes it. Its three buffering properties (`demuxer-max-bytes`, `demuxer-max-back-bytes`, `demuxer-readahead-secs`) are all set in one call through `setDemuxer(DemuxerSettings)`:
 
 ```dart
-// Maximum bytes the demuxer is allowed to cache ahead (default: 150 MiB)
-await player.setDemuxerMaxBytes(50 * 1024 * 1024); // 50 MiB
+await player.setDemuxer(const DemuxerSettings(
+  maxBytes: 50 * 1024 * 1024,          // forward cache cap (default: 150 MiB)
+  maxBackBytes: 20 * 1024 * 1024,      // seekback buffer cap (default: 50 MiB)
+  readahead: Duration(seconds: 5),     // how far ahead to read (default: 1s)
+));
 
-// Maximum bytes for the seekback buffer (default: 50 MiB)
-await player.setDemuxerMaxBackBytes(20 * 1024 * 1024);
+// Tweak a single field via copyWith
+await player.setDemuxer(
+  player.state.demuxer.copyWith(maxBytes: 100 * 1024 * 1024),
+);
 
-// How far ahead the demuxer should read (default: 1s)
-await player.setDemuxerReadaheadSecs(const Duration(seconds: 5));
+// Subscribe to live changes
+player.stream.demuxer.listen((d) => print('demuxer: ${d.maxBytes} bytes'));
 ```
 
 For radio streams or live content where seeking is not needed, reduce the back buffer to zero to save memory:
 
 ```dart
-await player.setDemuxerMaxBackBytes(0);
+await player.setDemuxer(player.state.demuxer.copyWith(maxBackBytes: 0));
 ```
 
 #### 7.3 Network timeout
@@ -1744,7 +1749,7 @@ local-file player that wants disk-side artwork.
 #### 9.5 Network and cache streams
 
 <details>
-<summary><b>11 streams</b> (click to expand)</summary>
+<summary><b>9 streams</b> (click to expand)</summary>
 
 | Stream | Type | Setter |
 | :--- | :--- | :--- |
@@ -1756,9 +1761,7 @@ local-file player that wants disk-side artwork.
 | `demuxerCacheState` | `DemuxerCacheState` | _(observed; buffered ranges, raw input rate, eof-cached, bof-cached, underrun)_ |
 | `cacheSpeed` | `double` (bytes per second) | _(observed)_ |
 | `cacheBufferingState` | `int` (0-100) | _(observed)_ |
-| `demuxerMaxBytes` | `int` | `setDemuxerMaxBytes` |
-| `demuxerMaxBackBytes` | `int` | `setDemuxerMaxBackBytes` |
-| `demuxerReadaheadSecs` | `Duration` | `setDemuxerReadaheadSecs` |
+| `demuxer` | `DemuxerSettings` | `setDemuxer` |
 
 </details>
 

@@ -71,28 +71,6 @@ void main() {
       expect(player.state.httpProxy, '');
     }, timeout: const Timeout(Duration(seconds: 15)),);
 
-    test(
-        'demuxerMaxBytes / demuxerMaxBackBytes / demuxerReadaheadSecs '
-        'round-trip', () async {
-      // mpv accepts these in MiB units (the wrapper floors bytes →
-      // MiB). 100 MiB is well within the default range.
-      await player.setDemuxerMaxBytes(100 * 1024 * 1024);
-      expect(player.state.demuxerMaxBytes, 100 * 1024 * 1024);
-
-      await player.setDemuxerMaxBackBytes(25 * 1024 * 1024);
-      expect(player.state.demuxerMaxBackBytes, 25 * 1024 * 1024);
-
-      await player.setDemuxerReadaheadSecs(const Duration(seconds: 10));
-      expect(player.state.demuxerReadaheadSecs, const Duration(seconds: 10));
-
-      // Sub-second precision survives the round-trip. Regression for the old
-      // int model, which truncated fractional readahead to whole seconds
-      // (mpv's demuxer-readahead-secs is a fractional-seconds Double).
-      await player.setDemuxerReadaheadSecs(const Duration(milliseconds: 1500));
-      expect(player.state.demuxerReadaheadSecs,
-          const Duration(milliseconds: 1500),);
-    }, timeout: const Timeout(Duration(seconds: 15)),);
-
     test('audioBuffer / audioStreamSilence / audioNullUntimed round-trip',
         () async {
       await player.setAudioBuffer(const Duration(milliseconds: 500));

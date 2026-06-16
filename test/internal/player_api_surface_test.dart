@@ -268,15 +268,7 @@ class _ApiProbe implements PlayerApi {
   Future<void> setHttpProxy(String url) => _record('setHttpProxy');
 
   @override
-  Future<void> setDemuxerMaxBytes(int bytes) => _record('setDemuxerMaxBytes');
-
-  @override
-  Future<void> setDemuxerMaxBackBytes(int bytes) =>
-      _record('setDemuxerMaxBackBytes');
-
-  @override
-  Future<void> setDemuxerReadaheadSecs(Duration readahead) =>
-      _record('setDemuxerReadaheadSecs');
+  Future<void> setDemuxer(DemuxerSettings settings) => _record('setDemuxer');
 
   @override
   Future<void> setAudioNullUntimed(bool enable) =>
@@ -341,9 +333,7 @@ void main() {
       await typed.setCookies(true);
       await typed.setHttpProxy('http://proxy:3128');
       await typed.setCache(const CacheSettings());
-      await typed.setDemuxerMaxBytes(1);
-      await typed.setDemuxerMaxBackBytes(1);
-      await typed.setDemuxerReadaheadSecs(const Duration(seconds: 1));
+      await typed.setDemuxer(const DemuxerSettings());
       await typed.setAudioBuffer(const Duration(milliseconds: 200));
       await typed.setAudioStreamSilence(false);
       await typed.setAudioNullUntimed(false);
@@ -355,9 +345,7 @@ void main() {
         'setCookies',
         'setHttpProxy',
         'setCache',
-        'setDemuxerMaxBytes',
-        'setDemuxerMaxBackBytes',
-        'setDemuxerReadaheadSecs',
+        'setDemuxer',
         'setAudioBuffer',
         'setAudioStreamSilence',
         'setAudioNullUntimed',

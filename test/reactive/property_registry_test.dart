@@ -143,13 +143,14 @@ void main() {
           name: 'demuxer-max-bytes',
           reactive: maxBytes,
           parse: (raw, _) => raw,
-          reduce: (v, s) => s.copyWith(demuxerMaxBytes: v),
+          reduce: (v, s) =>
+              s.copyWith(demuxer: s.demuxer.copyWith(maxBytes: v)),
         ),);
 
       const initial = PlayerState();
       final next = registry.dispatch('demuxer-max-bytes', 5, initial);
       expect(next, isNotNull);
-      expect(next!.demuxerMaxBytes, 5);
+      expect(next!.demuxer.maxBytes, 5);
       expect(maxBytes.value, 5,
           reason: 'reactive must update in lockstep with the state reducer',);
 
@@ -160,7 +161,7 @@ void main() {
       // Different value → emits again.
       final last = registry.dispatch('demuxer-max-bytes', 7, next);
       expect(last, isNotNull);
-      expect(last!.demuxerMaxBytes, 7);
+      expect(last!.demuxer.maxBytes, 7);
       expect(maxBytes.value, 7);
     });
 

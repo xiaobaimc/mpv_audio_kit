@@ -18,6 +18,7 @@ import '../types/enums/spdif.dart';
 import '../types/sealed/channels.dart';
 import '../types/sealed/track.dart';
 import '../types/settings/cache_settings.dart';
+import '../types/settings/demuxer_settings.dart';
 import '../types/settings/replay_gain_settings.dart';
 import '../types/settings/spectrum_settings.dart';
 import 'player_configuration.dart';
@@ -304,6 +305,10 @@ abstract interface class PlayerApi {
   /// Applies the demuxer cache configuration atomically.
   Future<void> setCache(CacheSettings settings);
 
+  /// Applies the demuxer buffering configuration atomically (forward cache
+  /// cap, seekback cap, readahead).
+  Future<void> setDemuxer(DemuxerSettings settings);
+
   /// Sets the output device buffer size.
   Future<void> setAudioBuffer(Duration size);
 
@@ -329,16 +334,6 @@ abstract interface class PlayerApi {
 
   /// Sets the HTTP proxy URL for network streams; empty string clears it.
   Future<void> setHttpProxy(String url);
-
-  /// Sets the forward demuxer cache size cap in bytes.
-  Future<void> setDemuxerMaxBytes(int bytes);
-
-  /// Sets the backward demuxer cache size cap in bytes.
-  Future<void> setDemuxerMaxBackBytes(int bytes);
-
-  /// Sets the minimum read-ahead the demuxer keeps buffered. Accepts
-  /// sub-second precision (mpv's `demuxer-readahead-secs` is fractional).
-  Future<void> setDemuxerReadaheadSecs(Duration readahead);
 
   /// Runs the null audio output untimed when [enable] is true.
   Future<void> setAudioNullUntimed(bool enable);

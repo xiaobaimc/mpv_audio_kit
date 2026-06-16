@@ -20,14 +20,13 @@ import 'package:mpv_audio_kit/src/types/enums/loop.dart';
 import 'package:mpv_audio_kit/src/types/enums/spdif.dart';
 import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
 import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
+import 'package:mpv_audio_kit/src/types/settings/demuxer_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/replay_gain_settings.dart';
 import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
 
 const _kEmptyPlaylist = Playlist.empty;
 const _kAutoDevice = Device(name: 'auto', description: 'Auto');
 const _kDefaultDevices = <Device>[_kAutoDevice];
-const _kDemuxerMaxBytesDefault = 150 * 1024 * 1024;
-const _kDemuxerMaxBackBytesDefault = 50 * 1024 * 1024;
 
 // Collection equality helpers — kept inline to avoid a transitive
 // `package:collection` dependency. PlayerState only carries small
@@ -197,14 +196,10 @@ final class PlayerState {
   /// Cache configuration. Set via [Player.setCache].
   final CacheSettings cache;
 
-  /// Max bytes the demuxer can cache.
-  final int demuxerMaxBytes;
-
-  /// How far ahead the demuxer fetches (`demuxer-readahead-secs`).
-  final Duration demuxerReadaheadSecs;
-
-  /// Max bytes for seekback buffer.
-  final int demuxerMaxBackBytes;
+  /// Demuxer buffering configuration (forward cache cap, seekback cap,
+  /// readahead). Set via [Player.setDemuxer]. Distinct from
+  /// [demuxerCacheState], which is the live read-only cache snapshot.
+  final DemuxerSettings demuxer;
 
   /// Network connection timeout. Default 60s mirrors mpv's
   /// `--network-timeout=60`.
@@ -526,9 +521,7 @@ final class PlayerState {
     this.systemVolume,
     this.systemMute,
     this.cache = const CacheSettings(),
-    this.demuxerMaxBytes = _kDemuxerMaxBytesDefault,
-    this.demuxerReadaheadSecs = const Duration(seconds: 1),
-    this.demuxerMaxBackBytes = _kDemuxerMaxBackBytesDefault,
+    this.demuxer = const DemuxerSettings(),
     this.networkTimeout = const Duration(seconds: 60),
     this.pausedForCache = false,
     this.demuxerViaNetwork = false,
@@ -626,9 +619,7 @@ final class PlayerState {
     Object? systemVolume = unset,
     Object? systemMute = unset,
     CacheSettings? cache,
-    int? demuxerMaxBytes,
-    Duration? demuxerReadaheadSecs,
-    int? demuxerMaxBackBytes,
+    DemuxerSettings? demuxer,
     Duration? networkTimeout,
     bool? pausedForCache,
     bool? demuxerViaNetwork,
@@ -728,9 +719,7 @@ final class PlayerState {
         systemMute:
             identical(systemMute, unset) ? this.systemMute : systemMute as bool?,
         cache: cache ?? this.cache,
-        demuxerMaxBytes: demuxerMaxBytes ?? this.demuxerMaxBytes,
-        demuxerReadaheadSecs: demuxerReadaheadSecs ?? this.demuxerReadaheadSecs,
-        demuxerMaxBackBytes: demuxerMaxBackBytes ?? this.demuxerMaxBackBytes,
+        demuxer: demuxer ?? this.demuxer,
         networkTimeout: networkTimeout ?? this.networkTimeout,
         pausedForCache: pausedForCache ?? this.pausedForCache,
         demuxerViaNetwork: demuxerViaNetwork ?? this.demuxerViaNetwork,
@@ -842,9 +831,7 @@ final class PlayerState {
           other.systemVolume == systemVolume &&
           other.systemMute == systemMute &&
           other.cache == cache &&
-          other.demuxerMaxBytes == demuxerMaxBytes &&
-          other.demuxerReadaheadSecs == demuxerReadaheadSecs &&
-          other.demuxerMaxBackBytes == demuxerMaxBackBytes &&
+          other.demuxer == demuxer &&
           other.networkTimeout == networkTimeout &&
           other.pausedForCache == pausedForCache &&
           other.demuxerViaNetwork == demuxerViaNetwork &&
@@ -941,9 +928,7 @@ final class PlayerState {
         systemVolume,
         systemMute,
         cache,
-        demuxerMaxBytes,
-        demuxerReadaheadSecs,
-        demuxerMaxBackBytes,
+        demuxer,
         networkTimeout,
         pausedForCache,
         demuxerViaNetwork,

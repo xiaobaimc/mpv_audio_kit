@@ -14,6 +14,7 @@ import '../types/enums/hls_bitrate.dart';
 import '../types/enums/spdif.dart';
 import '../types/sealed/channels.dart';
 import '../types/settings/cache_settings.dart';
+import '../types/settings/demuxer_settings.dart';
 import '../types/settings/replay_gain_settings.dart';
 import '../types/state/audio_output_state.dart';
 import '../types/state/mpv_prefetch_state.dart';
@@ -134,19 +135,12 @@ class DefaultPropertyReactives {
   final ReactiveProperty<CacheSettings> cache =
       ReactiveProperty<CacheSettings>(const CacheSettings());
 
-  /// Forward demuxer cache size cap in bytes (`demuxer-max-bytes`).
-  final ReactiveProperty<int> demuxerMaxBytes =
-      ReactiveProperty<int>(150 * 1024 * 1024);
-
-  /// Minimum read-ahead the demuxer keeps buffered (`demuxer-readahead-secs`).
-  /// mpv's option is fractional seconds, so this is a [Duration] (sub-second
-  /// values are preserved, not truncated).
-  final ReactiveProperty<Duration> demuxerReadaheadSecs =
-      ReactiveProperty<Duration>(const Duration(seconds: 1));
-
-  /// Backward demuxer cache size cap in bytes (`demuxer-max-back-bytes`).
-  final ReactiveProperty<int> demuxerMaxBackBytes =
-      ReactiveProperty<int>(50 * 1024 * 1024);
+  /// Demuxer buffering configuration — aggregate of `demuxer-max-bytes`,
+  /// `demuxer-max-back-bytes`, and `demuxer-readahead-secs`. All three specs
+  /// dedup and emit on this single cell so listeners see one [DemuxerSettings]
+  /// snapshot per change.
+  final ReactiveProperty<DemuxerSettings> demuxer =
+      ReactiveProperty<DemuxerSettings>(const DemuxerSettings());
 
   /// Network I/O timeout (`network-timeout`).
   final ReactiveProperty<Duration> networkTimeout =

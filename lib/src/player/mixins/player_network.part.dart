@@ -153,37 +153,48 @@ mixin _NetworkModule on _PlayerBase {
         (s) => s.copyWith(httpProxy: url), _reactives.httpProxy, url,);
   }
 
-  /// Sets the maximum bytes the demuxer is allowed to cache.
+  /// Sets the demuxer buffering configuration atomically.
   ///
-  /// Default 150 MiB (matches mpv's `--demuxer-max-bytes=150MiB`). The
-  /// argument is forwarded to mpv as a raw byte count, so sub-MiB
-  /// precision is preserved (mpv accepts plain integers and SI / IEC
-  /// suffixes interchangeably).
-  Future<void> setDemuxerMaxBytes(int bytes) async {
+  /// Writes the three backing mpv properties (`demuxer-max-bytes`,
+  /// `demuxer-max-back-bytes`, `demuxer-readahead-secs`) in one shot. The byte
+  /// caps are forwarded as raw byte counts (sub-MiB precision preserved), and
+  /// the readahead is a fractional-seconds value (sub-second precision
+  /// preserved). Modify a single field via
+  /// `await player.setDemuxer(state.demuxer.copyWith(maxBackBytes: 0))`.
+  Future<void> setDemuxer(DemuxerSettings settings) async {
     await _gate();
-    await _prop('demuxer-max-bytes', bytes.toString());
-    _updateField((s) => s.copyWith(demuxerMaxBytes: bytes),
-        _reactives.demuxerMaxBytes, bytes,);
-  }
-
-  /// Sets the maximum seekback buffer size in bytes. Default 50 MiB.
-  /// See [setDemuxerMaxBytes] for the byte-precision contract.
-  Future<void> setDemuxerMaxBackBytes(int bytes) async {
-    await _gate();
-    await _prop('demuxer-max-back-bytes', bytes.toString());
-    _updateField((s) => s.copyWith(demuxerMaxBackBytes: bytes),
-        _reactives.demuxerMaxBackBytes, bytes,);
-  }
-
-  /// Sets the demuxer readahead time — the minimum amount of audio the
-  /// demuxer keeps buffered ahead of the playhead. Accepts sub-second
-  /// precision (`demuxer-readahead-secs` is a fractional-seconds value).
-  Future<void> setDemuxerReadaheadSecs(Duration readahead) async {
-    await _gate();
-    await _prop('demuxer-readahead-secs',
-        durationToSeconds(readahead).toStringAsFixed(6),);
-    _updateField((s) => s.copyWith(demuxerReadaheadSecs: readahead),
-        _reactives.demuxerReadaheadSecs, readahead,);
+    final previous = state.demuxer;
+    final writes = <(String, String, String)>[
+      (
+        'demuxer-max-bytes',
+        settings.maxBytes.toString(),
+        previous.maxBytes.toString()
+      ),
+      (
+        'demuxer-max-back-bytes',
+        settings.maxBackBytes.toString(),
+        previous.maxBackBytes.toString()
+      ),
+      (
+        'demuxer-readahead-secs',
+        durationToSeconds(settings.readahead).toStringAsFixed(6),
+        durationToSeconds(previous.readahead).toStringAsFixed(6)
+      ),
+    ];
+    final committed = <(String, String)>[];
+    try {
+      for (final (name, value, prior) in writes) {
+        await _prop(name, value);
+        committed.add((name, prior));
+      }
+    } catch (_) {
+      for (final (name, prior) in committed.reversed) {
+        await _propRc(name, prior);
+      }
+      rethrow;
+    }
+    _updateField(
+        (s) => s.copyWith(demuxer: settings), _reactives.demuxer, settings,);
   }
 
   /// Whether to fallback to untimed null output if audio output fails.

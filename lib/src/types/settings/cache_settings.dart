@@ -16,7 +16,7 @@ final class CacheSettings {
 
   /// Target cache duration ahead of the playhead. Matches mpv's
   /// `--cache-secs` default (~1000 h — effectively unbounded by time):
-  /// actual memory is bounded by [PlayerState.demuxerMaxBytes] (150 MiB by
+  /// actual memory is bounded by [DemuxerSettings.maxBytes] (150 MiB by
   /// default), which is what governs in practice.
   final Duration secs;
 

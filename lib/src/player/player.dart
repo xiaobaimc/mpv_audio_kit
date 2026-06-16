@@ -60,6 +60,7 @@ import '../types/sealed/channels.dart';
 import '../types/sealed/media_session_command.dart';
 import '../types/sealed/track.dart';
 import '../types/settings/cache_settings.dart';
+import '../types/settings/demuxer_settings.dart';
 import '../types/settings/replay_gain_settings.dart';
 import '../types/settings/spectrum_settings.dart';
 import 'audio_output_error.dart';

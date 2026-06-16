@@ -74,6 +74,14 @@ void main() {
       expect(s.cache.onDisk, isFalse);
       expect(s.cache.pause, isTrue);
       expect(s.cache.pauseWait, const Duration(seconds: 1));
+
+      expect(s.demuxer, const DemuxerSettings());
+      expect(s.demuxer.maxBytes, 150 * 1024 * 1024,
+          reason: 'matches mpv `--demuxer-max-bytes=150MiB`',);
+      expect(s.demuxer.maxBackBytes, 50 * 1024 * 1024,
+          reason: 'matches mpv `--demuxer-max-back-bytes=50MiB`',);
+      expect(s.demuxer.readahead, const Duration(seconds: 1),
+          reason: 'matches mpv `--demuxer-readahead-secs=1`',);
     });
 
     test('audioBitrate is null by default (unavailable, NOT zero)', () {

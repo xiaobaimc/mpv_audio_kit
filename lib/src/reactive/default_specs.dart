@@ -17,6 +17,7 @@ import '../types/enums/replay_gain.dart';
 import '../types/enums/spdif.dart';
 import '../types/sealed/channels.dart';
 import '../types/settings/cache_settings.dart';
+import '../types/settings/demuxer_settings.dart';
 import '../types/settings/replay_gain_settings.dart';
 import '../types/state/audio_output_state.dart';
 import '../types/state/mpv_prefetch_state.dart';
@@ -302,23 +303,26 @@ List<MpvPropertySpec<Object?>> buildDefaultSpecs(
       parse: (raw, s) => s.cache.copyWith(pauseInitial: raw),
       reduce: (v, s) => s.copyWith(cache: v),
     ),
-    MpvPropertySpec<int>.int64(
+    // ── Demuxer ──────────────────────────────────────────────────────────
+    // Aggregate cell — three specs share one reactive that dedups on the
+    // full [DemuxerSettings].
+    MpvPropertySpec<DemuxerSettings>.int64(
       name: 'demuxer-max-bytes',
-      reactive: r.demuxerMaxBytes,
-      parse: _identityInt,
-      reduce: (v, s) => s.copyWith(demuxerMaxBytes: v),
+      reactive: r.demuxer,
+      parse: (raw, s) => s.demuxer.copyWith(maxBytes: raw),
+      reduce: (v, s) => s.copyWith(demuxer: v),
     ),
-    MpvPropertySpec<Duration>.double(
-      name: 'demuxer-readahead-secs',
-      reactive: r.demuxerReadaheadSecs,
-      parse: _toDuration,
-      reduce: (v, s) => s.copyWith(demuxerReadaheadSecs: v),
-    ),
-    MpvPropertySpec<int>.int64(
+    MpvPropertySpec<DemuxerSettings>.int64(
       name: 'demuxer-max-back-bytes',
-      reactive: r.demuxerMaxBackBytes,
-      parse: _identityInt,
-      reduce: (v, s) => s.copyWith(demuxerMaxBackBytes: v),
+      reactive: r.demuxer,
+      parse: (raw, s) => s.demuxer.copyWith(maxBackBytes: raw),
+      reduce: (v, s) => s.copyWith(demuxer: v),
+    ),
+    MpvPropertySpec<DemuxerSettings>.double(
+      name: 'demuxer-readahead-secs',
+      reactive: r.demuxer,
+      parse: (raw, s) => s.demuxer.copyWith(readahead: secondsToDuration(raw)),
+      reduce: (v, s) => s.copyWith(demuxer: v),
     ),
     MpvPropertySpec<Duration>.double(
       name: 'network-timeout',
