@@ -16,6 +16,8 @@ import 'package:mpv_audio_kit/src/models/cover_art.dart';
 import 'package:mpv_audio_kit/src/models/demuxer_cache_state.dart';
 import 'package:mpv_audio_kit/src/models/device.dart';
 import 'package:mpv_audio_kit/src/models/fft_frame.dart';
+import 'package:mpv_audio_kit/src/models/loudness.dart';
+import 'package:mpv_audio_kit/src/models/loudness_scan.dart';
 import 'package:mpv_audio_kit/src/models/media_session.dart';
 import 'package:mpv_audio_kit/src/models/mpv_track.dart';
 import 'package:mpv_audio_kit/src/models/pcm_frame.dart';
@@ -27,12 +29,14 @@ import 'package:mpv_audio_kit/src/reactive/reactive_property.dart';
 import 'package:mpv_audio_kit/src/types/enums/cover.dart';
 import 'package:mpv_audio_kit/src/types/enums/format.dart';
 import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
+import 'package:mpv_audio_kit/src/types/enums/hls_bitrate.dart';
 import 'package:mpv_audio_kit/src/types/enums/loop.dart';
 import 'package:mpv_audio_kit/src/types/enums/spdif.dart';
 import 'package:mpv_audio_kit/src/types/enums/tap_side.dart';
 import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
 import 'package:mpv_audio_kit/src/types/sealed/media_session_command.dart';
 import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
+import 'package:mpv_audio_kit/src/types/settings/demuxer_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/replay_gain_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/spectrum_settings.dart';
 import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
@@ -79,6 +83,8 @@ class PlayerStream {
     required this.pcm,
     required this.spectrum,
     required this.waveform,
+    required this.loudnessMeter,
+    required this.loudness,
     required this.tap,
     required this.mediaSessionCommands,
   })  : playing = reactives.playing.stream,
@@ -108,11 +114,12 @@ class PlayerStream {
         systemVolume = reactives.systemVolume.stream,
         systemMute = reactives.systemMute.stream,
         cache = reactives.cache.stream,
-        demuxerMaxBytes = reactives.demuxerMaxBytes.stream,
-        demuxerReadaheadSecs = reactives.demuxerReadaheadSecs.stream,
-        demuxerMaxBackBytes = reactives.demuxerMaxBackBytes.stream,
+        demuxer = reactives.demuxer.stream,
         networkTimeout = reactives.networkTimeout.stream,
         tlsVerify = reactives.tlsVerify.stream,
+        hlsBitrate = reactives.hlsBitrate.stream,
+        cookies = reactives.cookies.stream,
+        httpProxy = reactives.httpProxy.stream,
         pausedForCache = reactives.pausedForCache.stream,
         demuxerViaNetwork = reactives.demuxerViaNetwork.stream,
         audioExclusive = reactives.audioExclusive.stream,
@@ -372,20 +379,25 @@ class PlayerStream {
   /// changes. Set with [Player.setCache].
   final Stream<CacheSettings> cache;
 
-  /// Emits the max demuxer bytes.
-  final Stream<int> demuxerMaxBytes;
-
-  /// Emits the demuxer readahead duration.
-  final Stream<Duration> demuxerReadaheadSecs;
-
-  /// Emits the max demuxer back bytes.
-  final Stream<int> demuxerMaxBackBytes;
+  /// Aggregate demuxer-buffering configuration — emits a fresh
+  /// [DemuxerSettings] whenever any of maxBytes / maxBackBytes / readahead
+  /// changes. Set with [Player.setDemuxer].
+  final Stream<DemuxerSettings> demuxer;
 
   /// Emits the network timeout duration.
   final Stream<Duration> networkTimeout;
 
   /// Emits whether TLS verification is enabled.
   final Stream<bool> tlsVerify;
+
+  /// Emits the HLS variant-selection policy.
+  final Stream<HlsBitrate> hlsBitrate;
+
+  /// Emits whether the HTTP cookie jar is enabled for network streams.
+  final Stream<bool> cookies;
+
+  /// Emits the HTTP proxy URL; empty string when none is configured.
+  final Stream<String> httpProxy;
 
   /// Emits `true` when playback is paused because the network cache ran
   /// empty; `false` once mpv resumes after [cache] `pauseWait` seconds
@@ -727,6 +739,50 @@ class PlayerStream {
   /// computed. This matches the single-player-per-app usage this package
   /// targets; don't rely on concurrent waveforms across players.
   final Stream<WaveformData?> waveform;
+
+  /// Live EBU R128 loudness measurements ([Loudness]: momentary,
+  /// short-term, integrated, range) from the `ebur128` stage of the
+  /// audio chain.
+  ///
+  /// Requires the meter in the chain: enable it on the bundle with its
+  /// `metadata` option on —
+  ///
+  /// ```dart
+  /// await player.updateAudioEffects(
+  ///   (e) => e.updateEbur128(
+  ///       (m) => m.copyWith(enabled: true, metadata: true)),
+  /// );
+  /// player.stream.loudnessMeter.listen((l) => meter.paint(l.momentary));
+  /// ```
+  ///
+  /// **Listener-gated** — the measurement poll runs only while a
+  /// listener is attached. While the meter is not in the chain the
+  /// stream simply emits nothing.
+  final Stream<Loudness> loudnessMeter;
+
+  /// Offline loudness scan of the loaded source ([LoudnessScan]:
+  /// integrated LUFS, loudness range, sample/true peak), measured by
+  /// decoding the whole file off the playback path at many times
+  /// realtime — the result lands moments after the file loads, before
+  /// the audio has played. Use it to volume-normalize tracks without
+  /// ReplayGain tags:
+  ///
+  /// ```dart
+  /// player.stream.loudness.listen((scan) {
+  ///   if (scan?.state == LoudnessScanState.ready) {
+  ///     player.setVolumeGain((-18.0 - scan!.integrated!).clamp(-24, 24));
+  ///   }
+  /// });
+  /// ```
+  ///
+  /// Emits one terminal [LoudnessScan] per track (`ready`, `failed`, or
+  /// `unavailable` for sources that can only be measured during
+  /// playback — adaptive/live streams; use [loudness] there), and
+  /// `null` on the track-change boundary so stale results clear.
+  ///
+  /// **Lazy** — the native scan runs only while a listener is
+  /// attached; an idle stream costs nothing.
+  final Stream<LoudnessScan?> loudness;
 
   // ── Media session ──────────────────────────────────────────────────
 

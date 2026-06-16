@@ -173,7 +173,7 @@ void main() {
       await player.dispose();
     });
 
-    test('every core audio decoder is registered in libavcodec', () async {
+    test('every core audio decoder is registered in libavcodec', () {
       final missing = <String>[];
       for (final name in _kCoreAudioDecoders) {
         if (!registeredNames.contains(name)) {
@@ -189,7 +189,7 @@ void main() {
 
     test(
       'every Apple-only audio decoder is registered on macOS / iOS',
-      () async {
+      () {
         final missing = <String>[];
         for (final name in _kAppleOnlyAudioDecoders) {
           if (!registeredNames.contains(name)) {

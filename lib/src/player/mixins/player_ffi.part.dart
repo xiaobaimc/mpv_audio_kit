@@ -4,11 +4,20 @@
 
 part of '../player.dart';
 
-/// Low-level native bridge: the raw property / command FFI calls every
-/// typed setter funnels through, the `chapter-list` NODE writer, and the
-/// mpv error-string lookup. Declared `on _PlayerBase` so the constructor,
+/// Low-level native bridge: the raw property / command calls every typed
+/// setter funnels through, the `chapter-list` NODE writer, and the mpv
+/// error-string lookup. Declared `on _PlayerBase` so the constructor,
 /// `dispose`, and the domain mixins can reach these across part boundaries
 /// (their abstract signatures live on `_PlayerBase`).
+///
+/// Every write/read here goes through the ASYNC client API: the FFI call
+/// only enqueues the request (libmpv deep-copies the arguments) and the
+/// future completes when the event isolate forwards the matching reply.
+/// The synchronous client API waits for the core's playloop to serve the
+/// request, and the playloop can be stuck for seconds inside audio-output
+/// init (a Bluetooth/AirPlay device waking up) — on the main isolate that
+/// wait is the macOS beachball. Never reintroduce a synchronous
+/// set/get/command on the main isolate.
 mixin _FfiModule on _PlayerBase {
   /// Writes a property and throws [MpvException] on rejection.
   ///
@@ -19,46 +28,127 @@ mixin _FfiModule on _PlayerBase {
   /// rc-returning variant for the few call sites that need to tolerate
   /// failures explicitly.
   @override
-  void _prop(String name, String value) {
-    final rc = _propRc(name, value);
+  Future<void> _prop(String name, String value) async {
+    final rc = await _propRc(name, value);
     if (rc < 0) {
       throw MpvException(name: name, code: rc, message: _errorString(rc));
     }
   }
 
   @override
-  int _propRc(String name, String value) {
-    return using(
-      (arena) => _lib.mpvSetPropertyString(
+  Future<int> _propRc(String name, String value) {
+    // A multi-write setter (e.g. setReplayGain's four writes) can be
+    // suspended awaiting reply N when dispose() runs; `_drainPendingReplies`
+    // resumes it as a microtask, and `mpv_terminate_destroy` frees the handle
+    // on the next synchronous line — so the resumed continuation must NOT
+    // issue FFI against the freed handle. Report a synthetic success (the
+    // same contract the drain uses for a write racing dispose) and skip the
+    // native call entirely.
+    if (_ffiClosed) return Future.value(MpvError.mpvErrorSuccess);
+    final id = _nextReplyId++;
+    final completer = Completer<int>();
+    _pendingReplies[id] = completer;
+    final rc = using((arena) {
+      // STRING format: data is a `char**`.
+      final v = arena<Pointer<Utf8>>()
+        ..value = value.toNativeUtf8(allocator: arena);
+      return _lib.mpvSetPropertyAsync(
         _handle,
+        id,
         name.toNativeUtf8(allocator: arena),
-        value.toNativeUtf8(allocator: arena),
-      ),
-    );
+        MpvFormat.mpvFormatString,
+        v.cast(),
+      );
+    });
+    if (rc < 0) {
+      // Enqueue rejected (e.g. reply queue full) — no reply will come.
+      _pendingReplies.remove(id);
+      return Future.value(rc);
+    }
+    return completer.future;
   }
 
   @override
-  int _command(List<String> args) {
-    return using((arena) {
+  Future<int> _command(List<String> args) {
+    // See `_propRc`: never issue FFI on a handle dispose may have freed.
+    if (_ffiClosed) return Future.value(MpvError.mpvErrorSuccess);
+    final id = _nextReplyId++;
+    final completer = Completer<int>();
+    _pendingReplies[id] = completer;
+    final rc = using((arena) {
       final arr = arena<Pointer<Utf8>>(args.length + 1);
       for (var i = 0; i < args.length; i++) {
         arr[i] = args[i].toNativeUtf8(allocator: arena);
       }
       arr[args.length] = nullptr;
-      return _lib.mpvCommand(_handle, arr);
+      return _lib.mpvCommandAsync(_handle, id, arr);
     });
+    if (rc < 0) {
+      // Parse error or full reply queue — rejected client-side, no reply.
+      _pendingReplies.remove(id);
+      return Future.value(rc);
+    }
+    return completer.future;
   }
 
-  /// Writes [chapters] to mpv's `chapter-list` — a NODE-array property — via
-  /// the stable `mpv_set_property` C API, returning the raw mpv rc.
+  /// [_command] that throws [MpvException] on rejection — the command
+  /// counterpart of [_prop], used by the typed methods whose failure is
+  /// a caller-visible error (seek with nothing loaded, loadfile with
+  /// malformed options, an out-of-range playlist index). Call sites
+  /// where a non-zero rc is an expected no-op (`playlist-remove current`
+  /// on an empty playlist, `playlist-next weak` at the last entry) keep
+  /// the raw rc-returning variant.
+  @override
+  Future<void> _commandChecked(List<String> args) async {
+    final rc = await _command(args);
+    if (rc < 0) {
+      throw MpvException(
+        name: args.isEmpty ? '<empty>' : args.first,
+        code: rc,
+        message: _errorString(rc),
+      );
+    }
+  }
+
+  @override
+  Future<(int, dynamic)> _getAsync(String name, int format) {
+    // See `_propRc`: never issue FFI on a handle dispose may have freed. A
+    // read racing dispose surfaces as `null` (same as the drain's contract).
+    if (_ffiClosed) return Future.value((MpvError.mpvErrorGeneric, null));
+    final id = _nextReplyId++;
+    final completer = Completer<(int, dynamic)>();
+    _pendingGetReplies[id] = completer;
+    final rc = using(
+      (arena) => _lib.mpvGetPropertyAsync(
+        _handle,
+        id,
+        name.toNativeUtf8(allocator: arena),
+        format,
+      ),
+    );
+    if (rc < 0) {
+      _pendingGetReplies.remove(id);
+      return Future.value((rc, null));
+    }
+    return completer.future;
+  }
+
+  /// Writes [chapters] to mpv's `chapter-list` — a NODE-array property —
+  /// via `mpv_set_property_async`, resolving with the raw mpv rc.
   ///
   /// `chapter-list` is an array of maps `{title: string, time: double secs}`.
-  /// The whole node tree is built in an [Arena]; mpv deep-copies it during
-  /// `set_property`, so every allocation is freed on return. An empty list
-  /// writes an empty array (clears the chapters).
+  /// The whole node tree is built in an [Arena]; the async setter deep-copies
+  /// it before returning (`m_option_copy` on the NODE option type), so every
+  /// allocation is freed on return. An empty list writes an empty array
+  /// (clears the chapters).
   @override
-  int _setChapterListNode(List<Chapter> chapters) {
-    return using((arena) {
+  Future<int> _setChapterListNode(List<Chapter> chapters) {
+    // See `_propRc`: never issue FFI on a handle dispose may have freed.
+    if (_ffiClosed) return Future.value(MpvError.mpvErrorSuccess);
+    final id = _nextReplyId++;
+    final completer = Completer<int>();
+    _pendingReplies[id] = completer;
+    final rc = using((arena) {
       final n = chapters.length;
       final arrayList = arena<MpvNodeList>();
       arrayList.ref.num = n;
@@ -98,13 +188,19 @@ mixin _FfiModule on _PlayerBase {
       root.ref.format = MpvFormat.mpvFormatNodeArray;
       root.ref.u.list = arrayList;
 
-      return _lib.mpvSetProperty(
+      return _lib.mpvSetPropertyAsync(
         _handle,
+        id,
         'chapter-list'.toNativeUtf8(allocator: arena),
         MpvFormat.mpvFormatNode,
         root.cast<Void>(),
       );
     });
+    if (rc < 0) {
+      _pendingReplies.remove(id);
+      return Future.value(rc);
+    }
+    return completer.future;
   }
 
   @override
@@ -122,21 +218,28 @@ mixin _FfiModule on _PlayerBase {
   /// `player.state.<field>` — the cached value is updated on every
   /// property-change event from mpv and avoids an FFI round-trip.
   ///
-  /// Returns `null` if the property doesn't exist or the FFI call
+  /// Returns `null` if the property doesn't exist or the read
   /// fails. Throws [StateError] if the player has been disposed.
   Future<String?> getRawProperty(String name) async {
-    _checkNotDisposed();
-    await _ready;
-    return using((arena) {
-      final n = name.toNativeUtf8(allocator: arena);
-      final ptr = _lib.mpvGetPropertyString(_handle, n);
-      if (ptr == nullptr) {
-        return null;
-      }
-      final s = ptr.cast<Utf8>().toDartString();
-      _lib.mpvFree(ptr.cast());
-      return s;
-    });
+    await _gate();
+    final (error, value) = await _getAsync(name, MpvFormat.mpvFormatString);
+    return error < 0 ? null : value as String?;
+  }
+
+  /// Reads any mpv property as a decoded node tree.
+  ///
+  /// Typed counterpart of [getRawProperty] for structured properties
+  /// (`track-list`, `metadata`, `demuxer-cache-state`, …): returns the
+  /// same shapes the event pipeline produces — `Map<String, dynamic>`,
+  /// `List<dynamic>`, [String], [int], [double], [bool], byte arrays —
+  /// with no string re-parsing on the caller's side.
+  ///
+  /// Returns `null` if the property doesn't exist or is currently
+  /// unavailable. Throws [StateError] if the player has been disposed.
+  Future<Object?> getRawPropertyNode(String name) async {
+    await _gate();
+    final (error, value) = await _getAsync(name, MpvFormat.mpvFormatNode);
+    return error < 0 ? null : value;
   }
 
   /// Writes any mpv property as a string.
@@ -166,8 +269,7 @@ mixin _FfiModule on _PlayerBase {
   /// [ArgumentError] if [name] is reserved, or [MpvException] if mpv
   /// rejects the property write (unknown name, out-of-range value, etc.).
   Future<void> setRawProperty(String name, String value) async {
-    _checkNotDisposed();
-    await _ready;
+    await _gate();
     if (name == 'af') {
       throw ArgumentError.value(
         name,
@@ -188,7 +290,7 @@ mixin _FfiModule on _PlayerBase {
             'Use Player.play() / Player.pause() instead.',
       );
     }
-    _prop(name, value);
+    await _prop(name, value);
   }
 
   /// Sends a raw mpv command.
@@ -203,8 +305,7 @@ mixin _FfiModule on _PlayerBase {
   /// accepted the command; the actual side-effect on playback state
   /// is observed asynchronously via [Player.stream].
   Future<void> sendRawCommand(List<String> args) async {
-    _checkNotDisposed();
-    await _ready;
+    await _gate();
     // Symmetric guard with `setRawProperty('af', ...)`: mpv exposes
     // `af` and `af-command` as commands that mutate the audio chain
     // incrementally — bypassing the typed `AudioEffects` bundle and
@@ -220,7 +321,7 @@ mixin _FfiModule on _PlayerBase {
             'experimental or expression-based filters via AudioEffects.custom.',
       );
     }
-    final rc = _command(args);
+    final rc = await _command(args);
     if (rc < 0) {
       throw MpvException(
         name: args.isEmpty ? '<empty>' : args.first,
@@ -233,8 +334,7 @@ mixin _FfiModule on _PlayerBase {
   /// Changes the engine log verbosity at runtime (the initial value comes
   /// from [PlayerConfiguration.logLevel]).
   Future<void> setLogLevel(LogLevel level) async {
-    _checkNotDisposed();
-    await _ready;
+    await _gate();
     // `mpv_request_log_messages` is thread-safe and operates on the shared
     // client handle the same way the main-thread getRawProperty path does,
     // so there's no need to round-trip through the event isolate.

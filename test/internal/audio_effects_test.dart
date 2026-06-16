@@ -35,7 +35,7 @@ void main() {
     test('default-valued enabled stage emits bare filter name', () {
       const fx = AudioEffects(acompressor: AcompressorSettings(enabled: true));
       // No params differ from ffmpeg defaults → `lavfi-acompressor` only.
-      expect(fx.toAfChain(), 'lavfi-acompressor');
+      expect(fx.toAfChain(), '@aek_acompressor:lavfi-acompressor');
     });
   });
 
@@ -52,7 +52,7 @@ void main() {
       // up — only the modified fields. Order = alphabetical (the
       // codegen iterates the schema's params dict in sorted order).
       final af = fx.toAfChain();
-      expect(af, startsWith('lavfi-acompressor='));
+      expect(af, startsWith('@aek_acompressor:lavfi-acompressor='));
       expect(af, contains('threshold=0.100'));
       expect(af, contains('ratio=6.000'));
       expect(af, isNot(contains('level_in')));
@@ -94,7 +94,7 @@ void main() {
       // Enums emit via `mpvValue` (the exact ffmpeg CONST name), NOT
       // their integer index.
       final af = fx.toAfChain();
-      expect(af, startsWith('lavfi-rubberband='));
+      expect(af, startsWith('@aek_rubberband:lavfi-rubberband='));
       expect(af, contains('tempo=0.950'));
       expect(af, contains('pitchq=speed'));
       expect(af, contains('transients=smooth'));
@@ -105,7 +105,7 @@ void main() {
         aemphasis: AemphasisSettings(enabled: true),
       );
       // `type=cd` is the ffmpeg default, so it must NOT be emitted.
-      expect(fx.toAfChain(), 'lavfi-aemphasis');
+      expect(fx.toAfChain(), '@aek_aemphasis:lavfi-aemphasis');
     });
 
     test('aemphasis with non-default enum → mpvValue in chain', () {
@@ -117,7 +117,7 @@ void main() {
       );
       // The Dart member is `n50fm` (digit-prefix escaped); the wire
       // value is the raw ffmpeg name `50fm`.
-      expect(fx.toAfChain(), 'lavfi-aemphasis=type=50fm');
+      expect(fx.toAfChain(), '@aek_aemphasis:lavfi-aemphasis=type=50fm');
     });
 
     test('superequalizer routes digit-prefix bands through `params` map', () {
@@ -128,7 +128,7 @@ void main() {
         ),
       );
       final af = fx.toAfChain();
-      expect(af, startsWith('lavfi-superequalizer='));
+      expect(af, startsWith('@aek_superequalizer:lavfi-superequalizer='));
       expect(af, contains('1b=1.500'));
       expect(af, contains('5b=0.800'));
       expect(af, contains('10b=1.200'));
@@ -155,7 +155,7 @@ void main() {
       );
       final entries = fx.toAfChain().split(',');
       expect(entries.first, 'lavfi-aresample=48000');
-      expect(entries.last, 'lavfi-acompressor=threshold=0.100');
+      expect(entries.last, '@aek_acompressor:lavfi-acompressor=threshold=0.100');
     });
 
     test('empty / whitespace custom entries are dropped', () {
@@ -175,9 +175,9 @@ void main() {
       expect(entries, hasLength(3));
       // AVOption-array order: acompressor < loudnorm < rubberband
       // (alphabetical by filter name in the bundle's declaration).
-      expect(entries[0], 'lavfi-acompressor');
-      expect(entries[1], 'lavfi-loudnorm');
-      expect(entries[2], 'lavfi-rubberband=tempo=0.900');
+      expect(entries[0], '@aek_acompressor:lavfi-acompressor');
+      expect(entries[1], '@aek_loudnorm:lavfi-loudnorm');
+      expect(entries[2], '@aek_rubberband:lavfi-rubberband=tempo=0.900');
     });
 
     test('disabled stages do NOT show up between enabled ones', () {
@@ -186,7 +186,7 @@ void main() {
         // aemphasis disabled (default) — must not appear.
         loudnorm: LoudnormSettings(enabled: true),
       );
-      expect(fx.toAfChain(), 'lavfi-acompressor,lavfi-loudnorm');
+      expect(fx.toAfChain(), '@aek_acompressor:lavfi-acompressor,@aek_loudnorm:lavfi-loudnorm');
     });
   });
 

@@ -12,10 +12,12 @@ import '../types/enums/cache.dart';
 import '../types/enums/cover.dart';
 import '../types/enums/format.dart';
 import '../types/enums/gapless.dart';
+import '../types/enums/hls_bitrate.dart';
 import '../types/enums/replay_gain.dart';
 import '../types/enums/spdif.dart';
 import '../types/sealed/channels.dart';
 import '../types/settings/cache_settings.dart';
+import '../types/settings/demuxer_settings.dart';
 import '../types/settings/replay_gain_settings.dart';
 import '../types/state/audio_output_state.dart';
 import '../types/state/mpv_prefetch_state.dart';
@@ -301,23 +303,26 @@ List<MpvPropertySpec<Object?>> buildDefaultSpecs(
       parse: (raw, s) => s.cache.copyWith(pauseInitial: raw),
       reduce: (v, s) => s.copyWith(cache: v),
     ),
-    MpvPropertySpec<int>.int64(
+    // ── Demuxer ──────────────────────────────────────────────────────────
+    // Aggregate cell — three specs share one reactive that dedups on the
+    // full [DemuxerSettings].
+    MpvPropertySpec<DemuxerSettings>.int64(
       name: 'demuxer-max-bytes',
-      reactive: r.demuxerMaxBytes,
-      parse: _identityInt,
-      reduce: (v, s) => s.copyWith(demuxerMaxBytes: v),
+      reactive: r.demuxer,
+      parse: (raw, s) => s.demuxer.copyWith(maxBytes: raw),
+      reduce: (v, s) => s.copyWith(demuxer: v),
     ),
-    MpvPropertySpec<Duration>.double(
-      name: 'demuxer-readahead-secs',
-      reactive: r.demuxerReadaheadSecs,
-      parse: _toDuration,
-      reduce: (v, s) => s.copyWith(demuxerReadaheadSecs: v),
-    ),
-    MpvPropertySpec<int>.int64(
+    MpvPropertySpec<DemuxerSettings>.int64(
       name: 'demuxer-max-back-bytes',
-      reactive: r.demuxerMaxBackBytes,
-      parse: _identityInt,
-      reduce: (v, s) => s.copyWith(demuxerMaxBackBytes: v),
+      reactive: r.demuxer,
+      parse: (raw, s) => s.demuxer.copyWith(maxBackBytes: raw),
+      reduce: (v, s) => s.copyWith(demuxer: v),
+    ),
+    MpvPropertySpec<DemuxerSettings>.double(
+      name: 'demuxer-readahead-secs',
+      reactive: r.demuxer,
+      parse: (raw, s) => s.demuxer.copyWith(readahead: secondsToDuration(raw)),
+      reduce: (v, s) => s.copyWith(demuxer: v),
     ),
     MpvPropertySpec<Duration>.double(
       name: 'network-timeout',
@@ -330,6 +335,31 @@ List<MpvPropertySpec<Object?>> buildDefaultSpecs(
       reactive: r.tlsVerify,
       parse: _identityBool,
       reduce: (v, s) => s.copyWith(tlsVerify: v),
+    ),
+    // `tls-ca-file` is deliberately unobserved: mpv never self-mutates it,
+    // so the optimistic write in `setTlsCaFile` is always the truth — an
+    // observer would add one more property subscription for zero new
+    // information.
+    // `hls-bitrate` also accepts a raw numeric rate; an observed number
+    // string is not one of the named policies, so `fromMpv` resolves it to
+    // its safe default rather than throwing.
+    MpvPropertySpec<HlsBitrate>.string(
+      name: 'hls-bitrate',
+      reactive: r.hlsBitrate,
+      parse: (raw, _) => HlsBitrate.fromMpv(raw),
+      reduce: (v, s) => s.copyWith(hlsBitrate: v),
+    ),
+    MpvPropertySpec<bool>.flag(
+      name: 'cookies',
+      reactive: r.cookies,
+      parse: _identityBool,
+      reduce: (v, s) => s.copyWith(cookies: v),
+    ),
+    MpvPropertySpec<String>.string(
+      name: 'http-proxy',
+      reactive: r.httpProxy,
+      parse: _identityString,
+      reduce: (v, s) => s.copyWith(httpProxy: v),
     ),
     MpvPropertySpec<bool>.flag(
       name: 'paused-for-cache',

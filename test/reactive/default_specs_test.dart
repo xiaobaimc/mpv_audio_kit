@@ -12,6 +12,7 @@ import 'package:mpv_audio_kit/src/types/enums/format.dart';
 import 'package:mpv_audio_kit/src/types/enums/replay_gain.dart';
 import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
 import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
+import 'package:mpv_audio_kit/src/types/settings/demuxer_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/replay_gain_settings.dart';
 import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
 import 'package:mpv_audio_kit/src/types/state/mpv_prefetch_state.dart';
@@ -442,6 +443,30 @@ void main() {
       expect(state.cache.onDisk, isTrue);
     });
 
+    test('demuxer: dispatching one property preserves the other 2', () {
+      // Seed all 3 fields via dispatch (see cache test for rationale).
+      dispatch('demuxer-max-bytes', 200 * 1024 * 1024);
+      dispatch('demuxer-max-back-bytes', 10 * 1024 * 1024);
+      dispatch('demuxer-readahead-secs', 5.0);
+      expect(
+          state.demuxer,
+          const DemuxerSettings(
+            maxBytes: 200 * 1024 * 1024,
+            maxBackBytes: 10 * 1024 * 1024,
+            readahead: Duration(seconds: 5),
+          ),);
+
+      dispatch('demuxer-readahead-secs', 2.5);
+      expect(state.demuxer.readahead, const Duration(milliseconds: 2500));
+      expect(state.demuxer.maxBytes, 200 * 1024 * 1024);
+      expect(state.demuxer.maxBackBytes, 10 * 1024 * 1024);
+
+      dispatch('demuxer-max-back-bytes', 0);
+      expect(state.demuxer.maxBackBytes, 0);
+      expect(state.demuxer.maxBytes, 200 * 1024 * 1024);
+      expect(state.demuxer.readahead, const Duration(milliseconds: 2500));
+    });
+
     test('replayGain: dispatch on initial PlayerState (default) is safe', () {
       // Edge case: dispatching the first property after a fresh state
       // must not throw on the `s.replayGain.copyWith(...)` chain.
@@ -547,6 +572,7 @@ void main() {
         'cache-pause-wait', 'cache-pause-initial',
         'demuxer-max-bytes', 'demuxer-readahead-secs',
         'demuxer-max-back-bytes', 'network-timeout', 'tls-verify',
+        'hls-bitrate', 'cookies', 'http-proxy',
         'paused-for-cache', 'demuxer-via-network',
         // Audio output / driver
         'audio-buffer', 'audio-exclusive', 'audio-set-media-role',

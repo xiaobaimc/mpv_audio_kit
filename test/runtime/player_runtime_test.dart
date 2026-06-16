@@ -141,7 +141,8 @@ void main() {
       // default-150 MiB or the seed) is filtered out, and observe only
       // mpv's response to the new value we set.
       final completer = Completer<int>();
-      final sub = player.stream.demuxerMaxBytes
+      final sub = player.stream.demuxer
+          .map((d) => d.maxBytes)
           .where((v) => v != 150 * 1024 * 1024)
           .listen((v) {
         if (!completer.isCompleted) {
@@ -167,7 +168,7 @@ void main() {
 
     test(
         'player.state.audioParams aggregates the audio-params NODE_MAP + '
-        'the audio-codec / audio-codec-name siblings', () async {
+        'the audio-codec / audio-codec-name siblings', () {
       // The previous file is still loaded from the first test. Verify the
       // node-driven audioParams populated (via real mpv events).
       expect(player.state.audioParams.format, isNotNull,

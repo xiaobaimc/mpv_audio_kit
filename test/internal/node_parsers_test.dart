@@ -98,7 +98,7 @@ void main() {
 
     test('empty array → empty playlist (index=0 not -1)', () {
       final p = parsePlaylistNode(
-        raw: const [],
+        raw: const <dynamic>[],
         mediaCache: const {},
         previous: Playlist.empty,
       );

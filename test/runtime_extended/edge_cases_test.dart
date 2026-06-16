@@ -205,17 +205,18 @@ void main() {
           reason: 'optimistic state must not advance past a rejected write',);
     }, timeout: const Timeout(Duration(seconds: 5)),);
 
-    test('setDemuxerMaxBytes preserves sub-MiB precision (no MiB rounding)',
+    test('setDemuxer preserves sub-MiB precision (no MiB rounding)',
         () async {
       // 100 MiB + 1 byte. Pre-fix the wrapper truncated to 100 MiB and
       // state diverged from mpv's actual cap. The byte-precise contract
       // forwards the exact int.
       const bytes = 100 * 1024 * 1024 + 1;
-      await player.setDemuxerMaxBytes(bytes);
-      expect(player.state.demuxerMaxBytes, bytes);
+      await player.setDemuxer(player.state.demuxer.copyWith(maxBytes: bytes));
+      expect(player.state.demuxer.maxBytes, bytes);
 
       // Restore to default so subsequent tests aren't disturbed.
-      await player.setDemuxerMaxBytes(150 * 1024 * 1024);
+      await player.setDemuxer(
+          player.state.demuxer.copyWith(maxBytes: 150 * 1024 * 1024),);
     }, timeout: const Timeout(Duration(seconds: 5)),);
 
     test('setAbLoopCount rejects negative ints', () {

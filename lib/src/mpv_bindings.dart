@@ -383,12 +383,6 @@ typedef _MpvInitializeNative = Int32 Function(Pointer<MpvHandle> ctx);
 /// Dart signature for `mpv_initialize` — starts the mpv core for [ctx].
 typedef MpvInitialize = int Function(Pointer<MpvHandle> ctx);
 
-// void mpv_destroy(mpv_handle *ctx)
-typedef _MpvDestroyNative = Void Function(Pointer<MpvHandle> ctx);
-
-/// Dart signature for `mpv_destroy` — releases the client handle [ctx].
-typedef MpvDestroy = void Function(Pointer<MpvHandle> ctx);
-
 // void mpv_terminate_destroy(mpv_handle *ctx)
 typedef _MpvTerminateDestroyNative = Void Function(Pointer<MpvHandle> ctx);
 
@@ -468,6 +462,40 @@ typedef _MpvSetPropertyNative = Int32 Function(Pointer<MpvHandle> ctx,
 typedef MpvSetProperty = int Function(
     Pointer<MpvHandle> ctx, Pointer<Utf8> name, int format, Pointer<Void> data,);
 
+// int mpv_set_property_async(mpv_handle*, uint64_t reply_userdata,
+//                            const char *name, int format, void *data)
+typedef _MpvSetPropertyAsyncNative = Int32 Function(Pointer<MpvHandle> ctx,
+    Uint64 replyUserdata, Pointer<Utf8> name, Int32 format, Pointer<Void> data,);
+
+/// Dart signature for `mpv_set_property_async` — queues a property write and
+/// returns immediately; libmpv deep-copies [name] and the value before
+/// returning, and delivers the outcome as an `MPV_EVENT_SET_PROPERTY_REPLY`
+/// tagged with `reply_userdata`. Unlike the synchronous setter it never
+/// waits for the core's playloop, so it cannot stall the calling isolate.
+typedef MpvSetPropertyAsync = int Function(Pointer<MpvHandle> ctx,
+    int replyUserdata, Pointer<Utf8> name, int format, Pointer<Void> data,);
+
+// int mpv_get_property_async(mpv_handle*, uint64_t reply_userdata,
+//                            const char *name, int format)
+typedef _MpvGetPropertyAsyncNative = Int32 Function(Pointer<MpvHandle> ctx,
+    Uint64 replyUserdata, Pointer<Utf8> name, Int32 format,);
+
+/// Dart signature for `mpv_get_property_async` — queues a property read and
+/// returns immediately; the value arrives as an `MPV_EVENT_GET_PROPERTY_REPLY`
+/// carrying an `mpv_event_property` payload, tagged with `reply_userdata`.
+typedef MpvGetPropertyAsync = int Function(
+    Pointer<MpvHandle> ctx, int replyUserdata, Pointer<Utf8> name, int format,);
+
+// int mpv_command_async(mpv_handle *ctx, uint64_t reply_userdata, const char **args)
+typedef _MpvCommandAsyncNative = Int32 Function(Pointer<MpvHandle> ctx,
+    Uint64 replyUserdata, Pointer<Pointer<Utf8>> args,);
+
+/// Dart signature for `mpv_command_async` — parses [args] client-side,
+/// queues the command and returns immediately; the outcome arrives as an
+/// `MPV_EVENT_COMMAND_REPLY` tagged with `reply_userdata`.
+typedef MpvCommandAsync = int Function(
+    Pointer<MpvHandle> ctx, int replyUserdata, Pointer<Pointer<Utf8>> args,);
+
 // int mpv_command(mpv_handle *ctx, const char **args)
 typedef _MpvCommandNative = Int32 Function(
     Pointer<MpvHandle> ctx, Pointer<Pointer<Utf8>> args,);
@@ -495,15 +523,6 @@ typedef _MpvWaitEventNative = Pointer<MpvEvent> Function(
 typedef MpvWaitEvent = Pointer<MpvEvent> Function(
     Pointer<MpvHandle> ctx, double timeout,);
 
-// int mpv_command_ret(mpv_handle *ctx, const char **args, mpv_node *result)
-typedef _MpvCommandRetNative = Int32 Function(Pointer<MpvHandle> ctx,
-    Pointer<Pointer<Utf8>> args, Pointer<MpvNode> result,);
-
-/// Dart signature for `mpv_command_ret` — runs a command and writes its
-/// return value into [MpvNode] `result`.
-typedef MpvCommandRet = int Function(Pointer<MpvHandle> ctx,
-    Pointer<Pointer<Utf8>> args, Pointer<MpvNode> result,);
-
 // int mpv_observe_property(mpv_handle*, uint64_t reply_userdata, const char*, int format)
 typedef _MpvObservePropertyNative = Int32 Function(Pointer<MpvHandle> ctx,
     Uint64 replyUserdata, Pointer<Utf8> name, Int32 format,);
@@ -512,15 +531,6 @@ typedef _MpvObservePropertyNative = Int32 Function(Pointer<MpvHandle> ctx,
 /// for a property, tagged with `reply_userdata`.
 typedef MpvObserveProperty = int Function(
     Pointer<MpvHandle> ctx, int replyUserdata, Pointer<Utf8> name, int format,);
-
-// int mpv_unobserve_property(mpv_handle*, uint64_t registered_reply_userdata)
-typedef _MpvUnobservePropertyNative = Int32 Function(
-    Pointer<MpvHandle> ctx, Uint64 registeredReplyUserdata,);
-
-/// Dart signature for `mpv_unobserve_property` — cancels observers registered
-/// under the given `reply_userdata`.
-typedef MpvUnobserveProperty = int Function(
-    Pointer<MpvHandle> ctx, int registeredReplyUserdata,);
 
 // void mpv_free(void *data)
 typedef _MpvFreeNative = Void Function(Pointer<Void> data);
@@ -550,13 +560,6 @@ typedef _MpvRequestLogMessagesNative = Int32 Function(
 /// at or above `min_level`.
 typedef MpvRequestLogMessages = int Function(
     Pointer<MpvHandle> ctx, Pointer<Utf8> minLevel,);
-
-// unsigned long mpv_client_api_version(void)
-typedef _MpvClientApiVersionNative = UnsignedLong Function();
-
-/// Dart signature for `mpv_client_api_version` — returns the linked client
-/// API version.
-typedef MpvClientApiVersion = int Function();
 
 // int mpv_hook_add(mpv_handle *ctx, uint64_t reply_userdata, const char *name, int priority)
 typedef _MpvHookAddNative = Int32 Function(Pointer<MpvHandle> ctx,
@@ -590,9 +593,6 @@ class MpvLibrary {
   /// Bound `mpv_initialize`.
   late final MpvInitialize mpvInitialize;
 
-  /// Bound `mpv_destroy`.
-  late final MpvDestroy mpvDestroy;
-
   /// Bound `mpv_terminate_destroy`.
   late final MpvTerminateDestroy mpvTerminateDestroy;
 
@@ -618,6 +618,15 @@ class MpvLibrary {
   /// Bound `mpv_set_property`.
   late final MpvSetProperty mpvSetProperty;
 
+  /// Bound `mpv_set_property_async`.
+  late final MpvSetPropertyAsync mpvSetPropertyAsync;
+
+  /// Bound `mpv_get_property_async`.
+  late final MpvGetPropertyAsync mpvGetPropertyAsync;
+
+  /// Bound `mpv_command_async`.
+  late final MpvCommandAsync mpvCommandAsync;
+
   /// Bound `mpv_command`.
   late final MpvCommand mpvCommand;
 
@@ -630,9 +639,6 @@ class MpvLibrary {
   /// Bound `mpv_observe_property`.
   late final MpvObserveProperty mpvObserveProperty;
 
-  /// Bound `mpv_unobserve_property`.
-  late final MpvUnobserveProperty mpvUnobserveProperty;
-
   /// Bound `mpv_free`.
   late final MpvFree mpvFree;
 
@@ -644,12 +650,6 @@ class MpvLibrary {
 
   /// Bound `mpv_request_log_messages`.
   late final MpvRequestLogMessages mpvRequestLogMessages;
-
-  /// Bound `mpv_command_ret`.
-  late final MpvCommandRet mpvCommandRet;
-
-  /// Bound `mpv_client_api_version`.
-  late final MpvClientApiVersion mpvClientApiVersion;
 
   /// Bound `mpv_hook_add`.
   late final MpvHookAdd mpvHookAdd;
@@ -672,12 +672,15 @@ class MpvLibrary {
     mpvCreate = _lib.lookupFunction<_MpvCreateNative, MpvCreate>('mpv_create');
     mpvInitialize = _lib
         .lookupFunction<_MpvInitializeNative, MpvInitialize>('mpv_initialize');
-    mpvDestroy =
-        _lib.lookupFunction<_MpvDestroyNative, MpvDestroy>('mpv_destroy');
     mpvTerminateDestroy =
         _lib.lookupFunction<_MpvTerminateDestroyNative, MpvTerminateDestroy>(
             'mpv_terminate_destroy',);
-    mpvWakeup = _lib.lookupFunction<_MpvWakeupNative, MpvWakeup>('mpv_wakeup');
+    // isLeaf: documented non-blocking and callback-free (libmpv client.h),
+    // so the call skips the generated trampoline's thread-state transition.
+    // NEVER mark a call that can block on the core (wait_event, command,
+    // set/get property) or re-enter Dart as leaf.
+    mpvWakeup = _lib.lookupFunction<_MpvWakeupNative, MpvWakeup>('mpv_wakeup',
+        isLeaf: true,);
     mpvSetWakeupCallback =
         _lib.lookupFunction<_MpvSetWakeupCallbackNative, MpvSetWakeupCallback>(
             'mpv_set_wakeup_callback',);
@@ -694,6 +697,20 @@ class MpvLibrary {
         'mpv_get_property',);
     mpvSetProperty = _lib.lookupFunction<_MpvSetPropertyNative, MpvSetProperty>(
         'mpv_set_property',);
+    // The async variants enqueue on the core's dispatch and return without
+    // waiting for the playloop (verified against the bundled source:
+    // `run_async` = reserve_reply + mp_dispatch_enqueue; name/value are
+    // deep-copied first). They still take short-lived internal locks, so
+    // they are NOT leaf-safe.
+    mpvSetPropertyAsync =
+        _lib.lookupFunction<_MpvSetPropertyAsyncNative, MpvSetPropertyAsync>(
+            'mpv_set_property_async',);
+    mpvGetPropertyAsync =
+        _lib.lookupFunction<_MpvGetPropertyAsyncNative, MpvGetPropertyAsync>(
+            'mpv_get_property_async',);
+    mpvCommandAsync =
+        _lib.lookupFunction<_MpvCommandAsyncNative, MpvCommandAsync>(
+            'mpv_command_async',);
     mpvCommand =
         _lib.lookupFunction<_MpvCommandNative, MpvCommand>('mpv_command');
     mpvCommandString =
@@ -704,22 +721,15 @@ class MpvLibrary {
     mpvObserveProperty =
         _lib.lookupFunction<_MpvObservePropertyNative, MpvObserveProperty>(
             'mpv_observe_property',);
-    mpvUnobserveProperty =
-        _lib.lookupFunction<_MpvUnobservePropertyNative, MpvUnobserveProperty>(
-            'mpv_unobserve_property',);
-    mpvFree = _lib.lookupFunction<_MpvFreeNative, MpvFree>('mpv_free');
+    mpvFree =
+        _lib.lookupFunction<_MpvFreeNative, MpvFree>('mpv_free', isLeaf: true);
     mpvFreeNodeContents =
         _lib.lookupFunction<_MpvFreeNodeContentsNative, MpvFreeNodeContents>(
-            'mpv_free_node_contents',);
+            'mpv_free_node_contents', isLeaf: true,);
     mpvErrorString = _lib.lookupFunction<_MpvErrorStringNative, MpvErrorString>(
-        'mpv_error_string',);
+        'mpv_error_string', isLeaf: true,);
     mpvRequestLogMessages = _lib.lookupFunction<_MpvRequestLogMessagesNative,
         MpvRequestLogMessages>('mpv_request_log_messages');
-    mpvCommandRet = _lib
-        .lookupFunction<_MpvCommandRetNative, MpvCommandRet>('mpv_command_ret');
-    mpvClientApiVersion =
-        _lib.lookupFunction<_MpvClientApiVersionNative, MpvClientApiVersion>(
-            'mpv_client_api_version',);
     mpvHookAdd =
         _lib.lookupFunction<_MpvHookAddNative, MpvHookAdd>('mpv_hook_add');
     mpvHookContinue =

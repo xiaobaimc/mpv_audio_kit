@@ -52,7 +52,7 @@ void main() {
       expect(registry.dispatch('volume', 75.5, initial), isNull);
     });
 
-    test('flag spec inverts pause→playing via the parser', () async {
+    test('flag spec inverts pause→playing via the parser', () {
       final playing = ReactiveProperty<bool>(false);
       final registry = PropertyRegistry()
         ..register(MpvPropertySpec<bool>.flag(
@@ -143,13 +143,14 @@ void main() {
           name: 'demuxer-max-bytes',
           reactive: maxBytes,
           parse: (raw, _) => raw,
-          reduce: (v, s) => s.copyWith(demuxerMaxBytes: v),
+          reduce: (v, s) =>
+              s.copyWith(demuxer: s.demuxer.copyWith(maxBytes: v)),
         ),);
 
       const initial = PlayerState();
       final next = registry.dispatch('demuxer-max-bytes', 5, initial);
       expect(next, isNotNull);
-      expect(next!.demuxerMaxBytes, 5);
+      expect(next!.demuxer.maxBytes, 5);
       expect(maxBytes.value, 5,
           reason: 'reactive must update in lockstep with the state reducer',);
 
@@ -160,11 +161,11 @@ void main() {
       // Different value → emits again.
       final last = registry.dispatch('demuxer-max-bytes', 7, next);
       expect(last, isNotNull);
-      expect(last!.demuxerMaxBytes, 7);
+      expect(last!.demuxer.maxBytes, 7);
       expect(maxBytes.value, 7);
     });
 
-    test('Duration-typed double spec wraps microseconds correctly', () async {
+    test('Duration-typed double spec wraps microseconds correctly', () {
       final position = ReactiveProperty<Duration>(Duration.zero);
       final registry = PropertyRegistry()
         ..register(MpvPropertySpec<Duration>.double(

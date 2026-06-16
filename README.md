@@ -50,7 +50,7 @@ Add `mpv_audio_kit` to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  mpv_audio_kit: ^0.3.6
+  mpv_audio_kit: ^0.4.0
 ```
 
 ## Platforms requirements
@@ -58,10 +58,10 @@ dependencies:
 | Platform  | Minimum | Architecture | Size | Device | Emulator |
 | :--- | :--- | :--- | :---: | :---: | :---:
 | **Android** | 7.0 (SDK 24) | arm64-v8a, armeabi-v7a, x86_64 | 8.2, 8.2, 8.7 MB | ✅ | ✅ |
-| **iOS** | 15.0 | arm64, x86_64 | 8.1, 8.6 MB | ✅ | ✅ |
-| **macOS** | 12.0 | arm64, x86_64 | 8.1, 8.7 MB | ✅ | - |
-| **Windows**| 10 | arm64, x86_64 | 7.9, 9.1 MB | ✅ | - |
-| **Linux** | Ubuntu 24.04 | aarch64, x86_64 | 8.6, 7.6 MB | ✅ | - |
+| **iOS** | 15.0 | arm64, x86_64 | 7.5, 8.0 MB | ✅ | ✅ |
+| **macOS** | 12.0 | arm64, x86_64 | 7.5, 8.0 MB | ✅ | - |
+| **Windows**| 10 | arm64, x86_64 | 8.1, 9.1 MB | ✅ | - |
+| **Linux** | Ubuntu 24.04 | aarch64, x86_64 | 8.7, 7.5 MB | ✅ | - |
 
 ---
 
@@ -224,6 +224,8 @@ dependencies:
     * [13.3 Raw PCM stream](#133-raw-pcm-stream)
     * [13.4 Per-filter PCM taps](#134-per-filter-pcm-taps)
     * [13.5 Waveform](#135-waveform)
+    * [13.6 Loudness](#136-loudness)
+    * [13.7 Live loudness meter](#137-live-loudness-meter)
 
     </details>
 
@@ -875,12 +877,16 @@ await player.setAudioEffects(const AudioEffects(
 ));
 ```
 
-Toggle a single stage:
+Toggle a single stage with the per-effect updater — a never-configured
+slot is seeded with its defaults first. Every effect slot is nullable
+(`null` = never configured, identical on the wire to a disabled
+instance), so effects your app never touches are tree-shaken out of
+the binary:
 
 ```dart
-await player.updateAudioEffects((e) => e.copyWith(
-  acompressor: e.acompressor.copyWith(enabled: !e.acompressor.enabled),
-));
+await player.updateAudioEffects(
+  (e) => e.updateAcompressor((c) => c.copyWith(enabled: !c.enabled)),
+);
 ```
 
 Reset everything:
@@ -1389,23 +1395,28 @@ defaults to mpv's location, which is often not writable on mobile).
 
 #### 7.2 Demuxer memory pool
 
-The demuxer is the component that reads and parses the media container (MP4, MKV, OGG, etc.) before the audio decoder processes it:
+The demuxer is the component that reads and parses the media container (MP4, MKV, OGG, etc.) before the audio decoder processes it. Its three buffering properties (`demuxer-max-bytes`, `demuxer-max-back-bytes`, `demuxer-readahead-secs`) are all set in one call through `setDemuxer(DemuxerSettings)`:
 
 ```dart
-// Maximum bytes the demuxer is allowed to cache ahead (default: 150 MiB)
-await player.setDemuxerMaxBytes(50 * 1024 * 1024); // 50 MiB
+await player.setDemuxer(const DemuxerSettings(
+  maxBytes: 50 * 1024 * 1024,          // forward cache cap (default: 150 MiB)
+  maxBackBytes: 20 * 1024 * 1024,      // seekback buffer cap (default: 50 MiB)
+  readahead: Duration(seconds: 5),     // how far ahead to read (default: 1s)
+));
 
-// Maximum bytes for the seekback buffer (default: 50 MiB)
-await player.setDemuxerMaxBackBytes(20 * 1024 * 1024);
+// Tweak a single field via copyWith
+await player.setDemuxer(
+  player.state.demuxer.copyWith(maxBytes: 100 * 1024 * 1024),
+);
 
-// How far ahead the demuxer should read (default: 1s)
-await player.setDemuxerReadaheadSecs(const Duration(seconds: 5));
+// Subscribe to live changes
+player.stream.demuxer.listen((d) => print('demuxer: ${d.maxBytes} bytes'));
 ```
 
 For radio streams or live content where seeking is not needed, reduce the back buffer to zero to save memory:
 
 ```dart
-await player.setDemuxerMaxBackBytes(0);
+await player.setDemuxer(player.state.demuxer.copyWith(maxBackBytes: 0));
 ```
 
 #### 7.3 Network timeout
@@ -1417,7 +1428,10 @@ await player.setNetworkTimeout(const Duration(seconds: 10)); // Fail after 10 se
 #### 7.4 TLS and SSL verification
 
 ```dart
-await player.setTlsVerify(true); // Enable; uses the bundled CA pem
+await player.setTlsVerify(true); // Enable; uses the CA roots baked into libmpv
+
+// Override the built-in roots with a custom bundle (e.g. a corporate CA):
+await player.setTlsCaFile('/path/to/corporate-ca.pem');
 ```
 
 #### 7.5 Audio buffer
@@ -1735,7 +1749,7 @@ local-file player that wants disk-side artwork.
 #### 9.5 Network and cache streams
 
 <details>
-<summary><b>11 streams</b> (click to expand)</summary>
+<summary><b>9 streams</b> (click to expand)</summary>
 
 | Stream | Type | Setter |
 | :--- | :--- | :--- |
@@ -1747,9 +1761,7 @@ local-file player that wants disk-side artwork.
 | `demuxerCacheState` | `DemuxerCacheState` | _(observed; buffered ranges, raw input rate, eof-cached, bof-cached, underrun)_ |
 | `cacheSpeed` | `double` (bytes per second) | _(observed)_ |
 | `cacheBufferingState` | `int` (0-100) | _(observed)_ |
-| `demuxerMaxBytes` | `int` | `setDemuxerMaxBytes` |
-| `demuxerMaxBackBytes` | `int` | `setDemuxerMaxBackBytes` |
-| `demuxerReadaheadSecs` | `Duration` | `setDemuxerReadaheadSecs` |
+| `demuxer` | `DemuxerSettings` | `setDemuxer` |
 
 </details>
 
@@ -2485,6 +2497,52 @@ player.stream.waveform.listen((wave) {
   }
 });
 ```
+
+#### 13.6 Loudness
+
+The EBU R128 loudness of the loaded track is exposed via
+`player.stream.loudness`, measured like the waveform: the whole file is
+decoded off the playback path moments after it loads, at many times
+realtime. One terminal `LoudnessScan` per track — integrated LUFS,
+loudness range, sample peak and true peak — before the audio has even
+started playing.
+
+This is how you volume-normalize a library whose files carry no
+ReplayGain tags:
+
+```dart
+player.stream.loudness.listen((scan) {
+  if (scan?.state == LoudnessScanState.ready) {
+    // ReplayGain 2.0 reference is -18 LUFS.
+    player.setVolumeGain((-18.0 - scan!.integrated!).clamp(-24.0, 24.0));
+  }
+});
+```
+
+Like the waveform, the stream is **listener-gated** (the scan runs only
+while something is subscribed) and emits `null` on the track-change
+boundary so stale results clear. Sources that can only be decoded as
+they play (adaptive or live network streams) report
+`LoudnessScanState.unavailable` — use the live meter below for those.
+
+#### 13.7 Live loudness meter
+
+`player.stream.loudnessMeter` emits momentary, short-term, integrated
+and loudness-range readings of the audio *as it plays* — the data for a
+VU-style meter or a broadcast loudness display. The meter is the
+`ebur128` stage of the audio chain, so enable it on the bundle with its
+`metadata` option on:
+
+```dart
+await player.updateAudioEffects(
+  (e) => e.updateEbur128((m) => m.copyWith(enabled: true, metadata: true)),
+);
+player.stream.loudnessMeter.listen((l) => meter.paint(l.momentary));
+```
+
+**Listener-gated** — the measurement poll runs only while a listener is
+attached. While the meter is not in the chain the stream simply emits
+nothing.
 
 ---
 

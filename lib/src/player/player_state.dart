@@ -15,18 +15,18 @@ import 'package:mpv_audio_kit/src/models/playlist.dart';
 import 'package:mpv_audio_kit/src/types/enums/cover.dart';
 import 'package:mpv_audio_kit/src/types/enums/format.dart';
 import 'package:mpv_audio_kit/src/types/enums/gapless.dart';
+import 'package:mpv_audio_kit/src/types/enums/hls_bitrate.dart';
 import 'package:mpv_audio_kit/src/types/enums/loop.dart';
 import 'package:mpv_audio_kit/src/types/enums/spdif.dart';
 import 'package:mpv_audio_kit/src/types/sealed/channels.dart';
 import 'package:mpv_audio_kit/src/types/settings/cache_settings.dart';
+import 'package:mpv_audio_kit/src/types/settings/demuxer_settings.dart';
 import 'package:mpv_audio_kit/src/types/settings/replay_gain_settings.dart';
 import 'package:mpv_audio_kit/src/types/state/audio_output_state.dart';
 
 const _kEmptyPlaylist = Playlist.empty;
 const _kAutoDevice = Device(name: 'auto', description: 'Auto');
 const _kDefaultDevices = <Device>[_kAutoDevice];
-const _kDemuxerMaxBytesDefault = 150 * 1024 * 1024;
-const _kDemuxerMaxBackBytesDefault = 50 * 1024 * 1024;
 
 // Collection equality helpers — kept inline to avoid a transitive
 // `package:collection` dependency. PlayerState only carries small
@@ -196,14 +196,10 @@ final class PlayerState {
   /// Cache configuration. Set via [Player.setCache].
   final CacheSettings cache;
 
-  /// Max bytes the demuxer can cache.
-  final int demuxerMaxBytes;
-
-  /// How far ahead the demuxer fetches (`demuxer-readahead-secs`).
-  final Duration demuxerReadaheadSecs;
-
-  /// Max bytes for seekback buffer.
-  final int demuxerMaxBackBytes;
+  /// Demuxer buffering configuration (forward cache cap, seekback cap,
+  /// readahead). Set via [Player.setDemuxer]. Distinct from
+  /// [demuxerCacheState], which is the live read-only cache snapshot.
+  final DemuxerSettings demuxer;
 
   /// Network connection timeout. Default 60s mirrors mpv's
   /// `--network-timeout=60`.
@@ -227,14 +223,27 @@ final class PlayerState {
   /// [Player.setTlsVerify] when a bundled CA is in use.
   final bool tlsVerify;
 
-  /// Absolute filesystem path to a PEM bundle of trusted CA certificates,
-  /// or empty string when none is configured.
+  /// Absolute filesystem path to a custom PEM bundle of trusted CA
+  /// certificates, or empty string when the built-in roots are used.
   ///
-  /// Auto-populated at construction with a default bundle so [tlsVerify]
-  /// works on every platform out of the box. Override with
-  /// [Player.setTlsCaFile] to point at a custom bundle (e.g. a corporate
-  /// trust root).
+  /// Empty by default: the bundled libmpv has the Mozilla CA roots compiled
+  /// in, so [tlsVerify] works on every platform out of the box. Set
+  /// [Player.setTlsCaFile] to override those roots with a custom bundle
+  /// (e.g. a corporate trust root).
   final String tlsCaFile;
+
+  /// HLS variant-selection policy (`hls-bitrate`). Default [HlsBitrate.max]
+  /// mirrors mpv. Set via [Player.setHlsBitrate].
+  final HlsBitrate hlsBitrate;
+
+  /// Whether mpv's HTTP cookie jar is enabled for network streams
+  /// (`cookies`). Mirrors mpv's default of `false`. Set via
+  /// [Player.setCookies].
+  final bool cookies;
+
+  /// HTTP proxy URL applied to network streams (`http-proxy`), or empty
+  /// string when none is configured. Set via [Player.setHttpProxy].
+  final String httpProxy;
 
   /// Whether audio exclusive mode is enabled.
   final bool audioExclusive;
@@ -512,14 +521,15 @@ final class PlayerState {
     this.systemVolume,
     this.systemMute,
     this.cache = const CacheSettings(),
-    this.demuxerMaxBytes = _kDemuxerMaxBytesDefault,
-    this.demuxerReadaheadSecs = const Duration(seconds: 1),
-    this.demuxerMaxBackBytes = _kDemuxerMaxBackBytesDefault,
+    this.demuxer = const DemuxerSettings(),
     this.networkTimeout = const Duration(seconds: 60),
     this.pausedForCache = false,
     this.demuxerViaNetwork = false,
     this.tlsVerify = false,
     this.tlsCaFile = '',
+    this.hlsBitrate = HlsBitrate.max,
+    this.cookies = false,
+    this.httpProxy = '',
     this.audioExclusive = false,
     this.audioMediaRole = false,
     this.audioBuffer = const Duration(milliseconds: 200),
@@ -609,14 +619,15 @@ final class PlayerState {
     Object? systemVolume = unset,
     Object? systemMute = unset,
     CacheSettings? cache,
-    int? demuxerMaxBytes,
-    Duration? demuxerReadaheadSecs,
-    int? demuxerMaxBackBytes,
+    DemuxerSettings? demuxer,
     Duration? networkTimeout,
     bool? pausedForCache,
     bool? demuxerViaNetwork,
     bool? tlsVerify,
     String? tlsCaFile,
+    HlsBitrate? hlsBitrate,
+    bool? cookies,
+    String? httpProxy,
     bool? audioExclusive,
     bool? audioMediaRole,
     Duration? audioBuffer,
@@ -708,14 +719,15 @@ final class PlayerState {
         systemMute:
             identical(systemMute, unset) ? this.systemMute : systemMute as bool?,
         cache: cache ?? this.cache,
-        demuxerMaxBytes: demuxerMaxBytes ?? this.demuxerMaxBytes,
-        demuxerReadaheadSecs: demuxerReadaheadSecs ?? this.demuxerReadaheadSecs,
-        demuxerMaxBackBytes: demuxerMaxBackBytes ?? this.demuxerMaxBackBytes,
+        demuxer: demuxer ?? this.demuxer,
         networkTimeout: networkTimeout ?? this.networkTimeout,
         pausedForCache: pausedForCache ?? this.pausedForCache,
         demuxerViaNetwork: demuxerViaNetwork ?? this.demuxerViaNetwork,
         tlsVerify: tlsVerify ?? this.tlsVerify,
         tlsCaFile: tlsCaFile ?? this.tlsCaFile,
+        hlsBitrate: hlsBitrate ?? this.hlsBitrate,
+        cookies: cookies ?? this.cookies,
+        httpProxy: httpProxy ?? this.httpProxy,
         audioExclusive: audioExclusive ?? this.audioExclusive,
         audioMediaRole: audioMediaRole ?? this.audioMediaRole,
         audioBuffer: audioBuffer ?? this.audioBuffer,
@@ -819,14 +831,15 @@ final class PlayerState {
           other.systemVolume == systemVolume &&
           other.systemMute == systemMute &&
           other.cache == cache &&
-          other.demuxerMaxBytes == demuxerMaxBytes &&
-          other.demuxerReadaheadSecs == demuxerReadaheadSecs &&
-          other.demuxerMaxBackBytes == demuxerMaxBackBytes &&
+          other.demuxer == demuxer &&
           other.networkTimeout == networkTimeout &&
           other.pausedForCache == pausedForCache &&
           other.demuxerViaNetwork == demuxerViaNetwork &&
           other.tlsVerify == tlsVerify &&
           other.tlsCaFile == tlsCaFile &&
+          other.hlsBitrate == hlsBitrate &&
+          other.cookies == cookies &&
+          other.httpProxy == httpProxy &&
           other.audioExclusive == audioExclusive &&
           other.audioMediaRole == audioMediaRole &&
           other.audioBuffer == audioBuffer &&
@@ -915,14 +928,15 @@ final class PlayerState {
         systemVolume,
         systemMute,
         cache,
-        demuxerMaxBytes,
-        demuxerReadaheadSecs,
-        demuxerMaxBackBytes,
+        demuxer,
         networkTimeout,
         pausedForCache,
         demuxerViaNetwork,
         tlsVerify,
         tlsCaFile,
+        hlsBitrate,
+        cookies,
+        httpProxy,
         audioExclusive,
         audioMediaRole,
         audioBuffer,

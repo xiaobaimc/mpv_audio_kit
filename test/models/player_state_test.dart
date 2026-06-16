@@ -74,6 +74,14 @@ void main() {
       expect(s.cache.onDisk, isFalse);
       expect(s.cache.pause, isTrue);
       expect(s.cache.pauseWait, const Duration(seconds: 1));
+
+      expect(s.demuxer, const DemuxerSettings());
+      expect(s.demuxer.maxBytes, 150 * 1024 * 1024,
+          reason: 'matches mpv `--demuxer-max-bytes=150MiB`',);
+      expect(s.demuxer.maxBackBytes, 50 * 1024 * 1024,
+          reason: 'matches mpv `--demuxer-max-back-bytes=50MiB`',);
+      expect(s.demuxer.readahead, const Duration(seconds: 1),
+          reason: 'matches mpv `--demuxer-readahead-secs=1`',);
     });
 
     test('audioBitrate is null by default (unavailable, NOT zero)', () {
@@ -84,17 +92,19 @@ void main() {
       expect(s.audioBitrate, isNull);
     });
 
-    test('superequalizer disabled by default with empty band map', () {
+    test('superequalizer absent by default (null slot = not in chain)', () {
+      // Bundle slots default to null so unused *Settings classes
+      // tree-shake out of consumer binaries; a null slot and a disabled
+      // instance are identical on the wire.
       const s = PlayerState();
-      expect(s.audioEffects.superequalizer.enabled, isFalse);
-      expect(s.audioEffects.superequalizer.params, isEmpty);
+      expect(s.audioEffects.superequalizer, isNull);
     });
 
-    test('acompressor / loudnorm / rubberband all start disabled', () {
+    test('acompressor / loudnorm / rubberband all start absent', () {
       const s = PlayerState();
-      expect(s.audioEffects.acompressor.enabled, isFalse);
-      expect(s.audioEffects.loudnorm.enabled, isFalse);
-      expect(s.audioEffects.rubberband.enabled, isFalse);
+      expect(s.audioEffects.acompressor, isNull);
+      expect(s.audioEffects.loudnorm, isNull);
+      expect(s.audioEffects.rubberband, isNull);
     });
 
     test('default-constructed AudioEffects emits an empty af chain', () {

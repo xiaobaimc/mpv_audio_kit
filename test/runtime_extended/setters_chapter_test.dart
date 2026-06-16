@@ -48,7 +48,7 @@ void main() {
       // ReactiveProperty dedups the second update if mpv echoes the
       // same int, so we cannot wait on a stream emission — but we can
       // verify the value remains stable after the roundtrip window.
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
       expect(player.state.currentChapter, 1,
           reason: 'observer roundtrip must not destabilise the value',);
     }, timeout: const Timeout(Duration(seconds: 30)),);

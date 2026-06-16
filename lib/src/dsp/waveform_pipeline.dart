@@ -3,15 +3,13 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
 import '../models/waveform_data.dart';
 import '../mpv_bindings.dart';
-import 'pcm_node_decode.dart';
+import 'dsp_async_io.dart';
 
 /// Static waveform pipeline.
 ///
@@ -30,23 +28,27 @@ import 'pcm_node_decode.dart';
 @internal
 class WaveformPipeline {
   WaveformPipeline({
-    required MpvLibrary lib,
-    required Pointer<MpvHandle> handle,
+    required AsyncPropertyGet asyncGet,
+    required AsyncPropertySet asyncSet,
     Duration pollInterval = const Duration(milliseconds: 120),
-  })  : _lib = lib,
-        _handle = handle,
+  })  : _asyncGet = asyncGet,
+        _asyncSet = asyncSet,
         _pollInterval = pollInterval;
 
-  final MpvLibrary _lib;
-  final Pointer<MpvHandle> _handle;
+  final AsyncPropertyGet _asyncGet;
+  final AsyncPropertySet _asyncSet;
   final Duration _pollInterval;
 
   final StreamController<WaveformData?> _ctrl =
       StreamController<WaveformData?>.broadcast();
   Timer? _pollTimer;
   WaveformData? _data;
+  // Last coverage seen while DECODING, to skip re-emitting unchanged partials.
+  int? _lastDecodeCoverage;
   bool _enabled = false;
   bool _disposed = false;
+  // Guards against overlapping async polls — see [LoudnessMeterPipeline].
+  bool _polling = false;
 
   Stream<WaveformData?> get stream => _ctrl.stream;
 
@@ -75,6 +77,7 @@ class WaveformPipeline {
   void reset() {
     if (_disposed) return;
     _data = null;
+    _lastDecodeCoverage = null;
     _pollTimer?.cancel();
     _pollTimer = null;
     _emit(null);
@@ -94,12 +97,7 @@ class WaveformPipeline {
   }
 
   void _writeEnabledProperty(bool enabled) {
-    if (_handle == nullptr) return;
-    using<void>((arena) {
-      final name = 'waveform-enabled'.toNativeUtf8(allocator: arena);
-      final value = (enabled ? 'yes' : 'no').toNativeUtf8(allocator: arena);
-      _lib.mpvSetPropertyString(_handle, name, value);
-    });
+    unawaited(_asyncSet('waveform-enabled', enabled ? 'yes' : 'no'));
   }
 
   void _armTimer() {
@@ -110,62 +108,41 @@ class WaveformPipeline {
   }
 
   void _poll() {
-    if (_disposed || _data != null || _handle == nullptr) return;
+    if (_disposed || _polling || _data != null) return;
+    _polling = true;
+    unawaited(_doPoll().whenComplete(() => _polling = false));
+  }
 
-    final result = calloc<MpvNode>();
+  Future<void> _doPoll() async {
+    final (rc, value) =
+        await _asyncGet('waveform-data', MpvFormat.mpvFormatNode);
+    if (_disposed || _data != null) return;
     try {
-      final rc = using<int>((arena) {
-        final name = 'waveform-data'.toNativeUtf8(allocator: arena);
-        return _lib.mpvGetProperty(
-          _handle,
-          name,
-          MpvFormat.mpvFormatNode,
-          result.cast(),
-        );
-      });
-      if (rc < 0) return;
-      if (result.ref.format != MpvFormat.mpvFormatNodeMap) return;
+      if (rc < 0 || value is! Map) return;
 
-      final map = result.ref.u.list.ref;
-      String? state;
-      var durationUs = 0;
-      var rangeStartUs = 0;
-      var rangeEndUs = 0;
-      Float32List? min;
-      Float32List? max;
-      Uint8List? filled;
-      for (var i = 0; i < map.num; i++) {
-        final key = map.keys[i].cast<Utf8>().toDartString();
-        final node = (map.values + i).ref;
-        switch (key) {
-          case 'state':
-            if (node.format == MpvFormat.mpvFormatString) {
-              state = node.u.string.cast<Utf8>().toDartString();
-            }
-          case 'duration_us':
-            if (node.format == MpvFormat.mpvFormatInt64) {
-              durationUs = node.u.int64;
-            }
-          case 'range_start_us':
-            if (node.format == MpvFormat.mpvFormatInt64) {
-              rangeStartUs = node.u.int64;
-            }
-          case 'range_end_us':
-            if (node.format == MpvFormat.mpvFormatInt64) {
-              rangeEndUs = node.u.int64;
-            }
-          case 'min':
-            min = decodeInterleavedFloat32(node);
-          case 'max':
-            max = decodeInterleavedFloat32(node);
-          case 'filled':
-            filled = _decodeBytes(node);
-        }
-      }
+      final stateValue = value['state'];
+      final state = stateValue is String ? stateValue : null;
+      final durationUs = value['duration_us'] is int
+          ? value['duration_us'] as int
+          : 0;
+      final rangeStartUs = value['range_start_us'] is int
+          ? value['range_start_us'] as int
+          : 0;
+      final rangeEndUs =
+          value['range_end_us'] is int ? value['range_end_us'] as int : 0;
+      final min = float32FromByteValue(value['min']);
+      final max = float32FromByteValue(value['max']);
+      final filled =
+          value['filled'] is Uint8List ? value['filled'] as Uint8List : null;
 
       final ready = state == 'ready';
       final progressive = state == 'progressive';
       final rolling = state == 'rolling';
+      final decoding = state == 'decoding';
+      final coverageBins =
+          value['coverage_bins'] is int ? value['coverage_bins'] as int : null;
+      final totalBins =
+          value['total_bins'] is int ? value['total_bins'] as int : null;
 
       final haveBins = min != null &&
           max != null &&
@@ -192,6 +169,28 @@ class WaveformPipeline {
           live: true,
         );
         _emit(data);
+        return;
+      }
+
+      // DECODING (local-file bulk analysis in flight): a partial envelope that
+      // grows on every poll. The full axis is emitted with [filled] marking the
+      // regions decoded so far. Never cache it and never stop the timer — the
+      // final `ready` emission below supersedes it. De-dup on coverage so an
+      // unchanged snapshot does not churn the UI.
+      if (decoding && durationUs > 0 && haveBins) {
+        if (coverageBins == null || coverageBins != _lastDecodeCoverage) {
+          _lastDecodeCoverage = coverageBins;
+          final data = WaveformData(
+            duration: Duration(microseconds: durationUs),
+            min: min,
+            max: max,
+            filled: safeFilled(min),
+            decoding: true,
+            coverageBins: coverageBins,
+            totalBins: totalBins,
+          );
+          _emit(data);
+        }
         return;
       }
 
@@ -223,23 +222,9 @@ class WaveformPipeline {
       }
     } catch (_) {
       // A single malformed / unexpected waveform-data node must never
-      // escape the Timer.periodic callback: an uncaught throw there would
-      // tear down the poll loop and freeze the waveform until app restart.
-      // Swallow it — the node is freed in `finally` and the next tick
-      // retries against fresh native state.
-    } finally {
-      _lib.mpvFreeNodeContents(result);
-      calloc.free(result);
+      // escape the poll: an uncaught throw would tear down the poll loop
+      // and freeze the waveform until app restart. Swallow it — the next
+      // tick retries against fresh native state.
     }
-  }
-
-  /// Copies a byte-array node (one byte per bin) into a fresh [Uint8List],
-  /// detaching it from the mpv-owned buffer freed at the end of the poll.
-  Uint8List? _decodeBytes(MpvNode node) {
-    if (node.format != MpvFormat.mpvFormatByteArray) return null;
-    final ba = node.u.ba.ref;
-    if (ba.size <= 0) return null;
-    final src = ba.data.cast<Uint8>().asTypedList(ba.size);
-    return Uint8List(ba.size)..setAll(0, src);
   }
 }

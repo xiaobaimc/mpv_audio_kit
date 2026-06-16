@@ -31,11 +31,9 @@ String defaultFixturePath() =>
 /// skipped (callers usually ignore the return value because
 /// `markTestSkipped` short-circuits subsequent tests on its own).
 bool initLibmpvOrSkip({String? fixturePath}) {
-  // Brings up the Flutter test binding so `rootBundle.load` works.
-  // The TLS CA bundle and any Flutter asset (`asset://` URI) flow
-  // through `rootBundle`; without this, `TlsCaBundle.extract()` swallows
-  // a missing-binding exception and `tls-ca-file` stays empty, which
-  // makes every `https://` open() fail under mpv.
+  // Brings up the Flutter test binding so `rootBundle.load` works —
+  // `asset://` URIs are materialised through `rootBundle` by the URI
+  // resolver, which needs the binding initialised first.
   TestWidgetsFlutterBinding.ensureInitialized();
   final lib = resolveLibmpv();
   if (lib == null) {

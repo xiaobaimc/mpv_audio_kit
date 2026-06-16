@@ -3,15 +3,12 @@
 // Use of this source code is governed by BSD 3-Clause license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:ffi';
-import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart';
 import 'package:meta/meta.dart';
 
 import '../models/pcm_frame.dart';
 import '../mpv_bindings.dart';
-import 'pcm_node_decode.dart';
+import 'dsp_async_io.dart';
 
 /// Upper bound on the channel count reported by the native filter tap.
 ///
@@ -40,8 +37,8 @@ const int _kMaxTapChannels = 8;
 @internal
 class FilterTapPipeline {
   FilterTapPipeline({
-    required MpvLibrary lib,
-    required Pointer<MpvHandle> handle,
+    required AsyncPropertyGet asyncGet,
+    required AsyncPropertySet asyncSet,
     // 33 ms ≈ 30 Hz — matches the lib's spectrum pipeline default.
     // The C side now returns the slice of the rolling ring aligned
     // to the AO playback PTS, so the slice walks forward smoothly
@@ -49,12 +46,12 @@ class FilterTapPipeline {
     // write cadence. 30 Hz reads are enough; the slice content
     // changes every poll because `playing_audio_pts` is monotonic.
     Duration pollInterval = const Duration(milliseconds: 33),
-  })  : _lib = lib,
-        _handle = handle,
+  })  : _asyncGet = asyncGet,
+        _asyncSet = asyncSet,
         _pollInterval = pollInterval;
 
-  final MpvLibrary _lib;
-  final Pointer<MpvHandle> _handle;
+  final AsyncPropertyGet _asyncGet;
+  final AsyncPropertySet _asyncSet;
   final Duration _pollInterval;
 
   // (name, side) → broadcast controller. Lazy-created on first
@@ -68,6 +65,8 @@ class FilterTapPipeline {
   final Map<_TapKey, int> _lastSeq = {};
 
   Timer? _pollTimer;
+  // Guards against overlapping async polls — see [LoudnessMeterPipeline].
+  bool _polling = false;
   bool _disposed = false;
 
   /// Returns a broadcast stream of PCM frames captured **before**
@@ -93,7 +92,7 @@ class FilterTapPipeline {
     if (_disposed) {
       return const Stream<PcmFrame>.empty();
     }
-    final key = _TapKey(name, isPost);
+    final key = (name: name, isPost: isPost);
     return _controllers
         .putIfAbsent(key, () {
           late StreamController<PcmFrame> ctrl;
@@ -124,6 +123,11 @@ class FilterTapPipeline {
     final cur = _refs[key] ?? 0;
     if (cur <= 1) {
       _refs.remove(key);
+      // Drop the retained native write-generation. The native ring `seq` is
+      // monotonic and never reset, so keeping a stale `_lastSeq` would make a
+      // FRESH re-subscriber to this paused/EOF tap skip the currently-buffered
+      // slice (its seq still equals the retained value) until the next write.
+      _lastSeq.remove(key);
     } else {
       _refs[key] = cur - 1;
     }
@@ -145,108 +149,58 @@ class FilterTapPipeline {
     for (final k in _refs.keys) {
       names.add(k.name);
     }
-    final csv = names.join(',');
-    using<void>((arena) {
-      final n = 'analyzer-taps'.toNativeUtf8(allocator: arena);
-      final v = csv.toNativeUtf8(allocator: arena);
-      _lib.mpvSetPropertyString(_handle, n, v);
-    });
+    unawaited(_asyncSet('analyzer-taps', names.join(',')));
   }
 
   void _poll() {
-    if (_disposed) return;
-    if (_handle == nullptr) return;
+    if (_disposed || _polling) return;
     if (_refs.isEmpty) return;
-
-    final result = calloc<MpvNode>();
-    try {
-      final rc = using<int>((arena) {
-        final name = 'audio-tap-frames'.toNativeUtf8(allocator: arena);
-        return _lib.mpvGetProperty(
-          _handle,
-          name,
-          MpvFormat.mpvFormatNode,
-          result.cast(),
-        );
-      });
-      if (rc < 0) return;
-      if (result.ref.format != MpvFormat.mpvFormatNodeMap) return;
-      _parseRoot(result.ref.u.list.ref);
-    } finally {
-      _lib.mpvFreeNodeContents(result);
-      calloc.free(result);
-    }
+    _polling = true;
+    unawaited(_doPoll().whenComplete(() => _polling = false));
   }
 
-  void _parseRoot(MpvNodeList list) {
+  Future<void> _doPoll() async {
+    final (rc, value) =
+        await _asyncGet('audio-tap-frames', MpvFormat.mpvFormatNode);
+    if (_disposed) return;
+    if (rc < 0 || value is! Map) return;
+    _parseRoot(value);
+  }
+
+  void _parseRoot(Map<dynamic, dynamic> root) {
     // root: { filterName: { pre: <ring>, post: <ring> } }
-    for (var i = 0; i < list.num; i++) {
-      final filterName = list.keys[i].cast<Utf8>().toDartString();
-      final entry = (list.values + i).ref;
-      if (entry.format != MpvFormat.mpvFormatNodeMap) continue;
-      final sides = entry.u.list.ref;
-      for (var j = 0; j < sides.num; j++) {
-        final sideKey = sides.keys[j].cast<Utf8>().toDartString();
+    root.forEach((filterKey, entry) {
+      if (filterKey is! String || entry is! Map) return;
+      entry.forEach((sideKey, ring) {
+        if (ring is! Map) return;
         final isPost = sideKey == 'post';
-        final ringNode = (sides.values + j).ref;
-        if (ringNode.format != MpvFormat.mpvFormatNodeMap) continue;
-        final key = _TapKey(filterName, isPost);
+        // The root keys already carry the `lavfi-` prefix the C side emits
+        // (`u->name`), matching how `_streamFor` keys `_controllers`.
+        final key = (name: filterKey, isPost: isPost);
         final ctrl = _controllers[key];
-        if (ctrl == null || !ctrl.hasListener) continue;
-        final ring = ringNode.u.list.ref;
+        if (ctrl == null || !ctrl.hasListener) return;
         // Skip the decode + dispatch when the native write generation is
         // unchanged since the last poll. The C side bumps the ring `seq`
         // on every write and holds it stable while paused / at EOF, so an
         // unchanged seq means an identical slice — re-emitting it only
         // churns a Float32List + StreamController.add() for no new data.
         // seq == 0 means "unavailable"; fall back to always emitting.
-        final seq = _ringSeq(ring);
-        if (seq != 0 && _lastSeq[key] == seq) continue;
+        final seq = ring['seq'] is int ? ring['seq'] as int : 0;
+        if (seq != 0 && _lastSeq[key] == seq) return;
         _lastSeq[key] = seq;
         final frame = _decodeRing(ring);
-        if (frame == null) continue;
+        if (frame == null) return;
         if (!ctrl.isClosed) ctrl.add(frame);
-      }
-    }
+      });
+    });
   }
 
-  /// Reads just the native write generation (`seq`) from a ring node,
-  /// without decoding the samples. Returns 0 when the key is absent.
-  int _ringSeq(MpvNodeList ring) {
-    for (var i = 0; i < ring.num; i++) {
-      if (ring.keys[i].cast<Utf8>().toDartString() == 'seq') {
-        final node = (ring.values + i).ref;
-        return node.format == MpvFormat.mpvFormatInt64 ? node.u.int64 : 0;
-      }
-    }
-    return 0;
-  }
-
-  PcmFrame? _decodeRing(MpvNodeList ring) {
-    var sampleRate = 0;
-    var channels = 0;
-    var ptsNs = 0;
-    Float32List? samples;
-    for (var i = 0; i < ring.num; i++) {
-      final key = ring.keys[i].cast<Utf8>().toDartString();
-      final node = (ring.values + i).ref;
-      switch (key) {
-        case 'sample_rate':
-          if (node.format == MpvFormat.mpvFormatInt64) {
-            sampleRate = node.u.int64;
-          }
-        case 'channels':
-          if (node.format == MpvFormat.mpvFormatInt64) {
-            channels = node.u.int64;
-          }
-        case 'pts_ns':
-          if (node.format == MpvFormat.mpvFormatInt64) {
-            ptsNs = node.u.int64;
-          }
-        case 'samples':
-          samples = decodeInterleavedFloat32(node);
-      }
-    }
+  PcmFrame? _decodeRing(Map<dynamic, dynamic> ring) {
+    final sampleRate =
+        ring['sample_rate'] is int ? ring['sample_rate'] as int : 0;
+    final channels = ring['channels'] is int ? ring['channels'] as int : 0;
+    final ptsNs = ring['pts_ns'] is int ? ring['pts_ns'] as int : 0;
+    final samples = float32FromByteValue(ring['samples']);
     if (samples == null ||
         sampleRate <= 0 ||
         channels <= 0 ||
@@ -268,11 +222,7 @@ class FilterTapPipeline {
     _pollTimer?.cancel();
     _pollTimer = null;
     // Best-effort: clear analyzer-taps so the C side stops capturing.
-    using<void>((arena) {
-      final n = 'analyzer-taps'.toNativeUtf8(allocator: arena);
-      final v = ''.toNativeUtf8(allocator: arena);
-      _lib.mpvSetPropertyString(_handle, n, v);
-    });
+    unawaited(_asyncSet('analyzer-taps', ''));
     final closes = <Future<void>>[];
     for (final c in _controllers.values) {
       if (!c.isClosed) closes.add(c.close());
@@ -284,14 +234,4 @@ class FilterTapPipeline {
   }
 }
 
-class _TapKey {
-  final String name;
-  final bool isPost;
-  const _TapKey(this.name, this.isPost);
-
-  @override
-  bool operator ==(Object other) =>
-      other is _TapKey && other.name == name && other.isPost == isPost;
-  @override
-  int get hashCode => Object.hash(name, isPost);
-}
+typedef _TapKey = ({String name, bool isPost});

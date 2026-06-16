@@ -10,6 +10,7 @@ import '../models/media_session.dart';
 import '../types/enums/cover.dart';
 import '../types/enums/format.dart';
 import '../types/enums/gapless.dart';
+import '../types/enums/hls_bitrate.dart';
 import '../types/enums/hook.dart';
 import '../types/enums/log_level.dart';
 import '../types/enums/loop.dart';
@@ -17,6 +18,7 @@ import '../types/enums/spdif.dart';
 import '../types/sealed/channels.dart';
 import '../types/sealed/track.dart';
 import '../types/settings/cache_settings.dart';
+import '../types/settings/demuxer_settings.dart';
 import '../types/settings/replay_gain_settings.dart';
 import '../types/settings/spectrum_settings.dart';
 import 'player_configuration.dart';
@@ -303,6 +305,10 @@ abstract interface class PlayerApi {
   /// Applies the demuxer cache configuration atomically.
   Future<void> setCache(CacheSettings settings);
 
+  /// Applies the demuxer buffering configuration atomically (forward cache
+  /// cap, seekback cap, readahead).
+  Future<void> setDemuxer(DemuxerSettings settings);
+
   /// Sets the output device buffer size.
   Future<void> setAudioBuffer(Duration size);
 
@@ -319,15 +325,15 @@ abstract interface class PlayerApi {
   /// Sets the path to a custom CA bundle for TLS verification.
   Future<void> setTlsCaFile(String path);
 
-  /// Sets the forward demuxer cache size cap in bytes.
-  Future<void> setDemuxerMaxBytes(int bytes);
+  /// Sets the HLS variant-selection policy for adaptive streams.
+  Future<void> setHlsBitrate(HlsBitrate hlsBitrate);
 
-  /// Sets the backward demuxer cache size cap in bytes.
-  Future<void> setDemuxerMaxBackBytes(int bytes);
+  /// Enables mpv's HTTP cookie jar for network streams when [enable] is
+  /// true.
+  Future<void> setCookies(bool enable);
 
-  /// Sets the minimum read-ahead the demuxer keeps buffered. Accepts
-  /// sub-second precision (mpv's `demuxer-readahead-secs` is fractional).
-  Future<void> setDemuxerReadaheadSecs(Duration readahead);
+  /// Sets the HTTP proxy URL for network streams; empty string clears it.
+  Future<void> setHttpProxy(String url);
 
   /// Runs the null audio output untimed when [enable] is true.
   Future<void> setAudioNullUntimed(bool enable);
@@ -370,6 +376,11 @@ abstract interface class PlayerApi {
   /// Reads an arbitrary mpv property as a string; `null` if unset or
   /// unavailable. Escape hatch for properties without a typed accessor.
   Future<String?> getRawProperty(String name);
+
+  /// Reads an arbitrary mpv property as a decoded node tree (maps / lists /
+  /// scalars / byte arrays); `null` if unset or unavailable. The structured
+  /// counterpart of [getRawProperty] for properties like `track-list`.
+  Future<Object?> getRawPropertyNode(String name);
 
   /// Writes an arbitrary mpv property from a string. Escape hatch for
   /// properties without a typed setter; writes to `af` and `pause` are

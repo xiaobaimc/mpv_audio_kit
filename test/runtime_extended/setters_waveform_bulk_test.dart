@@ -39,7 +39,11 @@ void main() {
 
         final completer = Completer<WaveformData>();
         final sub = player.stream.waveform.listen((w) {
-          if (w != null && !completer.isCompleted) completer.complete(w);
+          // The analyzer now streams partial (decoding) envelopes first, which
+          // legitimately carry no signal yet — wait for the settled one.
+          if (w != null && !w.decoding && !completer.isCompleted) {
+            completer.complete(w);
+          }
         });
         try {
           await openAndWaitForLoad(player, fixturePath);
@@ -126,7 +130,11 @@ void main() {
         // envelope for the already-loaded track.
         final completer = Completer<WaveformData>();
         final sub = player.stream.waveform.listen((w) {
-          if (w != null && !completer.isCompleted) completer.complete(w);
+          // The analyzer now streams partial (decoding) envelopes first, which
+          // legitimately carry no signal yet — wait for the settled one.
+          if (w != null && !w.decoding && !completer.isCompleted) {
+            completer.complete(w);
+          }
         });
         try {
           final wave =

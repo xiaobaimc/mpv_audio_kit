@@ -30,62 +30,69 @@ mixin _InitModule on _PlayerBase {
       wakeupCounterAddress: _wakeupCounterAddress,
     );
 
-    if (_disposed) return;
+    if (_disposed) {
+      // dispose() landed while the isolate was initializing. dispose()
+      // found `_bringUpCompleted == false` and has no handle to tear
+      // down — this is the only code that ever sees it, so the teardown
+      // duty lands here: unwind the worker deterministically (stop flag
+      // + wakeup), then destroy the core only on confirmed exit (same
+      // rule as dispose — destroying mid-`mpv_wait_event` SIGSEGVs).
+      // dispose() awaits `_ready`, i.e. this very teardown, before
+      // proceeding, so it cannot observe a half-released core.
+      final lib = MpvLibrary.open(MpvAudioKit.libraryPath);
+      final h = Pointer<MpvHandle>.fromAddress(handleAddress);
+      _eventIsolate.requestStop(lib, h);
+      if (await _eventIsolate.stop()) {
+        lib.mpvTerminateDestroy(h);
+      }
+      return;
+    }
 
     // Re-open the library on the main isolate. The OS keeps libmpv
     // mapped after the event isolate's first dlopen, so this resolves
     // in microseconds — no second cold-load cost.
     _lib = MpvLibrary.open(MpvAudioKit.libraryPath);
     _handle = Pointer<MpvHandle>.fromAddress(handleAddress);
-    _spectrumPipeline = SpectrumPipeline(lib: _lib, handle: _handle);
-    _spectrumPipeline.fftStream.listen(_fftCtrl.add);
-    _spectrumPipeline.pcmStream.listen(_pcmStreamCtrl.add);
+    // Every DSP pipeline polls mpv through the async-get path (decoded in
+    // the event isolate, reply-correlated) rather than a blocking FFI read,
+    // so a visualizer's poll loop can never stall the main isolate while the
+    // core is busy initializing an audio output. `_getAsync` / `_propRc` are
+    // the same async client-API calls the typed setters use.
+    _spectrumPipeline = SpectrumPipeline(asyncGet: _getAsync);
+    // fft/pcm are NOT bridged here: the pipeline's poll loop arms on its
+    // streams' first listener, so the bridges are created lazily by the
+    // public controllers' onListen (and reconciled below for subscribers
+    // that landed before bring-up). Settings is config-change traffic and
+    // stays always-bridged.
     _spectrumPipeline.settingsStream.listen(_spectrumCtrl.add);
-    _waveformPipeline = WaveformPipeline(lib: _lib, handle: _handle);
-    _filterTapPipeline = FilterTapPipeline(lib: _lib, handle: _handle);
+    _waveformPipeline =
+        WaveformPipeline(asyncGet: _getAsync, asyncSet: _propRc);
+    _filterTapPipeline =
+        FilterTapPipeline(asyncGet: _getAsync, asyncSet: _propRc);
+    _loudnessMeterPipeline = LoudnessMeterPipeline(asyncGet: _getAsync);
+    _loudnessScanPipeline =
+        LoudnessScanPipeline(asyncGet: _getAsync, asyncSet: _propRc);
     _waveformPipeline.stream.listen(_waveformCtrl.add);
+    _loudnessMeterPipeline.stream.listen(_loudnessMeterCtrl.add);
+    _loudnessScanPipeline.stream.listen(_loudnessScanCtrl.add);
 
     OrphanHandleTracker.instance.add(_handle);
     _nativeResources = PlayerNativeResources(_lib, _handle);
     playerFinalizer.attach(this, _nativeResources, detach: this);
 
-    // Wire `tls-ca-file` to the bundled CA pem so HTTPS verification
-    // works on platforms whose OS trust store the underlying TLS backend
-    // cannot read.
-    _tlsBundleReady = _autoConfigureTlsCaBundle();
     _bringUpCompleted = true;
 
-    // A waveform subscriber that landed before bring-up finished
-    // missed the `onListen` enable — reconcile it now.
-    if (_waveformCtrl.hasListener) _waveformPipeline.setEnabled(true);
-  }
-
-  Future<void> _autoConfigureTlsCaBundle() async {
-    try {
-      final path = await TlsCaBundle.extract();
-      _autoTlsCaBundlePath = path;
-      if (_disposed) return;
-      // Mirrors what [setTlsCaFile] does in the network mixin; that
-      // method is not visible from this class so we duplicate the two
-      // wire operations (property set + state update) inline.
-      _prop('tls-ca-file', path);
-      _updateField(
-        (s) => s.copyWith(tlsCaFile: path),
-        _reactives.tlsCaFile,
-        path,
-      );
-    } catch (e, st) {
-      // Surface to the internal-log stream; do NOT throw — the player
-      // still works for non-HTTPS streams or for consumers that bring
-      // their own CA bundle via `setTlsCaFile`.
-      _internalLogCtrl.add(
-        MpvLogEntry(
-          level: LogLevel.warn,
-          prefix: 'mpv_audio_kit',
-          text: 'Failed to auto-configure tls-ca-file: $e\n$st',
-        ),
-      );
+    // A DSP subscriber that landed before bring-up finished missed the
+    // `onListen` enable — reconcile it now.
+    if (_fftCtrl.hasListener) {
+      _fftPipeSub ??= _spectrumPipeline.fftStream.listen(_fftCtrl.add);
     }
+    if (_pcmStreamCtrl.hasListener) {
+      _pcmPipeSub ??= _spectrumPipeline.pcmStream.listen(_pcmStreamCtrl.add);
+    }
+    if (_waveformCtrl.hasListener) _waveformPipeline.setEnabled(true);
+    if (_loudnessMeterCtrl.hasListener) _loudnessMeterPipeline.setEnabled(true);
+    if (_loudnessScanCtrl.hasListener) _loudnessScanPipeline.setEnabled(true);
   }
 
   /// Recipe of pre-init `mpv_set_option_string` calls executed by the

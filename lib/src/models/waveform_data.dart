@@ -73,6 +73,25 @@ final class WaveformData {
   /// `[start, start + duration]`.
   final bool live;
 
+  /// True while the local-file analyzer is still decoding: this envelope is a
+  /// *partial* snapshot that grows on every poll until the final one arrives
+  /// (a last emission with `decoding == false`). The bins are safe to draw —
+  /// [filled] `== 1` marks the regions decoded so far (the analyzer fills
+  /// several regions in parallel, so coverage is not strictly left-to-right);
+  /// `0` bins render as a baseline. Use [decodeFraction] for a progress
+  /// indicator. Never set together with [live].
+  final bool decoding;
+
+  /// Number of bins decoded ("sealed") so far across all worker regions, or
+  /// `null` when not [decoding]. Together with [totalBins] this is the decode
+  /// progress; see [decodeFraction].
+  final int? coverageBins;
+
+  /// Total bins on the full axis during a [decoding] pass (the emitted arrays
+  /// hold the full axis, with [filled] marking the decoded part), or `null`
+  /// when not [decoding].
+  final int? totalBins;
+
   /// Creates a waveform. Used internally by the waveform pipeline.
   ///
   /// The three per-bin arrays must share one length — the painter indexes
@@ -86,6 +105,9 @@ final class WaveformData {
     required this.filled,
     this.start = Duration.zero,
     this.live = false,
+    this.decoding = false,
+    this.coverageBins,
+    this.totalBins,
   }) : assert(
           max.length == min.length && filled.length == min.length,
           'WaveformData min/max/filled must share one length',
@@ -96,4 +118,15 @@ final class WaveformData {
 
   /// Absolute media time at the end of the bin axis (`start + duration`).
   Duration get end => start + duration;
+
+  /// Decode progress in `[0, 1]` while [decoding], or `null` when it is not
+  /// known (not decoding, or the engine did not report bin counts). Drives a
+  /// determinate progress indicator; a `null` value means show an
+  /// indeterminate one.
+  double? get decodeFraction {
+    if (!decoding) return null;
+    final t = totalBins, c = coverageBins;
+    if (t == null || t <= 0 || c == null) return null;
+    return (c / t).clamp(0.0, 1.0);
+  }
 }

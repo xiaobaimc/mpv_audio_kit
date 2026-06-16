@@ -60,7 +60,7 @@ void main() {
     setUpAll(() async {
       player = await buildPlayer(); // ao=null, no fixture needed for introspection
     });
-    tearDownAll(() async => player.dispose());
+    tearDownAll(() => player.dispose());
 
     test('every planned OPTION exists in the shipped libmpv', () async {
       final results = <String, String?>{};

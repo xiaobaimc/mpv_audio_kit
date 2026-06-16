@@ -27,7 +27,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(acompressor: AcompressorSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-acompressor');
+        expect(fx.toAfChain(), '@aek_acompressor:lavfi-acompressor');
       });
 
       test('param `attack` lands in wire when set to a non-default value', () {
@@ -305,7 +305,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(acontrast: AcontrastSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-acontrast');
+        expect(fx.toAfChain(), '@aek_acontrast:lavfi-acontrast');
       });
 
       test('param `contrast` lands in wire when set to a non-default value',
@@ -345,7 +345,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(acrusher: AcrusherSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-acrusher');
+        expect(fx.toAfChain(), '@aek_acrusher:lavfi-acrusher');
       });
 
       test('param `aa` lands in wire when set to a non-default value', () {
@@ -603,7 +603,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(adeclick: AdeclickSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-adeclick');
+        expect(fx.toAfChain(), '@aek_adeclick:lavfi-adeclick');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -870,7 +870,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(adeclip: AdeclipSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-adeclip');
+        expect(fx.toAfChain(), '@aek_adeclip:lavfi-adeclip');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -1139,7 +1139,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(adecorrelate: AdecorrelateSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-adecorrelate');
+        expect(fx.toAfChain(), '@aek_adecorrelate:lavfi-adecorrelate');
       });
 
       test('param `seed` lands in wire when set to a non-default value', () {
@@ -1202,7 +1202,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(adelay: AdelaySettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-adelay');
+        expect(fx.toAfChain(), '@aek_adelay:lavfi-adelay');
       });
 
       test('param `all` lands in wire when set to a non-default value', () {
@@ -1223,7 +1223,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(adenorm: AdenormSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-adenorm');
+        expect(fx.toAfChain(), '@aek_adenorm:lavfi-adenorm');
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
@@ -1267,7 +1267,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(aderivative: AderivativeSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-aderivative');
+        expect(fx.toAfChain(), '@aek_aderivative:lavfi-aderivative');
       });
     });
     group('AdrcSettings (adrc)', () {
@@ -1278,7 +1278,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(adrc: AdrcSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-adrc');
+        expect(fx.toAfChain(), '@aek_adrc:lavfi-adrc');
       });
 
       test('param `attack` lands in wire when set to a non-default value', () {
@@ -1354,7 +1354,8 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(
             adynamicequalizer: AdynamicequalizerSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-adynamicequalizer');
+        expect(
+            fx.toAfChain(), '@aek_adynamicequalizer:lavfi-adynamicequalizer');
       });
 
       test('param `attack` lands in wire when set to a non-default value', () {
@@ -1697,7 +1698,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(adynamicsmooth: AdynamicsmoothSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-adynamicsmooth');
+        expect(fx.toAfChain(), '@aek_adynamicsmooth:lavfi-adynamicsmooth');
       });
 
       test('param `basefreq` lands in wire when set to a non-default value',
@@ -1771,7 +1772,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(aecho: AechoSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-aecho');
+        expect(fx.toAfChain(), '@aek_aecho:lavfi-aecho');
       });
 
       test('param `decays` lands in wire when set to a non-default value', () {
@@ -1849,7 +1850,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(aemphasis: AemphasisSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-aemphasis');
+        expect(fx.toAfChain(), '@aek_aemphasis:lavfi-aemphasis');
       });
 
       test('param `level_in` lands in wire when set to a non-default value',
@@ -1938,7 +1939,7 @@ void main() {
           () {
         const fx = AudioEffects(
             aeval: AevalSettings(enabled: true, exprs: 'val(0)|val(1)'));
-        expect(fx.toAfChain(), startsWith('lavfi-aeval'));
+        expect(fx.toAfChain(), startsWith('@aek_aeval:lavfi-aeval'));
         expect(fx.toAfChain(), contains('exprs='));
       });
 
@@ -1971,7 +1972,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(aexciter: AexciterSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-aexciter');
+        expect(fx.toAfChain(), '@aek_aexciter:lavfi-aexciter');
       });
 
       test('param `amount` lands in wire when set to a non-default value', () {
@@ -2174,7 +2175,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(afade: AfadeSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-afade');
+        expect(fx.toAfChain(), '@aek_afade:lavfi-afade');
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
@@ -2393,7 +2394,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(afftdn: AfftdnSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-afftdn');
+        expect(fx.toAfChain(), '@aek_afftdn:lavfi-afftdn');
       });
 
       test('param `ad` lands in wire when set to a non-default value', () {
@@ -2864,7 +2865,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(afftfilt: AfftfiltSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-afftfilt');
+        expect(fx.toAfChain(), '@aek_afftfilt:lavfi-afftfilt');
       });
 
       test('param `imag` lands in wire when set to a non-default value', () {
@@ -2950,7 +2951,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(aformat: AformatSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-aformat');
+        expect(fx.toAfChain(), '@aek_aformat:lavfi-aformat');
       });
 
       test(
@@ -2998,7 +2999,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(afreqshift: AfreqshiftSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-afreqshift');
+        expect(fx.toAfChain(), '@aek_afreqshift:lavfi-afreqshift');
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
@@ -3084,7 +3085,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(afwtdn: AfwtdnSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-afwtdn');
+        expect(fx.toAfChain(), '@aek_afwtdn:lavfi-afwtdn');
       });
 
       test('param `adaptive` lands in wire when set to a non-default value',
@@ -3247,7 +3248,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(agate: AgateSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-agate');
+        expect(fx.toAfChain(), '@aek_agate:lavfi-agate');
       });
 
       test('param `attack` lands in wire when set to a non-default value', () {
@@ -3513,7 +3514,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(aiir: AiirSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-aiir');
+        expect(fx.toAfChain(), '@aek_aiir:lavfi-aiir');
       });
 
       test('param `channel` lands in wire when set to a non-default value', () {
@@ -3708,7 +3709,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(aintegral: AintegralSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-aintegral');
+        expect(fx.toAfChain(), '@aek_aintegral:lavfi-aintegral');
       });
     });
     group('AlimiterSettings (alimiter)', () {
@@ -3719,7 +3720,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(alimiter: AlimiterSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-alimiter');
+        expect(fx.toAfChain(), '@aek_alimiter:lavfi-alimiter');
       });
 
       test('param `asc` lands in wire when set to a non-default value', () {
@@ -3916,7 +3917,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(allpass: AllpassSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-allpass');
+        expect(fx.toAfChain(), '@aek_allpass:lavfi-allpass');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -4182,7 +4183,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(anequalizer: AnequalizerSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-anequalizer');
+        expect(fx.toAfChain(), '@aek_anequalizer:lavfi-anequalizer');
       });
 
       test('param `colors` lands in wire when set to a non-default value', () {
@@ -4248,7 +4249,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(anlmdn: AnlmdnSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-anlmdn');
+        expect(fx.toAfChain(), '@aek_anlmdn:lavfi-anlmdn');
       });
 
       test('param `m` lands in wire when set to a non-default value', () {
@@ -4394,7 +4395,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(apad: ApadSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-apad');
+        expect(fx.toAfChain(), '@aek_apad:lavfi-apad');
       });
 
       test('param `packet_size` lands in wire when set to a non-default value',
@@ -4508,7 +4509,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(aphaser: AphaserSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-aphaser');
+        expect(fx.toAfChain(), '@aek_aphaser:lavfi-aphaser');
       });
 
       test('param `decay` lands in wire when set to a non-default value', () {
@@ -4659,7 +4660,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(aphaseshift: AphaseshiftSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-aphaseshift');
+        expect(fx.toAfChain(), '@aek_aphaseshift:lavfi-aphaseshift');
       });
 
       test('param `level` lands in wire when set to a non-default value', () {
@@ -4745,7 +4746,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(apsyclip: ApsyclipSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-apsyclip');
+        expect(fx.toAfChain(), '@aek_apsyclip:lavfi-apsyclip');
       });
 
       test('param `adaptive` lands in wire when set to a non-default value',
@@ -4911,7 +4912,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(apulsator: ApulsatorSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-apulsator');
+        expect(fx.toAfChain(), '@aek_apulsator:lavfi-apulsator');
       });
 
       test('param `amount` lands in wire when set to a non-default value', () {
@@ -5174,7 +5175,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(aresample: AresampleSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-aresample');
+        expect(fx.toAfChain(), '@aek_aresample:lavfi-aresample');
       });
 
       test('param `sample_rate` lands in wire when set to a non-default value',
@@ -5221,7 +5222,7 @@ void main() {
           () {
         const fx =
             AudioEffects(arnndn: ArnndnSettings(enabled: true, model: ''));
-        expect(fx.toAfChain(), startsWith('lavfi-arnndn'));
+        expect(fx.toAfChain(), startsWith('@aek_arnndn:lavfi-arnndn'));
         expect(fx.toAfChain(), contains('model='));
       });
 
@@ -5268,7 +5269,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(asetrate: AsetrateSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-asetrate');
+        expect(fx.toAfChain(), '@aek_asetrate:lavfi-asetrate');
       });
     });
     group('AsoftclipSettings (asoftclip)', () {
@@ -5279,7 +5280,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(asoftclip: AsoftclipSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-asoftclip');
+        expect(fx.toAfChain(), '@aek_asoftclip:lavfi-asoftclip');
       });
 
       test('param `output` lands in wire when set to a non-default value', () {
@@ -5411,7 +5412,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(asubboost: AsubboostSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-asubboost');
+        expect(fx.toAfChain(), '@aek_asubboost:lavfi-asubboost');
       });
 
       test('param `boost` lands in wire when set to a non-default value', () {
@@ -5633,7 +5634,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(asubcut: AsubcutSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-asubcut');
+        expect(fx.toAfChain(), '@aek_asubcut:lavfi-asubcut');
       });
 
       test('param `cutoff` lands in wire when set to a non-default value', () {
@@ -5721,7 +5722,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(asupercut: AsupercutSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-asupercut');
+        expect(fx.toAfChain(), '@aek_asupercut:lavfi-asupercut');
       });
 
       test('param `cutoff` lands in wire when set to a non-default value', () {
@@ -5809,7 +5810,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(asuperpass: AsuperpassSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-asuperpass');
+        expect(fx.toAfChain(), '@aek_asuperpass:lavfi-asuperpass');
       });
 
       test('param `centerf` lands in wire when set to a non-default value', () {
@@ -5926,7 +5927,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(asuperstop: AsuperstopSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-asuperstop');
+        expect(fx.toAfChain(), '@aek_asuperstop:lavfi-asuperstop');
       });
 
       test('param `centerf` lands in wire when set to a non-default value', () {
@@ -6043,7 +6044,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(atempo: AtempoSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-atempo');
+        expect(fx.toAfChain(), '@aek_atempo:lavfi-atempo');
       });
 
       test('param `tempo` lands in wire when set to a non-default value', () {
@@ -6077,7 +6078,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(atilt: AtiltSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-atilt');
+        expect(fx.toAfChain(), '@aek_atilt:lavfi-atilt');
       });
 
       test('param `freq` lands in wire when set to a non-default value', () {
@@ -6202,7 +6203,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(bandpass: BandpassSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-bandpass');
+        expect(fx.toAfChain(), '@aek_bandpass:lavfi-bandpass');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -6478,7 +6479,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(bandreject: BandrejectSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-bandreject');
+        expect(fx.toAfChain(), '@aek_bandreject:lavfi-bandreject');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -6756,7 +6757,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(bass: BassSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-bass');
+        expect(fx.toAfChain(), '@aek_bass:lavfi-bass');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -7106,7 +7107,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(biquad: BiquadSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-biquad');
+        expect(fx.toAfChain(), '@aek_biquad:lavfi-biquad');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -7393,7 +7394,7 @@ void main() {
           () {
         const fx = AudioEffects(
             channelmap: ChannelmapSettings(enabled: true, map: '0|1'));
-        expect(fx.toAfChain(), startsWith('lavfi-channelmap'));
+        expect(fx.toAfChain(), startsWith('@aek_channelmap:lavfi-channelmap'));
         expect(fx.toAfChain(), contains('map='));
       });
 
@@ -7432,7 +7433,7 @@ void main() {
                 decays: '0.4|0.32',
                 speeds: '0.25|0.4',
                 depths: '2|1.3'));
-        expect(fx.toAfChain(), startsWith('lavfi-chorus'));
+        expect(fx.toAfChain(), startsWith('@aek_chorus:lavfi-chorus'));
         expect(fx.toAfChain(), contains('delays='));
         expect(fx.toAfChain(), contains('decays='));
         expect(fx.toAfChain(), contains('speeds='));
@@ -7586,7 +7587,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(compand: CompandSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-compand');
+        expect(fx.toAfChain(), '@aek_compand:lavfi-compand');
       });
 
       test('param `attacks` lands in wire when set to a non-default value', () {
@@ -7697,7 +7698,8 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(
             compensationdelay: CompensationdelaySettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-compensationdelay');
+        expect(
+            fx.toAfChain(), '@aek_compensationdelay:lavfi-compensationdelay');
       });
 
       test('param `cm` lands in wire when set to a non-default value', () {
@@ -7853,7 +7855,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(crossfeed: CrossfeedSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-crossfeed');
+        expect(fx.toAfChain(), '@aek_crossfeed:lavfi-crossfeed');
       });
 
       test('param `block_size` lands in wire when set to a non-default value',
@@ -8036,7 +8038,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(crystalizer: CrystalizerSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-crystalizer');
+        expect(fx.toAfChain(), '@aek_crystalizer:lavfi-crystalizer');
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
@@ -8076,7 +8078,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(dcshift: DcshiftSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-dcshift');
+        expect(fx.toAfChain(), '@aek_dcshift:lavfi-dcshift');
       });
 
       test('param `limitergain` lands in wire when set to a non-default value',
@@ -8143,7 +8145,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(deesser: DeesserSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-deesser');
+        expect(fx.toAfChain(), '@aek_deesser:lavfi-deesser');
       });
 
       test('param `f` lands in wire when set to a non-default value', () {
@@ -8225,7 +8227,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(dialoguenhance: DialoguenhanceSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-dialoguenhance');
+        expect(fx.toAfChain(), '@aek_dialoguenhance:lavfi-dialoguenhance');
       });
 
       test('param `enhance` lands in wire when set to a non-default value', () {
@@ -8318,7 +8320,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(drmeter: DrmeterSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-drmeter');
+        expect(fx.toAfChain(), '@aek_drmeter:lavfi-drmeter');
       });
 
       test('param `length` lands in wire when set to a non-default value', () {
@@ -8356,7 +8358,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(dynaudnorm: DynaudnormSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-dynaudnorm');
+        expect(fx.toAfChain(), '@aek_dynaudnorm:lavfi-dynaudnorm');
       });
 
       test('param `altboundary` lands in wire when set to a non-default value',
@@ -8831,7 +8833,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(earwax: EarwaxSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-earwax');
+        expect(fx.toAfChain(), '@aek_earwax:lavfi-earwax');
       });
     });
     group('Ebur128Settings (ebur128)', () {
@@ -8842,7 +8844,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(ebur128: Ebur128Settings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-ebur128');
+        expect(fx.toAfChain(), '@aek_ebur128:lavfi-ebur128');
       });
 
       test('param `dualmono` lands in wire when set to a non-default value',
@@ -8982,7 +8984,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(equalizer: EqualizerSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-equalizer');
+        expect(fx.toAfChain(), '@aek_equalizer:lavfi-equalizer');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -9309,7 +9311,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(extrastereo: ExtrastereoSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-extrastereo');
+        expect(fx.toAfChain(), '@aek_extrastereo:lavfi-extrastereo');
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
@@ -9351,7 +9353,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(firequalizer: FirequalizerSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-firequalizer');
+        expect(fx.toAfChain(), '@aek_firequalizer:lavfi-firequalizer');
       });
 
       test('param `accuracy` lands in wire when set to a non-default value',
@@ -9487,7 +9489,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(flanger: FlangerSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-flanger');
+        expect(fx.toAfChain(), '@aek_flanger:lavfi-flanger');
       });
 
       test('param `delay` lands in wire when set to a non-default value', () {
@@ -9662,7 +9664,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(haas: HaasSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-haas');
+        expect(fx.toAfChain(), '@aek_haas:lavfi-haas');
       });
 
       test('param `left_balance` lands in wire when set to a non-default value',
@@ -9978,7 +9980,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(hdcd: HdcdSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-hdcd');
+        expect(fx.toAfChain(), '@aek_hdcd:lavfi-hdcd');
       });
 
       test('param `analyze_mode` lands in wire when set to a non-default value',
@@ -10051,7 +10053,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(highpass: HighpassSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-highpass');
+        expect(fx.toAfChain(), '@aek_highpass:lavfi-highpass');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -10368,7 +10370,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(highshelf: HighshelfSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-highshelf');
+        expect(fx.toAfChain(), '@aek_highshelf:lavfi-highshelf');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -10740,7 +10742,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(loudnorm: LoudnormSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-loudnorm');
+        expect(fx.toAfChain(), '@aek_loudnorm:lavfi-loudnorm');
       });
 
       test('param `I` lands in wire when set to a non-default value', () {
@@ -11155,7 +11157,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(lowpass: LowpassSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-lowpass');
+        expect(fx.toAfChain(), '@aek_lowpass:lavfi-lowpass');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -11471,7 +11473,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(lowshelf: LowshelfSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-lowshelf');
+        expect(fx.toAfChain(), '@aek_lowshelf:lavfi-lowshelf');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -11834,7 +11836,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(mcompand: McompandSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-mcompand');
+        expect(fx.toAfChain(), '@aek_mcompand:lavfi-mcompand');
       });
 
       test('param `args` lands in wire when set to a non-default value', () {
@@ -11854,7 +11856,7 @@ void main() {
           () {
         const fx = AudioEffects(
             pan: PanSettings(enabled: true, args: 'stereo|c0=c0|c1=c1'));
-        expect(fx.toAfChain(), startsWith('lavfi-pan'));
+        expect(fx.toAfChain(), startsWith('@aek_pan:lavfi-pan'));
         expect(fx.toAfChain(), contains('args='));
       });
 
@@ -11871,7 +11873,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(rubberband: RubberbandSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-rubberband');
+        expect(fx.toAfChain(), '@aek_rubberband:lavfi-rubberband');
       });
 
       test('param `channels` lands in wire when set to a non-default value',
@@ -11994,7 +11996,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(silenceremove: SilenceremoveSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-silenceremove');
+        expect(fx.toAfChain(), '@aek_silenceremove:lavfi-silenceremove');
       });
 
       test('param `detection` lands in wire when set to a non-default value',
@@ -12218,7 +12220,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(speechnorm: SpeechnormSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-speechnorm');
+        expect(fx.toAfChain(), '@aek_speechnorm:lavfi-speechnorm');
       });
 
       test('param `c` lands in wire when set to a non-default value', () {
@@ -12609,7 +12611,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(stereotools: StereotoolsSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-stereotools');
+        expect(fx.toAfChain(), '@aek_stereotools:lavfi-stereotools');
       });
 
       test('param `balance_in` lands in wire when set to a non-default value',
@@ -12996,7 +12998,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(stereowiden: StereowidenSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-stereowiden');
+        expect(fx.toAfChain(), '@aek_stereowiden:lavfi-stereowiden');
       });
 
       test('param `crossfeed` lands in wire when set to a non-default value',
@@ -13121,7 +13123,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(superequalizer: SuperequalizerSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-superequalizer');
+        expect(fx.toAfChain(), '@aek_superequalizer:lavfi-superequalizer');
       });
 
       test('digit-prefix param `10b` lands in wire via params map', () {
@@ -13258,7 +13260,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(surround: SurroundSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-surround');
+        expect(fx.toAfChain(), '@aek_surround:lavfi-surround');
       });
 
       test('param `allx` lands in wire when set to a non-default value', () {
@@ -14426,7 +14428,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(tiltshelf: TiltshelfSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-tiltshelf');
+        expect(fx.toAfChain(), '@aek_tiltshelf:lavfi-tiltshelf');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -14798,7 +14800,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(treble: TrebleSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-treble');
+        expect(fx.toAfChain(), '@aek_treble:lavfi-treble');
       });
 
       test('param `a` lands in wire when set to a non-default value', () {
@@ -15153,7 +15155,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(tremolo: TremoloSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-tremolo');
+        expect(fx.toAfChain(), '@aek_tremolo:lavfi-tremolo');
       });
 
       test('param `d` lands in wire when set to a non-default value', () {
@@ -15206,7 +15208,7 @@ void main() {
 
       test('enabled with every param at default → bare lavfi name', () {
         const fx = AudioEffects(vibrato: VibratoSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-vibrato');
+        expect(fx.toAfChain(), '@aek_vibrato:lavfi-vibrato');
       });
 
       test('param `d` lands in wire when set to a non-default value', () {
@@ -15261,7 +15263,7 @@ void main() {
       test('enabled with every param at default → bare lavfi name', () {
         const fx =
             AudioEffects(virtualbass: VirtualbassSettings(enabled: true));
-        expect(fx.toAfChain(), 'lavfi-virtualbass');
+        expect(fx.toAfChain(), '@aek_virtualbass:lavfi-virtualbass');
       });
 
       test('param `cutoff` lands in wire when set to a non-default value', () {

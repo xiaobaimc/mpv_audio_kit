@@ -47,20 +47,40 @@ mixin _HooksModule on _PlayerBase {
   /// uses.
   Future<void> registerHook(Hook hook,
       {int priority = 0, Duration? timeout,}) async {
-    _checkNotDisposed();
-    await _ready;
+    await _gate();
     final name = hook.mpvValue;
     if (timeout != null) _hookTimeouts[name] = timeout;
     if (_registeredHookNames.contains(name)) return;
     _registeredHookNames.add(name);
-    using((arena) {
-      _lib.mpvHookAdd(
-        _handle,
-        0,
-        name.toNativeUtf8(allocator: arena),
-        priority,
-      );
+    // `mpv_hook_add` locks the core (it waits for the playloop to reach a
+    // dispatch point), so on the main isolate it would stall behind a busy
+    // audio-output init. There is no command/async equivalent in the client
+    // API — run it in a throwaway isolate, where waiting is harmless. The
+    // registration targets the shared client handle, so hook events still
+    // arrive on the player's event isolate.
+    final handleAddress = _handle.address;
+    final libraryPath = MpvAudioKit.libraryPath;
+    // Track the run so dispose() can await it before freeing the handle —
+    // mpv_hook_add does `lock_core(ctx)` on the shared core, and a busy
+    // playloop can hold it long enough for a concurrent dispose to reach
+    // mpv_terminate_destroy first (use-after-free on the freed MPContext).
+    final run = Isolate.run(() {
+      final lib = MpvLibrary.open(libraryPath);
+      using((arena) {
+        lib.mpvHookAdd(
+          Pointer<MpvHandle>.fromAddress(handleAddress),
+          0,
+          name.toNativeUtf8(allocator: arena),
+          priority,
+        );
+      });
     });
+    _pendingHookAdds.add(run);
+    try {
+      await run;
+    } finally {
+      _pendingHookAdds.remove(run);
+    }
   }
 
   /// Signals mpv that hook processing for [id] is complete.
@@ -79,8 +99,7 @@ mixin _HooksModule on _PlayerBase {
   /// table) is also a no-op: a warning is logged on
   /// [PlayerStream.internalLog] and the FFI call is skipped.
   Future<void> continueHook(int id) async {
-    _checkNotDisposed();
-    await _ready;
+    await _gate();
     if (id <= 0) {
       _internalLog(
         'continueHook: ignored invalid hook id $id (must be a positive '
@@ -96,6 +115,10 @@ mixin _HooksModule on _PlayerBase {
       return;
     }
     _hookTimers.remove(id)?.cancel();
+    // Safe on the main isolate even though `mpv_hook_continue` locks the
+    // core: a live id in `_activeHookIds` means mpv is parked at the hook's
+    // dispatch point waiting for exactly this call, so the lock is granted
+    // immediately — the playloop cannot simultaneously be busy elsewhere.
     _lib.mpvHookContinue(_handle, id);
   }
 }

@@ -57,7 +57,7 @@ void main() {
       sw.stop();
 
       expect(exited, isTrue,
-          reason: 'worker must confirm exit via flag + mpv_wakeup alone');
+          reason: 'worker must confirm exit via flag + mpv_wakeup alone',);
       expect(
         sw.elapsedMilliseconds,
         lessThan(1000),
@@ -71,12 +71,12 @@ void main() {
       final after = counter.value;
       await Future<void>.delayed(const Duration(milliseconds: 300));
       expect(counter.value, after,
-          reason: 'event loop kept running after stop() returned');
+          reason: 'event loop kept running after stop() returned',);
 
       // No quit was sent, so tear the mpv core down explicitly.
       lib.mpvTerminateDestroy(handle);
     } finally {
       calloc.free(counter);
     }
-  }, timeout: const Timeout(Duration(seconds: 20)));
+  }, timeout: const Timeout(Duration(seconds: 20)),);
 }

@@ -57,7 +57,7 @@ void main() {
     ready = true;
   });
 
-  tearDownAll(() async => server?.close(force: true));
+  tearDownAll(() => server?.close(force: true));
 
   group('TLS verify rejects an invalid certificate (local self-signed)', () {
     late Player player;

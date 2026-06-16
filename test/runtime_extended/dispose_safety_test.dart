@@ -25,7 +25,7 @@ void main() {
       // Let the event isolate spawn fully before we tear it down — a
       // dispose that races the isolate's first `mpv_wait_event` lands
       // a non-graceful subprocess exit at flutter_test teardown.
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
 
       await player.dispose();
       // Second dispose: the implementation guards with
@@ -33,7 +33,7 @@ void main() {
       // throw, must not crash.
       await player.dispose();
       // Wait for libmpv's background threads to fully wind down.
-      await Future.delayed(const Duration(seconds: 1));
+      await Future<void>.delayed(const Duration(seconds: 1));
     }, timeout: const Timeout(Duration(seconds: 15)),);
   });
 }

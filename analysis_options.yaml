@@ -10,14 +10,18 @@ analyzer:
   language:
     strict-casts: true
     strict-raw-types: true
+    strict-inference: true
   exclude:
     - docs/**
     - graphify-out/**
+    # Codegen-emitted (../lavfi-codegen-scripts); their ignore_for_file
+    # headers don't cover this file's stricter ruleset, and the resulting
+    # ~5k infos would bury every real finding in `flutter analyze`.
+    - test/generated/**
 
 linter:
   rules:
     - public_member_api_docs
-    - package_api_docs
     - prefer_const_constructors
     - prefer_const_constructors_in_immutables
     - prefer_const_declarations
@@ -32,3 +36,6 @@ linter:
     - use_super_parameters
     - avoid_redundant_argument_values
     - unnecessary_parenthesis
+    - avoid_dynamic_calls
+    - unnecessary_async
+    - cancel_subscriptions

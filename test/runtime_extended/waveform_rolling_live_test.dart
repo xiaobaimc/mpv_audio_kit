@@ -53,7 +53,7 @@ void main() {
         ..connectionTimeout = const Duration(seconds: 4);
       final req = await client.headUrl(Uri.parse(mp3Stream));
       final resp = await req.close().timeout(const Duration(seconds: 4));
-      await resp.drain();
+      await resp.drain<void>();
       client.close();
       networkAvailable = true;
     } catch (_) {

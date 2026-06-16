@@ -1,6 +1,6 @@
 name: mpv_audio_kit
 description: Dart audio player built on mpv v0.41.0. Supports audio filters, equalizer, visualizer, waveform and more. Targets macOS, Windows, Linux, iOS and Android.
-version: 0.3.6
+version: 0.4.0
 homepage: https://github.com/ales-drnz/mpv_audio_kit
 repository: https://github.com/ales-drnz/mpv_audio_kit
 issue_tracker: https://github.com/ales-drnz/mpv_audio_kit/issues
@@ -28,13 +28,11 @@ environment:
   flutter: '>=3.27.0'
 
 dependencies:
-  crypto: ^3.0.0
   ffi: ^2.1.3
   fftea: ^1.5.0
   flutter:
     sdk: flutter
   meta: ^1.15.0
-  plugin_platform_interface: ^2.0.2
 
 dev_dependencies:
   flutter_lints: ^6.0.0
@@ -61,8 +59,3 @@ flutter:
       windows:
         pluginClass: MpvAudioKitPluginCApi
         ffiPlugin: true
-  # CA certificate bundle used for `https://` peer verification on
-  # platforms whose OS trust store is not reachable from native code.
-  # Auto-extracted to a real filesystem path at player construction.
-  assets:
-    - lib/assets/cacert.pem

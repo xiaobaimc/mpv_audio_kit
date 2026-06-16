@@ -103,7 +103,7 @@ void main() {
       // change; the wait gives mpv time to process the stop command,
       // and we assert the post-stop state synchronously.
       await player.stop();
-      await Future.delayed(const Duration(milliseconds: 300));
+      await Future<void>.delayed(const Duration(milliseconds: 300));
       expect(player.state.playing, isFalse);
     }, timeout: const Timeout(Duration(seconds: 15)),);
 

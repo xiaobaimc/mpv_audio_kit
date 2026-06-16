@@ -6,7 +6,8 @@
 ///
 /// Chooses which audio rendition mpv picks from an HLS master playlist. The
 /// per-variant bitrate *values* are read-side on `MpvTrack.hlsBitrate`; this
-/// is the selection *policy*, set once via `PlayerConfiguration.hlsBitrate`.
+/// is the selection *policy*, set via `Player.setHlsBitrate` (its initial
+/// value comes from `PlayerConfiguration.hlsBitrate`).
 enum HlsBitrate {
   /// Disable HLS bitrate-based selection (mpv's `no`).
   no('no'),

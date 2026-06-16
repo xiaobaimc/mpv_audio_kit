@@ -59,6 +59,16 @@ void main() {
       await player.setAudioFormat(Format.s64);
       expect(player.state.audioFormat, Format.s64);
 
+      // The documented reset path: Format.auto writes the wire token `no`.
+      // This build's libmpv accepts `""`/`"no"` on `audio-format` as a
+      // reset to auto (a parse/print asymmetry fixed in the maintained
+      // build; vanilla mpv rejects the token). This pin guards that
+      // behavior across libmpv updates — if it ever regresses to the
+      // vanilla parser, this throws instead of resetting.
+      await player.setAudioFormat(Format.auto);
+      expect(player.state.audioFormat, Format.auto);
+      expect(await player.getRawProperty('audio-format'), 'no');
+
       await player.setAudioChannels(Channels.stereo);
       expect(player.state.audioChannels, Channels.stereo);
 
@@ -121,7 +131,7 @@ void main() {
       await player
           .setAudioDevice(const Device(name: 'auto', description: 'whatever'));
       // Allow the property observer round-trip to land.
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
 
       final autoEntry = player.state.audioDevices.firstWhere(
           (d) => d.name == 'auto',
