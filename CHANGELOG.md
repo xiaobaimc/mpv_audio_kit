@@ -1,4 +1,4 @@
-## [0.4.0] - 14-06-2026
+## [0.4.0] - 16-06-2026
 
 ### Breaking
 - `AudioEffects` slots are now nullable (`null` = "never configured"), so a consumer keeps only the effect classes it names (~270 KB saved when none are used). Reading a slot now needs a null-check (`e.bass?.enabled ?? false`); construction is unchanged.
